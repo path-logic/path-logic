@@ -7,13 +7,13 @@
         "apps/*"
     ],
     "scripts": {
-        "dev": "nx serve web",
-        "build": "nx build web",
+        "dev": "nx dev web",
+        "build": "nx run-many --target=build --all",
         "build:core": "nx build @path-logic/core",
         "test": "nx run-many --target=test --all",
-        "test:affected": "nx affected --target=test",
         "lint": "nx run-many --target=lint --all",
-        "typecheck": "nx run-many --target=typecheck --all"
+        "typecheck": "nx run-many --target=typecheck --all",
+        "docs": "nx docs @path-logic/core"
     },
     "devDependencies": {
         "nx": "^19.0.0",

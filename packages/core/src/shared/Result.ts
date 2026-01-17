@@ -3,7 +3,9 @@ import { ErrorCode } from '../domain/ErrorCode';
 /**
  * Standard Result pattern for engine operations.
  */
-export type Result<T, E = IEngineError> = { success: true; value: T } | { success: false; error: E };
+export type Result<T, E = IEngineError> =
+    | { success: true; value: T }
+    | { success: false; error: E };
 
 /**
  * Structured error details for engine failures.

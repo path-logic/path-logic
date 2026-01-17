@@ -1,10 +1,4 @@
-import {
-    Cents,
-    ISODateString,
-    ITransaction,
-    IRecurringSchedule,
-    Frequency,
-} from '../domain/types';
+import { Cents, ISODateString, ITransaction, IRecurringSchedule, Frequency } from '../domain/types';
 
 export enum ProjectedItemType {
     Pending = 'pending',
@@ -119,15 +113,17 @@ function isDueOnDate(schedule: IRecurringSchedule, date: string): boolean {
             return diffDays % 14 === 0;
         case Frequency.Monthly:
             return current.getUTCDate() === start.getUTCDate();
-        case Frequency.Bimonthly:
-            {
-                const monthDiff: number =
-                    (current.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-                    (current.getUTCMonth() - start.getUTCMonth());
-                return monthDiff % 2 === 0 && current.getUTCDate() === start.getUTCDate();
-            }
+        case Frequency.Bimonthly: {
+            const monthDiff: number =
+                (current.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+                (current.getUTCMonth() - start.getUTCMonth());
+            return monthDiff % 2 === 0 && current.getUTCDate() === start.getUTCDate();
+        }
         case Frequency.Yearly:
-            return current.getUTCDate() === start.getUTCDate() && current.getUTCMonth() === start.getUTCMonth();
+            return (
+                current.getUTCDate() === start.getUTCDate() &&
+                current.getUTCMonth() === start.getUTCMonth()
+            );
         default:
             return false;
     }

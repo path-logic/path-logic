@@ -6,10 +6,10 @@ This is a **Principal-level Full-Stack** project using **Next.js 15**, **TypeScr
 
 This project uses an **Nx monorepo** with an **Open Core** licensing model:
 
-| Package | Visibility | Purpose |
-| ------- | ---------- | ------- |
+| Package            | Visibility       | Purpose                                                  |
+| ------------------ | ---------------- | -------------------------------------------------------- |
 | `@path-logic/core` | **Public (MIT)** | Framework-agnostic engine — your technical business card |
-| `apps/web` | **Private** | Next.js 15 app — commercial product with protected IP |
+| `apps/web`         | **Private**      | Next.js 15 app — commercial product with protected IP    |
 
 **Key Principle:** The `core` library has **zero framework dependencies** and can be published to npm independently. The private app imports from core, never the reverse.
 
@@ -133,6 +133,7 @@ make typecheck
 ## Git Standards
 
 ### Commit Messages (Required)
+
 - **Subject line**: 50 characters maximum
 - **Body**: 70 characters maximum per line
 - **Format**: Subject and body must be separated by a blank line
@@ -143,7 +144,6 @@ Subject line (max 50 chars)
 Body description providing context for the change.
 Each line is wrapped at 70 characters.
 ```
-
 
 ### Examples
 

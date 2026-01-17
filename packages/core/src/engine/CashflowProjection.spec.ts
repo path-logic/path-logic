@@ -1,6 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { generateProjection, ProjectedItemType, CashflowProjection, IProjectionInputs, IProjectionDataPoint } from './CashflowProjection';
-import { Frequency, TransactionStatus, AccountType, ISODateString, ITransaction } from '../domain/types';
+import {
+    generateProjection,
+    ProjectedItemType,
+    CashflowProjection,
+    IProjectionInputs,
+    IProjectionDataPoint,
+} from './CashflowProjection';
+import {
+    Frequency,
+    TransactionStatus,
+    AccountType,
+    ISODateString,
+    ITransaction,
+} from '../domain/types';
 
 describe('CashflowProjection', () => {
     it('should correctly project Bimonthly recurring items', () => {
@@ -28,9 +40,15 @@ describe('CashflowProjection', () => {
         const projection: CashflowProjection = generateProjection(startDate, days, inputs);
 
         // Should be due on Jan 01 and Mar 01 (monthDiff 0 and 2)
-        const jan01: IProjectionDataPoint | undefined = projection.find((p: IProjectionDataPoint) => p.date === '2026-01-01');
-        const feb01: IProjectionDataPoint | undefined = projection.find((p: IProjectionDataPoint) => p.date === '2026-02-01');
-        const mar01: IProjectionDataPoint | undefined = projection.find((p: IProjectionDataPoint) => p.date === '2026-03-01');
+        const jan01: IProjectionDataPoint | undefined = projection.find(
+            (p: IProjectionDataPoint) => p.date === '2026-01-01',
+        );
+        const feb01: IProjectionDataPoint | undefined = projection.find(
+            (p: IProjectionDataPoint) => p.date === '2026-02-01',
+        );
+        const mar01: IProjectionDataPoint | undefined = projection.find(
+            (p: IProjectionDataPoint) => p.date === '2026-03-01',
+        );
 
         expect(jan01).toBeDefined();
         expect(jan01!.items).toHaveLength(1);

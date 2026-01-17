@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint src",
+    "test": "echo 'No tests for web yet'",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "16.1.3",

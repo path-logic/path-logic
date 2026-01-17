@@ -1,11 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "lib": [
-            "ES2022",
-            "DOM",
-            "DOM.Iterable"
-        ],
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
         "module": "esnext",
         "moduleResolution": "bundler",
         "strict": true,
@@ -28,13 +24,8 @@
         "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@path-logic/core": [
-                "packages/core/src/index.ts"
-            ]
+            "@path-logic/core": ["packages/core/src/index.ts"]
         }
     },
-    "exclude": [
-        "node_modules",
-        "tmp"
-    ]
+    "exclude": ["node_modules", "tmp"]
 }

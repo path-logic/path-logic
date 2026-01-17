@@ -11,7 +11,10 @@ export interface IValidationResult {
  * Rule: Sum(Splits) === totalAmount
  */
 export function validateSplitSum(transaction: ITransaction): IValidationResult {
-    const splitSum: number = transaction.splits.reduce((sum: number, split: ISplit) => sum + split.amount, 0);
+    const splitSum: number = transaction.splits.reduce(
+        (sum: number, split: ISplit) => sum + split.amount,
+        0,
+    );
 
     if (splitSum !== transaction.totalAmount) {
         return {

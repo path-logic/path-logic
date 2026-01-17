@@ -38,12 +38,12 @@ path-logic/
 
 ### `@path-logic/core` (Public / OSS)
 
-| Aspect | Details |
-| ------ | ------- |
-| **License** | MIT |
-| **Purpose** | Technical business card — proves library-grade code quality |
-| **Audience** | Recruiters, OSS community |
-| **Registry** | Published to npm |
+| Aspect       | Details                                                     |
+| ------------ | ----------------------------------------------------------- |
+| **License**  | MIT                                                         |
+| **Purpose**  | Technical business card — proves library-grade code quality |
+| **Audience** | Recruiters, OSS community                                   |
+| **Registry** | Published to npm                                            |
 
 **Contents:**
 
@@ -63,12 +63,12 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 
 ### `path-logic-app` (Private / Commercial)
 
-| Aspect | Details |
-| ------ | ------- |
-| **License** | Proprietary |
-| **Purpose** | Commercial product for passive income |
-| **Audience** | End users, power users tired of Mint/YNAB |
-| **Deployment** | Vercel |
+| Aspect         | Details                                   |
+| -------------- | ----------------------------------------- |
+| **License**    | Proprietary                               |
+| **Purpose**    | Commercial product for passive income     |
+| **Audience**   | End users, power users tired of Mint/YNAB |
+| **Deployment** | Vercel                                    |
 
 **Contents:**
 
@@ -246,11 +246,11 @@ npm publish --access public
 
 ### GitHub Actions
 
-| Workflow | Trigger | Jobs |
-| -------- | ------- | ---- |
+| Workflow           | Trigger                      | Jobs                           |
+| ------------------ | ---------------------------- | ------------------------------ |
 | `code-quality.yml` | Push/PR to `main`, `develop` | Lint, typecheck, test affected |
-| `publish-core.yml` | Tag `core@*` | Build & publish to npm |
-| `deploy-app.yml` | Push to `main` | Deploy to Vercel |
+| `publish-core.yml` | Tag `core@*`                 | Build & publish to npm         |
+| `deploy-app.yml`   | Push to `main`               | Deploy to Vercel               |
 
 ### Branch Strategy
 

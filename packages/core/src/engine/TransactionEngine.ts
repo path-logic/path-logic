@@ -1,9 +1,4 @@
-import {
-    EntityId,
-    ITransaction,
-    ISplit,
-    TransactionStatus,
-} from '../domain/types';
+import { EntityId, ITransaction, ISplit, TransactionStatus } from '../domain/types';
 import { Result } from '../shared/Result';
 import { ErrorCode } from '../domain/ErrorCode';
 import { validateSplitSum, IValidationResult } from './invariants';
@@ -26,7 +21,10 @@ export class TransactionEngine implements ITransactionEngine {
      * Strategy: Adds discrepancy to the last split or creates a new one.
      */
     public autoBalanceSplits(transaction: ITransaction): ITransaction {
-        const currentSum: number = transaction.splits.reduce((s: number, sp: ISplit) => s + sp.amount, 0);
+        const currentSum: number = transaction.splits.reduce(
+            (s: number, sp: ISplit) => s + sp.amount,
+            0,
+        );
         const discrepancy: number = transaction.totalAmount - currentSum;
 
         if (discrepancy === 0) return transaction;

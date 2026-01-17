@@ -22,7 +22,7 @@ npm install @path-logic/core
 import { TransactionEngine, Money } from '@path-logic/core';
 
 const engine = new TransactionEngine();
-const amount = Money.dollarsToCents(100.50);
+const amount = Money.dollarsToCents(100.5);
 // ...
 ```
 

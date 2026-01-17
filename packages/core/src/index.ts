@@ -38,11 +38,6 @@ export type {
 // === Shared ===
 import * as Money from './shared/Money';
 export { Money };
-export {
-    dollarsToCents,
-    centsToDollars,
-    formatCurrency,
-    parseCurrencyInput,
-} from './shared/Money';
+export { dollarsToCents, centsToDollars, formatCurrency, parseCurrencyInput } from './shared/Money';
 export type { Result, IEngineError } from './shared/Result';
 export { ErrorCode } from './domain/ErrorCode';
