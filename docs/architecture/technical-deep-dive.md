@@ -99,7 +99,27 @@ class GoogleDriveProvider implements IStorageProvider { ... }
 class ICloudProvider implements IStorageProvider { ... }
 ```
 
-**Note**: iCloud's Web API (CloudKit JS) is less robust than the native CloudKit. For best iCloud experience, users may prefer the native iOS/iPadOS app. The web version will still work but with sync limitations.
+#### CloudKit JS Limitations (Web PWA for Apple Users)
+
+CloudKit JS is functional but has constraints compared to native CloudKit:
+
+| Feature | Native CloudKit (iOS) | CloudKit JS (Web) |
+| :--- | :--- | :--- |
+| **Background Sync** | ✅ Automatic | ❌ Manual (user must be in app) |
+| **Conflict Resolution** | ✅ Advanced (CKRecord changeTag) | ⚠️ Basic (last-write-wins) |
+| **Subscriptions/Push** | ✅ Real-time notifications | ❌ Not supported |
+| **Record Zones** | ✅ Full support | ⚠️ Limited (no custom zones) |
+| **Offline Queue** | ✅ Native queue | ⚠️ Manual implementation |
+
+**Critical Limitation**: **No background sync**. The web app must be open and active to sync changes to iCloud.
+
+**Impact on Your Use Case**:
+Given your **constrained mobile UX** (mostly viewing, limited CRUD):
+- ✅ **Reading data**: Works perfectly. User opens web app, it pulls latest from iCloud.
+- ✅ **Adding a transaction**: Works. Save locally, sync when user is in the app.
+- ⚠️ **Multi-device editing**: If a user edits on mobile then immediately opens web, there's a ~5-10 second window where web might show stale data until CloudKit JS polls for changes.
+
+**Recommendation**: For Apple users who primarily _view_ data on web and _edit_ on iOS, CloudKit JS is **fine**. For power users who need instant cross-device sync, recommend the native iOS app.
 
 ---
 
