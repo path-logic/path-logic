@@ -6,6 +6,6 @@ import { Cents, ISODateString } from '../domain/types';
  * Used for deduplication during QIF/CSV imports.
  */
 export function generateImportHash(date: ISODateString, amount: Cents, payee: string): string {
-    const normalized = `${date}|${amount}|${payee.toLowerCase().trim()}`;
+    const normalized: string = `${date}|${amount}|${payee.toLowerCase().trim()}`;
     return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
 }

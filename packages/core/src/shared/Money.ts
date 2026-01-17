@@ -24,11 +24,12 @@ export function centsToDollars(cents: Cents): number {
  * @param locale - BCP 47 language tag (default: 'en-US')
  * @returns Formatted currency string (e.g., "$100.50")
  */
-export function formatCurrency(cents: Cents, locale = 'en-US'): string {
-    return new Intl.NumberFormat(locale, {
+export function formatCurrency(cents: Cents, locale: string = 'en-US'): string {
+    const formatter: Intl.NumberFormat = new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'USD',
-    }).format(cents / 100);
+    });
+    return formatter.format(cents / 100);
 }
 
 /**
@@ -40,8 +41,8 @@ export function formatCurrency(cents: Cents, locale = 'en-US'): string {
  */
 export function parseCurrencyInput(input: string): Cents {
     // Remove currency symbols, commas, whitespace
-    const cleaned = input.replace(/[$,\s]/g, '');
-    const dollars = parseFloat(cleaned);
+    const cleaned: string = input.replace(/[$,\s]/g, '');
+    const dollars: number = parseFloat(cleaned);
 
     if (isNaN(dollars)) {
         throw new Error(`Invalid currency input: ${input}`);

@@ -57,14 +57,15 @@ export class QIFParser {
             accountType: QIFAccountType.Bank,
             errors: new Array<IParseError>(),
             warnings: new Array<IParseWarning>(),
-        };
+        } satisfies IQIFParseResult;
     }
 
     /**
      * Handles the complex task of normalizing various QIF date formats.
      */
     public normalizeDate(raw: string): ISODateString {
+        const dateStr: string = raw.trim();
         // Implementation logic for defensive date parsing from spec
-        return raw;
+        return dateStr;
     }
 }

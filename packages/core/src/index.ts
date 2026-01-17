@@ -36,6 +36,8 @@ export type {
 } from './parsers/QIFParser';
 
 // === Shared ===
+import * as Money from './shared/Money';
+export { Money };
 export {
     dollarsToCents,
     centsToDollars,

@@ -41,15 +41,15 @@ export function generateProjection(
     days: number,
     inputs: IProjectionInputs,
 ): CashflowProjection {
-    const { clearedBalance, pendingTransactions, recurringSchedules } = inputs;
+    const { clearedBalance, pendingTransactions, recurringSchedules }: IProjectionInputs = inputs;
 
     const projection: CashflowProjection = new Array<IProjectionDataPoint>();
-    let runningBalance = clearedBalance;
+    let runningBalance: Cents = clearedBalance;
 
-    for (let i = 0; i < days; i++) {
-        const currentDate = addDays(startDate, i);
+    for (let i: number = 0; i < days; i++) {
+        const currentDate: ISODateString = addDays(startDate, i);
         const items: Array<IProjectedItem> = new Array<IProjectedItem>();
-        let dailyDelta = 0;
+        let dailyDelta: Cents = 0;
 
         // 1. Add pending transactions due on this date
         for (const tx of pendingTransactions) {
@@ -60,7 +60,7 @@ export function generateProjection(
                     description: tx.payee,
                     amount: tx.totalAmount,
                     sourceId: tx.id,
-                });
+                } satisfies IProjectedItem);
             }
         }
 
@@ -73,7 +73,7 @@ export function generateProjection(
                     description: schedule.payee,
                     amount: schedule.amount,
                     sourceId: schedule.id,
-                });
+                } satisfies IProjectedItem);
             }
         }
 
@@ -83,8 +83,8 @@ export function generateProjection(
             date: currentDate,
             projectedBalance: runningBalance,
             delta: dailyDelta,
-            items,
-        });
+            items: items,
+        } satisfies IProjectionDataPoint);
     }
 
     return projection;
@@ -93,7 +93,7 @@ export function generateProjection(
 // === Helper Functions (Mocked/Simplified for now) ===
 
 function addDays(date: string, days: number): string {
-    const d = new Date(date + 'T00:00:00Z');
+    const d: Date = new Date(date + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + days);
     return d.toISOString().split('T')[0] || '';
 }
@@ -103,12 +103,12 @@ function isDueOnDate(schedule: IRecurringSchedule, date: string): boolean {
     if (date < schedule.startDate) return false;
     if (schedule.endDate && date > schedule.endDate) return false;
 
-    const start = new Date(schedule.startDate + 'T00:00:00Z');
-    const current = new Date(date + 'T00:00:00Z');
+    const start: Date = new Date(schedule.startDate + 'T00:00:00Z');
+    const current: Date = new Date(date + 'T00:00:00Z');
 
     // Simplistic frequency check for baseline implementation
-    const diffTime = Math.abs(current.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffTime: number = Math.abs(current.getTime() - start.getTime());
+    const diffDays: number = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     switch (schedule.frequency) {
         case Frequency.Daily:
@@ -119,6 +119,13 @@ function isDueOnDate(schedule: IRecurringSchedule, date: string): boolean {
             return diffDays % 14 === 0;
         case Frequency.Monthly:
             return current.getUTCDate() === start.getUTCDate();
+        case Frequency.Bimonthly:
+            {
+                const monthDiff: number =
+                    (current.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+                    (current.getUTCMonth() - start.getUTCMonth());
+                return monthDiff % 2 === 0 && current.getUTCDate() === start.getUTCDate();
+            }
         case Frequency.Yearly:
             return current.getUTCDate() === start.getUTCDate() && current.getUTCMonth() === start.getUTCMonth();
         default:

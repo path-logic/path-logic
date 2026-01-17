@@ -6,7 +6,7 @@ import {
 } from '../domain/types';
 import { Result } from '../shared/Result';
 import { ErrorCode } from '../domain/ErrorCode';
-import { validateSplitSum } from './invariants';
+import { validateSplitSum, IValidationResult } from './invariants';
 
 /**
  * Interface definition for the core transaction engine.
@@ -26,8 +26,8 @@ export class TransactionEngine implements ITransactionEngine {
      * Strategy: Adds discrepancy to the last split or creates a new one.
      */
     public autoBalanceSplits(transaction: ITransaction): ITransaction {
-        const currentSum = transaction.splits.reduce((s, sp) => s + sp.amount, 0);
-        const discrepancy = transaction.totalAmount - currentSum;
+        const currentSum: number = transaction.splits.reduce((s: number, sp: ISplit) => s + sp.amount, 0);
+        const discrepancy: number = transaction.totalAmount - currentSum;
 
         if (discrepancy === 0) return transaction;
 
@@ -39,19 +39,19 @@ export class TransactionEngine implements ITransactionEngine {
                 categoryId: null,
                 memo: 'Auto-balanced discrepancy',
                 amount: discrepancy,
-            });
+            } satisfies ISplit);
         } else {
-            const lastIndex = updatedSplits.length - 1;
-            const lastSplit = updatedSplits[lastIndex];
+            const lastIndex: number = updatedSplits.length - 1;
+            const lastSplit: ISplit | undefined = updatedSplits[lastIndex];
             if (lastSplit) {
                 updatedSplits[lastIndex] = {
                     ...lastSplit,
                     amount: lastSplit.amount + discrepancy,
-                };
+                } satisfies ISplit;
             }
         }
 
-        return { ...transaction, splits: updatedSplits };
+        return { ...transaction, splits: updatedSplits } satisfies ITransaction;
     }
 
     /**
@@ -59,7 +59,7 @@ export class TransactionEngine implements ITransactionEngine {
      */
     public validateTransaction(transaction: ITransaction): Result<void> {
         // 1. Validate split sum invariant
-        const validation = validateSplitSum(transaction);
+        const validation: IValidationResult = validateSplitSum(transaction);
         if (!validation.valid) {
             return {
                 success: false,
@@ -68,7 +68,7 @@ export class TransactionEngine implements ITransactionEngine {
                     message: validation.error || 'Split sum mismatch',
                     details: { discrepancy: validation.discrepancy },
                 },
-            };
+            } satisfies Result<void>;
         }
 
         // 2. Validate status rules
@@ -77,6 +77,6 @@ export class TransactionEngine implements ITransactionEngine {
             // Implementation detail: checking this might happen higher up
         }
 
-        return { success: true, value: undefined };
+        return { success: true, value: undefined } satisfies Result<void>;
     }
 }
