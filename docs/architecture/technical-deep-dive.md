@@ -78,6 +78,29 @@ By embedding the data store within the user's Google Drive or iCloud:
 - **Security**: Since we never see the data, we can't lose it.
 - **Privacy**: This is our primary differentiator.
 
+#### Dual-Provider Support (Web PWA)
+
+The web application must support **both** authentication and storage providers:
+
+| Provider | SSO | Storage Backend | Web API Availability |
+| :--- | :--- | :--- | :--- |
+| **Google** | Google Sign-In | Google Drive API | ✅ Excellent |
+| **Apple** | Sign in with Apple | iCloud Drive API | ⚠️ Limited (CloudKit JS) |
+
+**Implementation Pattern**:
+```typescript
+interface IStorageProvider {
+  authenticate(): Promise<IUser>;
+  saveEncryptedDB(data: ArrayBuffer): Promise<void>;
+  loadEncryptedDB(): Promise<ArrayBuffer>;
+}
+
+class GoogleDriveProvider implements IStorageProvider { ... }
+class ICloudProvider implements IStorageProvider { ... }
+```
+
+**Note**: iCloud's Web API (CloudKit JS) is less robust than the native CloudKit. For best iCloud experience, users may prefer the native iOS/iPadOS app. The web version will still work but with sync limitations.
+
 ---
 
 ## 3. PWA & Local-First Storage
@@ -129,9 +152,11 @@ The `@path-logic/core` library is **framework-agnostic**. This enables a true "W
 | Concern | Web (PWA) | React Native |
 | :--- | :--- | :--- |
 | **SQLite** | `sql.js` (WASM) | `expo-sqlite` (native) |
-| **Storage** | Google Drive Web API | CloudKit (iOS) / Drive Native API (Android) |
+| **Storage** | Google Drive Web API / CloudKit JS (limited) | **CloudKit (iOS)** / Drive Native API (Android) |
 | **UI** | React + Next.js | React Native components |
 | **Crypto** | Web Crypto API | `react-native-quick-crypto` |
+
+**Why Native Apps Matter for iCloud Users**: CloudKit JS (web) has sync limitations compared to native CloudKit. Users who choose Apple ID + iCloud will have a significantly better experience on the native iOS/iPadOS app.
 
 ### Implementation Path:
 1. **Phase 1 (Current)**: Prove the core engine and UX with the Web PWA.
