@@ -15,8 +15,8 @@ trigger: always_on
 - **Persistence:** Local-first SQLite (via SQL.js/WASM).
 - **Security:** AES-GCM 256-bit client-side encryption via Web Crypto API.
 - **Storage Strategy:** User-Owned Data (BYOS). The app interacts with Google Drive (appDataFolder) or iCloud (CloudKit) via a Provider Pattern.
-  - **Web PWA**: Google Drive Web API (excellent) + CloudKit JS (limited - no background sync)
-  - **React Native**: Native CloudKit (iOS) + Google Drive Native API (Android)
+    - **Web PWA**: Google Drive Web API (excellent) + CloudKit JS (limited - no background sync)
+    - **React Native**: Native CloudKit (iOS) + Google Drive Native API (Android)
 - **Documentation Convention:** All project documentation (Specs, Plans, Architecture) MUST be stored in the ./docs directory. With subdirectories based upon doc type.
 
 ## **2\. Functional & Technical Specifications**
@@ -91,11 +91,11 @@ This is the "Forward-Looking" differentiator.
 
 **Critical Limitation**: CloudKit JS does NOT support background sync. The web app must be open to sync.
 
-| Feature | Native CloudKit (iOS) | CloudKit JS (Web) |
-| :--- | :--- | :--- |
-| **Background Sync** | ✅ Automatic | ❌ Manual (app must be open) |
-| **Conflict Resolution** | ✅ Advanced (changeTag) | ⚠️ Basic (last-write-wins) |
-| **Push Notifications** | ✅ Supported | ❌ Not supported |
+| Feature                 | Native CloudKit (iOS)   | CloudKit JS (Web)            |
+| :---------------------- | :---------------------- | :--------------------------- |
+| **Background Sync**     | ✅ Automatic            | ❌ Manual (app must be open) |
+| **Conflict Resolution** | ✅ Advanced (changeTag) | ⚠️ Basic (last-write-wins)   |
+| **Push Notifications**  | ✅ Supported            | ❌ Not supported             |
 
 **Impact**: For Apple users with constrained mobile UX (mostly viewing), CloudKit JS is **acceptable**. Power users who need instant cross-device sync should use the native iOS app.
 
