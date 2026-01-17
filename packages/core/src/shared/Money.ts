@@ -1,4 +1,4 @@
-import { Cents } from '../domain/types';
+import type { Cents } from '../domain/types';
 
 /**
  * Converts decimal dollar amount to integer cents.

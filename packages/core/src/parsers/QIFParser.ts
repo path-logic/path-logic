@@ -49,7 +49,7 @@ export class QIFParser {
     /**
      * Parses QIF content into structured transactions.
      */
-    public parse(content: string): IQIFParseResult {
+    public parse(_content: string): IQIFParseResult {
         // Implementation logic for QIF parsing would go here.
         // For now, returning an empty result to satisfy the structure.
         return {

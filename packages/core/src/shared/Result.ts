@@ -1,4 +1,4 @@
-import { ErrorCode } from '../domain/ErrorCode';
+import type { ErrorCode } from '../domain/ErrorCode';
 
 /**
  * Standard Result pattern for engine operations.
