@@ -27,15 +27,16 @@ install:
 # === CODE QUALITY ===
 
 format:
-	npx prettier --log-level warn --write .
+	npm run format
 
 format-check:
-	npx prettier --check .
+	npm run format-check
 
 typecheck:
-	npx tsc --noEmit
+	npm run typecheck
 
-lint: format-check typecheck
+lint:
+	npm run lint
 	@echo "✅ All checks passed"
 
 # === CLEANUP ===

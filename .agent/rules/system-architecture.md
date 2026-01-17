@@ -116,32 +116,39 @@ const primes: Array<number> = [2, 3, 5, 7, 11];
 
 These rules are enforced via `eslint-plugin-simple-import-sort` and the built-in `sort-imports` rule.
 
-## Code Formatting
+## Code Formatting & Task Orchestration
 
-### Prettier (Required)
+### ESLint & Prettier (Required)
 
-- **Prettier** is the project formatter — no exceptions
-- Run `make format` before all commits
-- CI will reject PRs that fail `make lint`
+- **ESLint 9** handles logical rules (Standardized on Flat Config).
+- **Prettier** handles code aesthetics — no exceptions.
+- Run `npm run format` before all commits.
+- CI will reject PRs that fail `npm run lint`.
 
-**Workflow:**
+### Task Orchestration (Nx First)
 
-```bash
-# Format all files
-make format
+We use **Nx** as the underlying task runner to provide caching, parallelism, and project-aware execution.
 
-# Check formatting + types (CI uses this)
-make lint
+- **Primary UI**: Root `package.json` scripts are the entry point for all developers.
+- **Secondary UI (Muscle Memory)**: A `Makefile` exists at the root, but it merely proxies calls to `npm` to ensure consistency and caching.
 
-# Individual checks
-make format-check
-make typecheck
-```
+**Workflow Targets:**
 
-### Hybrid Script Strategy
+| Target      | Command             | Purpose                                    |
+| ----------- | ------------------- | ------------------------------------------ |
+| `dev`       | `npm run dev`       | Start local development for apps/web       |
+| `build`     | `npm run build`     | Parallel build of all workspace projects   |
+| `lint`      | `npm run lint`      | Run ESLint + Prettier check (All projects) |
+| `typecheck` | `npm run typecheck` | Run TypeScript validation (All projects)   |
+| `test`      | `npm run test`      | Run unit tests (All projects)              |
+| `format`    | `npm run format`    | Reformat seluruh workspace with Prettier   |
+| `docs`      | `npm run docs`      | Generate API documentation for Core        |
 
-- **npm scripts** — App commands only (`dev`, `build`, `start`, `test`)
-- **Makefile** — Tooling commands (`format`, `lint`, `typecheck`, `clean`)
+### Package Responsibility
+
+- `packages/core` must maintain **100% test coverage** and **zero lint errors**.
+- `apps/web` must strictly import from core types to ensure data integrity.
+- Build artifacts (`dist`, `.next`) are **never** committed and are ignored by all tools.
 
 ## Git Standards
 

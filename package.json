@@ -12,6 +12,8 @@
         "build:core": "nx build @path-logic/core",
         "test": "nx run-many --target=test --all",
         "lint": "nx run-many --target=lint --all",
+        "format": "prettier --write .",
+        "format-check": "prettier --check .",
         "typecheck": "nx run-many --target=typecheck --all",
         "docs": "nx docs @path-logic/core"
     },
