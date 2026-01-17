@@ -1,0 +1,14 @@
+{
+    "name": "path-logic",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "echo 'Next.js not yet initialized'",
+        "build": "echo 'Next.js not yet initialized'",
+        "start": "echo 'Next.js not yet initialized'"
+    },
+    "devDependencies": {
+        "prettier": "^3.0.0",
+        "typescript": "^5.0.0"
+    }
+}
