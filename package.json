@@ -9,7 +9,7 @@
     "scripts": {
         "dev": "nx serve web",
         "build": "nx build web",
-        "build:core": "nx build core",
+        "build:core": "nx build @path-logic/core",
         "test": "nx run-many --target=test --all",
         "test:affected": "nx affected --target=test",
         "lint": "nx run-many --target=lint --all",
