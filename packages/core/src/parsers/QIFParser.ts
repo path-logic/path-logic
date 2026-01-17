@@ -49,7 +49,7 @@ export interface IQIFParseResult {
  */
 export class QIFParser {
     private readonly DATE_PATTERNS: Array<RegExp> = [
-        /^(\d{1,2})\/(\d{1,2})'(\d{2})$/, // M/D'YY (Quicken: 1/15'26)
+        /^(\d{1,2})\/(\d{1,2})'(\d{2,4})$/, // M/D'YY or M/D'YYYY (Quicken: 1/15'26 or 3/7'2005)
         /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // M/D/YYYY (1/15/2026)
         /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/, // M/D/YY (1/15/26)
         /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // M-D-YYYY (1-15-2026)
@@ -192,6 +192,10 @@ export class QIFParser {
                     category = value;
                     break;
 
+                case 'C': // Cleared status (X=cleared, *=reconciled, or empty)
+                    // Parser ignores this field for now, but we handle it to avoid warnings
+                    break;
+
                 case 'S': // Split category (multi-line)
                     {
                         const split: IParsedSplit = {
@@ -200,29 +204,41 @@ export class QIFParser {
                             memo: null,
                         };
 
-                        // Next line should be $ (split amount)
-                        if (lineIdx < lines.length) {
-                            const amountLine: string = lines[lineIdx] ?? '';
-                            if (amountLine.charAt(0) === '$') {
+                        // Parse following lines until we hit another transaction field or ^
+                        // Can be: $ (amount), E (memo), or both in either order
+                        let foundAmount: boolean = false;
+                        let foundMemo: boolean = false;
+
+                        while (lineIdx < lines.length && (!foundAmount || !foundMemo)) {
+                            const nextLine: string = lines[lineIdx] ?? '';
+                            if (nextLine.length === 0) {
+                                lineIdx++;
+                                continue;
+                            }
+
+                            const nextCode: string = nextLine.charAt(0);
+
+                            if (nextCode === '$') {
+                                // Split amount
                                 try {
-                                    split.amount = this.parseAmount(amountLine.substring(1).trim());
-                                    lineIdx++;
+                                    split.amount = this.parseAmount(nextLine.substring(1).trim());
                                 } catch {
                                     result.warnings.push({
                                         code: 'SPLIT_AMOUNT_ERROR',
-                                        message: `Failed to parse split amount: ${amountLine}`,
-                                        line: lineIdx,
+                                        message: `Failed to parse split amount: ${nextLine}`,
+                                        line: lineIdx + 1,
                                     });
                                 }
-                            }
-                        }
-
-                        // Optional: E (split memo)
-                        if (lineIdx < lines.length) {
-                            const memoLine: string = lines[lineIdx] ?? '';
-                            if (memoLine.charAt(0) === 'E') {
-                                split.memo = memoLine.substring(1).trim();
                                 lineIdx++;
+                                foundAmount = true;
+                            } else if (nextCode === 'E') {
+                                // Split memo
+                                split.memo = nextLine.substring(1).trim();
+                                lineIdx++;
+                                foundMemo = true;
+                            } else {
+                                // Not a split continuation field, break
+                                break;
                             }
                         }
 

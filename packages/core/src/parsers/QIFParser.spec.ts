@@ -312,4 +312,148 @@ PAMAZON.COM
             expect(result1.transactions[0]?.importHash).toBe(result2.transactions[0]?.importHash);
         });
     });
+
+    describe('Real-World Integration Test', () => {
+        it('parses curated paycheck and mortgage data', () => {
+            const qif: string = `!Type:Bank
+D3/7'2005
+T0.00
+CX
+POpening Balance
+L[Chase Checking]
+^
+D3/7'2005
+CX
+T0.00
+POpening Balance
+^
+D6/15'2025
+T5,640.28
+PEmployer Inc
+LWages & Salary:Gross Pay
+SWages & Salary:Gross Pay
+$7,811.46
+STaxes:Federal Income Tax
+$-716.21
+STaxes:Medicare Tax
+$-111.70
+STaxes:Social Security Tax
+$-477.62
+STaxes:State Income Tax
+$-338.48
+SInsurance:Health
+$-129.93
+SInsurance:Dental
+$-5.24
+SInsurance:Vision
+$-1.43
+S401(k)
+$-390.57
+SWages & Salary
+ELife Insurance (Imputed)
+$28.75
+SInsurance:Life
+$-28.75
+^
+D6/30'2025
+T-3,171.87
+PChase Bank
+LPrimary Residence
+SPrimary Residence
+EPrincipal
+$-617.59
+SBills:Mortgage Interest
+EInterest
+$-923.98
+SBills:House Insurance
+$-266.52
+SLoan:Escrow Shortage
+$-225.84
+STaxes:Real Estate Taxes
+$-1,137.94
+^`;
+
+            const result = parser.parse(qif);
+
+            // Should parse all 4 transactions
+            expect(result.transactions).toHaveLength(4);
+            expect(result.errors).toHaveLength(0);
+
+            // Validate opening balance transactions
+            const openingBalance1 = result.transactions[0];
+            expect(openingBalance1?.date).toBe('2005-03-07');
+            expect(openingBalance1?.amount).toBe(0);
+            expect(openingBalance1?.payee).toBe('Opening Balance');
+
+            // Validate complex paycheck (11 splits)
+            const paycheck = result.transactions[2];
+            expect(paycheck?.date).toBe('2025-06-15');
+            expect(paycheck?.amount).toBe(564028); // $5,640.28
+            expect(paycheck?.payee).toBe('Employer Inc');
+            expect(paycheck?.splits).toHaveLength(11);
+
+            // Verify gross pay split
+            expect(paycheck?.splits[0]?.category).toBe('Wages & Salary:Gross Pay');
+            expect(paycheck?.splits[0]?.amount).toBe(781146); // $7,811.46
+
+            // Verify negative tax deductions
+            expect(paycheck?.splits[1]?.category).toBe('Taxes:Federal Income Tax');
+            expect(paycheck?.splits[1]?.amount).toBe(-71621); // -$716.21
+
+            expect(paycheck?.splits[2]?.category).toBe('Taxes:Medicare Tax');
+            expect(paycheck?.splits[2]?.amount).toBe(-11170);
+
+            expect(paycheck?.splits[3]?.category).toBe('Taxes:Social Security Tax');
+            expect(paycheck?.splits[3]?.amount).toBe(-47762);
+
+            expect(paycheck?.splits[4]?.category).toBe('Taxes:State Income Tax');
+            expect(paycheck?.splits[4]?.amount).toBe(-33848);
+
+            // Verify insurance deductions
+            expect(paycheck?.splits[5]?.category).toBe('Insurance:Health');
+            expect(paycheck?.splits[5]?.amount).toBe(-12993);
+
+            expect(paycheck?.splits[6]?.category).toBe('Insurance:Dental');
+            expect(paycheck?.splits[6]?.amount).toBe(-524);
+
+            expect(paycheck?.splits[7]?.category).toBe('Insurance:Vision');
+            expect(paycheck?.splits[7]?.amount).toBe(-143);
+
+            // Verify 401(k)
+            expect(paycheck?.splits[8]?.category).toBe('401(k)');
+            expect(paycheck?.splits[8]?.amount).toBe(-39057);
+
+            // Verify imputed life insurance (positive then negative offset)
+            expect(paycheck?.splits[9]?.category).toBe('Wages & Salary');
+            expect(paycheck?.splits[9]?.amount).toBe(2875); // Imputed income
+            expect(paycheck?.splits[9]?.memo).toBe('Life Insurance (Imputed)');
+
+            expect(paycheck?.splits[10]?.category).toBe('Insurance:Life');
+            expect(paycheck?.splits[10]?.amount).toBe(-2875); // Offsetting deduction
+
+            // Validate mortgage payment (5 splits)
+            const mortgage = result.transactions[3];
+            expect(mortgage?.date).toBe('2025-06-30');
+            expect(mortgage?.amount).toBe(-317187); // -$3,171.87
+            expect(mortgage?.payee).toBe('Chase Bank');
+            expect(mortgage?.splits).toHaveLength(5);
+
+            expect(mortgage?.splits[0]?.category).toBe('Primary Residence');
+            expect(mortgage?.splits[0]?.amount).toBe(-61759); // Principal
+            expect(mortgage?.splits[0]?.memo).toBe('Principal');
+
+            expect(mortgage?.splits[1]?.category).toBe('Bills:Mortgage Interest');
+            expect(mortgage?.splits[1]?.amount).toBe(-92398); // Interest
+            expect(mortgage?.splits[1]?.memo).toBe('Interest');
+
+            expect(mortgage?.splits[2]?.category).toBe('Bills:House Insurance');
+            expect(mortgage?.splits[2]?.amount).toBe(-26652);
+
+            expect(mortgage?.splits[3]?.category).toBe('Loan:Escrow Shortage');
+            expect(mortgage?.splits[3]?.amount).toBe(-22584);
+
+            expect(mortgage?.splits[4]?.category).toBe('Taxes:Real Estate Taxes');
+            expect(mortgage?.splits[4]?.amount).toBe(-113794);
+        });
+    });
 });

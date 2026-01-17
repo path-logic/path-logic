@@ -1,0 +1,57 @@
+!Type:Bank
+D3/7'2005
+T0.00
+CX
+POpening Balance
+L[Chase Checking]
+^
+D3/7'2005
+CX
+T0.00
+POpening Balance
+^
+D6/15'2025
+T5,640.28
+PEmployer Inc
+LWages & Salary:Gross Pay
+SWages & Salary:Gross Pay
+$7,811.46
+STaxes:Federal Income Tax
+$-716.21
+STaxes:Medicare Tax
+$-111.70
+STaxes:Social Security Tax
+$-477.62
+STaxes:State Income Tax
+$-338.48
+SInsurance:Health
+$-129.93
+SInsurance:Dental
+$-5.24
+SInsurance:Vision
+$-1.43
+S401(k)
+$-390.57
+SWages & Salary
+ELife Insurance (Imputed)
+$28.75
+SInsurance:Life
+$-28.75
+^
+D6/30'2025
+T-3,171.87
+PChase Bank
+LPrimary Residence
+SPrimary Residence
+EPrincipal
+$-617.59
+SBills:Mortgage Interest
+EInterest
+$-923.98
+SBills:House Insurance
+$-266.52
+SLoan:Escrow Shortage
+$-225.84
+STaxes:Real Estate Taxes
+$-1,137.94
+^
