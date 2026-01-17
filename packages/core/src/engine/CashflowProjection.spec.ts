@@ -1,12 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import { generateProjection } from './CashflowProjection';
+import { describe, expect, it } from 'vitest';
+
+import type { ISODateString, ITransaction } from '../domain/types';
+import { Frequency } from '../domain/types';
 import type {
     CashflowProjection,
-    IProjectionInputs,
     IProjectionDataPoint,
+    IProjectionInputs,
 } from './CashflowProjection';
-import { Frequency } from '../domain/types';
-import type { ISODateString, ITransaction } from '../domain/types';
+import { generateProjection } from './CashflowProjection';
 
 describe('CashflowProjection', () => {
     it('should correctly project Bimonthly recurring items', () => {

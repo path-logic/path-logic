@@ -1,4 +1,4 @@
-import type { ITransaction, Cents, ISplit } from '../domain/types';
+import type { Cents, ISplit, ITransaction } from '../domain/types';
 
 export interface IValidationResult {
     valid: boolean;

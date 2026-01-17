@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
-import type { ISODateString, Cents } from '../domain/types';
+
+import type { Cents, ISODateString } from '../domain/types';
 
 /**
  * Generates a deterministic hash for a transaction based on key fields.

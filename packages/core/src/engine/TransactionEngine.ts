@@ -1,9 +1,9 @@
-import type { ITransaction, ISplit } from '../domain/types';
+import { ErrorCode } from '../domain/ErrorCode';
+import type { ISplit, ITransaction } from '../domain/types';
 import { TransactionStatus } from '../domain/types';
 import type { Result } from '../shared/Result';
-import { ErrorCode } from '../domain/ErrorCode';
-import { validateSplitSum } from './invariants';
 import type { IValidationResult } from './invariants';
+import { validateSplitSum } from './invariants';
 
 /**
  * Interface definition for the core transaction engine.

@@ -1,4 +1,4 @@
-import type { Cents, ISODateString, ITransaction, IRecurringSchedule } from '../domain/types';
+import type { Cents, IRecurringSchedule, ISODateString, ITransaction } from '../domain/types';
 import { Frequency } from '../domain/types';
 
 export enum ProjectedItemType {

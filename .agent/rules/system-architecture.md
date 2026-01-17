@@ -103,6 +103,19 @@ items = [];
 const primes: Array<number> = [2, 3, 5, 7, 11];
 ```
 
+### Import Sorting Standards
+
+- **Alphabetized**: All imports must be alphabetized by their source path.
+- **Case Sensitivity**: Sorting must be case-sensitive (`A` before `a`).
+- **Grouping**:
+    1. Side-effect imports (`import './style.css'`)
+    2. Built-in Node.js modules (`node:`)
+    3. External packages (`react`, `next`, etc.)
+    4. Internal monorepo packages (`@path-logic/core`)
+    5. Relative imports (`../`, `./`)
+
+These rules are enforced via `eslint-plugin-simple-import-sort` and the built-in `sort-imports` rule.
+
 ## Code Formatting
 
 ### Prettier (Required)

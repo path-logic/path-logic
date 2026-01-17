@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { dollarsToCents, centsToDollars, formatCurrency, parseCurrencyInput } from './Money';
+import { describe, expect, it } from 'vitest';
+
+import { centsToDollars, dollarsToCents, formatCurrency, parseCurrencyInput } from './Money';
 
 describe('Money Utilities', () => {
     describe('dollarsToCents', () => {

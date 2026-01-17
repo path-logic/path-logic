@@ -1,4 +1,4 @@
-import type { ISODateString, Cents } from '../domain/types';
+import type { Cents, ISODateString } from '../domain/types';
 
 export enum QIFAccountType {
     Bank = 'Bank',
