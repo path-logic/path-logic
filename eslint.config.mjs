@@ -44,6 +44,13 @@ export default tseslint.config(
             '@typescript-eslint/no-array-constructor': 'off',
             // User requirement: Always add explicit type annotations (even if inferrable)
             '@typescript-eslint/no-inferrable-types': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                },
+            ],
         },
         ignores: [
             '**/dist/**',

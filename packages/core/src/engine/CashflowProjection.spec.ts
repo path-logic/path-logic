@@ -1,18 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import {
-    generateProjection,
-    ProjectedItemType,
+import { generateProjection } from './CashflowProjection';
+import type {
     CashflowProjection,
     IProjectionInputs,
     IProjectionDataPoint,
 } from './CashflowProjection';
-import {
-    Frequency,
-    TransactionStatus,
-    AccountType,
-    ISODateString,
-    ITransaction,
-} from '../domain/types';
+import { Frequency } from '../domain/types';
+import type { ISODateString, ITransaction } from '../domain/types';
 
 describe('CashflowProjection', () => {
     it('should correctly project Bimonthly recurring items', () => {
@@ -51,14 +45,14 @@ describe('CashflowProjection', () => {
         );
 
         expect(jan01).toBeDefined();
-        expect(jan01!.items).toHaveLength(1);
-        expect(jan01!.items[0]!.description).toBe('Bimonthly Rent');
+        expect(jan01?.items).toHaveLength(1);
+        expect(jan01?.items[0]?.description).toBe('Bimonthly Rent');
 
         expect(feb01).toBeDefined();
-        expect(feb01!.items).toHaveLength(0);
+        expect(feb01?.items).toHaveLength(0);
 
         expect(mar01).toBeDefined();
-        expect(mar01!.items).toHaveLength(1);
-        expect(mar01!.items[0]!.description).toBe('Bimonthly Rent');
+        expect(mar01?.items).toHaveLength(1);
+        expect(mar01?.items[0]?.description).toBe('Bimonthly Rent');
     });
 });
