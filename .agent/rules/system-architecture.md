@@ -26,6 +26,8 @@ Business logic is decoupled from Frameworks. All core domain logic lives in pure
 - **Local-first**: Data lives on the user's device by default
 - **Encryption**: All persistent data is encrypted with **AES-GCM**
 - **User-owned storage**: Sync to user-controlled cloud storage (Google Drive / iCloud) — never third-party servers
+  - **Dual Provider Support (Web)**: Google Sign-In + Drive API, Apple Sign-In + CloudKit JS
+  - **CloudKit JS Constraint**: No background sync. Web app must be open to sync to iCloud. Native iOS app recommended for power users.
 
 ### UI Design Philosophy: High-Density Professional
 

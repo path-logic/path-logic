@@ -15,6 +15,8 @@ trigger: always_on
 - **Persistence:** Local-first SQLite (via SQL.js/WASM).
 - **Security:** AES-GCM 256-bit client-side encryption via Web Crypto API.
 - **Storage Strategy:** User-Owned Data (BYOS). The app interacts with Google Drive (appDataFolder) or iCloud (CloudKit) via a Provider Pattern.
+  - **Web PWA**: Google Drive Web API (excellent) + CloudKit JS (limited - no background sync)
+  - **React Native**: Native CloudKit (iOS) + Google Drive Native API (Android)
 - **Documentation Convention:** All project documentation (Specs, Plans, Architecture) MUST be stored in the ./docs directory. With subdirectories based upon doc type.
 
 ## **2\. Functional & Technical Specifications**
@@ -77,7 +79,32 @@ This is the "Forward-Looking" differentiator.
 - **Public Repo:** @path-logic/core. Contains the framework-agnostic engine, QIF parser, and math utilities. (Demonstrates "Principal" library-building skills).
 - **Private Repo:** path-logic-app. Contains the Next.js UI, the Google/Apple API keys, and the branding. (Protects your IP and commercial potential).
 
-## **5\. Marketing & Career Promotion**
+## **5\. Multi-Platform Expansion (React Native)**
+
+### **5.1 Platform Strategy**
+
+- **Phase 1 (Web PWA)**: Prove the core engine and UX. Deploy to Vercel.
+- **Phase 2 (React Native)**: Create `apps/mobile` in the monorepo. Import the exact same `@path-logic/core`.
+- **Phase 3 (Platform Adapters)**: Implement native storage providers.
+
+### **5.2 CloudKit JS Constraints (Web)**
+
+**Critical Limitation**: CloudKit JS does NOT support background sync. The web app must be open to sync.
+
+| Feature | Native CloudKit (iOS) | CloudKit JS (Web) |
+| :--- | :--- | :--- |
+| **Background Sync** | ✅ Automatic | ❌ Manual (app must be open) |
+| **Conflict Resolution** | ✅ Advanced (changeTag) | ⚠️ Basic (last-write-wins) |
+| **Push Notifications** | ✅ Supported | ❌ Not supported |
+
+**Impact**: For Apple users with constrained mobile UX (mostly viewing), CloudKit JS is **acceptable**. Power users who need instant cross-device sync should use the native iOS app.
+
+### **5.3 Code Reusability**
+
+- **~90% Shared**: All business logic (`TransactionEngine`, `QIFParser`, `CashflowProjection`) is platform-agnostic TypeScript.
+- **~10% Platform-Specific**: SQLite adapter (sql.js vs expo-sqlite), Storage adapter (Web APIs vs Native SDKs), UI components.
+
+## **6\. Marketing & Career Promotion**
 
 ### **5.1 The Passive Income Pitch**
 
