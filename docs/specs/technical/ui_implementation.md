@@ -16,6 +16,7 @@ The ledger is the primary performance bottleneck and requires specialized handli
 - **Table Logic**: **TanStack Table (v8)**. Used for headless table state management (sorting, filtering, selection).
 - **Virtualization**: **TanStack Virtual**. Essential for domesticating the "terminal" feel with 10k+ rows while keeping 60fps scrolling and a small DOM footprint.
 - **Row Memoization**: Custom `React.memo` wrappers for row components to prevent unnecessary re-renders during filter/search operations.
+- **Calculated Columns**: Cumulative running balances are computed across the entire sorted dataset (pre-windowing) to ensure accuracy regardless of the months shown.
 
 ## 3. Viewport & Layout Management
 

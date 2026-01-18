@@ -8,6 +8,7 @@ The core interaction point for Path Logic is a professional-grade, high-density 
 - **Data Density**: Optimized for viewing 50+ transactions at once without scrolling.
 - **Categorization**: Visual indicators for categorized vs. uncategorized transactions.
 - **Split Visibility**: Transactions with sub-ledger splits must indicate the split count and allow inline expansion.
+- **Running Balance**: Each row displays the cumulative ledger balance at that point in time, providing a "true" financial state during reconciliation.
 - **Search & Filter**: Instant, real-time filtering of the visible ledger by payee, memo, category, or amount range.
 
 ## 2. QIF / CSV Import Interface

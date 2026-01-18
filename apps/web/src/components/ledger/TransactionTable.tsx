@@ -114,7 +114,24 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             return (
                 <div className={cn(
                     "text-right font-mono font-bold text-[11px] text-nowrap",
-                    amount < 0 ? "text-[#EF4444]" : "text-[#10B981]"
+                    amount < 0 ? "text-[#FCA5A5]" : "text-[#10B981]"
+                )}>
+                    {formatted}
+                </div>
+            );
+        },
+    },
+    {
+        id: 'balance',
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-right text-nowrap">Balance</div>,
+        cell: ({ row }): React.JSX.Element => {
+            const balance = (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
+            const formatted = Money.formatCurrency(balance);
+
+            return (
+                <div className={cn(
+                    "text-right font-mono font-bold text-[11px] text-nowrap",
+                    balance < 0 ? "text-[#FCA5A5]" : "text-[#10B981]"
                 )}>
                     {formatted}
                 </div>
@@ -164,7 +181,8 @@ const MemoizedLedgerRow = React.memo(({
                     'payee': 'flex-1 min-w-[300px]',
                     'category': 'w-[140px]',
                     'status': 'w-[100px]',
-                    'totalAmount': 'w-[120px]'
+                    'totalAmount': 'w-[120px]',
+                    'balance': 'w-[120px]'
                 };
                 const widthClass = widthMap[cell.column.id] || 'w-[100px]';
 
@@ -201,15 +219,37 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const parentRef = React.useRef<HTMLDivElement>(null);
     const lastKeyTime = React.useRef<number>(0);
 
-    // Filter data based on the time window
+    // Sort and calculate running balances for the ENTIRE dataset
+    const sortedDataWithBalances = React.useMemo(() => {
+        // 1. Sort by date (ASC), then by type priority (income first)
+        const sorted = [...data].sort((a, b) => {
+            // Primary: Date comparison
+            if (a.date !== b.date) {
+                return a.date.localeCompare(b.date);
+            }
+            // Secondary: Income (positive) before expenses (negative)
+            const aPriority = a.totalAmount >= 0 ? 0 : 1;
+            const bPriority = b.totalAmount >= 0 ? 0 : 1;
+            return aPriority - bPriority;
+        });
+
+        // 2. Calculate cumulative running balance
+        let runningBalance = 0;
+        return sorted.map((tx) => {
+            runningBalance += tx.totalAmount;
+            return { ...tx, runningBalance };
+        });
+    }, [data]);
+
+    // Filter sorted data based on the time window
     const windowedData = React.useMemo(() => {
         const cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - monthsToShow);
-        return data.filter((tx: ITransaction) => {
+        return sortedDataWithBalances.filter((tx) => {
             const txDate = new Date(tx.date);
             return txDate >= cutoff;
         });
-    }, [data, monthsToShow]);
+    }, [sortedDataWithBalances, monthsToShow]);
 
     const table = useReactTable({
         data: windowedData,
@@ -306,7 +346,8 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     'payee': 'flex-1 min-w-[300px]',
                                     'category': 'w-[140px]',
                                     'status': 'w-[100px]',
-                                    'totalAmount': 'w-[120px]'
+                                    'totalAmount': 'w-[120px]',
+                                    'balance': 'w-[120px]'
                                 };
                                 const widthClass = widthMap[header.id] || 'w-[100px]';
 
