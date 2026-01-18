@@ -169,13 +169,15 @@ describe('CashflowProjection', () => {
                     payee: 'Pending Tx',
                     memo: 'memo',
                     totalAmount: -20,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     status: 0 as any, // Pending mockup
                     splits: [],
                     checkNumber: null,
                     importHash: 'h',
                     createdAt: 'now',
                     updatedAt: 'now',
-                } as any
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any,
             ],
             recurringSchedules: [],
         };
@@ -183,9 +185,13 @@ describe('CashflowProjection', () => {
         const projection = generateProjection(startDate, days, inputs);
         const jan03 = projection.find(p => p.date === '2026-01-03');
         expect(jan03).toBeDefined();
-        expect(jan03?.items).toBeDefined();
-        expect(jan03!.items![0]!.type).toBe('pending');
-        expect(jan03!.projectedBalance).toBe(980);
+        if (jan03) {
+            expect(jan03.items).toBeDefined();
+            if (jan03.items) {
+                expect(jan03.items[0]?.type).toBe('pending');
+            }
+            expect(jan03.projectedBalance).toBe(980);
+        }
     });
 
     it('should correctly project Daily recurring items', () => {
@@ -211,9 +217,9 @@ describe('CashflowProjection', () => {
         };
 
         const projection = generateProjection(startDate, days, inputs);
-        expect(projection[0]!.items).toHaveLength(1);
-        expect(projection[1]!.items).toHaveLength(1);
-        expect(projection[2]!.items).toHaveLength(1);
+        expect(projection[0]?.items).toHaveLength(1);
+        expect(projection[1]?.items).toHaveLength(1);
+        expect(projection[2]?.items).toHaveLength(1);
     });
 
     it('should correctly project Biweekly recurring items', () => {
@@ -241,8 +247,8 @@ describe('CashflowProjection', () => {
         const projection = generateProjection(startDate, days, inputs);
         // Jan 01 is day 0
         // Jan 15 is day 14
-        expect(projection[0]!.items).toHaveLength(1);
-        expect(projection[14]!.items).toHaveLength(1);
+        expect(projection[0]?.items).toHaveLength(1);
+        expect(projection[14]?.items).toHaveLength(1);
     });
 
     it('should return false for unknown frequency (default case)', () => {
@@ -256,6 +262,7 @@ describe('CashflowProjection', () => {
                     accountId: 'a1',
                     payee: 'Unknown',
                     amount: -5,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     frequency: 'UNKNOWN' as any,
                     startDate: '2026-01-01',
                     endDate: null,
@@ -266,6 +273,6 @@ describe('CashflowProjection', () => {
             ],
         };
         const projection = generateProjection(startDate, 1, inputs);
-        expect(projection[0]!.items).toHaveLength(0);
+        expect(projection[0]?.items).toHaveLength(0);
     });
 });

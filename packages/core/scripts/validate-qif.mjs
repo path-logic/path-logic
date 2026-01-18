@@ -2,9 +2,9 @@
 
 /**
  * QIF Parser Validation Script
- * 
+ *
  * Usage: node validate-qif.mjs path/to/your/file.qif
- * 
+ *
  * This script validates a QIF file against the parser and reports:
  * - Total transactions parsed
  * - Date range
@@ -57,7 +57,9 @@ try {
     const maxSplits = Math.max(...result.transactions.map(t => t.splits.length));
 
     console.log('🔀 Split Transaction Stats:');
-    console.log(`   Transactions with splits: ${withSplits.length} (${((withSplits.length / result.transactions.length) * 100).toFixed(1)}%)`);
+    console.log(
+        `   Transactions with splits: ${withSplits.length} (${((withSplits.length / result.transactions.length) * 100).toFixed(1)}%)`,
+    );
     console.log(`   Total splits:             ${totalSplits}`);
     console.log(`   Max splits per txn:       ${maxSplits}`);
     console.log('');
@@ -81,7 +83,10 @@ try {
         }, {});
 
         Object.entries(warningGroups).forEach(([code, lines]) => {
-            const lineSummary = lines.length > 5 ? `${lines.slice(0, 5).join(', ')}... (+${lines.length - 5} more)` : lines.join(', ');
+            const lineSummary =
+                lines.length > 5
+                    ? `${lines.slice(0, 5).join(', ')}... (+${lines.length - 5} more)`
+                    : lines.join(', ');
             console.log(`   ${code} (${lines.length}): Lines ${lineSummary}`);
         });
         console.log('');
@@ -97,8 +102,9 @@ try {
     }
 
     console.log('');
-    console.log(`📈 Performance: ${(result.transactions.length / (parseTime / 1000)).toFixed(0)} transactions/second`);
-
+    console.log(
+        `📈 Performance: ${(result.transactions.length / (parseTime / 1000)).toFixed(0)} transactions/second`,
+    );
 } catch (error) {
     console.error('❌ Failed to parse QIF file:', error.message);
     process.exit(1);

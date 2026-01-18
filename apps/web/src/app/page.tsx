@@ -17,6 +17,7 @@ export default function Dashboard(): React.JSX.Element {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -80,7 +81,9 @@ export default function Dashboard(): React.JSX.Element {
 
             if (result.errors.length > 0) {
                 console.error('QIF Parse Errors:', result.errors);
-                alert(`Import failed with ${result.errors.length} errors. Check console for details.`);
+                alert(
+                    `Import failed with ${result.errors.length} errors. Check console for details.`,
+                );
             } else if (result.warnings.length > 0) {
                 console.warn('QIF Parse Warnings:', result.warnings);
             }
@@ -182,9 +185,15 @@ export default function Dashboard(): React.JSX.Element {
                                 <thead className="sticky top-0 bg-[#1E293B] text-[#64748B] uppercase text-[10px] z-10">
                                     <tr>
                                         <th className="p-3 border-b border-[#0F1115] w-24">Date</th>
-                                        <th className="p-3 border-b border-[#0F1115]">Payee / Memo</th>
-                                        <th className="p-3 border-b border-[#0F1115] w-32">Category</th>
-                                        <th className="p-3 border-b border-[#0F1115] w-24">Status</th>
+                                        <th className="p-3 border-b border-[#0F1115]">
+                                            Payee / Memo
+                                        </th>
+                                        <th className="p-3 border-b border-[#0F1115] w-32">
+                                            Category
+                                        </th>
+                                        <th className="p-3 border-b border-[#0F1115] w-24">
+                                            Status
+                                        </th>
                                         <th className="p-3 border-b border-[#0F1115] w-32 text-right">
                                             Amount
                                         </th>
@@ -197,7 +206,8 @@ export default function Dashboard(): React.JSX.Element {
                                                 colSpan={5}
                                                 className="p-12 text-center text-[#64748B] uppercase tracking-widest text-[10px]"
                                             >
-                                                No transactions found. Click "Import QIF" to begin.
+                                                No transactions found. Click &quot;Import QIF&quot;
+                                                to begin.
                                             </td>
                                         </tr>
                                     ) : (
@@ -224,7 +234,7 @@ export default function Dashboard(): React.JSX.Element {
                                                         {tx.splits.length > 0
                                                             ? 'SPLIT'
                                                             : (tx.splits[0]?.categoryId ??
-                                                                'UNCATEGORIZED')}
+                                                              'UNCATEGORIZED')}
                                                     </span>
                                                 </td>
                                                 <td className="p-3 uppercase text-[9px] font-bold">
@@ -234,8 +244,8 @@ export default function Dashboard(): React.JSX.Element {
                                                                 ? 'text-[#10B981]'
                                                                 : tx.status ===
                                                                     TransactionStatus.Pending
-                                                                    ? 'text-[#F59E0B]'
-                                                                    : 'text-[#38BDF8]'
+                                                                  ? 'text-[#F59E0B]'
+                                                                  : 'text-[#38BDF8]'
                                                         }
                                                     >
                                                         {tx.status}

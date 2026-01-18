@@ -8,27 +8,27 @@ These instructions guide you through migrating an Nx workspace containing Next.j
 
 1. **Identify all Next.js projects**:
 
-   ```bash
-   nx show projects --with-target build | xargs -I {} nx show project {} --json | jq -r 'select(.targets.build.executor | contains("next")) | .name'
-   ```
+    ```bash
+    nx show projects --with-target build | xargs -I {} nx show project {} --json | jq -r 'select(.targets.build.executor | contains("next")) | .name'
+    ```
 
-   Or search for Next.js configuration files:
+    Or search for Next.js configuration files:
 
-   ```bash
-   find . -name "next.config.*" -not -path "*/node_modules/*"
-   ```
+    ```bash
+    find . -name "next.config.*" -not -path "*/node_modules/*"
+    ```
 
 2. **Update packages**:
 
-   ```bash
-   npm install next@latest react@latest react-dom@latest
-   npm install -D @types/react @types/react-dom  # if using TypeScript
-   ```
+    ```bash
+    npm install next@latest react@latest react-dom@latest
+    npm install -D @types/react @types/react-dom  # if using TypeScript
+    ```
 
 3. **Verify minimum requirements**:
-   - Node.js 20.9+ (Node.js 18 is no longer supported)
-   - TypeScript 5.1.0+
-   - Browser support: Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+
+    - Node.js 20.9+ (Node.js 18 is no longer supported)
+    - TypeScript 5.1.0+
+    - Browser support: Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+
 
 ## Migration Steps by Category
 
@@ -51,14 +51,14 @@ This is the most impactful change in Next.js 16. All dynamic request APIs are no
 ```tsx
 // BEFORE (Next.js 15)
 export default function Page({ params }) {
-  const { slug } = params;
-  return <h1>{slug}</h1>;
+    const { slug } = params;
+    return <h1>{slug}</h1>;
 }
 
 // AFTER (Next.js 16)
 export default async function Page(props) {
-  const { slug } = await props.params;
-  return <h1>{slug}</h1>;
+    const { slug } = await props.params;
+    return <h1>{slug}</h1>;
 }
 ```
 
@@ -75,15 +75,15 @@ export default async function Page(props) {
 ```tsx
 // BEFORE (Next.js 15)
 export default function Page({ searchParams }) {
-  const query = searchParams.q;
-  return <Results query={query} />;
+    const query = searchParams.q;
+    return <Results query={query} />;
 }
 
 // AFTER (Next.js 16)
 export default async function Page(props) {
-  const searchParams = await props.searchParams;
-  const query = searchParams.q;
-  return <Results query={query} />;
+    const searchParams = await props.searchParams;
+    const query = searchParams.q;
+    return <Results query={query} />;
 }
 ```
 
@@ -99,14 +99,14 @@ export default async function Page(props) {
 ```tsx
 // BEFORE (Next.js 15)
 export default function Layout({ children, params }) {
-  const { locale } = params;
-  return <div data-locale={locale}>{children}</div>;
+    const { locale } = params;
+    return <div data-locale={locale}>{children}</div>;
 }
 
 // AFTER (Next.js 16)
 export default async function Layout(props) {
-  const { locale } = await props.params;
-  return <div data-locale={locale}>{props.children}</div>;
+    const { locale } = await props.params;
+    return <div data-locale={locale}>{props.children}</div>;
 }
 ```
 
@@ -117,14 +117,14 @@ export default async function Layout(props) {
 ```tsx
 // BEFORE (Next.js 15)
 export async function GET(request, { params }) {
-  const { id } = params;
-  return Response.json({ id });
+    const { id } = params;
+    return Response.json({ id });
 }
 
 // AFTER (Next.js 16)
 export async function GET(request, props) {
-  const { id } = await props.params;
-  return Response.json({ id });
+    const { id } = await props.params;
+    return Response.json({ id });
 }
 ```
 
@@ -137,22 +137,22 @@ export async function GET(request, props) {
 import { cookies, headers } from 'next/headers';
 
 export default function Page() {
-  const cookieStore = cookies();
-  const headersList = headers();
-  const theme = cookieStore.get('theme');
-  const userAgent = headersList.get('user-agent');
-  return <div>...</div>;
+    const cookieStore = cookies();
+    const headersList = headers();
+    const theme = cookieStore.get('theme');
+    const userAgent = headersList.get('user-agent');
+    return <div>...</div>;
 }
 
 // AFTER (Next.js 16)
 import { cookies, headers } from 'next/headers';
 
 export default async function Page() {
-  const cookieStore = await cookies();
-  const headersList = await headers();
-  const theme = cookieStore.get('theme');
-  const userAgent = headersList.get('user-agent');
-  return <div>...</div>;
+    const cookieStore = await cookies();
+    const headersList = await headers();
+    const theme = cookieStore.get('theme');
+    const userAgent = headersList.get('user-agent');
+    return <div>...</div>;
 }
 ```
 
@@ -165,16 +165,16 @@ export default async function Page() {
 import { draftMode } from 'next/headers';
 
 export default function Page() {
-  const { isEnabled } = draftMode();
-  return <div>{isEnabled ? 'Draft' : 'Published'}</div>;
+    const { isEnabled } = draftMode();
+    return <div>{isEnabled ? 'Draft' : 'Published'}</div>;
 }
 
 // AFTER (Next.js 16)
 import { draftMode } from 'next/headers';
 
 export default async function Page() {
-  const { isEnabled } = await draftMode();
-  return <div>{isEnabled ? 'Draft' : 'Published'}</div>;
+    const { isEnabled } = await draftMode();
+    return <div>{isEnabled ? 'Draft' : 'Published'}</div>;
 }
 ```
 
@@ -185,14 +185,14 @@ export default async function Page() {
 ```tsx
 // BEFORE (Next.js 15)
 export async function generateMetadata({ params }) {
-  const { slug } = params;
-  return { title: slug };
+    const { slug } = params;
+    return { title: slug };
 }
 
 // AFTER (Next.js 16)
 export async function generateMetadata(props) {
-  const { slug } = await props.params;
-  return { title: slug };
+    const { slug } = await props.params;
+    return { title: slug };
 }
 ```
 
@@ -221,25 +221,25 @@ This generates `PageProps`, `LayoutProps`, and `RouteContext` helpers.
 ```tsx
 // BEFORE (Next.js 15)
 export function generateImageMetadata({ params }) {
-  const { slug } = params;
-  return [{ id: '1' }];
+    const { slug } = params;
+    return [{ id: '1' }];
 }
 
 export default function Image({ params, id }) {
-  const slug = params.slug;
-  return new ImageResponse(/* ... */);
+    const slug = params.slug;
+    return new ImageResponse(/* ... */);
 }
 
 // AFTER (Next.js 16)
 export async function generateImageMetadata({ params }) {
-  const { slug } = await params;
-  return [{ id: '1' }];
+    const { slug } = await params;
+    return [{ id: '1' }];
 }
 
 export default async function Image({ params, id }) {
-  const { slug } = await params;
-  const imageId = await id;
-  return new ImageResponse(/* ... */);
+    const { slug } = await params;
+    const imageId = await id;
+    return new ImageResponse(/* ... */);
 }
 ```
 
@@ -258,15 +258,15 @@ export default async function Image({ params, id }) {
 ```tsx
 // BEFORE (Next.js 15)
 export default async function sitemap({ id }) {
-  const start = id * 50000;
-  // ...
+    const start = id * 50000;
+    // ...
 }
 
 // AFTER (Next.js 16)
 export default async function sitemap({ id }) {
-  const resolvedId = await id;
-  const start = resolvedId * 50000;
-  // ...
+    const resolvedId = await id;
+    const start = resolvedId * 50000;
+    // ...
 }
 ```
 
@@ -298,9 +298,9 @@ Turbopack is now the default bundler for development.
 
 ```json
 {
-  "scripts": {
-    "build": "next build --webpack"
-  }
+    "scripts": {
+        "build": "next build --webpack"
+    }
 }
 ```
 
@@ -309,18 +309,18 @@ Turbopack is now the default bundler for development.
 ```ts
 // BEFORE (Next.js 15)
 const nextConfig = {
-  experimental: {
-    turbopack: {
-      /* options */
+    experimental: {
+        turbopack: {
+            /* options */
+        },
     },
-  },
 };
 
 // AFTER (Next.js 16)
 const nextConfig = {
-  turbopack: {
-    /* options */
-  },
+    turbopack: {
+        /* options */
+    },
 };
 ```
 
@@ -355,12 +355,12 @@ mv middleware.ts proxy.ts
 ```ts
 // BEFORE (middleware.ts)
 export function middleware(request) {
-  // ...
+    // ...
 }
 
 // AFTER (proxy.ts)
 export function proxy(request) {
-  // ...
+    // ...
 }
 ```
 
@@ -369,12 +369,12 @@ export function proxy(request) {
 ```js
 // BEFORE
 {
-  skipMiddlewareUrlNormalize: true;
+    skipMiddlewareUrlNormalize: true;
 }
 
 // AFTER
 {
-  skipProxyUrlNormalize: true;
+    skipProxyUrlNormalize: true;
 }
 ```
 
@@ -400,7 +400,7 @@ All parallel route slots now require an explicit `default.js` file.
 import { notFound } from 'next/navigation';
 
 export default function Default() {
-  notFound(); // or return null
+    notFound(); // or return null
 }
 ```
 
@@ -421,14 +421,14 @@ export default function Default() {
 ```js
 // next.config.js
 module.exports = {
-  images: {
-    localPatterns: [
-      {
-        pathname: '/assets/**',
-        search: '?v=1',
-      },
-    ],
-  },
+    images: {
+        localPatterns: [
+            {
+                pathname: '/assets/**',
+                search: '?v=1',
+            },
+        ],
+    },
 };
 ```
 
@@ -438,22 +438,22 @@ Add these to `next.config.js` if you need the old defaults:
 
 ```js
 module.exports = {
-  images: {
-    // minimumCacheTTL changed from 60 to 14400 seconds
-    minimumCacheTTL: 60,
+    images: {
+        // minimumCacheTTL changed from 60 to 14400 seconds
+        minimumCacheTTL: 60,
 
-    // Value 16 removed from default imageSizes
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+        // Value 16 removed from default imageSizes
+        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
 
-    // qualities now defaults to [75] only
-    qualities: [50, 75, 100],
+        // qualities now defaults to [75] only
+        qualities: [50, 75, 100],
 
-    // Local IP now blocked by default
-    dangerouslyAllowLocalIP: true, // only for private networks
+        // Local IP now blocked by default
+        dangerouslyAllowLocalIP: true, // only for private networks
 
-    // Maximum redirects changed from unlimited to 3
-    maximumRedirects: 5,
-  },
+        // Maximum redirects changed from unlimited to 3
+        maximumRedirects: 5,
+    },
 };
 ```
 
@@ -462,21 +462,21 @@ module.exports = {
 ```js
 // BEFORE - Remove this
 module.exports = {
-  images: {
-    domains: ['example.com'],
-  },
+    images: {
+        domains: ['example.com'],
+    },
 };
 
 // AFTER - Use remotePatterns instead
 module.exports = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'example.com',
-      },
-    ],
-  },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'example.com',
+            },
+        ],
+    },
 };
 ```
 
@@ -492,10 +492,7 @@ module.exports = {
 
 ```ts
 // BEFORE (Next.js 15)
-import {
-  unstable_cacheLife as cacheLife,
-  unstable_cacheTag as cacheTag,
-} from 'next/cache';
+import { unstable_cacheLife as cacheLife, unstable_cacheTag as cacheTag } from 'next/cache';
 
 // AFTER (Next.js 16)
 import { cacheLife, cacheTag } from 'next/cache';
@@ -510,7 +507,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { revalidateTag } from 'next/cache';
 
 export async function updateArticle(articleId: string) {
-  revalidateTag(`article-${articleId}`, 'max');
+    revalidateTag(`article-${articleId}`, 'max');
 }
 ```
 
@@ -521,8 +518,8 @@ export async function updateArticle(articleId: string) {
 import { updateTag } from 'next/cache';
 
 export async function updateUserProfile(userId: string, profile: Profile) {
-  await db.users.update(userId, profile);
-  updateTag(`user-${userId}`);
+    await db.users.update(userId, profile);
+    updateTag(`user-${userId}`);
 }
 ```
 
@@ -533,8 +530,8 @@ export async function updateUserProfile(userId: string, profile: Profile) {
 import { refresh } from 'next/cache';
 
 export async function markNotificationAsRead(notificationId: string) {
-  await db.notifications.markAsRead(notificationId);
-  refresh();
+    await db.notifications.markAsRead(notificationId);
+    refresh();
 }
 ```
 
@@ -550,7 +547,7 @@ React Compiler is now stable and supported:
 ```ts
 // next.config.ts
 const nextConfig = {
-  reactCompiler: true,
+    reactCompiler: true,
 };
 
 export default nextConfig;
@@ -573,11 +570,11 @@ To restore previous behavior:
 ```tsx
 // app/layout.tsx
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}</body>
-    </html>
-  );
+    return (
+        <html lang="en" data-scroll-behavior="smooth">
+            <body>{children}</body>
+        </html>
+    );
 }
 ```
 
@@ -595,8 +592,8 @@ Remove from `next.config.js`:
 ```js
 // Remove this
 {
-  eslint: {
-  }
+    eslint: {
+    }
 }
 ```
 
@@ -620,8 +617,8 @@ Remove from `next.config.js`:
 ```js
 // BEFORE - Remove these
 module.exports = {
-  serverRuntimeConfig: { dbUrl: process.env.DATABASE_URL },
-  publicRuntimeConfig: { apiUrl: '/api' },
+    serverRuntimeConfig: { dbUrl: process.env.DATABASE_URL },
+    publicRuntimeConfig: { apiUrl: '/api' },
 };
 ```
 
@@ -630,8 +627,8 @@ module.exports = {
 ```tsx
 // Use environment variables directly
 async function fetchData() {
-  const dbUrl = process.env.DATABASE_URL;
-  return await db.query(dbUrl, 'SELECT * FROM users');
+    const dbUrl = process.env.DATABASE_URL;
+    return await db.query(dbUrl, 'SELECT * FROM users');
 }
 ```
 
@@ -645,8 +642,8 @@ NEXT_PUBLIC_API_URL="/api"
 ```tsx
 'use client';
 export default function Component() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  // ...
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // ...
 }
 ```
 
@@ -663,14 +660,14 @@ Remove these from `next.config.js`:
 ```js
 // BEFORE
 {
-  experimental: {
-    dynamicIO: true;
-  }
+    experimental: {
+        dynamicIO: true;
+    }
 }
 
 // AFTER
 {
-  cacheComponents: true;
+    cacheComponents: true;
 }
 ```
 

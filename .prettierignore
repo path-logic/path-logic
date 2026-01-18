@@ -14,3 +14,7 @@ build/
 .idea/
 *.swp
 *.swo
+
+# Coverage
+coverage/
+packages/core/coverage/
