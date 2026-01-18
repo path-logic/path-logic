@@ -221,7 +221,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
     // Sort and calculate running balances for the ENTIRE dataset
     const sortedDataWithBalances = React.useMemo(() => {
-        // 1. Sort by date (ASC), then by type priority (income first)
+        // 1. Sort by date (ASC), then by type priority (income first) for balance calculation
         const sorted = [...data].sort((a, b) => {
             // Primary: Date comparison
             if (a.date !== b.date) {
@@ -235,19 +235,26 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
         // 2. Calculate cumulative running balance
         let runningBalance = 0;
-        return sorted.map((tx) => {
+        const withBalances = sorted.map((tx) => {
             runningBalance += tx.totalAmount;
             return { ...tx, runningBalance };
         });
+
+        // 3. Reverse for display (newest first)
+        return withBalances.reverse();
     }, [data]);
 
-    // Filter sorted data based on the time window
+    // Filter data centered on current date
     const windowedData = React.useMemo(() => {
-        const cutoff = new Date();
-        cutoff.setMonth(cutoff.getMonth() - monthsToShow);
+        const today = new Date();
+        const pastCutoff = new Date(today);
+        pastCutoff.setMonth(pastCutoff.getMonth() - monthsToShow);
+        const futureCutoff = new Date(today);
+        futureCutoff.setMonth(futureCutoff.getMonth() + 3); // Show 3 months into future
+
         return sortedDataWithBalances.filter((tx) => {
             const txDate = new Date(tx.date);
-            return txDate >= cutoff;
+            return txDate >= pastCutoff && txDate <= futureCutoff;
         });
     }, [sortedDataWithBalances, monthsToShow]);
 
@@ -377,6 +384,18 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                     ref={parentRef}
                     className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-[#1E293B] hover:scrollbar-thumb-[#334155]"
                 >
+                    {/* Load Older History - Now at the top */}
+                    {windowedData.length < data.length && rows.length > 0 && (
+                        <div className="px-3 border-b border-[#1E293B] bg-[#0F1115] sticky top-0 z-10">
+                            <button
+                                onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                                className="w-full py-4 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors"
+                            >
+                                ↑ Load older history (currently showing {monthsToShow} months) ↑
+                            </button>
+                        </div>
+                    )}
+
                     <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
                         {virtualizer.getVirtualItems().map((virtualRow) => {
                             const row = rows[virtualRow.index];
@@ -393,18 +412,6 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                             );
                         })}
                     </div>
-
-                    {/* Load More Trigger - Now part of the scroll flow */}
-                    {windowedData.length < data.length && rows.length > 0 && (
-                        <div className="px-3 border-t border-[#1E293B] bg-[#0F1115]">
-                            <button
-                                onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                                className="w-full py-4 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors border-b border-[#1E293B]"
-                            >
-                                ↓ Load older history (currently showing {monthsToShow} months) ↓
-                            </button>
-                        </div>
-                    )}
 
                     {rows.length === 0 && (
                         <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10">
