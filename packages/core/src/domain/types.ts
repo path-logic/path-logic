@@ -65,6 +65,8 @@ export interface ITransaction {
     date: ISODateString;
     /** Name of the payee or entity involved. */
     payee: string;
+    /** Optional descriptive text for the transaction. */
+    memo: string;
     /** Total amount in cents. Rule: Sum(splits) === totalAmount. */
     totalAmount: Cents;
     /** Current status in the reconciliation lifecycle. */

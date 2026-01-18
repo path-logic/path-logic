@@ -99,6 +99,12 @@ export class QIFParser {
 
         // Parse transactions
         while (lineNumber < lines.length) {
+            // Skip blank lines between transactions
+            if (lines[lineNumber]?.trim().length === 0) {
+                lineNumber++;
+                continue;
+            }
+
             const txResult: ITransactionParseResult = this.parseTransaction(lines, lineNumber);
 
             if (txResult.transaction) {
