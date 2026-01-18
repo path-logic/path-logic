@@ -218,6 +218,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
+            {/* Toolbar */}
             <div className="flex items-center py-2 px-1 justify-between flex-none bg-[#0F1115]">
                 <Input
                     placeholder="Filter ledger (CMD+K)..."
@@ -233,66 +234,97 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
             </div>
 
             <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative flex flex-col min-h-0 overflow-hidden">
+                {/* Header - Fixed at top, independent of scroll */}
+                <div className="flex-none bg-[#1E293B] border-b border-[#0F1115] z-20">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <div key={headerGroup.id} className="flex h-8 px-1 items-center">
+                            {headerGroup.headers.map((header) => {
+                                // Define explicit widths or flex basis for alignment
+                                const widthMap: Record<string, string> = {
+                                    'date': 'w-[100px]',
+                                    'payee': 'flex-1 min-w-[300px]',
+                                    'category': 'w-[140px]',
+                                    'status': 'w-[100px]',
+                                    'totalAmount': 'w-[120px]'
+                                };
+                                const widthClass = widthMap[header.id] || 'w-[100px]';
+
+                                return (
+                                    <div
+                                        key={header.id}
+                                        className={cn(
+                                            "px-3 text-[#64748B] font-bold text-[10px] uppercase",
+                                            widthClass
+                                        )}
+                                    >
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Body - Scrollable Virtual Area */}
                 <div
                     ref={parentRef}
                     className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-[#1E293B] hover:scrollbar-thumb-[#334155]"
                 >
                     <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-                        <Table>
-                            <TableHeader className="bg-[#1E293B] sticky top-0 z-20">
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-[#0F1115]">
-                                        {headerGroup.headers.map((header) => (
-                                            <TableHead key={header.id} className="h-8 px-3 text-[#64748B] font-bold">
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableHead>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {virtualizer.getVirtualItems().map((virtualRow) => {
-                                    const row = rows[virtualRow.index];
-                                    if (!row) return null;
+                        {virtualizer.getVirtualItems().map((virtualRow) => {
+                            const row = rows[virtualRow.index];
+                            if (!row) return null;
 
-                                    const isActive = virtualRow.index === activeIndex;
+                            const isActive = virtualRow.index === activeIndex;
 
-                                    return (
-                                        <TableRow
-                                            key={virtualRow.key}
-                                            data-state={row.getIsSelected() && 'selected'}
-                                            className={cn(
-                                                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
-                                                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
-                                            )}
-                                            style={{
-                                                top: 0,
-                                                transform: `translateY(${virtualRow.start}px)`,
-                                            }}
-                                            onClick={(): void => setActiveIndex(virtualRow.index)}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id} className="py-0 px-3 h-9">
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
+                            return (
+                                <div
+                                    key={virtualRow.key}
+                                    data-state={row.getIsSelected() && 'selected'}
+                                    className={cn(
+                                        "flex items-center hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
+                                        isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
+                                    )}
+                                    style={{
+                                        top: 0,
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                    }}
+                                    onClick={(): void => setActiveIndex(virtualRow.index)}
+                                >
+                                    {row.getVisibleCells().map((cell) => {
+                                        const widthMap: Record<string, string> = {
+                                            'date': 'w-[100px]',
+                                            'payee': 'flex-1 min-w-[300px]',
+                                            'category': 'w-[140px]',
+                                            'status': 'w-[100px]',
+                                            'totalAmount': 'w-[120px]'
+                                        };
+                                        const widthClass = widthMap[cell.column.id] || 'w-[100px]';
+
+                                        return (
+                                            <div
+                                                key={cell.id}
+                                                className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
+                                            >
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {rows.length === 0 && (
-                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8">
+                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10">
                             {data.length === 0 ? (
                                 <>
                                     <div className="text-[#38BDF8] font-bold">Ledger is empty</div>
@@ -323,9 +355,9 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                     )}
                 </div>
 
-                {/* Load More Trigger - outside the internal scroll to keep it reachable */}
+                {/* Load More Trigger - Fixed at bottom of the main container */}
                 {windowedData.length < data.length && rows.length > 0 && (
-                    <div className="px-3 border-t border-[#1E293B] bg-[#0F1115]">
+                    <div className="px-3 border-t border-[#1E293B] bg-[#0F1115] flex-none">
                         <button
                             onClick={(): void => setMonthsToShow(prev => prev + 6)}
                             className="w-full py-2 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors"
@@ -336,7 +368,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 )}
             </div>
 
-            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase bg-[#0F1115]">
+            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase bg-[#0F1115] flex-none">
                 <div className="flex-1">
                     Showing {windowedData.length} of {data.length} Transactions
                 </div>
