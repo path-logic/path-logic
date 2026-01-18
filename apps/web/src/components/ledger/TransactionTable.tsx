@@ -180,7 +180,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         count: rows.length,
         getScrollElement: () => parentRef.current,
         estimateSize: () => 36, // h-9
-        overscan: 10,
+        overscan: 30, // Increased buffer for high-speed scrolling
     });
 
     // Keyboard navigation
