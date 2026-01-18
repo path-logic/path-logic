@@ -216,6 +216,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const [rowSelection, setRowSelection] = React.useState({});
     const [activeIndex, setActiveIndex] = React.useState(0);
     const [monthsToShow, setMonthsToShow] = React.useState(6);
+    const [isAtTop, setIsAtTop] = React.useState(true);
     const parentRef = React.useRef<HTMLDivElement>(null);
     const lastKeyTime = React.useRef<number>(0);
 
@@ -324,6 +325,20 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         }
     }, [rows.length]);
 
+    // Track scroll position to show/hide Load Older History button
+    React.useEffect(() => {
+        const scrollElement = parentRef.current;
+        if (!scrollElement) return;
+
+        const handleScroll = (): void => {
+            const scrollTop = scrollElement.scrollTop;
+            setIsAtTop(scrollTop < 50); // Show button when within 50px of top
+        };
+
+        scrollElement.addEventListener('scroll', handleScroll);
+        return () => scrollElement.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
             {/* Toolbar */}
@@ -385,7 +400,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                     className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-[#1E293B] hover:scrollbar-thumb-[#334155]"
                 >
                     {/* Load Older History - Now at the top */}
-                    {windowedData.length < data.length && rows.length > 0 && (
+                    {windowedData.length < data.length && rows.length > 0 && isAtTop && (
                         <div className="px-3 border-b border-[#1E293B] bg-[#0F1115] sticky top-0 z-10">
                             <button
                                 onClick={(): void => setMonthsToShow(prev => prev + 6)}
