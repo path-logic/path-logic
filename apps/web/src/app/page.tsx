@@ -12,16 +12,29 @@ import {
     QIFParser,
     TransactionStatus,
 } from '@path-logic/core';
+import { SessionProvider, useSession } from 'next-auth/react';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { SignInButton } from '@/components/auth/SignInButton';
 import { TransactionTable } from '@/components/ledger/TransactionTable';
 import { cn } from '@/lib/utils';
 
-export default function Dashboard(): React.JSX.Element {
+function DashboardContent(): React.JSX.Element {
+    const { data: session, status } = useSession();
     const [transactions, setTransactions] = useState<Array<ITransaction>>([]);
     const [isImporting, setIsImporting] = useState(false);
     const [mounted, setMounted] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Show loading state while checking auth
+    if (status === 'loading' || !mounted) {
+        return <div className="h-screen bg-[#0F1115]" />;
+    }
+
+    // Show sign-in if not authenticated
+    if (!session) {
+        return <SignInButton />;
+    }
 
     useEffect((): (() => void) => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -281,5 +294,13 @@ export default function Dashboard(): React.JSX.Element {
                 </div>
             </footer>
         </div>
+    );
+}
+
+export default function Dashboard(): React.JSX.Element {
+    return (
+        <SessionProvider>
+            <DashboardContent />
+        </SessionProvider>
     );
 }
