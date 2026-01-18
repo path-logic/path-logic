@@ -222,7 +222,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
     // Sort and calculate running balances for the ENTIRE dataset
     const sortedDataWithBalances = React.useMemo(() => {
-        // 1. Sort by date (ASC), then by type priority (income first) for balance calculation
+        // 1. Sort by date (ASC), then by type priority (income first)
         const sorted = [...data].sort((a, b) => {
             // Primary: Date comparison
             if (a.date !== b.date) {
@@ -236,13 +236,10 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
         // 2. Calculate cumulative running balance
         let runningBalance = 0;
-        const withBalances = sorted.map((tx) => {
+        return sorted.map((tx) => {
             runningBalance += tx.totalAmount;
             return { ...tx, runningBalance };
         });
-
-        // 3. Reverse for display (newest first)
-        return withBalances.reverse();
     }, [data]);
 
     // Filter data centered on current date
