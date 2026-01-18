@@ -4,12 +4,12 @@ import * as React from 'react';
 import {
     ColumnDef,
     ColumnFiltersState,
+    Row,
     SortingState,
     VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from '@tanstack/react-table';
@@ -28,14 +28,14 @@ import {
 import { ITransaction, Money, TransactionStatus } from '@path-logic/core';
 import { cn } from '@/lib/utils';
 
-export const columns: ColumnDef<ITransaction>[] = [
+export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'date',
-        header: ({ column }) => {
+        header: ({ column }): React.JSX.Element => {
             return (
                 <Button
                     variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                    onClick={(): void => column.toggleSorting(column.getIsSorted() === 'asc')}
                     className="p-0 hover:bg-transparent text-[10px] h-auto font-bold uppercase"
                 >
                     Date
@@ -43,12 +43,12 @@ export const columns: ColumnDef<ITransaction>[] = [
                 </Button>
             );
         },
-        cell: ({ row }) => <div className="font-mono text-[10px] text-[#64748B]">{row.getValue('date')}</div>,
+        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-[#64748B]">{row.getValue('date')}</div>,
     },
     {
         accessorKey: 'payee',
-        header: () => <div className="text-[10px] font-bold uppercase">Payee / Memo</div>,
-        cell: ({ row }) => {
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Payee / Memo</div>,
+        cell: ({ row }): React.JSX.Element => {
             const tx = row.original;
             return (
                 <div className="flex flex-col">
@@ -66,8 +66,8 @@ export const columns: ColumnDef<ITransaction>[] = [
     },
     {
         id: 'category',
-        header: () => <div className="text-[10px] font-bold uppercase">Category</div>,
-        cell: ({ row }) => {
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase">Category</div>,
+        cell: ({ row }): React.JSX.Element => {
             const tx = row.original;
             return (
                 <div className="flex items-center">
@@ -82,8 +82,8 @@ export const columns: ColumnDef<ITransaction>[] = [
     },
     {
         accessorKey: 'status',
-        header: () => <div className="text-[10px] font-bold uppercase">Status</div>,
-        cell: ({ row }) => {
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase">Status</div>,
+        cell: ({ row }): React.JSX.Element => {
             const status = row.original.status;
             return (
                 <div
@@ -100,12 +100,12 @@ export const columns: ColumnDef<ITransaction>[] = [
     },
     {
         accessorKey: 'totalAmount',
-        header: ({ column }) => {
+        header: ({ column }): React.JSX.Element => {
             return (
                 <div className="text-right">
                     <Button
                         variant="ghost"
-                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        onClick={(): void => column.toggleSorting(column.getIsSorted() === 'asc')}
                         className="p-0 hover:bg-transparent text-[10px] h-auto font-bold uppercase ml-auto"
                     >
                         Amount
@@ -114,7 +114,7 @@ export const columns: ColumnDef<ITransaction>[] = [
                 </div>
             );
         },
-        cell: ({ row }) => {
+        cell: ({ row }): React.JSX.Element => {
             const amount = parseFloat(row.getValue('totalAmount'));
             const formatted = Money.formatCurrency(amount);
 
@@ -130,11 +130,44 @@ export const columns: ColumnDef<ITransaction>[] = [
     },
 ];
 
-interface TransactionTableProps {
-    data: ITransaction[];
+interface ITransactionTableProps {
+    data: Array<ITransaction>;
 }
 
-export function TransactionTable({ data }: TransactionTableProps) {
+const LedgerRow = React.memo(({
+    row,
+    isActive,
+    onClick
+}: {
+    row: Row<ITransaction>,
+    isActive: boolean,
+    onClick: () => void
+}): React.JSX.Element => {
+    return (
+        <TableRow
+            data-state={row.getIsSelected() && 'selected'}
+            data-active={isActive}
+            className={cn(
+                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
+                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
+            )}
+            onClick={onClick}
+        >
+            {row.getVisibleCells().map((cell): React.JSX.Element => (
+                <TableCell key={cell.id} className="py-0 px-3 h-9">
+                    {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                    )}
+                </TableCell>
+            ))}
+        </TableRow>
+    );
+});
+
+LedgerRow.displayName = 'LedgerRow';
+
+export function TransactionTable({ data }: ITransactionTableProps): React.JSX.Element {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -142,6 +175,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
     const [activeIndex, setActiveIndex] = React.useState(0);
     const [monthsToShow, setMonthsToShow] = React.useState(6);
     const containerRef = React.useRef<HTMLDivElement>(null);
+    const lastKeyTime = React.useRef<number>(0);
 
     // Filter data based on the time window
     const windowedData = React.useMemo(() => {
@@ -188,12 +222,19 @@ export function TransactionTable({ data }: TransactionTableProps) {
     }, [table.getRowModel().rows.length]);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
-            setActiveIndex(prev => Math.min(prev + 1, table.getRowModel().rows.length - 1));
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setActiveIndex(prev => Math.max(prev - 1, 0));
+
+            // Throttle state updates to roughly 60fps (16ms)
+            const now = performance.now();
+            if (now - lastKeyTime.current < 16) return;
+            lastKeyTime.current = now;
+
+            if (e.key === 'ArrowDown') {
+                setActiveIndex(prev => Math.min(prev + 1, table.getRowModel().rows.length - 1));
+            } else {
+                setActiveIndex(prev => Math.max(prev - 1, 0));
+            }
         } else if (e.key === 'Enter') {
             e.preventDefault();
             const activeRow = table.getRowModel().rows[activeIndex];
@@ -204,7 +245,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
     };
 
     return (
-        <div className="w-full flex flex-col h-full overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
+        <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
             <div className="flex items-center py-2 px-1 justify-between">
                 <Input
                     placeholder="Filter ledger (CMD+K)..."
@@ -221,7 +262,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
             <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-auto" ref={containerRef}>
                     <Table>
-                        <TableHeader className="bg-[#1E293B] sticky top-0 z-10">
+                        <TableHeader className="bg-[#1E293B] sticky top-0 z-20">
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-[#0F1115]">
                                     {headerGroup.headers.map((header) => {
@@ -243,25 +284,12 @@ export function TransactionTable({ data }: TransactionTableProps) {
                             {table.getRowModel().rows?.length ? (
                                 <>
                                     {table.getRowModel().rows.map((row, idx) => (
-                                        <TableRow
+                                        <LedgerRow
                                             key={row.id}
-                                            data-state={row.getIsSelected() && 'selected'}
-                                            data-active={idx === activeIndex}
-                                            className={cn(
-                                                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
-                                                idx === activeIndex && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
-                                            )}
+                                            row={row}
+                                            isActive={idx === activeIndex}
                                             onClick={() => setActiveIndex(idx)}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id} className="py-0 px-3 h-9">
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
+                                        />
                                     ))}
                                     {/* Load More Row */}
                                     {windowedData.length < data.length && (

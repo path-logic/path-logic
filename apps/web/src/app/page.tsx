@@ -1,30 +1,33 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-
+import type {
+    IParsedSplit,
+    IParsedTransaction,
+    ISODateString,
+    ISplit,
+    ITransaction,
+} from '@path-logic/core';
 import {
-    type ISODateString,
-    type IParsedSplit,
-    type IParsedTransaction,
-    type ITransaction,
     Money,
     QIFParser,
     TransactionStatus,
 } from '@path-logic/core';
+import React, { useEffect, useRef, useState } from 'react';
+
 import { TransactionTable } from '@/components/ledger/TransactionTable';
 import { cn } from '@/lib/utils';
 
 export default function Dashboard(): React.JSX.Element {
     const [transactions, setTransactions] = useState<Array<ITransaction>>([]);
-    const [isImporting, setIsImporting] = useState<boolean>(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [mounted, setMounted] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+    useEffect((): (() => void) => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
 
-        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+        const handleGlobalKeyDown = (e: KeyboardEvent): void => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
                 const filterInput = document.querySelector('input[placeholder*="Filter"]') as HTMLInputElement;
@@ -33,13 +36,13 @@ export default function Dashboard(): React.JSX.Element {
         };
 
         window.addEventListener('keydown', handleGlobalKeyDown);
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+        return (): void => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, []);
 
     // Calculate balances from current transaction state
     const clearedBalance = transactions
         .filter(tx => tx.status === TransactionStatus.Cleared)
-        .reduce((sum, tx) => sum + tx.totalAmount, 0);
+        .reduce((sum, tx): number => sum + tx.totalAmount, 0);
 
     const pendingBalance = transactions
         .filter(tx => tx.status === TransactionStatus.Pending)
@@ -49,56 +52,48 @@ export default function Dashboard(): React.JSX.Element {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-        const file = event.target.files?.[0];
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const file = e.target.files?.[0];
         if (!file) return;
 
         setIsImporting(true);
         const reader = new FileReader();
 
-        reader.onload = async e => {
-            const content = e.target?.result as string;
+        reader.onload = (event): void => {
+            const content = event.target?.result as string;
             const parser = new QIFParser();
             const result = parser.parse(content);
 
             if (result.transactions.length > 0) {
-                // Map parsed transactions to the UI transaction format
-                // In a real app, this would go through the TransactionEngine
-                const newTransactions: Array<ITransaction> = result.transactions.map(
-                    (pt: IParsedTransaction, idx: number) =>
-                        ({
-                            id: `imported-${Date.now()}-${idx}`,
-                            accountId: 'acc-imported',
-                            date: pt.date,
-                            payee: pt.payee,
-                            totalAmount: pt.amount,
-                            status: TransactionStatus.Cleared, // Default to cleared for QIF imports
-                            checkNumber: pt.checkNumber,
-                            memo: pt.memo,
-                            importHash: pt.importHash,
-                            splits: pt.splits.map((s: IParsedSplit, sIdx: number) => ({
-                                id: `split-${Date.now()}-${idx}-${sIdx}`,
-                                categoryId: s.category, // Using category name as ID for now
-                                amount: s.amount,
-                                memo: s.memo || '',
-                            })),
-                            createdAt: new Date().toISOString() as ISODateString,
-                            updatedAt: new Date().toISOString() as ISODateString,
-                        }) satisfies ITransaction,
-                );
+                const newTransactions: Array<ITransaction> = result.transactions.map((pt: IParsedTransaction, idx: number): ITransaction => ({
+                    id: `import-${Date.now()}-${idx}`,
+                    accountId: 'imported',
+                    date: pt.date,
+                    payee: pt.payee,
+                    memo: pt.memo || '',
+                    totalAmount: pt.amount,
+                    status: TransactionStatus.Cleared,
+                    checkNumber: pt.checkNumber || '',
+                    importHash: pt.importHash || '',
+                    splits: pt.splits.map((s: IParsedSplit, sIdx: number): ISplit => ({
+                        id: `split-${Date.now()}-${idx}-${sIdx}`,
+                        amount: s.amount,
+                        memo: s.memo || '',
+                        categoryId: s.category || 'UNCATEGORIZED',
+                    })),
+                    createdAt: new Date().toISOString() as ISODateString,
+                    updatedAt: new Date().toISOString() as ISODateString,
+                }));
 
                 setTransactions(prev => {
                     const combined = [...newTransactions, ...prev];
-                    // Sort by date descending (latest first)
                     return combined.sort((a, b) => b.date.localeCompare(a.date));
                 });
             }
 
             if (result.errors.length > 0) {
                 console.error('QIF Parse Errors:', result.errors);
-                alert(
-                    `Import failed with ${result.errors.length} errors. Check console for details.`,
-                );
+                alert(`Import failed with ${result.errors.length} errors.`);
             } else if (result.warnings.length > 0) {
                 console.warn('QIF Parse Warnings:', result.warnings);
             }
