@@ -26,16 +26,6 @@ function DashboardContent(): React.JSX.Element {
     const [mounted, setMounted] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Show loading state while checking auth
-    if (status === 'loading' || !mounted) {
-        return <div className="h-screen bg-[#0F1115]" />;
-    }
-
-    // Show sign-in if not authenticated
-    if (!session) {
-        return <SignInButton />;
-    }
-
     useEffect((): (() => void) => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
@@ -51,6 +41,16 @@ function DashboardContent(): React.JSX.Element {
         window.addEventListener('keydown', handleGlobalKeyDown);
         return (): void => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, []);
+
+    // Show loading state while checking auth
+    if (status === 'loading' || !mounted) {
+        return <div className="h-screen bg-[#0F1115]" />;
+    }
+
+    // Show sign-in if not authenticated
+    if (!session) {
+        return <SignInButton />;
+    }
 
     // Calculate balances from current transaction state
     const clearedBalance = transactions
