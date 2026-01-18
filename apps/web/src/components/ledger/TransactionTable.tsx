@@ -142,8 +142,8 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const [rowSelection, setRowSelection] = React.useState({});
     const [activeIndex, setActiveIndex] = React.useState(0);
     const [monthsToShow, setMonthsToShow] = React.useState(6);
-
     const parentRef = React.useRef<HTMLDivElement>(null);
+    const lastKeyTime = React.useRef<number>(0);
 
     // Filter data based on the time window
     const windowedData = React.useMemo(() => {
@@ -187,6 +187,11 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const handleKeyDown = (e: React.KeyboardEvent): void => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
+
+            // Throttle state updates to roughly 60fps (16ms)
+            const now = performance.now();
+            if (now - lastKeyTime.current < 16) return;
+            lastKeyTime.current = now;
 
             if (rows.length === 0) return;
 
@@ -323,6 +328,18 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                         })}
                     </div>
 
+                    {/* Load More Trigger - Now part of the scroll flow */}
+                    {windowedData.length < data.length && rows.length > 0 && (
+                        <div className="px-3 border-t border-[#1E293B] bg-[#0F1115]">
+                            <button
+                                onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                                className="w-full py-4 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors border-b border-[#1E293B]"
+                            >
+                                ↓ Load older history (currently showing {monthsToShow} months) ↓
+                            </button>
+                        </div>
+                    )}
+
                     {rows.length === 0 && (
                         <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10">
                             {data.length === 0 ? (
@@ -354,18 +371,6 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                         </div>
                     )}
                 </div>
-
-                {/* Load More Trigger - Fixed at bottom of the main container */}
-                {windowedData.length < data.length && rows.length > 0 && (
-                    <div className="px-3 border-t border-[#1E293B] bg-[#0F1115] flex-none">
-                        <button
-                            onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                            className="w-full py-2 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors"
-                        >
-                            ↓ Load older history (currently showing {monthsToShow} months) ↓
-                        </button>
-                    </div>
-                )}
             </div>
 
             <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase bg-[#0F1115] flex-none">
