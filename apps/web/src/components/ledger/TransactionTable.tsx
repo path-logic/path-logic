@@ -24,18 +24,7 @@ import { cn } from '@/lib/utils';
 export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'date',
-        header: ({ column }): React.JSX.Element => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={(): void => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="p-0 hover:bg-transparent text-[10px] h-auto font-bold uppercase"
-                >
-                    Date
-                    <ArrowUpDown className="ml-1 h-3 w-3" />
-                </Button>
-            );
-        },
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Date</div>,
         cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-[#64748B] text-nowrap">{row.getValue('date')}</div>,
     },
     {
@@ -93,20 +82,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         accessorKey: 'totalAmount',
-        header: ({ column }): React.JSX.Element => {
-            return (
-                <div className="text-right">
-                    <Button
-                        variant="ghost"
-                        onClick={(): void => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        className="p-0 hover:bg-transparent text-[10px] h-auto font-bold uppercase ml-auto"
-                    >
-                        Amount
-                        <ArrowUpDown className="ml-1 h-3 w-3" />
-                    </Button>
-                </div>
-            );
-        },
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap text-right">Amount</div>,
         cell: ({ row }): React.JSX.Element => {
             const amount = parseFloat(row.getValue('totalAmount'));
             const formatted = Money.formatCurrency(amount);
@@ -123,7 +99,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         id: 'balance',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-right text-nowrap">Balance</div>,
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap text-right">Balance</div>,
         cell: ({ row }): React.JSX.Element => {
             const balance = (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
             const formatted = Money.formatCurrency(balance);
