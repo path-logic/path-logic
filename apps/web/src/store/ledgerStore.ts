@@ -25,7 +25,7 @@ interface ILedgerStore {
 }
 
 export const useLedgerStore = create<ILedgerStore>((set) => ({
-    transactions: Array<ITransaction>(),
+    transactions: [],
     isLoading: false,
     isInitialized: false,
 
