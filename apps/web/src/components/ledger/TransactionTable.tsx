@@ -140,15 +140,25 @@ export function TransactionTable({ data }: TransactionTableProps) {
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = React.useState({});
     const [activeIndex, setActiveIndex] = React.useState(0);
+    const [monthsToShow, setMonthsToShow] = React.useState(6);
     const containerRef = React.useRef<HTMLDivElement>(null);
 
+    // Filter data based on the time window
+    const windowedData = React.useMemo(() => {
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - monthsToShow);
+        return data.filter(tx => {
+            const txDate = new Date(tx.date);
+            return txDate >= cutoff;
+        });
+    }, [data, monthsToShow]);
+
     const table = useReactTable({
-        data,
+        data: windowedData,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
@@ -159,14 +169,10 @@ export function TransactionTable({ data }: TransactionTableProps) {
             columnVisibility,
             rowSelection,
         },
-        initialState: {
-            pagination: {
-                pageSize: 100, // High density
-            }
-        }
     });
 
-    React.useEffect(() => {
+    // Use useLayoutEffect for more immediate scroll feedback before paint
+    React.useLayoutEffect(() => {
         const activeRow = containerRef.current?.querySelector('[data-active="true"]');
         if (activeRow) {
             activeRow.scrollIntoView({ block: 'nearest', behavior: 'auto' });
@@ -193,14 +199,13 @@ export function TransactionTable({ data }: TransactionTableProps) {
             const activeRow = table.getRowModel().rows[activeIndex];
             if (activeRow) {
                 console.log('Editing transaction:', activeRow.original);
-                // Future: open edit dialog
             }
         }
     };
 
     return (
         <div className="w-full flex flex-col h-full overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
-            <div className="flex items-center py-2 px-1">
+            <div className="flex items-center py-2 px-1 justify-between">
                 <Input
                     placeholder="Filter ledger (CMD+K)..."
                     value={(table.getColumn('payee')?.getFilterValue() as string) ?? ''}
@@ -209,6 +214,9 @@ export function TransactionTable({ data }: TransactionTableProps) {
                     }
                     className="max-w-sm h-7 text-[10px] bg-[#0F1115] border-[#1E293B] uppercase tracking-wider focus-visible:ring-1 focus-visible:ring-[#38BDF8]"
                 />
+                <div className="text-[9px] font-mono text-[#64748B] uppercase px-2">
+                    Showing last {monthsToShow} months
+                </div>
             </div>
             <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-auto" ref={containerRef}>
@@ -233,34 +241,55 @@ export function TransactionTable({ data }: TransactionTableProps) {
                         </TableHeader>
                         <TableBody className="divide-y divide-[#1E293B]">
                             {table.getRowModel().rows?.length ? (
-                                table.getRowModel().rows.map((row, idx) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={row.getIsSelected() && 'selected'}
-                                        data-active={idx === activeIndex}
-                                        className={cn(
-                                            "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
-                                            idx === activeIndex && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
-                                        )}
-                                        onClick={() => setActiveIndex(idx)}
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="py-0 px-3 h-9">
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
-                                                )}
+                                <>
+                                    {table.getRowModel().rows.map((row, idx) => (
+                                        <TableRow
+                                            key={row.id}
+                                            data-state={row.getIsSelected() && 'selected'}
+                                            data-active={idx === activeIndex}
+                                            className={cn(
+                                                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
+                                                idx === activeIndex && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
+                                            )}
+                                            onClick={() => setActiveIndex(idx)}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell key={cell.id} className="py-0 px-3 h-9">
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                    {/* Load More Row */}
+                                    {windowedData.length < data.length && (
+                                        <TableRow className="hover:bg-transparent border-none">
+                                            <TableCell colSpan={columns.length} className="p-0">
+                                                <button
+                                                    onClick={() => setMonthsToShow(prev => prev + 6)}
+                                                    className="w-full py-4 text-[10px] font-bold text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors border-t border-[#1E293B]/50"
+                                                >
+                                                    ↓ Load Additional 6 Months of History ↓
+                                                </button>
                                             </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
+                                        </TableRow>
+                                    )}
+                                </>
                             ) : (
                                 <TableRow>
                                     <TableCell
                                         colSpan={columns.length}
                                         className="h-32 text-center text-[#64748B] text-[10px] uppercase tracking-widest"
                                     >
-                                        No transactions loaded.
+                                        No transactions in this window.
+                                        <button
+                                            onClick={() => setMonthsToShow(prev => prev + 6)}
+                                            className="block mx-auto mt-4 text-[#38BDF8] hover:underline"
+                                        >
+                                            Check older history?
+                                        </button>
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -270,27 +299,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
             </div>
             <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase">
                 <div className="flex-1">
-                    {table.getFilteredRowModel().rows.length} Total Transactions
-                </div>
-                <div className="space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                        className="h-6 text-[9px] bg-transparent border-[#1E293B] hover:bg-[#1E293B] text-[#64748B]"
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                        className="h-6 text-[9px] bg-transparent border-[#1E293B] hover:bg-[#1E293B] text-[#64748B]"
-                    >
-                        Next
-                    </Button>
+                    Showing {windowedData.length} of {data.length} Transactions
                 </div>
             </div>
         </div>
