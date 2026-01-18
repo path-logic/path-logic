@@ -394,7 +394,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 {/* Body - Scrollable Virtual Area */}
                 <div
                     ref={parentRef}
-                    className="flex-1 overflow-auto scrollbar-thin scrollbar-track-[#0F1115] scrollbar-thumb-[#334155] hover:scrollbar-thumb-[#475569]"
+                    className="flex-1 overflow-auto ledger-scroll"
                 >
                     {/* Load Older History - Now at the top */}
                     {windowedData.length < data.length && rows.length > 0 && isAtTop && (
