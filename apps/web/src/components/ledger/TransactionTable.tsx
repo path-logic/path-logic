@@ -137,16 +137,19 @@ interface ITransactionTableProps {
 const LedgerRow = React.memo(({
     row,
     isActive,
+    index,
     onClick
 }: {
     row: Row<ITransaction>,
     isActive: boolean,
+    index: number,
     onClick: () => void
 }): React.JSX.Element => {
     return (
         <TableRow
             data-state={row.getIsSelected() && 'selected'}
             data-active={isActive}
+            data-row-index={index}
             className={cn(
                 "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
                 isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
@@ -205,13 +208,15 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         },
     });
 
-    // Use useLayoutEffect for more immediate scroll feedback before paint
-    React.useLayoutEffect(() => {
-        const activeRow = containerRef.current?.querySelector('[data-active="true"]');
-        if (activeRow) {
-            activeRow.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-        }
-    }, [activeIndex]);
+    // Unified scroll handler that can be called directly or via effect
+    const scrollToRow = React.useCallback((index: number) => {
+        requestAnimationFrame(() => {
+            const row = containerRef.current?.querySelector(`[data-row-index="${index}"]`);
+            if (row) {
+                row.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+            }
+        });
+    }, []);
 
     // Safety: Clamp activeIndex when data or filters change the row count
     React.useEffect(() => {
@@ -225,15 +230,18 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
 
-            // Throttle state updates to roughly 60fps (16ms)
-            const now = performance.now();
-            if (now - lastKeyTime.current < 16) return;
-            lastKeyTime.current = now;
+            const rowCount = table.getRowModel().rows.length;
+            if (rowCount === 0) return;
 
-            if (e.key === 'ArrowDown') {
-                setActiveIndex(prev => Math.min(prev + 1, table.getRowModel().rows.length - 1));
-            } else {
-                setActiveIndex(prev => Math.max(prev - 1, 0));
+            // Immediate state update
+            const nextIndex = e.key === 'ArrowDown'
+                ? Math.min(activeIndex + 1, rowCount - 1)
+                : Math.max(activeIndex - 1, 0);
+
+            if (nextIndex !== activeIndex) {
+                setActiveIndex(nextIndex);
+                // Direct scroll bypassing render cycle for snappy feedback
+                scrollToRow(nextIndex);
             }
         } else if (e.key === 'Enter') {
             e.preventDefault();
@@ -288,6 +296,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                             key={row.id}
                                             row={row}
                                             isActive={idx === activeIndex}
+                                            index={idx}
                                             onClick={() => setActiveIndex(idx)}
                                         />
                                     ))}
