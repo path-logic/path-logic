@@ -22,7 +22,7 @@ interface IDriveFile {
 export async function findDatabaseFile(
     accessToken: string
 ): Promise<IDriveFile | null> {
-    const response = await fetch(
+    const response: Response = await fetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${DB_FILENAME}'`,
         {
             headers: {
@@ -35,7 +35,7 @@ export async function findDatabaseFile(
         throw new Error(`Failed to list files: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as { files: Array<IDriveFile> };
+    const data: { files: Array<IDriveFile> } = (await response.json()) as { files: Array<IDriveFile> };
     return data.files.length > 0 ? data.files[0]! : null;
 }
 
@@ -46,7 +46,7 @@ export async function downloadDatabase(
     accessToken: string,
     fileId: string
 ): Promise<Uint8Array> {
-    const response = await fetch(
+    const response: Response = await fetch(
         `${DRIVE_API_BASE}/files/${fileId}?alt=media`,
         {
             headers: {
@@ -59,7 +59,7 @@ export async function downloadDatabase(
         throw new Error(`Failed to download file: ${response.statusText}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    const arrayBuffer: ArrayBuffer = await response.arrayBuffer();
     return new Uint8Array(arrayBuffer);
 }
 
@@ -71,25 +71,25 @@ export async function uploadDatabase(
     encryptedData: Uint8Array,
     existingFileId?: string
 ): Promise<string> {
-    const metadata = {
+    const metadata: { name: string; parents: Array<string> } = {
         name: DB_FILENAME,
         parents: ['appDataFolder'],
     };
 
-    const form = new FormData();
+    const form: FormData = new FormData();
     form.append(
         'metadata',
         new Blob([JSON.stringify(metadata)], { type: 'application/json' })
     );
     form.append('file', new Blob([encryptedData]), DB_FILENAME);
 
-    const url = existingFileId
+    const url: string = existingFileId
         ? `${UPLOAD_API_BASE}/files/${existingFileId}?uploadType=multipart`
         : `${UPLOAD_API_BASE}/files?uploadType=multipart`;
 
-    const method = existingFileId ? 'PATCH' : 'POST';
+    const method: string = existingFileId ? 'PATCH' : 'POST';
 
-    const response = await fetch(url, {
+    const response: Response = await fetch(url, {
         method,
         headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -101,7 +101,7 @@ export async function uploadDatabase(
         throw new Error(`Failed to upload file: ${response.statusText}`);
     }
 
-    const result = (await response.json()) as { id: string };
+    const result: { id: string } = (await response.json()) as { id: string };
     return result.id;
 }
 
@@ -112,7 +112,7 @@ export async function deleteDatabaseFile(
     accessToken: string,
     fileId: string
 ): Promise<void> {
-    const response = await fetch(`${DRIVE_API_BASE}/files/${fileId}`, {
+    const response: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}`, {
         method: 'DELETE',
         headers: {
             Authorization: `Bearer ${accessToken}`,

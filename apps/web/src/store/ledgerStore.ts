@@ -33,7 +33,7 @@ export const useLedgerStore = create<ILedgerStore>((set, get) => ({
         set({ isLoading: true });
         try {
             await initDatabase();
-            const transactions = getAllTransactions();
+            const transactions: Array<ITransaction> = getAllTransactions();
             set({ transactions, isInitialized: true, isLoading: false });
         } catch (error) {
             console.error('Failed to initialize database:', error);
@@ -45,7 +45,7 @@ export const useLedgerStore = create<ILedgerStore>((set, get) => ({
         set({ isLoading: true });
         try {
             await loadDatabase(data);
-            const transactions = getAllTransactions();
+            const transactions: Array<ITransaction> = getAllTransactions();
             set({ transactions, isInitialized: true, isLoading: false });
         } catch (error) {
             console.error('Failed to load encrypted data:', error);
@@ -56,7 +56,7 @@ export const useLedgerStore = create<ILedgerStore>((set, get) => ({
     addTransaction: async (tx: ITransaction): Promise<void> => {
         try {
             insertTransaction(tx);
-            const transactions = getAllTransactions();
+            const transactions: Array<ITransaction> = getAllTransactions();
             set({ transactions });
         } catch (error) {
             console.error('Failed to add transaction:', error);
@@ -67,7 +67,7 @@ export const useLedgerStore = create<ILedgerStore>((set, get) => ({
     updateTransaction: async (tx: ITransaction): Promise<void> => {
         try {
             updateTransaction(tx);
-            const transactions = getAllTransactions();
+            const transactions: Array<ITransaction> = getAllTransactions();
             set({ transactions });
         } catch (error) {
             console.error('Failed to update transaction:', error);
@@ -78,7 +78,7 @@ export const useLedgerStore = create<ILedgerStore>((set, get) => ({
     deleteTransaction: async (txId: string): Promise<void> => {
         try {
             deleteTransaction(txId);
-            const transactions = getAllTransactions();
+            const transactions: Array<ITransaction> = getAllTransactions();
             set({ transactions });
         } catch (error) {
             console.error('Failed to delete transaction:', error);

@@ -12,8 +12,8 @@ import {
  * Drive → Download → Decrypt → Load into SQLite
  */
 
-let syncInProgress = false;
-let lastSyncTime = 0;
+let syncInProgress: boolean = false;
+let lastSyncTime: number = 0;
 const SYNC_DEBOUNCE_MS = 2000; // 2 seconds
 
 /**
@@ -25,7 +25,7 @@ export async function loadFromDrive(
 ): Promise<void> {
     try {
         // Find the database file in Drive
-        const file = await findDatabaseFile(accessToken);
+        const file: Awaited<ReturnType<typeof findDatabaseFile>> = await findDatabaseFile(accessToken);
 
         if (!file) {
             // No existing database, initialize empty
@@ -35,10 +35,10 @@ export async function loadFromDrive(
         }
 
         // Download encrypted database
-        const encryptedData = await downloadDatabase(accessToken, file.id);
+        const encryptedData: Uint8Array = await downloadDatabase(accessToken, file.id);
 
         // Decrypt
-        const decryptedData = await decryptDatabase(encryptedData, userId);
+        const decryptedData: Uint8Array = await decryptDatabase(encryptedData, userId);
 
         // Load into SQLite
         await useLedgerStore.getState().loadFromEncryptedData(decryptedData);
@@ -59,7 +59,7 @@ export async function saveToDrive(
     userId: string
 ): Promise<void> {
     // Debounce to avoid excessive uploads
-    const now = Date.now();
+    const now: number = Date.now();
     if (syncInProgress || now - lastSyncTime < SYNC_DEBOUNCE_MS) {
         return;
     }
@@ -69,13 +69,13 @@ export async function saveToDrive(
 
     try {
         // Export database
-        const dbExport = useLedgerStore.getState().exportForSync();
+        const dbExport: Uint8Array = useLedgerStore.getState().exportForSync();
 
         // Encrypt
-        const encryptedData = await encryptDatabase(dbExport, userId);
+        const encryptedData: Uint8Array = await encryptDatabase(dbExport, userId);
 
         // Find existing file
-        const existingFile = await findDatabaseFile(accessToken);
+        const existingFile: Awaited<ReturnType<typeof findDatabaseFile>> = await findDatabaseFile(accessToken);
 
         // Upload (create or update)
         await uploadDatabase(

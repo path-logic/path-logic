@@ -1,5 +1,5 @@
 import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
-import type { ITransaction, ISplit, ISODateString } from '@path-logic/core';
+import type { ITransaction, ISplit, ISODateString, TransactionStatus } from '@path-logic/core';
 
 let SQL: SqlJsStatic | null = null;
 let db: Database | null = null;
@@ -140,7 +140,7 @@ export function getAllTransactions(): Array<ITransaction> {
                     id: splitRow[0] as string,
                     amount: splitRow[4] as number,
                     memo: (splitRow[3] as string) || '',
-                    categoryId: (splitRow[2] as string) || undefined,
+                    categoryId: (splitRow[2] as string) || null,
                 });
             }
         }
@@ -152,7 +152,7 @@ export function getAllTransactions(): Array<ITransaction> {
             payee: row[3] as string,
             memo: row[4] as string,
             totalAmount: row[5] as number,
-            status: row[6] as string,
+            status: row[6] as TransactionStatus,
             checkNumber: (row[7] as string) || '',
             importHash: row[8] as string,
             createdAt: row[9] as ISODateString,

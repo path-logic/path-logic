@@ -17,11 +17,11 @@ const IV_LENGTH = 12; // 96 bits for GCM
  */
 export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
     // Convert user ID to bytes
-    const encoder = new TextEncoder();
+    const encoder: TextEncoder = new TextEncoder();
     const userIdBytes = encoder.encode(userId);
 
     // Import as raw key material
-    const keyMaterial = await crypto.subtle.importKey(
+    const keyMaterial: CryptoKey = await crypto.subtle.importKey(
         'raw',
         userIdBytes,
         'PBKDF2',
@@ -33,7 +33,7 @@ export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
     // Salt is hardcoded for deterministic key derivation from same user ID
     const salt = encoder.encode('path-logic-v1-salt');
 
-    const key = await crypto.subtle.deriveKey(
+    const key: CryptoKey = await crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
             salt,
@@ -64,7 +64,7 @@ export async function encryptData(
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
 
     // Encrypt
-    const ciphertext = await crypto.subtle.encrypt(
+    const ciphertext: ArrayBuffer = await crypto.subtle.encrypt(
         {
             name: 'AES-GCM',
             iv,
@@ -74,7 +74,7 @@ export async function encryptData(
     );
 
     // Prepend IV to ciphertext
-    const result = new Uint8Array(IV_LENGTH + ciphertext.byteLength);
+    const result: Uint8Array = new Uint8Array(IV_LENGTH + ciphertext.byteLength);
     result.set(iv, 0);
     result.set(new Uint8Array(ciphertext), IV_LENGTH);
 
@@ -94,7 +94,7 @@ export async function decryptData(
     const ciphertext = encryptedData.slice(IV_LENGTH);
 
     // Decrypt
-    const plaintext = await crypto.subtle.decrypt(
+    const plaintext: ArrayBuffer = await crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
             iv,
@@ -113,7 +113,7 @@ export async function encryptDatabase(
     dbExport: Uint8Array,
     userId: string
 ): Promise<Uint8Array> {
-    const key = await deriveKeyFromUserId(userId);
+    const key: CryptoKey = await deriveKeyFromUserId(userId);
     return encryptData(dbExport, key);
 }
 
@@ -124,6 +124,6 @@ export async function decryptDatabase(
     encryptedDb: Uint8Array,
     userId: string
 ): Promise<Uint8Array> {
-    const key = await deriveKeyFromUserId(userId);
+    const key: CryptoKey = await deriveKeyFromUserId(userId);
     return decryptData(encryptedDb, key);
 }
