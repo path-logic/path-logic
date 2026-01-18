@@ -336,6 +336,30 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         return () => scrollElement.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Scroll to current date or newest transaction on initial load
+    React.useEffect(() => {
+        if (rows.length === 0) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Find the index of today's date or the closest future date
+        let targetIndex = rows.findIndex((row) => {
+            const rowDate = new Date(row.original.date);
+            rowDate.setHours(0, 0, 0, 0);
+            return rowDate >= today;
+        });
+
+        // If no future dates found, scroll to the last (newest) transaction
+        if (targetIndex === -1) {
+            targetIndex = rows.length - 1;
+        }
+
+        // Scroll to the target index
+        virtualizer.scrollToIndex(targetIndex, { align: 'center', behavior: 'auto' });
+        setActiveIndex(targetIndex);
+    }, [rows.length, virtualizer]);
+
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
             {/* Toolbar */}
