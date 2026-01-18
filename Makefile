@@ -1,7 +1,7 @@
 # Path Logic - Development Makefile
 # Tooling and utility commands (keeps package.json clean)
 
-.PHONY: help format format-check typecheck lint clean install
+.PHONY: help format format-check typecheck lint clean install test
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "  make format-check Check formatting (CI)"
 	@echo "  make typecheck    Run TypeScript type checking"
 	@echo "  make lint         Run all linters"
+	@echo "  make test         Run all tests"
 	@echo "  make clean        Remove build artifacts"
 	@echo ""
 	@echo "For app commands, use npm scripts:"
@@ -37,7 +38,11 @@ typecheck:
 
 lint:
 	npm run lint
-	@echo "✅ All checks passed"
+	@echo "✅ All linting checks passed"
+
+test:
+	npm run test
+	@echo "✅ All tests passed"
 
 # === CLEANUP ===
 
