@@ -292,14 +292,33 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                     </div>
 
                     {rows.length === 0 && (
-                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[200px]">
-                            No transactions in this window.
-                            <button
-                                onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                                className="text-[#38BDF8] hover:underline"
-                            >
-                                Check older history?
-                            </button>
+                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8">
+                            {data.length === 0 ? (
+                                <>
+                                    <div className="text-[#38BDF8] font-bold">Ledger is empty</div>
+                                    <div>Import a QIF file or add a transaction to get started</div>
+                                </>
+                            ) : windowedData.length === 0 ? (
+                                <>
+                                    <div>No transactions in the last {monthsToShow} months</div>
+                                    <button
+                                        onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                                        className="text-[#38BDF8] hover:underline font-bold"
+                                    >
+                                        Check older history?
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <div>No transactions match your current filters</div>
+                                    <button
+                                        onClick={(): void => table.resetColumnFilters()}
+                                        className="text-[#38BDF8] hover:underline font-bold"
+                                    >
+                                        Clear all filters
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
