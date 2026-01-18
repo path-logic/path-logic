@@ -1,8 +1,13 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "es2022",
-        "lib": ["dom", "dom.iterable", "esnext"],
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -20,8 +25,12 @@
             }
         ],
         "paths": {
-            "@/*": ["./src/*"],
-            "@path-logic/core": ["../../packages/core/src/index.ts"]
+            "@/*": [
+                "./src/*"
+            ],
+            "@path-logic/core": [
+                "../../packages/core/src/index.ts"
+            ]
         }
     },
     "include": [
@@ -31,5 +40,7 @@
         ".next/types/**/*.ts",
         "../../packages/core/src/**/*.ts"
     ],
-    "exclude": ["node_modules"]
+    "exclude": [
+        "node_modules"
+    ]
 }
