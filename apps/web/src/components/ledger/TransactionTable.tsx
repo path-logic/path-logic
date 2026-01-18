@@ -169,7 +169,7 @@ export function TransactionTable({ data }: TransactionTableProps) {
     React.useEffect(() => {
         const activeRow = containerRef.current?.querySelector('[data-active="true"]');
         if (activeRow) {
-            activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            activeRow.scrollIntoView({ block: 'nearest', behavior: 'auto' });
         }
     }, [activeIndex]);
 
