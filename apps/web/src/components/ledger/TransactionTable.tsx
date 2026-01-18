@@ -289,19 +289,19 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                 })}
                             </TableBody>
                         </Table>
-
-                        {rows.length === 0 && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4">
-                                No transactions in this window.
-                                <button
-                                    onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                                    className="text-[#38BDF8] hover:underline"
-                                >
-                                    Check older history?
-                                </button>
-                            </div>
-                        )}
                     </div>
+
+                    {rows.length === 0 && (
+                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[200px]">
+                            No transactions in this window.
+                            <button
+                                onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                                className="text-[#38BDF8] hover:underline"
+                            >
+                                Check older history?
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Load More Trigger - outside the internal scroll to keep it reachable */}
