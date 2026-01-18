@@ -24,8 +24,8 @@ interface ILedgerStore {
     exportForSync: () => Uint8Array;
 }
 
-export const useLedgerStore = create<ILedgerStore>((set, get) => ({
-    transactions: [],
+export const useLedgerStore = create<ILedgerStore>((set) => ({
+    transactions: [] as Array<ITransaction>,
     isLoading: false,
     isInitialized: false,
 

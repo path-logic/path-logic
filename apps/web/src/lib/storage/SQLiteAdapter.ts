@@ -1,5 +1,5 @@
-import initSqlJs, { Database, SqlJsStatic } from 'sql.js';
-import type { ITransaction, ISplit, ISODateString, TransactionStatus } from '@path-logic/core';
+import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js';
+import type { ISODateString, ISplit, ITransaction, TransactionStatus } from '@path-logic/core';
 
 let SQL: SqlJsStatic | null = null;
 let db: Database | null = null;
