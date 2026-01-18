@@ -4,16 +4,17 @@ import * as React from 'react';
 import {
     ColumnDef,
     ColumnFiltersState,
-    Row,
-    SortingState,
-    VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getSortedRowModel,
+    Row,
+    SortingState,
+    VisibilityState,
     useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ArrowUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +44,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
                 </Button>
             );
         },
-        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-[#64748B]">{row.getValue('date')}</div>,
+        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-[#64748B] text-nowrap">{row.getValue('date')}</div>,
     },
     {
         accessorKey: 'payee',
@@ -71,7 +72,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             const tx = row.original;
             return (
                 <div className="flex items-center">
-                    <span className="text-[9px] bg-[#1E293B] px-1.5 py-0.5 rounded-sm border border-[#334155] text-[#94A3B8] whitespace-nowrap uppercase tracking-tighter">
+                    <span className="text-[9px] bg-[#1E293B] px-1.5 py-0.5 rounded-sm border border-[#334155] text-[#94A3B8] whitespace-nowrap uppercase tracking-tighter font-bold">
                         {tx.splits.length > 1
                             ? 'SPLIT'
                             : (tx.splits[0]?.categoryId ?? 'UNCATEGORIZED')}
@@ -82,13 +83,13 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         accessorKey: 'status',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase">Status</div>,
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Status</div>,
         cell: ({ row }): React.JSX.Element => {
             const status = row.original.status;
             return (
                 <div
                     className={cn(
-                        "text-[9px] font-bold uppercase",
+                        "text-[9px] font-bold uppercase text-nowrap",
                         status === TransactionStatus.Cleared ? "text-[#10B981]" :
                             status === TransactionStatus.Pending ? "text-[#F59E0B]" : "text-[#38BDF8]"
                     )}
@@ -120,7 +121,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
 
             return (
                 <div className={cn(
-                    "text-right font-mono font-bold text-[11px]",
+                    "text-right font-mono font-bold text-[11px] text-nowrap",
                     amount < 0 ? "text-[#EF4444]" : "text-[#10B981]"
                 )}>
                     {formatted}
@@ -134,42 +135,6 @@ interface ITransactionTableProps {
     data: Array<ITransaction>;
 }
 
-const LedgerRow = React.memo(({
-    row,
-    isActive,
-    index,
-    onClick
-}: {
-    row: Row<ITransaction>,
-    isActive: boolean,
-    index: number,
-    onClick: () => void
-}): React.JSX.Element => {
-    return (
-        <TableRow
-            data-state={row.getIsSelected() && 'selected'}
-            data-active={isActive}
-            data-row-index={index}
-            className={cn(
-                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors",
-                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-1"
-            )}
-            onClick={onClick}
-        >
-            {row.getVisibleCells().map((cell): React.JSX.Element => (
-                <TableCell key={cell.id} className="py-0 px-3 h-9">
-                    {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                    )}
-                </TableCell>
-            ))}
-        </TableRow>
-    );
-});
-
-LedgerRow.displayName = 'LedgerRow';
-
 export function TransactionTable({ data }: ITransactionTableProps): React.JSX.Element {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -177,8 +142,8 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const [rowSelection, setRowSelection] = React.useState({});
     const [activeIndex, setActiveIndex] = React.useState(0);
     const [monthsToShow, setMonthsToShow] = React.useState(6);
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    const lastKeyTime = React.useRef<number>(0);
+
+    const parentRef = React.useRef<HTMLDivElement>(null);
 
     // Filter data based on the time window
     const windowedData = React.useMemo(() => {
@@ -208,73 +173,76 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         },
     });
 
-    // Unified scroll handler that can be called directly or via effect
-    const scrollToRow = React.useCallback((index: number) => {
-        requestAnimationFrame(() => {
-            const row = containerRef.current?.querySelector(`[data-row-index="${index}"]`);
-            if (row) {
-                row.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-            }
-        });
-    }, []);
+    const { rows } = table.getRowModel();
 
-    // Safety: Clamp activeIndex when data or filters change the row count
-    React.useEffect(() => {
-        const rowCount = table.getRowModel().rows.length;
-        if (rowCount > 0 && activeIndex >= rowCount) {
-            setActiveIndex(rowCount - 1);
-        }
-    }, [table.getRowModel().rows.length]);
+    // Virtualization setup
+    const virtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 36, // h-9
+        overscan: 10,
+    });
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Keyboard navigation
+    const handleKeyDown = (e: React.KeyboardEvent): void => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
 
-            const rowCount = table.getRowModel().rows.length;
-            if (rowCount === 0) return;
+            if (rows.length === 0) return;
 
-            // Immediate state update
             const nextIndex = e.key === 'ArrowDown'
-                ? Math.min(activeIndex + 1, rowCount - 1)
+                ? Math.min(activeIndex + 1, rows.length - 1)
                 : Math.max(activeIndex - 1, 0);
 
             if (nextIndex !== activeIndex) {
                 setActiveIndex(nextIndex);
-                // Direct scroll bypassing render cycle for snappy feedback
-                scrollToRow(nextIndex);
+                virtualizer.scrollToIndex(nextIndex, { align: 'auto', behavior: 'auto' });
             }
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            const activeRow = table.getRowModel().rows[activeIndex];
+            const activeRow = rows[activeIndex];
             if (activeRow) {
                 console.log('Editing transaction:', activeRow.original);
             }
         }
     };
 
+    // Safety: Clamp activeIndex when data or filters change the row count
+    React.useEffect((): void => {
+        if (rows.length > 0 && activeIndex >= rows.length) {
+            setActiveIndex(rows.length - 1);
+        } else if (rows.length === 0 && activeIndex !== 0) {
+            setActiveIndex(0);
+        }
+    }, [rows.length]);
+
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
-            <div className="flex items-center py-2 px-1 justify-between">
+            <div className="flex items-center py-2 px-1 justify-between flex-none bg-[#0F1115]">
                 <Input
                     placeholder="Filter ledger (CMD+K)..."
                     value={(table.getColumn('payee')?.getFilterValue() as string) ?? ''}
-                    onChange={(event) =>
+                    onChange={(event): void =>
                         table.getColumn('payee')?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm h-7 text-[10px] bg-[#0F1115] border-[#1E293B] uppercase tracking-wider focus-visible:ring-1 focus-visible:ring-[#38BDF8]"
                 />
-                <div className="text-[9px] font-mono text-[#64748B] uppercase px-2">
-                    Showing last {monthsToShow} months
+                <div className="text-[9px] font-mono text-[#64748B] uppercase px-2 translate-y-1">
+                    Showing {rows.length} records • Last {monthsToShow} months
                 </div>
             </div>
-            <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative overflow-hidden flex flex-col min-h-0">
-                <div className="flex-1 overflow-auto" ref={containerRef}>
-                    <Table>
-                        <TableHeader className="bg-[#1E293B] sticky top-0 z-20">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-[#0F1115]">
-                                    {headerGroup.headers.map((header) => {
-                                        return (
+
+            <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative flex flex-col min-h-0 overflow-hidden">
+                <div
+                    ref={parentRef}
+                    className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-[#1E293B] hover:scrollbar-thumb-[#334155]"
+                >
+                    <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
+                        <Table>
+                            <TableHeader className="bg-[#1E293B] sticky top-0 z-20">
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-[#0F1115]">
+                                        {headerGroup.headers.map((header) => (
                                             <TableHead key={header.id} className="h-8 px-3 text-[#64748B] font-bold">
                                                 {header.isPlaceholder
                                                     ? null
@@ -283,58 +251,73 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                                         header.getContext()
                                                     )}
                                             </TableHead>
-                                        );
-                                    })}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody className="divide-y divide-[#1E293B]">
-                            {table.getRowModel().rows?.length ? (
-                                <>
-                                    {table.getRowModel().rows.map((row, idx) => (
-                                        <LedgerRow
-                                            key={row.id}
-                                            row={row}
-                                            isActive={idx === activeIndex}
-                                            index={idx}
-                                            onClick={() => setActiveIndex(idx)}
-                                        />
-                                    ))}
-                                    {/* Load More Row */}
-                                    {windowedData.length < data.length && (
-                                        <TableRow className="hover:bg-transparent border-none">
-                                            <TableCell colSpan={columns.length} className="p-0">
-                                                <button
-                                                    onClick={() => setMonthsToShow(prev => prev + 6)}
-                                                    className="w-full py-4 text-[10px] font-bold text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors border-t border-[#1E293B]/50"
-                                                >
-                                                    ↓ Load Additional 6 Months of History ↓
-                                                </button>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </>
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={columns.length}
-                                        className="h-32 text-center text-[#64748B] text-[10px] uppercase tracking-widest"
-                                    >
-                                        No transactions in this window.
-                                        <button
-                                            onClick={() => setMonthsToShow(prev => prev + 6)}
-                                            className="block mx-auto mt-4 text-[#38BDF8] hover:underline"
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {virtualizer.getVirtualItems().map((virtualRow) => {
+                                    const row = rows[virtualRow.index];
+                                    if (!row) return null;
+
+                                    const isActive = virtualRow.index === activeIndex;
+
+                                    return (
+                                        <TableRow
+                                            key={virtualRow.key}
+                                            data-state={row.getIsSelected() && 'selected'}
+                                            className={cn(
+                                                "hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
+                                                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
+                                            )}
+                                            style={{
+                                                top: 0,
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                            }}
+                                            onClick={(): void => setActiveIndex(virtualRow.index)}
                                         >
-                                            Check older history?
-                                        </button>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell key={cell.id} className="py-0 px-3 h-9">
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+
+                        {rows.length === 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4">
+                                No transactions in this window.
+                                <button
+                                    onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                                    className="text-[#38BDF8] hover:underline"
+                                >
+                                    Check older history?
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {/* Load More Trigger - outside the internal scroll to keep it reachable */}
+                {windowedData.length < data.length && rows.length > 0 && (
+                    <div className="px-3 border-t border-[#1E293B] bg-[#0F1115]">
+                        <button
+                            onClick={(): void => setMonthsToShow(prev => prev + 6)}
+                            className="w-full py-2 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors"
+                        >
+                            ↓ Load older history (currently showing {monthsToShow} months) ↓
+                        </button>
+                    </div>
+                )}
             </div>
-            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase">
+
+            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase bg-[#0F1115]">
                 <div className="flex-1">
                     Showing {windowedData.length} of {data.length} Transactions
                 </div>
