@@ -18,15 +18,7 @@ import { ArrowUpDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { ITransaction, Money, TransactionStatus } from '@path-logic/core';
+import { type ITransaction, Money, TransactionStatus } from '@path-logic/core';
 import { cn } from '@/lib/utils';
 
 export const columns: Array<ColumnDef<ITransaction>> = [
@@ -135,6 +127,70 @@ interface ITransactionTableProps {
     data: Array<ITransaction>;
 }
 
+interface IMemoizedLedgerRowProps {
+    row: Row<ITransaction>;
+    virtualRow: {
+        key: React.Key;
+        index: number;
+        start: number;
+    };
+    isActive: boolean;
+    setActiveIndex: (index: number) => void;
+}
+
+const MemoizedLedgerRow = React.memo(({
+    row,
+    virtualRow,
+    isActive,
+    setActiveIndex
+}: IMemoizedLedgerRowProps) => {
+    return (
+        <div
+            key={virtualRow.key}
+            data-state={row.getIsSelected() && 'selected'}
+            className={cn(
+                "flex items-center hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
+                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
+            )}
+            style={{
+                top: 0,
+                transform: `translateY(${virtualRow.start}px)`,
+            }}
+            onClick={(): void => setActiveIndex(virtualRow.index)}
+        >
+            {row.getVisibleCells().map((cell) => {
+                const widthMap: Record<string, string> = {
+                    'date': 'w-[100px]',
+                    'payee': 'flex-1 min-w-[300px]',
+                    'category': 'w-[140px]',
+                    'status': 'w-[100px]',
+                    'totalAmount': 'w-[120px]'
+                };
+                const widthClass = widthMap[cell.column.id] || 'w-[100px]';
+
+                return (
+                    <div
+                        key={cell.id}
+                        className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
+                    >
+                        {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}, (prev, next) => {
+    return prev.isActive === next.isActive &&
+        prev.virtualRow.index === next.virtualRow.index &&
+        prev.virtualRow.start === next.virtualRow.start &&
+        prev.row.id === next.row.id &&
+        prev.row.getIsSelected() === next.row.getIsSelected();
+});
+MemoizedLedgerRow.displayName = 'MemoizedLedgerRow';
+
 export function TransactionTable({ data }: ITransactionTableProps): React.JSX.Element {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -149,7 +205,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const windowedData = React.useMemo(() => {
         const cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - monthsToShow);
-        return data.filter(tx => {
+        return data.filter((tx: ITransaction) => {
             const txDate = new Date(tx.date);
             return txDate >= cutoff;
         });
@@ -180,7 +236,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         count: rows.length,
         getScrollElement: () => parentRef.current,
         estimateSize: () => 36, // h-9
-        overscan: 30, // Increased buffer for high-speed scrolling
+        overscan: 20, // Balanced for smoothness vs render cost
     });
 
     // Keyboard navigation
@@ -285,45 +341,14 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                             const row = rows[virtualRow.index];
                             if (!row) return null;
 
-                            const isActive = virtualRow.index === activeIndex;
-
                             return (
-                                <div
+                                <MemoizedLedgerRow
                                     key={virtualRow.key}
-                                    data-state={row.getIsSelected() && 'selected'}
-                                    className={cn(
-                                        "flex items-center hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
-                                        isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
-                                    )}
-                                    style={{
-                                        top: 0,
-                                        transform: `translateY(${virtualRow.start}px)`,
-                                    }}
-                                    onClick={(): void => setActiveIndex(virtualRow.index)}
-                                >
-                                    {row.getVisibleCells().map((cell) => {
-                                        const widthMap: Record<string, string> = {
-                                            'date': 'w-[100px]',
-                                            'payee': 'flex-1 min-w-[300px]',
-                                            'category': 'w-[140px]',
-                                            'status': 'w-[100px]',
-                                            'totalAmount': 'w-[120px]'
-                                        };
-                                        const widthClass = widthMap[cell.column.id] || 'w-[100px]';
-
-                                        return (
-                                            <div
-                                                key={cell.id}
-                                                className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
-                                            >
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                    row={row}
+                                    virtualRow={virtualRow}
+                                    isActive={virtualRow.index === activeIndex}
+                                    setActiveIndex={setActiveIndex}
+                                />
                             );
                         })}
                     </div>
