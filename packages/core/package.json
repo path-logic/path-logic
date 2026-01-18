@@ -24,8 +24,9 @@
         "docs": "typedoc --options typedoc.json"
     },
     "devDependencies": {
+        "@vitest/coverage-v8": "^2.1.0",
         "tsup": "^8.0.0",
-        "vitest": "^1.0.0",
-        "typedoc": "^0.25.0"
+        "typedoc": "^0.25.0",
+        "vitest": "^2.1.0"
     }
 }

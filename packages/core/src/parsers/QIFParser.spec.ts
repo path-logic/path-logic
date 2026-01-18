@@ -456,4 +456,53 @@ $-1,137.94
             expect(mortgage?.splits[4]?.amount).toBe(-113794);
         });
     });
+
+    describe('Edge Cases', () => {
+        it('warns for unknown field codes', () => {
+            const qif: string = `!Type:Bank
+D1/15/2026
+T-50.00
+ZUnknown
+^`;
+            const result = parser.parse(qif);
+            expect(result.warnings.some(w => w.code === 'UNKNOWN_FIELD')).toBe(true);
+        });
+
+        it('errors for invalid amount strings', () => {
+            // Trigger parseAmount directly via a malformed split amount or main amount
+            const qif: string = `!Type:Bank
+D1/15/2026
+T
+PAmazon
+^`;
+            const result = parser.parse(qif);
+            expect(result.errors.some(e => e.code === 'INVALID_AMOUNT')).toBe(true);
+        });
+
+        it('warns for invalid split amounts', () => {
+            const qif: string = `!Type:Bank
+D1/15/2026
+T-100.00
+PTest
+Ssplit
+$invalid
+^`;
+            const result = parser.parse(qif);
+            expect(result.warnings.some(w => w.code === 'SPLIT_AMOUNT_ERROR')).toBe(true);
+        });
+        it('handles blank lines gracefully', () => {
+            const qif: string = `!Type:Bank
+
+D1/15/2026
+
+T-50.00
+
+PAmazon
+^
+
+`;
+            const result = parser.parse(qif);
+            expect(result.transactions).toHaveLength(1);
+        });
+    });
 });
