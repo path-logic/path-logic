@@ -82,7 +82,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         accessorKey: 'totalAmount',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap text-right">Amount</div>,
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Amount</div>,
         cell: ({ row }): React.JSX.Element => {
             const amount = parseFloat(row.getValue('totalAmount'));
             const formatted = Money.formatCurrency(amount);
@@ -99,7 +99,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         id: 'balance',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap text-right">Balance</div>,
+        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Balance</div>,
         cell: ({ row }): React.JSX.Element => {
             const balance = (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
             const formatted = Money.formatCurrency(balance);
@@ -394,7 +394,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 {/* Body - Scrollable Virtual Area */}
                 <div
                     ref={parentRef}
-                    className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-[#1E293B] hover:scrollbar-thumb-[#334155]"
+                    className="flex-1 overflow-auto scrollbar-thin scrollbar-track-[#0F1115] scrollbar-thumb-[#334155] hover:scrollbar-thumb-[#475569]"
                 >
                     {/* Load Older History - Now at the top */}
                     {windowedData.length < data.length && rows.length > 0 && isAtTop && (
