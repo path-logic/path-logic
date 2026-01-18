@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import {
     type ISODateString,
+    type IParsedSplit,
+    type IParsedTransaction,
     type ITransaction,
     Money,
     QIFParser,
@@ -50,7 +52,7 @@ export default function Dashboard(): React.JSX.Element {
                 // Map parsed transactions to the UI transaction format
                 // In a real app, this would go through the TransactionEngine
                 const newTransactions: Array<ITransaction> = result.transactions.map(
-                    (pt, idx) =>
+                    (pt: IParsedTransaction, idx: number) =>
                         ({
                             id: `imported-${Date.now()}-${idx}`,
                             accountId: 'acc-imported',
@@ -61,7 +63,7 @@ export default function Dashboard(): React.JSX.Element {
                             checkNumber: pt.checkNumber,
                             memo: pt.memo,
                             importHash: pt.importHash,
-                            splits: pt.splits.map((s, sIdx) => ({
+                            splits: pt.splits.map((s: IParsedSplit, sIdx: number) => ({
                                 id: `split-${Date.now()}-${idx}-${sIdx}`,
                                 categoryId: s.category, // Using category name as ID for now
                                 amount: s.amount,
@@ -234,7 +236,7 @@ export default function Dashboard(): React.JSX.Element {
                                                         {tx.splits.length > 0
                                                             ? 'SPLIT'
                                                             : (tx.splits[0]?.categoryId ??
-                                                              'UNCATEGORIZED')}
+                                                                'UNCATEGORIZED')}
                                                     </span>
                                                 </td>
                                                 <td className="p-3 uppercase text-[9px] font-bold">
@@ -244,8 +246,8 @@ export default function Dashboard(): React.JSX.Element {
                                                                 ? 'text-[#10B981]'
                                                                 : tx.status ===
                                                                     TransactionStatus.Pending
-                                                                  ? 'text-[#F59E0B]'
-                                                                  : 'text-[#38BDF8]'
+                                                                    ? 'text-[#F59E0B]'
+                                                                    : 'text-[#38BDF8]'
                                                         }
                                                     >
                                                         {tx.status}
