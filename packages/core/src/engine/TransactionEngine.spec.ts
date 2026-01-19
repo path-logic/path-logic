@@ -10,6 +10,7 @@ describe('TransactionEngine', () => {
     const createMockTransaction = (overrides: Partial<ITransaction> = {}): ITransaction => ({
         id: 'tx-1',
         accountId: 'acc-1',
+        payeeId: 'payee-1',
         date: '2026-01-15' as ISODateString,
         payee: 'Test Payee',
         memo: 'Test Memo',
