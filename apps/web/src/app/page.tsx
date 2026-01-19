@@ -1,50 +1,75 @@
 'use client';
 
-import type {
-    IParsedSplit,
-    IParsedTransaction,
-    ISODateString,
-    ISplit,
-    ITransaction,
-} from '@path-logic/core';
+import * as React from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useLedgerStore } from '@/store/ledgerStore';
 import {
+    type ITransaction,
+    type IParsedTransaction,
+    type IParsedSplit,
+    type ISplit,
+    type ISODateString,
+    TransactionStatus,
     Money,
     QIFParser,
-    TransactionStatus,
+    generateProjection,
+    AccountType,
+    KnownCategory
 } from '@path-logic/core';
-import { SessionProvider, useSession } from 'next-auth/react';
-import React, { useEffect, useRef, useState } from 'react';
-
 import { SignInButton } from '@/components/auth/SignInButton';
 import { TransactionTable } from '@/components/ledger/TransactionTable';
+import { SplitEntryDialog } from '@/components/ledger/SplitEntryDialog';
+import { SyncIndicator } from '@/components/sync/SyncIndicator';
 import { cn } from '@/lib/utils';
+import { Landmark, Banknote, CreditCard, Wallet, Plus, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
+import { AppShell } from '@/components/layout/AppShell';
 
 function DashboardContent(): React.JSX.Element {
-    const { data: session, status } = useSession();
-    const [transactions, setTransactions] = useState<Array<ITransaction>>([]);
-    const [isImporting, setIsImporting] = useState(false);
-    const [mounted, setMounted] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { data: session, status }: { data: any; status: 'loading' | 'authenticated' | 'unauthenticated' } = useSession();
+    const {
+        transactions,
+        accounts,
+        addTransactions,
+        addTransaction,
+        initialize,
+        isInitialized,
+        getOrCreatePayee
+    } = useLedgerStore();
 
-    useEffect((): (() => void) => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    const [isImporting, setIsImporting] = useState<boolean>(false);
+    const [mounted, setMounted] = useState<boolean>(false);
+    const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+    const fileInputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement>(null);
+
+    // Form state (MS Money Style)
+    const [entryPayee, setEntryPayee] = useState('');
+    const [entryAmount, setEntryAmount] = useState('');
+    const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
+    const [entryMemo, setEntryMemo] = useState('');
+    const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
+    const [manualSplits, setManualSplits] = useState<Array<ISplit>>([]);
+
+    useEffect((): void => {
+        if (session && !isInitialized) {
+            initialize();
+        }
         setMounted(true);
+    }, [session, isInitialized, initialize]);
 
-        const handleGlobalKeyDown = (e: KeyboardEvent): void => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                const filterInput = document.querySelector('input[placeholder*="Filter"]') as HTMLInputElement;
-                filterInput?.focus();
-            }
-        };
-
-        window.addEventListener('keydown', handleGlobalKeyDown);
-        return (): void => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, []);
-
-    // Show loading state while checking auth
-    if (status === 'loading' || !mounted) {
-        return <div className="h-screen bg-[#0F1115]" />;
+    // Show loading state
+    if (status === 'loading') {
+        return (
+            <div className="h-screen bg-background flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
     }
 
     // Show sign-in if not authenticated
@@ -72,43 +97,58 @@ function DashboardContent(): React.JSX.Element {
         setIsImporting(true);
         const reader = new FileReader();
 
-        reader.onload = (event): void => {
+        reader.onload = async (event): Promise<void> => {
             const content = event.target?.result as string;
             const parser = new QIFParser();
             const result = parser.parse(content);
 
             if (result.transactions.length > 0) {
-                const newTransactions: Array<ITransaction> = result.transactions.map((pt: IParsedTransaction, idx: number): ITransaction => ({
-                    id: `import-${Date.now()}-${idx}`,
-                    accountId: 'imported',
-                    date: pt.date,
-                    payee: pt.payee,
-                    memo: pt.memo || '',
-                    totalAmount: pt.amount,
-                    status: TransactionStatus.Cleared,
-                    checkNumber: pt.checkNumber || '',
-                    importHash: pt.importHash || '',
-                    splits: pt.splits.map((s: IParsedSplit, sIdx: number): ISplit => ({
-                        id: `split-${Date.now()}-${idx}-${sIdx}`,
-                        amount: s.amount,
-                        memo: s.memo || '',
-                        categoryId: s.category || 'UNCATEGORIZED',
-                    })),
-                    createdAt: new Date().toISOString() as ISODateString,
-                    updatedAt: new Date().toISOString() as ISODateString,
-                }));
+                const now = new Date().toISOString() as ISODateString;
+                const newTransactions: Array<ITransaction> = await Promise.all(
+                    result.transactions.map(async (pt: IParsedTransaction, idx: number): Promise<ITransaction> => {
+                        const payeeEntity = await getOrCreatePayee(pt.payee);
 
-                setTransactions(prev => {
-                    const combined = [...newTransactions, ...prev];
-                    return combined.sort((a, b) => b.date.localeCompare(a.date));
+                        return {
+                            id: `import-${Date.now()}-${idx}`,
+                            accountId: activeAccountId || 'imported',
+                            payeeId: payeeEntity.id,
+                            date: pt.date,
+                            payee: pt.payee,
+                            memo: pt.memo || '',
+                            totalAmount: pt.amount,
+                            status: TransactionStatus.Cleared,
+                            checkNumber: pt.checkNumber || '',
+                            importHash: pt.importHash || '',
+                            splits: pt.splits.map((s: IParsedSplit, sIdx: number): ISplit => ({
+                                id: `split-${Date.now()}-${idx}-${sIdx}`,
+                                amount: s.amount,
+                                memo: s.memo || '',
+                                categoryId: s.category || KnownCategory.Uncategorized,
+                            })),
+                            createdAt: now,
+                            updatedAt: now,
+                        };
+                    })
+                );
+
+                // If no splits, create a default one
+                newTransactions.forEach((tx: ITransaction): void => {
+                    if (tx.splits.length === 0) {
+                        tx.splits.push({
+                            id: `${tx.id}-split-0`,
+                            amount: tx.totalAmount,
+                            memo: tx.memo,
+                            categoryId: KnownCategory.Uncategorized
+                        });
+                    }
                 });
+
+                await addTransactions(newTransactions);
             }
 
             if (result.errors.length > 0) {
                 console.error('QIF Parse Errors:', result.errors);
                 alert(`Import failed with ${result.errors.length} errors.`);
-            } else if (result.warnings.length > 0) {
-                console.warn('QIF Parse Warnings:', result.warnings);
             }
 
             setIsImporting(false);
@@ -118,189 +158,239 @@ function DashboardContent(): React.JSX.Element {
         reader.readAsText(file);
     };
 
-    if (!mounted) return <div className="h-screen bg-[#0F1115]" />;
+    const handleQuickAdd = async (e: React.FormEvent): Promise<void> => {
+        e.preventDefault();
+        if (!entryPayee || !entryAmount) return;
+
+        const amountCents = Money.dollarsToCents(parseFloat(entryAmount));
+        const now = new Date().toISOString() as ISODateString;
+        const payeeEntity = await getOrCreatePayee(entryPayee);
+
+        const tx: ITransaction = {
+            id: `tx-${Date.now()}`,
+            accountId: activeAccountId || 'default',
+            payeeId: payeeEntity.id,
+            date: entryDate as ISODateString,
+            payee: entryPayee,
+            memo: entryMemo,
+            totalAmount: amountCents,
+            status: TransactionStatus.Cleared,
+            checkNumber: null,
+            importHash: `manual-${Date.now()}`,
+            splits: manualSplits.length > 0 ? manualSplits : [
+                {
+                    id: `split-${Date.now()}`,
+                    amount: amountCents,
+                    memo: entryMemo,
+                    categoryId: KnownCategory.Uncategorized
+                }
+            ],
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        await addTransaction(tx);
+
+        // Reset form
+        setEntryPayee('');
+        setEntryAmount('');
+        setEntryMemo('');
+        setManualSplits([]);
+    };
+
+    const handleSplitSave = (splits: Array<ISplit>, newTotal?: number): void => {
+        setManualSplits(splits);
+        if (newTotal !== undefined) {
+            setEntryAmount(Money.centsToDollars(newTotal).toString());
+        }
+    };
+
+    if (!mounted) return <div className="h-screen bg-background" />;
+
+    const getAccountIcon = (type: string): React.JSX.Element => {
+        switch (type) {
+            case AccountType.Checking: return <Landmark className="w-3.5 h-3.5" />;
+            case AccountType.Savings: return <Banknote className="w-3.5 h-3.5" />;
+            case AccountType.Credit: return <CreditCard className="w-3.5 h-3.5" />;
+            case AccountType.Cash: return <Wallet className="w-3.5 h-3.5" />;
+            default: return <Landmark className="w-3.5 h-3.5" />;
+        }
+    };
 
     return (
-        <div className="h-screen bg-[#0F1115] text-[#E2E8F0] font-sans selection:bg-[#38BDF8]/30 overflow-hidden flex flex-col">
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept=".qif"
-                className="hidden"
+        <AppShell>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".qif" className="hidden" />
+
+            {/* Account Sidebar */}
+            <aside className="w-64 flex flex-col gap-4 flex-none overflow-hidden pr-2">
+                <Card className="bg-card border-border rounded-sm h-full flex flex-col overflow-hidden">
+                    <div className="px-4 py-3 flex justify-between items-center border-b border-border bg-muted/30">
+                        <h2 className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Accounts</h2>
+                        <Link href="/accounts" className="text-primary hover:text-white transition-colors">
+                            <Plus className="w-3 h-3" />
+                        </Link>
+                    </div>
+                    <ScrollArea className="flex-1">
+                        <div className="p-2 space-y-1">
+                            {accounts.length === 0 ? (
+                                <p className="text-[9px] text-muted-foreground italic text-center py-4 uppercase">No accounts yet</p>
+                            ) : (
+                                accounts.map((acc) => (
+                                    <div
+                                        key={acc.id}
+                                        onClick={(): void => setActiveAccountId(acc.id)}
+                                        className={cn(
+                                            "p-2 rounded-sm cursor-pointer transition-all border",
+                                            activeAccountId === acc.id ? "bg-primary/10 border-primary/30" : "bg-transparent border-transparent hover:bg-accent/50"
+                                        )}
+                                    >
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className={cn("text-[11px] font-bold", activeAccountId === acc.id ? "text-primary" : "text-foreground")}>
+                                                {acc.name}
+                                            </span>
+                                            <span className="text-[8px] text-muted-foreground opacity-50">
+                                                {getAccountIcon(acc.type)}
+                                            </span>
+                                        </div>
+                                        <div className="text-[10px] font-mono font-bold text-muted-foreground">
+                                            {Money.formatCurrency(transactions.filter(t => t.accountId === acc.id).reduce((s, t) => s + t.totalAmount, 0))}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </ScrollArea>
+                </Card>
+
+                {/* Quick Stats / Sync Mini Card */}
+                <Card className="bg-card border-border rounded-sm p-3">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">Sync Engine</span>
+                        <SyncIndicator />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <div className="flex justify-between text-[10px]">
+                            <span className="text-muted-foreground uppercase font-bold tracking-tighter">Cleared</span>
+                            <span className="font-mono text-emerald-500 font-bold">{Money.formatCurrency(clearedBalance)}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                            <span className="text-muted-foreground uppercase font-bold tracking-tighter">Pending</span>
+                            <span className="font-mono text-amber-500 font-bold">{Money.formatCurrency(pendingBalance)}</span>
+                        </div>
+                    </div>
+                </Card>
+            </aside>
+
+            {/* Main Ledger Area */}
+            <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+                {/* Transaction Entry Form (MS Money Style) */}
+                <Card className="bg-card border-border rounded-sm p-3 shadow-lg flex-none relative z-10">
+                    <form onSubmit={handleQuickAdd} className="grid grid-cols-12 gap-3 items-end">
+                        <div className="col-span-1">
+                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Date</label>
+                            <Input
+                                type="date"
+                                value={entryDate}
+                                onChange={(e) => setEntryDate(e.target.value)}
+                                className="h-7 text-[10px] font-mono uppercase px-2"
+                            />
+                        </div>
+                        <div className="col-span-3">
+                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Payee / Recipient</label>
+                            <div className="relative">
+                                <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
+                                <Input
+                                    type="text"
+                                    placeholder="Who did you pay?"
+                                    value={entryPayee}
+                                    onChange={(e) => setEntryPayee(e.target.value)}
+                                    className="h-7 pl-7 text-[10px]"
+                                />
+                            </div>
+                        </div>
+                        <div className="col-span-2">
+                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Amount</label>
+                            <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={entryAmount}
+                                onChange={(e) => setEntryAmount(e.target.value)}
+                                className="h-7 text-[10px] font-mono text-emerald-500 px-2"
+                            />
+                        </div>
+                        <div className="col-span-4">
+                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Memo / Description</label>
+                            <Input
+                                type="text"
+                                placeholder="What was it for?"
+                                value={entryMemo}
+                                onChange={(e) => setEntryMemo(e.target.value)}
+                                className="h-7 text-[10px] px-2"
+                            />
+                        </div>
+                        <div className="col-span-2 flex gap-2">
+                            <Button type="submit" className="flex-1 text-[9px] font-black uppercase h-7">
+                                Record
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={(): void => setIsSplitDialogOpen(true)}
+                                className={cn(
+                                    "px-2 text-[9px] uppercase font-bold h-7",
+                                    manualSplits.length > 0 && "border-primary text-primary bg-primary/10"
+                                )}
+                            >
+                                {manualSplits.length > 0 ? `${manualSplits.length} Splits` : 'Split'}
+                            </Button>
+                        </div>
+                    </form>
+                </Card>
+
+                {/* Toolbar */}
+                <div className="flex items-center justify-between flex-none px-1">
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handleImportClick} disabled={isImporting} className="h-7 text-[9px] font-black uppercase bg-primary/10 border-primary/20 text-primary hover:bg-primary/20">
+                            {isImporting ? 'Processing QIF...' : 'Import Data'}
+                        </Button>
+                        <Button variant="outline" size="sm" className="h-7 text-[9px] font-black uppercase">
+                            Reconcile
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-4 text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">
+                        <span className="flex items-center gap-1.5 bg-primary/5 px-2 py-1 rounded-sm border border-primary/10 text-primary">
+                            <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+                            90-Day Projection: + $4,240.00
+                        </span>
+                    </div>
+                </div>
+
+                {/* Ledger Content */}
+                <Card className="flex-1 min-h-0 relative border-border rounded-sm overflow-hidden flex flex-col group">
+                    {isImporting && (
+                        <div className="absolute inset-0 bg-background/80 z-20 flex items-center justify-center backdrop-blur-sm">
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Processing Ledger Data...</p>
+                            </div>
+                        </div>
+                    )}
+                    <TransactionTable data={transactions} />
+                </Card>
+            </div>
+            {/* Modal for Splits */}
+            <SplitEntryDialog
+                isOpen={isSplitDialogOpen}
+                onClose={() => setIsSplitDialogOpen(false)}
+                totalAmount={Money.dollarsToCents(parseFloat(entryAmount) || 0)}
+                initialSplits={manualSplits}
+                onSave={handleSplitSave}
             />
-
-            {/* Top Navigation / Stats Bar */}
-            <header className="border-b border-[#1E293B] bg-[#0F1115]/80 backdrop-blur-md sticky top-0 z-30">
-                <div className="max-w-[1600px] mx-auto px-4 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-gradient-to-br from-[#38BDF8] to-[#0EA5E9] rounded-sm flex items-center justify-center">
-                                <span className="text-[#0F1115] font-black text-xs">P</span>
-                            </div>
-                            <h1 className="font-bold text-sm tracking-tight uppercase">
-                                Path <span className="text-[#38BDF8]">Logic</span>
-                            </h1>
-                        </div>
-
-                        <nav className="hidden md:flex items-center gap-1">
-                            {['Ledger', 'Reports', 'Projection', 'Settings'].map(tab => (
-                                <button
-                                    key={tab}
-                                    className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm ${tab === 'Ledger' ? 'text-[#38BDF8] bg-[#38BDF8]/10' : 'text-[#64748B] hover:text-[#E2E8F0] hover:bg-[#1E293B]'}`}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] text-[#64748B] font-bold uppercase tracking-tighter">
-                                Net Position
-                            </span>
-                            <span
-                                className={`text-sm font-mono font-bold leading-none ${clearedBalance + pendingBalance < 0 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}
-                            >
-                                {Money.formatCurrency(clearedBalance + pendingBalance)}
-                            </span>
-                        </div>
-                        <div className="w-8 h-8 rounded-sm bg-[#1E293B] border border-[#334155] flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content Area */}
-            <main className="flex-1 max-w-[1600px] mx-auto w-full p-4 flex gap-4 overflow-hidden min-h-0">
-                {/* Account Sidebar */}
-                <aside className="w-64 flex flex-col gap-4 flex-none overflow-y-auto pr-2 scrollbar-hide">
-                    <div className="bg-[#111827] border border-[#1E293B] rounded-sm p-4">
-                        <h2 className="text-[10px] text-[#64748B] font-bold uppercase tracking-widest mb-4 border-b border-[#1E293B] pb-2">
-                            Accounts
-                        </h2>
-                        <div className="space-y-1">
-                            {[
-                                { name: 'Main Checking', balance: clearedBalance, type: 'Asset' },
-                                { name: 'Credit Card', balance: -45000, type: 'Liability' }, // Mock
-                                { name: 'Cash', balance: 12000, type: 'Asset' }, // Mock
-                            ].map((acc, i) => (
-                                <div
-                                    key={acc.name}
-                                    className={cn(
-                                        "p-2 rounded-sm cursor-pointer transition-all border border-transparent",
-                                        i === 0 ? "bg-[#38BDF8]/10 border-[#38BDF8]/30" : "hover:bg-[#1E293B]/50"
-                                    )}
-                                >
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className={cn(
-                                            "text-[11px] font-bold",
-                                            i === 0 ? "text-[#38BDF8]" : "text-[#E2E8F0]"
-                                        )}>
-                                            {acc.name}
-                                        </span>
-                                        <span className="text-[8px] text-[#64748B] uppercase font-bold px-1.5 py-0.5 bg-[#0F1115] border border-[#1E293B] rounded-sm">
-                                            {acc.type}
-                                        </span>
-                                    </div>
-                                    <div className={cn(
-                                        "text-xs font-mono font-bold",
-                                        acc.balance < 0 ? "text-[#EF4444]" : "text-[#10B981]"
-                                    )}>
-                                        {Money.formatCurrency(acc.balance)}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-[#111827] border border-[#1E293B] rounded-sm p-4">
-                        <h2 className="text-[10px] text-[#64748B] font-bold uppercase tracking-widest mb-4 border-b border-[#1E293B] pb-2">
-                            Quick Reports
-                        </h2>
-                        <div className="space-y-2">
-                            {['Net Worth', 'Cash Flow', 'Budget Perf'].map(report => (
-                                <button key={report} className="w-full text-left text-[10px] text-[#94A3B8] hover:text-[#38BDF8] py-1 border-b border-[#1E293B]/50 transition-colors uppercase font-bold tracking-tight">
-                                    {report}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </aside>
-
-                {/* Ledger View */}
-                <div className="flex-1 flex flex-col bg-[#0F1115] border border-[#1E293B] rounded-sm overflow-hidden min-h-0 relative">
-                    {/* Toolbar */}
-                    <div className="p-2 border-b border-[#1E293B] flex justify-between items-center bg-[#111827]/50">
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleImportClick}
-                                disabled={isImporting}
-                                className="bg-[#38BDF8] hover:bg-[#0EA5E9] disabled:opacity-50 text-[#0F1115] text-[10px] font-bold px-3 py-1 rounded-sm uppercase transition-colors flex items-center gap-1.5"
-                            >
-                                <span className="text-sm leading-none">+</span>
-                                {isImporting ? 'Importing...' : 'Import QIF'}
-                            </button>
-                            <button className="bg-[#1E293B] border border-[#334155] text-[#94A3B8] text-[10px] font-bold px-3 py-1 rounded-sm uppercase hover:bg-[#2D3748] hover:text-white transition-all">
-                                Reconcile
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-4 text-[10px] text-[#64748B] font-bold">
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]"></span>
-                                90-Day Projection: +$1,240.00
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Ledger Content */}
-                    <div className="flex-1 min-h-0 relative">
-                        {isImporting && (
-                            <div className="absolute inset-0 bg-[#0F1115]/80 z-20 flex items-center justify-center backdrop-blur-sm">
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="w-8 h-8 border-2 border-[#38BDF8] border-t-transparent rounded-full animate-spin"></div>
-                                    <p className="text-[10px] font-bold text-[#38BDF8] uppercase tracking-[0.2em]">
-                                        Processing Ledger Data...
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                        <div className="h-full">
-                            <TransactionTable data={transactions} />
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            {/* Status Footer */}
-            <footer className="h-8 border-t border-[#1E293B] bg-[#0F1115] px-4 flex items-center justify-between text-[9px] font-mono text-[#64748B] uppercase">
-                <div className="flex gap-4">
-                    <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
-                        Cloud Sync: Active
-                    </span>
-                    <span>Storage: Google Drive</span>
-                </div>
-                <div>
-                    Last Updated:{' '}
-                    {new Date().toLocaleTimeString('en-US', {
-                        hour12: false,
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })}
-                </div>
-            </footer>
-        </div>
+        </AppShell>
     );
 }
 
 export default function Dashboard(): React.JSX.Element {
-    return (
-        <SessionProvider>
-            <DashboardContent />
-        </SessionProvider>
-    );
+    return <DashboardContent />;
 }
