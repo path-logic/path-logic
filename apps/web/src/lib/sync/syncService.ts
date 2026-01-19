@@ -12,6 +12,16 @@ import {
  * Drive → Download → Decrypt → Load into SQLite
  */
 
+/**
+ * Sync status information
+ */
+export interface ISyncStatus {
+    /** Whether a sync operation is currently in progress */
+    inProgress: boolean;
+    /** Timestamp (milliseconds since epoch) of the last successful sync, or 0 if never synced */
+    lastSyncTime: number;
+}
+
 let syncInProgress: boolean = false;
 let lastSyncTime: number = 0;
 const SYNC_DEBOUNCE_MS = 2000; // 2 seconds
@@ -96,12 +106,9 @@ export async function saveToDrive(
 /**
  * Get sync status
  */
-export function getSyncStatus(): {
-    inProgress: boolean;
-    lastSyncTime: number;
-} {
+export function getSyncStatus(): ISyncStatus {
     return {
         inProgress: syncInProgress,
         lastSyncTime,
-    };
+    } satisfies ISyncStatus;
 }
