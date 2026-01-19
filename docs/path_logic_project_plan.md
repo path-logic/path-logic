@@ -1,4 +1,4 @@
-# Path Logic: Execution Master Plan
+# Path Logic: Project Plan
 
 ## **1. Project Identity & Architecture (The System Rules)**
 
@@ -74,6 +74,7 @@ Expanding the system to support full transaction lifecycle management and deep p
 - **Entry Flow (MS Money Inspired)**:
     - Pinned transaction entry form at the bottom of the ledger.
     - Modal-based split entry with flexible balancing (Adjust Total vs. Add Balancing Split).
+    - **Welcome Wizard**: First-time users are guided through creating their first account with a step-by-step wizard featuring account type selection (Checking, Savings, Credit, Cash) and account details form.
 
 ### **2.5 Automated Quality Assurance (Playwright)**
 
