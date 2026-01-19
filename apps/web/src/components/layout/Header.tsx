@@ -5,25 +5,30 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Landmark, Banknote, CreditCard, Wallet, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Money, TransactionStatus } from '@path-logic/core';
+import { Money, TransactionStatus, type ITransaction } from '@path-logic/core';
 import { useLedgerStore } from '@/store/ledgerStore';
 import { useSession } from 'next-auth/react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function Header(): React.JSX.Element {
-    const pathname = usePathname();
-    const { transactions, isInitialized } = useLedgerStore();
-    const { data: session } = useSession();
+    const pathname: string | null = usePathname();
+    const { transactions, isInitialized }: { transactions: Array<ITransaction>; isInitialized: boolean } = useLedgerStore();
+    const { data: session }: { data: any; status: string } = useSession();
 
-    const clearedBalance = transactions
-        .filter(tx => tx.status === TransactionStatus.Cleared)
-        .reduce((sum, tx) => sum + tx.totalAmount, 0);
+    const clearedBalance: number = transactions
+        .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Cleared)
+        .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
 
-    const pendingBalance = transactions
-        .filter(tx => tx.status === TransactionStatus.Pending)
-        .reduce((sum, tx) => sum + tx.totalAmount, 0);
+    const pendingBalance: number = transactions
+        .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Pending)
+        .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
 
-    const navItems = [
+    interface INavItem {
+        name: string;
+        href: string;
+    }
+
+    const navItems: Array<INavItem> = [
         { name: 'Ledger', href: '/' },
         { name: 'Accounts', href: '/accounts' },
         { name: 'Payees', href: '/payees' },
@@ -45,8 +50,8 @@ export function Header(): React.JSX.Element {
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-1">
-                        {navItems.map(item => {
-                            const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
+                        {navItems.map((item: INavItem): React.JSX.Element => {
+                            const isActive: boolean = pathname === item.href || (item.href !== '/' && !!pathname?.startsWith(item.href));
                             return (
                                 <Link
                                     key={item.name}

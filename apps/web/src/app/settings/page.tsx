@@ -7,6 +7,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings, Shield, Zap } from 'lucide-react';
+import type { IFlagConfig } from '@path-logic/feature-flags/components';
 
 export default function SettingsPage(): React.JSX.Element {
     return (
@@ -32,10 +33,10 @@ export default function SettingsPage(): React.JSX.Element {
                                     <h2 className="text-[11px] font-black uppercase tracking-widest">Feature Flags</h2>
                                 </div>
                                 <div className="grid gap-3">
-                                    {Object.values(FLAG_CONFIGS).map((config) => (
+                                    {Object.values(FLAG_CONFIGS).map((config: IFlagConfig): React.JSX.Element => (
                                         <div key={config.key} className="bg-muted/20 border border-border/50 rounded-sm p-1 transition-colors hover:border-primary/30">
                                             <StyledFeatureFlagToggle
-                                                flag={config.key}
+                                                flag={config.key as any}
                                                 label={config.name}
                                                 description={config.description}
                                             />

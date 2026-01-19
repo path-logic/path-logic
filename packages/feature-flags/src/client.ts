@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Cookie prefix for feature flags
@@ -34,7 +34,7 @@ function hasCookieStoreAPI(): boolean {
 export function emitFlagChange(flag: string, enabled: boolean): void {
     // Only emit custom event if CookieStore API is not available
     if (!hasCookieStoreAPI()) {
-        const event: CustomEvent<IFlagChangeDetail> = new CustomEvent(FLAG_CHANGE_EVENT, {
+        const event = new CustomEvent<IFlagChangeDetail>(FLAG_CHANGE_EVENT, {
             detail: { flag, enabled },
         });
         window.dispatchEvent(event);
@@ -81,7 +81,7 @@ export function useFeatureFlag(flag: string): boolean {
 
         // Try to use CookieStore API if available
         if (hasCookieStoreAPI()) {
-            const handleCookieChange = (event: CookieChangeEvent): void => {
+            const handleCookieChange = (event: ICookieChangeEvent): void => {
                 // Check if our flag cookie changed
                 for (const cookie of event.changed) {
                     if (cookie.name === cookieName) {
@@ -157,7 +157,7 @@ export function useAllFlags(): Record<string, boolean> {
         syncFlags();
 
         if (hasCookieStoreAPI()) {
-            const handleCookieChange = (event: CookieChangeEvent): void => {
+            const handleCookieChange = (event: ICookieChangeEvent): void => {
                 setFlags((prev: Record<string, boolean>): Record<string, boolean> => {
                     const updated: Record<string, boolean> = { ...prev };
 

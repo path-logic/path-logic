@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { setFlag, createFlagValidator } from '@/lib/featureFlags/featureFlags';
 import { FlagKey } from '@/lib/featureFlags/flags';
 

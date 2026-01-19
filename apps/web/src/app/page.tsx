@@ -10,6 +10,8 @@ import {
     type IParsedSplit,
     type ISplit,
     type ISODateString,
+    type IAccount,
+    type IPayee,
     TransactionStatus,
     Money,
     QIFParser,
@@ -41,6 +43,14 @@ function DashboardContent(): React.JSX.Element {
         initialize,
         isInitialized,
         getOrCreatePayee
+    }: {
+        transactions: Array<ITransaction>;
+        accounts: Array<IAccount>;
+        addTransactions: (txs: Array<ITransaction>) => Promise<void>;
+        addTransaction: (tx: ITransaction) => Promise<void>;
+        initialize: () => Promise<void>;
+        isInitialized: boolean;
+        getOrCreatePayee: (name: string) => Promise<IPayee>;
     } = useLedgerStore();
 
     const [isImporting, setIsImporting] = useState<boolean>(false);
@@ -49,11 +59,11 @@ function DashboardContent(): React.JSX.Element {
     const fileInputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement>(null);
 
     // Form state (MS Money Style)
-    const [entryPayee, setEntryPayee] = useState('');
-    const [entryAmount, setEntryAmount] = useState('');
-    const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
-    const [entryMemo, setEntryMemo] = useState('');
-    const [isSplitDialogOpen, setIsSplitDialogOpen] = useState(false);
+    const [entryPayee, setEntryPayee] = useState<string>('');
+    const [entryAmount, setEntryAmount] = useState<string>('');
+    const [entryDate, setEntryDate] = useState<string>(new Date().toISOString().split('T')[0] || '');
+    const [entryMemo, setEntryMemo] = useState<string>('');
+    const [isSplitDialogOpen, setIsSplitDialogOpen] = useState<boolean>(false);
     const [manualSplits, setManualSplits] = useState<Array<ISplit>>([]);
 
     useEffect((): void => {
@@ -78,35 +88,35 @@ function DashboardContent(): React.JSX.Element {
     }
 
     // Calculate balances from current transaction state
-    const clearedBalance = transactions
-        .filter(tx => tx.status === TransactionStatus.Cleared)
-        .reduce((sum, tx): number => sum + tx.totalAmount, 0);
+    const clearedBalance: number = transactions
+        .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Cleared)
+        .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
 
-    const pendingBalance = transactions
-        .filter(tx => tx.status === TransactionStatus.Pending)
-        .reduce((sum, tx) => sum + tx.totalAmount, 0);
+    const pendingBalance: number = transactions
+        .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Pending)
+        .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
 
     const handleImportClick = (): void => {
         fileInputRef.current?.click();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const file = e.target.files?.[0];
+        const file: File | undefined = e.target.files?.[0];
         if (!file) return;
 
         setIsImporting(true);
-        const reader = new FileReader();
+        const reader: FileReader = new FileReader();
 
-        reader.onload = async (event): Promise<void> => {
-            const content = event.target?.result as string;
-            const parser = new QIFParser();
-            const result = parser.parse(content);
+        reader.onload = async (event: ProgressEvent<FileReader>): Promise<void> => {
+            const content: string = event.target?.result as string;
+            const parser: QIFParser = new QIFParser();
+            const result: any = parser.parse(content);
 
             if (result.transactions.length > 0) {
-                const now = new Date().toISOString() as ISODateString;
+                const now: ISODateString = new Date().toISOString() as ISODateString;
                 const newTransactions: Array<ITransaction> = await Promise.all(
                     result.transactions.map(async (pt: IParsedTransaction, idx: number): Promise<ITransaction> => {
-                        const payeeEntity = await getOrCreatePayee(pt.payee);
+                        const payeeEntity: IPayee = await getOrCreatePayee(pt.payee);
 
                         return {
                             id: `import-${Date.now()}-${idx}`,
@@ -162,9 +172,9 @@ function DashboardContent(): React.JSX.Element {
         e.preventDefault();
         if (!entryPayee || !entryAmount) return;
 
-        const amountCents = Money.dollarsToCents(parseFloat(entryAmount));
-        const now = new Date().toISOString() as ISODateString;
-        const payeeEntity = await getOrCreatePayee(entryPayee);
+        const amountCents: number = Money.dollarsToCents(parseFloat(entryAmount));
+        const now: ISODateString = new Date().toISOString() as ISODateString;
+        const payeeEntity: IPayee = await getOrCreatePayee(entryPayee);
 
         const tx: ITransaction = {
             id: `tx-${Date.now()}`,
@@ -207,7 +217,7 @@ function DashboardContent(): React.JSX.Element {
 
     if (!mounted) return <div className="h-screen bg-background" />;
 
-    const getAccountIcon = (type: string): React.JSX.Element => {
+    const getAccountIcon = (type: AccountType): React.JSX.Element => {
         switch (type) {
             case AccountType.Checking: return <Landmark className="w-3.5 h-3.5" />;
             case AccountType.Savings: return <Banknote className="w-3.5 h-3.5" />;
@@ -235,7 +245,7 @@ function DashboardContent(): React.JSX.Element {
                             {accounts.length === 0 ? (
                                 <p className="text-[9px] text-muted-foreground italic text-center py-4 uppercase">No accounts yet</p>
                             ) : (
-                                accounts.map((acc) => (
+                                accounts.map((acc: IAccount): React.JSX.Element => (
                                     <div
                                         key={acc.id}
                                         onClick={(): void => setActiveAccountId(acc.id)}
@@ -253,7 +263,7 @@ function DashboardContent(): React.JSX.Element {
                                             </span>
                                         </div>
                                         <div className="text-[10px] font-mono font-bold text-muted-foreground">
-                                            {Money.formatCurrency(transactions.filter(t => t.accountId === acc.id).reduce((s, t) => s + t.totalAmount, 0))}
+                                            {Money.formatCurrency(transactions.filter((t: ITransaction): boolean => t.accountId === acc.id).reduce((s: number, t: ITransaction): number => s + t.totalAmount, 0))}
                                         </div>
                                     </div>
                                 ))
@@ -291,7 +301,7 @@ function DashboardContent(): React.JSX.Element {
                             <Input
                                 type="date"
                                 value={entryDate}
-                                onChange={(e) => setEntryDate(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryDate(e.target.value)}
                                 className="h-7 text-[10px] font-mono uppercase px-2"
                             />
                         </div>
@@ -303,7 +313,7 @@ function DashboardContent(): React.JSX.Element {
                                     type="text"
                                     placeholder="Who did you pay?"
                                     value={entryPayee}
-                                    onChange={(e) => setEntryPayee(e.target.value)}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryPayee(e.target.value)}
                                     className="h-7 pl-7 text-[10px]"
                                 />
                             </div>
@@ -315,7 +325,7 @@ function DashboardContent(): React.JSX.Element {
                                 step="0.01"
                                 placeholder="0.00"
                                 value={entryAmount}
-                                onChange={(e) => setEntryAmount(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryAmount(e.target.value)}
                                 className="h-7 text-[10px] font-mono text-emerald-500 px-2"
                             />
                         </div>
@@ -325,7 +335,7 @@ function DashboardContent(): React.JSX.Element {
                                 type="text"
                                 placeholder="What was it for?"
                                 value={entryMemo}
-                                onChange={(e) => setEntryMemo(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryMemo(e.target.value)}
                                 className="h-7 text-[10px] px-2"
                             />
                         </div>
@@ -382,7 +392,7 @@ function DashboardContent(): React.JSX.Element {
             {/* Modal for Splits */}
             <SplitEntryDialog
                 isOpen={isSplitDialogOpen}
-                onClose={() => setIsSplitDialogOpen(false)}
+                onClose={(): void => setIsSplitDialogOpen(false)}
                 totalAmount={Money.dollarsToCents(parseFloat(entryAmount) || 0)}
                 initialSplits={manualSplits}
                 onSave={handleSplitSave}

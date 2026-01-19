@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-interface MetricsData {
+interface IMetricsData {
     exportTimeMs: number;
     encryptionTimeMs: number;
     uploadTimeMs: number;
@@ -19,11 +19,32 @@ interface MetricsData {
     recordCount: number;
 }
 
-interface PerformanceMetricsProps {
-    metrics: MetricsData | null;
+interface IPerformanceMetricsProps {
+    metrics: IMetricsData | null;
 }
 
-export function PerformanceMetrics({ metrics }: PerformanceMetricsProps): React.JSX.Element {
+interface IMetricItemProps {
+    label: string;
+    value: number | string;
+    unit?: string;
+    highlight?: boolean;
+}
+
+const MetricItem: React.FC<IMetricItemProps> = ({ label, value, unit = 'ms', highlight = false }: IMetricItemProps): React.JSX.Element => (
+    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+        <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</span>
+        <span className={`font-mono text-sm font-bold ${highlight ? 'text-blue-600' : 'text-gray-900'}`}>
+            {value}
+            {unit && (
+                <span className="text-[10px] ml-1 font-normal text-gray-400 lowercase">
+                    {unit}
+                </span>
+            )}
+        </span>
+    </div>
+);
+
+export function PerformanceMetrics({ metrics }: IPerformanceMetricsProps): React.JSX.Element {
     if (!metrics) {
         return (
             <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center">
@@ -34,25 +55,11 @@ export function PerformanceMetrics({ metrics }: PerformanceMetricsProps): React.
 
     const formatSize = (bytes: number): string => {
         if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        const k: number = 1024;
+        const sizes: Array<string> = ['B', 'KB', 'MB', 'GB'];
+        const i: number = Math.floor(Math.log(bytes) / Math.log(k));
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     };
-
-    const MetricItem = ({ label, value, unit = 'ms', highlight = false }: { label: string; value: number | string; unit?: string; highlight?: boolean }): React.JSX.Element => (
-        <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-            <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">{label}</span>
-            <span className={`font-mono text-sm font-bold ${highlight ? 'text-blue-600' : 'text-gray-900'}`}>
-                {value}
-                {unit && (
-                    <span className="text-[10px] ml-1 font-normal text-gray-400 lowercase">
-                        {unit}
-                    </span>
-                )}
-            </span>
-        </div>
-    );
 
     return (
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">

@@ -5,12 +5,12 @@
  * while allowing consumers to control the UI rendering.
  */
 
-export { FeatureFlagToggle } from './FeatureFlagToggle';
-export { FeatureFlagList } from './FeatureFlagList';
 export type {
-    IFlagConfig,
-    IFeatureFlagToggleProps,
-    IFeatureFlagToggleRenderProps,
     IFeatureFlagListProps,
     IFeatureFlagListRenderProps,
+    IFeatureFlagToggleProps,
+    IFeatureFlagToggleRenderProps,
+    IFlagConfig,
 } from '../types';
+export { FeatureFlagList } from './FeatureFlagList';
+export { FeatureFlagToggle } from './FeatureFlagToggle';

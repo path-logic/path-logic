@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useFeatureFlag, emitFlagChange } from '../client';
+
+import { emitFlagChange,useFeatureFlag } from '../client';
 import type {
     IFeatureFlagToggleProps,
     IFeatureFlagToggleRenderProps,
