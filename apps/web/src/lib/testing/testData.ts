@@ -1,4 +1,5 @@
-import type { ISODateString, ITransaction, TransactionStatus } from '@path-logic/core';
+import type { ISODateString, ITransaction } from '@path-logic/core';
+import { TransactionStatus } from '@path-logic/core';
 
 /**
  * Test utility to create minimal sample transactions for validating
@@ -13,13 +14,14 @@ export function createTestTransaction(
     date: ISODateString,
     payee: string,
     amount: number,
-    status: TransactionStatus = 'cleared'
+    status: TransactionStatus = TransactionStatus.Cleared,
 ): ITransaction {
     const now: ISODateString = new Date().toISOString() as ISODateString;
 
     return {
         id,
         accountId: 'test-account',
+        payeeId: `payee-${id}`,
         date,
         payee,
         memo: `Test transaction: ${payee}`,
@@ -57,35 +59,35 @@ export function generateTestDataset(): Array<ITransaction> {
             lastWeek.toISOString().split('T')[0] as ISODateString,
             'Grocery Store',
             -5432, // -$54.32
-            'cleared'
+            TransactionStatus.Cleared,
         ),
         createTestTransaction(
             'test-2',
             lastWeek.toISOString().split('T')[0] as ISODateString,
             'Gas Station',
             -3599, // -$35.99
-            'cleared'
+            TransactionStatus.Cleared,
         ),
         createTestTransaction(
             'test-3',
             yesterday.toISOString().split('T')[0] as ISODateString,
             'Coffee Shop',
             -675, // -$6.75
-            'cleared'
+            TransactionStatus.Cleared,
         ),
         createTestTransaction(
             'test-4',
             today.toISOString().split('T')[0] as ISODateString,
             'Paycheck',
             250000, // +$2,500.00
-            'cleared'
+            TransactionStatus.Cleared,
         ),
         createTestTransaction(
             'test-5',
             today.toISOString().split('T')[0] as ISODateString,
             'Pending Purchase',
             -12999, // -$129.99
-            'pending'
+            TransactionStatus.Pending,
         ),
     ];
 }

@@ -6,9 +6,11 @@
  * when the app is uninstalled.
  */
 
-const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
-const UPLOAD_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
-const DB_FILENAME = 'path-logic-ledger.db.enc';
+import { GDriveAuthError, notifyAuthFailure } from './errors';
+
+const DRIVE_API_BASE: string = 'https://www.googleapis.com/drive/v3';
+const UPLOAD_API_BASE: string = 'https://www.googleapis.com/upload/drive/v3';
+const DB_FILENAME: string = 'path-logic-ledger.db.enc';
 
 interface IDriveFile {
     id: string;
@@ -32,7 +34,19 @@ export async function findDatabaseFile(
     );
 
     if (!response.ok) {
-        throw new Error(`Failed to list files: ${response.statusText}`);
+        let errorMessage = `Failed to list files: ${response.status} ${response.statusText}`;
+        try {
+            const errorData = await response.json();
+            errorMessage += ` - ${JSON.stringify(errorData)}`;
+        } catch (e) {
+            // Ignore parse error
+        }
+
+        if (response.status === 401 || response.status === 403) {
+            notifyAuthFailure(response.status);
+            throw new GDriveAuthError(errorMessage, response.status);
+        }
+        throw new Error(errorMessage);
     }
 
     const data: { files: Array<IDriveFile> } = (await response.json()) as { files: Array<IDriveFile> };
@@ -56,7 +70,19 @@ export async function downloadDatabase(
     );
 
     if (!response.ok) {
-        throw new Error(`Failed to download file: ${response.statusText}`);
+        let errorMessage = `Failed to download file: ${response.status} ${response.statusText}`;
+        try {
+            const errorData = await response.json();
+            errorMessage += ` - ${JSON.stringify(errorData)}`;
+        } catch (e) {
+            // Ignore parse error
+        }
+
+        if (response.status === 401 || response.status === 403) {
+            notifyAuthFailure(response.status);
+            throw new GDriveAuthError(errorMessage, response.status);
+        }
+        throw new Error(errorMessage);
     }
 
     const arrayBuffer: ArrayBuffer = await response.arrayBuffer();
@@ -71,17 +97,20 @@ export async function uploadDatabase(
     encryptedData: Uint8Array,
     existingFileId?: string
 ): Promise<string> {
-    const metadata: { name: string; parents: Array<string> } = {
+    const metadata: { name: string; parents?: Array<string> } = {
         name: DB_FILENAME,
-        parents: ['appDataFolder'],
     };
+
+    if (!existingFileId) {
+        metadata.parents = new Array<string>('appDataFolder');
+    }
 
     const form: FormData = new FormData();
     form.append(
         'metadata',
         new Blob([JSON.stringify(metadata)], { type: 'application/json' })
     );
-    form.append('file', new Blob([encryptedData]), DB_FILENAME);
+    form.append('file', new Blob([encryptedData as BlobPart]), DB_FILENAME);
 
     const url: string = existingFileId
         ? `${UPLOAD_API_BASE}/files/${existingFileId}?uploadType=multipart`
@@ -98,7 +127,19 @@ export async function uploadDatabase(
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to upload file: ${response.statusText}`);
+        let errorMessage = `Failed to upload file: ${response.status} ${response.statusText}`;
+        try {
+            const errorData = await response.json();
+            errorMessage += ` - ${JSON.stringify(errorData)}`;
+        } catch (e) {
+            // Ignore parse error
+        }
+
+        if (response.status === 401 || response.status === 403) {
+            notifyAuthFailure(response.status);
+            throw new GDriveAuthError(errorMessage, response.status);
+        }
+        throw new Error(errorMessage);
     }
 
     const result: { id: string } = (await response.json()) as { id: string };
@@ -120,6 +161,18 @@ export async function deleteDatabaseFile(
     });
 
     if (!response.ok && response.status !== 404) {
-        throw new Error(`Failed to delete file: ${response.statusText}`);
+        let errorMessage = `Failed to delete file: ${response.status} ${response.statusText}`;
+        try {
+            const errorData = await response.json();
+            errorMessage += ` - ${JSON.stringify(errorData)}`;
+        } catch (e) {
+            // Ignore parse error
+        }
+
+        if (response.status === 401 || response.status === 403) {
+            notifyAuthFailure(response.status);
+            throw new GDriveAuthError(errorMessage, response.status);
+        }
+        throw new Error(errorMessage);
     }
 }

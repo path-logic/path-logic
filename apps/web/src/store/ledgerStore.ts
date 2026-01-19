@@ -1,31 +1,55 @@
 import { create } from 'zustand';
-import type { ITransaction } from '@path-logic/core';
+import type { ITransaction, IAccount, IPayee, ICategory, ISODateString } from '@path-logic/core';
 import {
     initDatabase,
     getAllTransactions,
     insertTransaction,
+    insertTransactions,
     updateTransaction,
     deleteTransaction,
     exportDatabase,
     loadDatabase,
+    getAllAccounts,
+    insertAccount,
+    getAllPayees,
+    insertPayee,
+    getPayeeByName,
+    getAllCategories,
 } from '@/lib/storage/SQLiteAdapter';
 
 interface ILedgerStore {
     transactions: Array<ITransaction>;
+    accounts: Array<IAccount>;
+    payees: Array<IPayee>;
+    categories: Array<ICategory>;
     isLoading: boolean;
     isInitialized: boolean;
 
     // Actions
     initialize: () => Promise<void>;
     loadFromEncryptedData: (data: Uint8Array) => Promise<void>;
+
+    // Transaction Actions
     addTransaction: (tx: ITransaction) => Promise<void>;
+    addTransactions: (txs: Array<ITransaction>) => Promise<void>;
     updateTransaction: (tx: ITransaction) => Promise<void>;
     deleteTransaction: (txId: string) => Promise<void>;
+
+    // Account Actions
+    addAccount: (account: IAccount) => Promise<void>;
+
+    // Payee Actions
+    getOrCreatePayee: (name: string) => Promise<IPayee>;
+
+    // Sync/Generic
     exportForSync: () => Uint8Array;
 }
 
-export const useLedgerStore = create<ILedgerStore>((set) => ({
-    transactions: Array<ITransaction>(),
+export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedgerStore>) => void, get: () => ILedgerStore) => ({
+    transactions: new Array<ITransaction>(),
+    accounts: new Array<IAccount>(),
+    payees: new Array<IPayee>(),
+    categories: new Array<ICategory>(),
     isLoading: false,
     isInitialized: false,
 
@@ -34,7 +58,18 @@ export const useLedgerStore = create<ILedgerStore>((set) => ({
         try {
             await initDatabase();
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions, isInitialized: true, isLoading: false });
+            const accounts: Array<IAccount> = getAllAccounts();
+            const payees: Array<IPayee> = getAllPayees();
+            const categories: Array<ICategory> = getAllCategories();
+
+            set({
+                transactions,
+                accounts,
+                payees,
+                categories,
+                isInitialized: true,
+                isLoading: false
+            });
         } catch (error) {
             console.error('Failed to initialize database:', error);
             set({ isLoading: false });
@@ -46,7 +81,18 @@ export const useLedgerStore = create<ILedgerStore>((set) => ({
         try {
             await loadDatabase(data);
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions, isInitialized: true, isLoading: false });
+            const accounts: Array<IAccount> = getAllAccounts();
+            const payees: Array<IPayee> = getAllPayees();
+            const categories: Array<ICategory> = getAllCategories();
+
+            set({
+                transactions,
+                accounts,
+                payees,
+                categories,
+                isInitialized: true,
+                isLoading: false
+            });
         } catch (error) {
             console.error('Failed to load encrypted data:', error);
             set({ isLoading: false });
@@ -60,6 +106,17 @@ export const useLedgerStore = create<ILedgerStore>((set) => ({
             set({ transactions });
         } catch (error) {
             console.error('Failed to add transaction:', error);
+            throw error;
+        }
+    },
+
+    addTransactions: async (txs: Array<ITransaction>): Promise<void> => {
+        try {
+            insertTransactions(txs);
+            const transactions: Array<ITransaction> = getAllTransactions();
+            set({ transactions });
+        } catch (error) {
+            console.error('Failed to add transactions:', error);
             throw error;
         }
     },
@@ -84,6 +141,53 @@ export const useLedgerStore = create<ILedgerStore>((set) => ({
             console.error('Failed to delete transaction:', error);
             throw error;
         }
+    },
+
+    addAccount: async (account: IAccount): Promise<void> => {
+        try {
+            insertAccount(account);
+            const accounts: Array<IAccount> = getAllAccounts();
+            set({ accounts });
+        } catch (error) {
+            console.error('Failed to add account:', error);
+            throw error;
+        }
+    },
+
+    getOrCreatePayee: async (name: string): Promise<IPayee> => {
+        // First check store cache for speed
+        const existing = get().payees.find(p => p.name === name);
+        if (existing) return existing;
+
+        // Check DB as second source of truth
+        const dbPayee = getPayeeByName(name);
+        if (dbPayee) {
+            set({ payees: getAllPayees() }); // Sync store
+            return dbPayee;
+        }
+
+        // Create new
+        const now = new Date().toISOString() as ISODateString;
+        const newPayee: IPayee = {
+            id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            name,
+            address: null,
+            city: null,
+            state: null,
+            zipCode: null,
+            latitude: null,
+            longitude: null,
+            website: null,
+            phone: null,
+            notes: null,
+            defaultCategoryId: null,
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        insertPayee(newPayee);
+        set({ payees: getAllPayees() });
+        return newPayee;
     },
 
     exportForSync: (): Uint8Array => {

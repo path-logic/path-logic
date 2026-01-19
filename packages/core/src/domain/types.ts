@@ -61,9 +61,11 @@ export interface ITransaction {
     id: EntityId;
     /** ID of the account this transaction belongs to. */
     accountId: EntityId;
+    /** Mandatory ID of the payee entity. */
+    payeeId: EntityId;
     /** Date the transaction occurred. */
     date: ISODateString;
-    /** Name of the payee or entity involved. */
+    /** Name of the payee or entity involved (cached for performance). */
     payee: string;
     /** Optional descriptive text for the transaction. */
     memo: string;
@@ -77,6 +79,61 @@ export interface ITransaction {
     checkNumber: string | null;
     /** SHA-256 hash for duplicate detection during imports. */
     importHash: string;
+    /** ISO timestamp when the record was created. */
+    createdAt: ISODateString;
+    /** ISO timestamp when the record was last modified. */
+    updatedAt: ISODateString;
+}
+
+/**
+ * An entity that receives or pays money.
+ */
+export interface IPayee {
+    /** Unique ID for the payee. */
+    id: EntityId;
+    /** Human-readable name (e.g., "Starbucks"). */
+    name: string;
+    /** Geographical Address. */
+    address: string | null;
+    /** City location. */
+    city: string | null;
+    /** State/Province. */
+    state: string | null;
+    /** Postal/Zip code. */
+    zipCode: string | null;
+    /** Coordinate for map visualization. */
+    latitude: number | null;
+    /** Coordinate for map visualization. */
+    longitude: number | null;
+    /** Official website or portal. */
+    website: string | null;
+    /** Contact phone number. */
+    phone: string | null;
+    /** Arbitrary notes about this payee. */
+    notes: string | null;
+    /** Default category ID suggested for new transactions. */
+    defaultCategoryId: EntityId | null;
+    /** ISO timestamp when the record was created. */
+    createdAt: ISODateString;
+    /** ISO timestamp when the record was last modified. */
+    updatedAt: ISODateString;
+}
+
+/**
+ * A category for organizing transactions (e.g., "Groceries", "Rent").
+ * Supports a hierarchical tree structure.
+ */
+export interface ICategory {
+    /** Unique ID for the category. */
+    id: EntityId;
+    /** ID of the parent category (null if top-level). */
+    parentId: EntityId | null;
+    /** Name of the category (e.g., "Dining Out"). */
+    name: string;
+    /** Optional detailed description. */
+    description: string | null;
+    /** Whether the category is currently available for selection. */
+    isActive: boolean;
     /** ISO timestamp when the record was created. */
     createdAt: ISODateString;
     /** ISO timestamp when the record was last modified. */

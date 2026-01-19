@@ -8,9 +8,9 @@
  * - All operations happen client-side; server never sees keys or plaintext
  */
 
-const PBKDF2_ITERATIONS = 100000;
-const KEY_LENGTH = 256;
-const IV_LENGTH = 12; // 96 bits for GCM
+const PBKDF2_ITERATIONS: number = 100000;
+const KEY_LENGTH: number = 256;
+const IV_LENGTH: number = 12; // 96 bits for GCM
 
 /**
  * Derive a 256-bit AES key from the user's Google ID
@@ -18,12 +18,12 @@ const IV_LENGTH = 12; // 96 bits for GCM
 export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
     // Convert user ID to bytes
     const encoder: TextEncoder = new TextEncoder();
-    const userIdBytes = encoder.encode(userId);
+    const userIdBytes: Uint8Array = encoder.encode(userId);
 
     // Import as raw key material
     const keyMaterial: CryptoKey = await crypto.subtle.importKey(
         'raw',
-        userIdBytes,
+        userIdBytes as BufferSource,
         'PBKDF2',
         false,
         ['deriveKey']
@@ -31,12 +31,12 @@ export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
 
     // Derive AES-GCM key using PBKDF2
     // Salt is hardcoded for deterministic key derivation from same user ID
-    const salt = encoder.encode('path-logic-v1-salt');
+    const salt: Uint8Array = encoder.encode('path-logic-v1-salt');
 
     const key: CryptoKey = await crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt,
+            salt: salt as BufferSource,
             iterations: PBKDF2_ITERATIONS,
             hash: 'SHA-256',
         },
@@ -64,13 +64,14 @@ export async function encryptData(
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
 
     // Encrypt
+    // Type assertion: Uint8Array is BufferSource-compatible despite TypeScript's strict ArrayBufferLike checking
     const ciphertext: ArrayBuffer = await crypto.subtle.encrypt(
         {
             name: 'AES-GCM',
             iv,
         },
         key,
-        data
+        data as BufferSource
     );
 
     // Prepend IV to ciphertext
