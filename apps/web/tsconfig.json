@@ -30,6 +30,15 @@
             ],
             "@path-logic/core": [
                 "../../packages/core/src/index.ts"
+            ],
+            "@path-logic/feature-flags": [
+                "../../packages/feature-flags/src/index.ts"
+            ],
+            "@path-logic/feature-flags/client": [
+                "../../packages/feature-flags/src/client.ts"
+            ],
+            "@path-logic/feature-flags/components": [
+                "../../packages/feature-flags/src/components/index.ts"
             ]
         }
     },
