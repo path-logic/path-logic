@@ -16,8 +16,8 @@ interface ICookieInit {
 }
 
 interface ICookieListItem {
-    name: string;
-    value: string;
+    name?: string;
+    value?: string;
     domain?: string;
     path?: string;
     expires?: number;

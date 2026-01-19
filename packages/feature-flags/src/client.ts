@@ -84,14 +84,14 @@ export function useFeatureFlag(flag: string): boolean {
             const handleCookieChange = (event: ICookieChangeEvent): void => {
                 // Check if our flag cookie changed
                 for (const cookie of event.changed) {
-                    if (cookie.name === cookieName) {
+                    if (cookie.name && cookie.name === cookieName) {
                         setEnabled(cookie.value === 'true');
                     }
                 }
 
                 // Handle cookie deletion
                 for (const cookie of event.deleted) {
-                    if (cookie.name === cookieName) {
+                    if (cookie.name && cookie.name === cookieName) {
                         setEnabled(false);
                     }
                 }
@@ -163,7 +163,7 @@ export function useAllFlags(): Record<string, boolean> {
 
                     // Handle changed cookies
                     for (const cookie of event.changed) {
-                        if (cookie.name?.startsWith(COOKIE_PREFIX)) {
+                        if (cookie.name && cookie.name.startsWith(COOKIE_PREFIX)) {
                             const flagName: string = cookie.name.substring(COOKIE_PREFIX.length);
                             updated[flagName] = cookie.value === 'true';
                         }
@@ -171,7 +171,7 @@ export function useAllFlags(): Record<string, boolean> {
 
                     // Handle deleted cookies
                     for (const cookie of event.deleted) {
-                        if (cookie.name?.startsWith(COOKIE_PREFIX)) {
+                        if (cookie.name && cookie.name.startsWith(COOKIE_PREFIX)) {
                             const flagName: string = cookie.name.substring(COOKIE_PREFIX.length);
                             // Use destructuring to remove the property instead of delete
                             const { [flagName]: _removed, ...rest } = updated;
