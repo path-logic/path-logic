@@ -38,7 +38,7 @@ export function SplitEntryDialog({
     onSave,
 }: ISplitEntryDialogProps): React.JSX.Element {
     const { categories } = useLedgerStore();
-    const [splits, setSplits] = React.useState<Array<ISplit>>(
+    const [splits, setSplits] = React.useState<Array<ISplit>>(() =>
         initialSplits.length > 0
             ? initialSplits
             : [{ id: `split-${Date.now()}`, amount: totalAmount, memo: '', categoryId: KnownCategory.Uncategorized }]

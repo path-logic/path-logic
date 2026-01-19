@@ -1,0 +1,177 @@
+npm run lint
+
+> path-logic@0.1.0 lint
+> nx run-many --target=lint --all
+
+
+ NX   Running target lint for 3 projects:
+
+- @path-logic/feature-flags
+- @path-logic/core
+- web
+
+
+
+> nx run @path-logic/feature-flags:lint
+
+> eslint .
+
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/packages/feature-flags/src/client.ts[24m[0m
+[0m  [2m176:44[22m  [31merror[39m  Do not delete dynamically computed property keys  [2m@typescript-eslint/no-dynamic-delete[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+> eslint .
+
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/packages/feature-flags/src/client.ts[24m[0m
+[0m  [2m176:44[22m  [31merror[39m  Do not delete dynamically computed property keys  [2m@typescript-eslint/no-dynamic-delete[22m[0m
+[0m[0m
+[0m[31m[1m✖ 1 problem (1 error, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+Warning: command "eslint ." exited with non-zero status code
+> nx run @path-logic/core:lint
+
+
+> @path-logic/core@0.1.0 lint
+> eslint src && prettier --check . --ignore-path ../../.prettierignore --ignore-unknown
+
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/packages/core/src/index.ts[24m[0m
+[0m   [2m2:1[22m  [31merror[39m  Run autofix to sort these exports!  [2msimple-import-sort/exports[22m[0m
+[0m  [2m18:1[22m  [31merror[39m  Run autofix to sort these exports!  [2msimple-import-sort/exports[22m[0m
+[0m  [2m32:1[22m  [31merror[39m  Run autofix to sort these exports!  [2msimple-import-sort/exports[22m[0m
+[0m[0m
+[0m[31m[1m✖ 3 problems (3 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[31m[1m  3 errors and 0 warnings potentially fixable with the `--fix` option.[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/pete/projects/path-logic/packages/core
+npm error workspace @path-logic/core@0.1.0
+npm error location /home/pete/projects/path-logic/packages/core
+npm error command failed
+npm error command sh -c eslint src && prettier --check . --ignore-path ../../.prettierignore --ignore-unknown
+
+> nx run web:lint
+
+
+> web@0.1.0 lint
+> eslint src
+
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/app/accounts/page.tsx[24m[0m
+[0m  [2m16:38[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/app/dev/sync-test/page.tsx[24m[0m
+[0m   [2m19:38[22m  [31merror[39m    Unexpected any. Specify a different type    [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m235:19[22m  [33mwarning[39m  'start' is assigned a value but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/app/page.tsx[24m[0m
+[0m  [2m36:46[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m69:9[22m   [31merror[39m  Error: Calling setState synchronously within an effect can trigger cascading renders[0m
+[0m[0m
+[0mEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:[0m
+[0m* Update external systems with the latest state from React.[0m
+[0m* Subscribe for updates from some external system, calling setState in a callback function when external state changes.[0m
+[0m[0m
+[0mCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).[0m
+[0m[0m
+[0m/home/pete/projects/path-logic/apps/web/src/app/page.tsx:69:9[0m
+[0m  67 |[0m
+[0m  68 |     useEffect((): void => {[0m
+[0m> 69 |         setMounted(true);[0m
+[0m     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect[0m
+[0m  70 |     }, []);[0m
+[0m  71 |[0m
+[0m  72 |     useEffect((): void => {  [2mreact-hooks/set-state-in-effect[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/app/payees/page.tsx[24m[0m
+[0m  [2m16:38[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/app/settings/page.tsx[24m[0m
+[0m   [2m9:10[22m  [33mwarning[39m  'Settings' is defined but never used      [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m39:69[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/components/auth/SignInButton.tsx[24m[0m
+[0m  [2m6:10[22m  [33mwarning[39m  'CheckCircle2' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/components/layout/Header.tsx[24m[0m
+[0m   [2m6:10[22m  [33mwarning[39m  'Landmark' is defined but never used      [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m6:20[22m  [33mwarning[39m  'Banknote' is defined but never used      [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m6:30[22m  [33mwarning[39m  'CreditCard' is defined but never used    [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m6:42[22m  [33mwarning[39m  'Wallet' is defined but never used        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m6:50[22m  [33mwarning[39m  'ChevronDown' is defined but never used   [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m16:38[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m58:56[22m  [31merror[39m    Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/components/ledger/TransactionTable.tsx[24m[0m
+[0m   [2m18:10[22m  [33mwarning[39m  'ArrowUpDown' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m18:23[22m  [33mwarning[39m  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m20:10[22m  [33mwarning[39m  'Button' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m34:16[22m  [31merror[39m    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/explicit-module-boundary-types[22m[0m
+[0m   [2m53:16[22m  [31merror[39m    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/explicit-module-boundary-types[22m[0m
+[0m   [2m69:16[22m  [31merror[39m    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/explicit-module-boundary-types[22m[0m
+[0m   [2m88:16[22m  [31merror[39m    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/explicit-module-boundary-types[22m[0m
+[0m  [2m105:16[22m  [31merror[39m    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [2m@typescript-eslint/explicit-module-boundary-types[22m[0m
+[0m  [2m237:19[22m  [33mwarning[39m  Compilation Skipped: Use of incompatible library[0m
+[0m[0m
+[0mThis API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.[0m
+[0m[0m
+[0m/home/pete/projects/path-logic/apps/web/src/components/ledger/TransactionTable.tsx:237:19[0m
+[0m  235 |     }, [sortedDataWithBalances, monthsToShow]);[0m
+[0m  236 |[0m
+[0m> 237 |     const table = useReactTable({[0m
+[0m      |                   ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely[0m
+[0m  238 |         data: windowedData,[0m
+[0m  239 |         columns,[0m
+[0m  240 |         onSortingChange: setSorting,  [2mreact-hooks/incompatible-library[22m[0m
+[0m  [2m301:8[22m   [33mwarning[39m  React Hook React.useEffect has a missing dependency: 'activeIndex'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               [2mreact-hooks/exhaustive-deps[22m[0m
+[0m  [2m314:19[22m  [31merror[39m    Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    [2m@typescript-eslint/explicit-function-return-type[22m[0m
+[0m  [2m339:8[22m   [33mwarning[39m  React Hook React.useEffect has a missing dependency: 'rows'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      [2mreact-hooks/exhaustive-deps[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/components/sync/SyncIndicator.tsx[24m[0m
+[0m  [2m6:17[22m  [33mwarning[39m  'CloudOff' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/hooks/useAutoSync.ts[24m[0m
+[0m  [2m15:38[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/lib/storage/GoogleDriveAdapter.ts[24m[0m
+[0m   [2m41:18[22m  [33mwarning[39m  'e' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m77:18[22m  [33mwarning[39m  'e' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m134:18[22m  [33mwarning[39m  'e' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m168:18[22m  [33mwarning[39m  'e' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m[0m
+[0m[4m/home/pete/projects/path-logic/apps/web/src/lib/storage/SQLiteAdapter.ts[24m[0m
+[0m  [2m218:26[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m251:71[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m301:36[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m327:36[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m531:45[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m534:25[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m569:45[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m595:22[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m648:45[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[31m[1m✖ 43 problems (24 errors, 19 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/pete/projects/path-logic/apps/web
+npm error workspace web@0.1.0
+npm error location /home/pete/projects/path-logic/apps/web
+npm error command failed
+npm error command sh -c eslint src
+
+
+
+ NX   Running target lint for 3 projects failed
+
+Failed tasks:
+
+- @path-logic/feature-flags:lint
+- @path-logic/core:lint
+- web:lint
+
+make: *** [Makefile:40: lint] Error 1

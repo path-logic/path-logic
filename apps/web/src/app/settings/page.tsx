@@ -6,7 +6,7 @@ import { FLAG_CONFIGS } from '@/lib/featureFlags/flags';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Settings, Shield, Zap } from 'lucide-react';
+import { Shield, Zap } from 'lucide-react';
 import type { IFlagConfig } from '@path-logic/feature-flags/components';
 
 export default function SettingsPage(): React.JSX.Element {
@@ -36,7 +36,7 @@ export default function SettingsPage(): React.JSX.Element {
                                     {Object.values(FLAG_CONFIGS).map((config: IFlagConfig): React.JSX.Element => (
                                         <div key={config.key} className="bg-muted/20 border border-border/50 rounded-sm p-1 transition-colors hover:border-primary/30">
                                             <StyledFeatureFlagToggle
-                                                flag={config.key as any}
+                                                flag={config.key}
                                                 label={config.name}
                                                 description={config.description}
                                             />

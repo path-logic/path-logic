@@ -173,7 +173,9 @@ export function useAllFlags(): Record<string, boolean> {
                     for (const cookie of event.deleted) {
                         if (cookie.name?.startsWith(COOKIE_PREFIX)) {
                             const flagName: string = cookie.name.substring(COOKIE_PREFIX.length);
-                            delete updated[flagName];
+                            // Use destructuring to remove the property instead of delete
+                            const { [flagName]: _removed, ...rest } = updated;
+                            Object.assign(updated, rest);
                         }
                     }
 

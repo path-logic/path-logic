@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, ShieldCheck, Database, Zap } from "lucide-react";
+import { ShieldCheck, Database, Zap } from "lucide-react";
 
 export function SignInButton(): React.JSX.Element {
     return (

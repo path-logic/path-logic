@@ -1,0 +1,250 @@
+
+/home/pete/projects/path-logic/apps/web/src/app/accounts/page.tsx
+  16:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/app/dev/sync-test/page.tsx
+   19:38  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  235:19  warning  'start' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/pete/projects/path-logic/apps/web/src/app/page.tsx
+   18:5   warning  'generateProjection' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   32:10  warning  'DropdownMenu' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   32:24  warning  'DropdownMenuContent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   32:45  warning  'DropdownMenuItem' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   32:63  warning  'DropdownMenuTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   37:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+   73:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/pete/projects/path-logic/apps/web/src/app/page.tsx:73:9
+  71 |             initialize();
+  72 |         }
+> 73 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  74 |     }, [session, isInitialized, initialize]);
+  75 |
+  76 |     // Show loading state  react-hooks/set-state-in-effect
+  113:27  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/app/payees/page.tsx
+  16:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/app/settings/page.tsx
+   9:10  warning  'Settings' is defined but never used      @typescript-eslint/no-unused-vars
+  39:69  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/components/auth/SignInButton.tsx
+  6:10  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/pete/projects/path-logic/apps/web/src/components/layout/Header.tsx
+   6:10  warning  'Landmark' is defined but never used      @typescript-eslint/no-unused-vars
+   6:20  warning  'Banknote' is defined but never used      @typescript-eslint/no-unused-vars
+   6:30  warning  'CreditCard' is defined but never used    @typescript-eslint/no-unused-vars
+   6:42  warning  'Wallet' is defined but never used        @typescript-eslint/no-unused-vars
+   6:50  warning  'ChevronDown' is defined but never used   @typescript-eslint/no-unused-vars
+  16:38  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:56  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/components/ledger/SplitEntryDialog.tsx
+  44:31  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/home/pete/projects/path-logic/apps/web/src/components/ledger/SplitEntryDialog.tsx:44:31
+  42 |         initialSplits.length > 0
+  43 |             ? initialSplits
+> 44 |             : [{ id: `split-${Date.now()}`, amount: totalAmount, memo: '', categoryId: KnownCategory.Uncategorized }]
+     |                               ^^^^^^^^^^ Cannot call impure function
+  45 |     );
+  46 |
+  47 |     const sumSplits = splits.reduce((sum, s) => sum + s.amount, 0);  react-hooks/purity
+
+/home/pete/projects/path-logic/apps/web/src/components/ledger/TransactionTable.tsx
+   18:10  warning  'ArrowUpDown' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   18:23  warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   20:10  warning  'Button' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   34:16  error    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/explicit-module-boundary-types
+   53:16  error    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/explicit-module-boundary-types
+   69:16  error    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/explicit-module-boundary-types
+   88:16  error    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/explicit-module-boundary-types
+  105:16  error    Object pattern argument should be typed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/explicit-module-boundary-types
+  237:19  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/home/pete/projects/path-logic/apps/web/src/components/ledger/TransactionTable.tsx:237:19
+  235 |     }, [sortedDataWithBalances, monthsToShow]);
+  236 |
+> 237 |     const table = useReactTable({
+      |                   ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely
+  238 |         data: windowedData,
+  239 |         columns,
+  240 |         onSortingChange: setSorting,  react-hooks/incompatible-library
+  301:8   warning  React Hook React.useEffect has a missing dependency: 'activeIndex'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  314:19  error    Missing return type on function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/explicit-function-return-type
+  339:8   warning  React Hook React.useEffect has a missing dependency: 'rows'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+/home/pete/projects/path-logic/apps/web/src/components/sync/SyncIndicator.tsx
+  6:17  warning  'CloudOff' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/button.tsx
+  39:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  39:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/card.tsx
+   5:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   5:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  18:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  18:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  31:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  31:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  41:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  41:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  51:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  51:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  64:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  64:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  74:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  74:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/dialog.tsx
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   21:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   21:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   27:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   27:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   33:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   33:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   49:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   49:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   83:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   83:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   93:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   93:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  106:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  106:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  119:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  119:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/dropdown-menu.tsx
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   23:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   23:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   34:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   34:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   54:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   54:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   62:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   62:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   85:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   85:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  111:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  111:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  122:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  122:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  146:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  146:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  166:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  166:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  179:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  179:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  195:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  195:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  201:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  201:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  225:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  225:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/input.tsx
+  5:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  5:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/scroll-area.tsx
+   8:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   8:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  31:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  31:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/select.tsx
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+    9:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   15:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   21:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   21:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   27:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   27:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   53:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   53:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+   90:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   90:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  103:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  103:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  130:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  130:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  143:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  143:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  161:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  161:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/table.tsx
+   7:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   7:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  22:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  22:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  32:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  32:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  42:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  42:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  55:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  55:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  68:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  68:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  81:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  81:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  94:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  94:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/components/ui/tabs.tsx
+   8:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+   8:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  21:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  21:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  37:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  37:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+  53:1  error  Missing return type on function  @typescript-eslint/explicit-function-return-type
+  53:1  error  Missing return type on function  @typescript-eslint/explicit-module-boundary-types
+
+/home/pete/projects/path-logic/apps/web/src/hooks/useAutoSync.ts
+  15:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/pete/projects/path-logic/apps/web/src/lib/storage/GoogleDriveAdapter.ts
+   41:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+   77:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  134:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  168:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/pete/projects/path-logic/apps/web/src/lib/storage/SQLiteAdapter.ts
+  218:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  301:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  327:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  531:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  534:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  569:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  595:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  648:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 166 problems (142 errors, 24 warnings)
+

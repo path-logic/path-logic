@@ -215,8 +215,10 @@ let db: Database | null = null;
 // ============================================================================
 
 interface ISqlJsWindow extends Window {
-    initSqlJs?: (config: any) => Promise<SqlJsStatic>;
+    initSqlJs?: (config: Record<string, unknown>) => Promise<SqlJsStatic>;
 }
+
+type SqlValue = string | number | null | Uint8Array;
 
 /**
  * Load SQL.js via script tag to bypass bundler issues with 'fs' and Node modules
@@ -248,7 +250,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
     const columns: Array<QueryExecResult> = dbInstance.exec("PRAGMA table_info(transactions)");
     const firstResult: QueryExecResult | undefined = columns.at(0);
     if (firstResult && firstResult.values) {
-        const hasPayeeId: boolean = firstResult.values.some((v: Array<any>): boolean => v[1] === 'payeeId');
+        const hasPayeeId: boolean = firstResult.values.some((v: Array<SqlValue>): boolean => v[1] === 'payeeId');
         if (!hasPayeeId) {
             // Add column allowing NULL initially for migration
             dbInstance.run("ALTER TABLE transactions ADD COLUMN payeeId TEXT");
@@ -298,7 +300,7 @@ export async function initDatabase(): Promise<Database> {
     if (!SQL) {
         await loadSqlJsScript();
 
-        const initSqlJs: ((config: any) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
+        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
         if (!initSqlJs) {
             throw new Error('initSqlJs not found on window');
         }
@@ -324,7 +326,7 @@ export async function loadDatabase(data: Uint8Array): Promise<Database> {
     if (!SQL) {
         await loadSqlJsScript();
 
-        const initSqlJs: ((config: any) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
+        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
         if (!initSqlJs) {
             throw new Error('initSqlJs not found on window');
         }
@@ -528,10 +530,10 @@ export function getAllAccounts(): Array<IAccount> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_ACCOUNTS);
     if (result.length === 0 || !result[0]) return new Array<IAccount>();
 
-    return result[0].values.map((row: Array<any>): IAccount => ({
+    return result[0].values.map((row: Array<SqlValue>): IAccount => ({
         id: row[0] as string,
         name: row[1] as string,
-        type: row[2] as any,
+        type: row[2] as IAccount['type'],
         institutionName: row[3] as string,
         isActive: Boolean(row[4]),
         createdAt: row[5] as ISODateString,
@@ -566,7 +568,7 @@ export function getAllPayees(): Array<IPayee> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_PAYEES);
     if (result.length === 0 || !result[0]) return new Array<IPayee>();
 
-    return result[0].values.map((row: Array<any>): IPayee => ({
+    return result[0].values.map((row: Array<SqlValue>): IPayee => ({
         id: row[0] as string,
         name: row[1] as string,
         address: row[2] as string | null,
@@ -592,7 +594,7 @@ export function getPayeeByName(name: string): IPayee | null {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_PAYEE_BY_NAME, [name]);
     if (result.length === 0 || !result[0] || result[0].values.length === 0) return null;
 
-    const row: Array<any> | undefined = result[0].values.at(0);
+    const row: Array<SqlValue> | undefined = result[0].values.at(0);
     if (!row) return null;
 
     return {
@@ -645,7 +647,7 @@ export function getAllCategories(): Array<ICategory> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_CATEGORIES);
     if (result.length === 0 || !result[0]) return new Array<ICategory>();
 
-    return result[0].values.map((row: Array<any>): ICategory => ({
+    return result[0].values.map((row: Array<SqlValue>): ICategory => ({
         id: row[0] as string,
         parentId: row[1] as string | null,
         name: row[2] as string,

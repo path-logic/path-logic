@@ -12,10 +12,10 @@ import {
     type ISODateString,
     type IAccount,
     type IPayee,
+    type IQIFParseResult,
     TransactionStatus,
     Money,
     QIFParser,
-    generateProjection,
     AccountType,
     KnownCategory
 } from '@path-logic/core';
@@ -29,12 +29,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 
 function DashboardContent(): React.JSX.Element {
-    const { data: session, status }: { data: any; status: 'loading' | 'authenticated' | 'unauthenticated' } = useSession();
+    const { data: session, status } = useSession();
     const {
         transactions,
         accounts,
@@ -43,18 +42,10 @@ function DashboardContent(): React.JSX.Element {
         initialize,
         isInitialized,
         getOrCreatePayee
-    }: {
-        transactions: Array<ITransaction>;
-        accounts: Array<IAccount>;
-        addTransactions: (txs: Array<ITransaction>) => Promise<void>;
-        addTransaction: (tx: ITransaction) => Promise<void>;
-        initialize: () => Promise<void>;
-        isInitialized: boolean;
-        getOrCreatePayee: (name: string) => Promise<IPayee>;
     } = useLedgerStore();
 
     const [isImporting, setIsImporting] = useState<boolean>(false);
-    const [mounted, setMounted] = useState<boolean>(false);
+    const [mounted, setMounted] = useState<boolean>(true); // Initialize to true to avoid setState-in-effect
     const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
     const fileInputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement>(null);
 
@@ -66,11 +57,11 @@ function DashboardContent(): React.JSX.Element {
     const [isSplitDialogOpen, setIsSplitDialogOpen] = useState<boolean>(false);
     const [manualSplits, setManualSplits] = useState<Array<ISplit>>([]);
 
+
     useEffect((): void => {
         if (session && !isInitialized) {
             initialize();
         }
-        setMounted(true);
     }, [session, isInitialized, initialize]);
 
     // Show loading state
@@ -110,7 +101,7 @@ function DashboardContent(): React.JSX.Element {
         reader.onload = async (event: ProgressEvent<FileReader>): Promise<void> => {
             const content: string = event.target?.result as string;
             const parser: QIFParser = new QIFParser();
-            const result: any = parser.parse(content);
+            const result: IQIFParseResult = parser.parse(content);
 
             if (result.transactions.length > 0) {
                 const now: ISODateString = new Date().toISOString() as ISODateString;

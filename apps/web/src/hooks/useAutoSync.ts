@@ -12,7 +12,7 @@ import { saveToDrive } from '@/lib/sync/syncService';
  * background upload if a valid session exists.
  */
 export function useAutoSync(): void {
-    const { data: session }: { data: any } = useSession();
+    const { data: session } = useSession();
     const transactions: Array<ITransaction> = useLedgerStore((state) => state.transactions);
     const isInitialized: boolean = useLedgerStore((state) => state.isInitialized);
 

@@ -6,7 +6,8 @@ import type {
     ColumnFiltersState,
     Row,
     SortingState,
-    VisibilityState} from '@tanstack/react-table';
+    VisibilityState
+} from '@tanstack/react-table';
 import {
     flexRender,
     getCoreRowModel,
@@ -15,9 +16,8 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ArrowUpDown, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { type ITransaction, Money, TransactionStatus, KnownCategory } from '@path-logic/core';
 import { cn } from '@/lib/utils';
@@ -31,7 +31,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'payee',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Payee / Memo</div>,
-        cell: ({ row }): React.JSX.Element => {
+        cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const tx = row.original;
             return (
                 <div className="flex flex-col">
@@ -50,7 +50,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     {
         id: 'category',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase">Category</div>,
-        cell: ({ row }): React.JSX.Element => {
+        cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const tx = row.original;
             return (
                 <div className="flex items-center">
@@ -66,7 +66,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'status',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Status</div>,
-        cell: ({ row }): React.JSX.Element => {
+        cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const status = row.original.status;
             return (
                 <div
@@ -85,7 +85,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'totalAmount',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Amount</div>,
-        cell: ({ row }): React.JSX.Element => {
+        cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const amount = parseFloat(row.getValue('totalAmount'));
             const formatted = Money.formatCurrency(amount);
 
@@ -102,7 +102,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     {
         id: 'balance',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Balance</div>,
-        cell: ({ row }): React.JSX.Element => {
+        cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const balance = (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
             const formatted = Money.formatCurrency(balance);
 
@@ -298,7 +298,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         } else if (rows.length === 0 && activeIndex !== 0) {
             setActiveIndex(0);
         }
-    }, [rows.length]);
+    }, [rows.length, activeIndex]);
 
     // Track scroll position to show/hide Load Older History button
     React.useEffect(() => {
@@ -311,7 +311,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         };
 
         scrollElement.addEventListener('scroll', handleScroll);
-        return () => scrollElement.removeEventListener('scroll', handleScroll);
+        return (): void => scrollElement.removeEventListener('scroll', handleScroll);
     }, []);
 
     // Scroll to current date or newest transaction on initial load
@@ -336,7 +336,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         // Scroll to the target index
         virtualizer.scrollToIndex(targetIndex, { align: 'center', behavior: 'auto' });
         setActiveIndex(targetIndex);
-    }, [rows.length, virtualizer]);
+    }, [rows, virtualizer]);
 
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>

@@ -16,8 +16,8 @@ import { PerformanceMetrics } from './components/PerformanceMetrics';
 import { compareTransactions } from './utils/devUtils';
 
 export default function SyncTestPage(): React.ReactElement {
-    const { data: session }: { data: any } = useSession();
-    const { transactions, addTransaction, initialize }: { transactions: Array<ITransaction>; addTransaction: (tx: ITransaction) => Promise<void>; initialize: () => Promise<void> } = useLedgerStore();
+    const { data: session } = useSession();
+    const { transactions, addTransaction, initialize } = useLedgerStore();
 
     // State for data inspection
     const [rawData, setRawData] = useState<Uint8Array | null>(null);
@@ -232,7 +232,6 @@ export default function SyncTestPage(): React.ReactElement {
         }
 
         try {
-            const start = performance.now();
 
             const exportStart = performance.now();
             const exported: Uint8Array = exportDatabase();

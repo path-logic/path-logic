@@ -13,8 +13,8 @@ import { SignInButton } from '@/components/auth/SignInButton';
 import { AppShell } from '@/components/layout/AppShell';
 
 export default function AccountsPage(): React.JSX.Element {
-    const { data: session }: { data: any; status: string } = useSession();
-    const { accounts, isInitialized, initialize }: { accounts: Array<IAccount>; isInitialized: boolean; initialize: () => Promise<void> } = useLedgerStore();
+    const { data: session } = useSession();
+    const { accounts, isInitialized, initialize } = useLedgerStore();
     const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
     React.useEffect((): void => {

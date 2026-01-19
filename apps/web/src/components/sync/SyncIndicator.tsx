@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { getSyncStatus } from '@/lib/sync/syncService';
 import { cn } from '@/lib/utils';
-import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Cloud, RefreshCw } from 'lucide-react';
 
 /**
  * Global indicator for Google Drive sync status.

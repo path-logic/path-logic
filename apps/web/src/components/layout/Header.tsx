@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Landmark, Banknote, CreditCard, Wallet, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Money, TransactionStatus, type ITransaction } from '@path-logic/core';
 import { useLedgerStore } from '@/store/ledgerStore';
@@ -12,8 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 export function Header(): React.JSX.Element {
     const pathname: string | null = usePathname();
-    const { transactions, isInitialized }: { transactions: Array<ITransaction>; isInitialized: boolean } = useLedgerStore();
-    const { data: session }: { data: any; status: string } = useSession();
+    const { transactions, isInitialized } = useLedgerStore();
+    const { data: session } = useSession();
 
     const clearedBalance: number = transactions
         .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Cleared)
@@ -55,7 +54,7 @@ export function Header(): React.JSX.Element {
                             return (
                                 <Link
                                     key={item.name}
-                                    href={item.href as any}
+                                    href={item.href}
                                     className={cn(
                                         "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm",
                                         isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
