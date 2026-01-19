@@ -44,3 +44,11 @@ coverage/
 yarn.lock
 pnpm-lock.yaml
 *.qif
+
+# Local artifacts
+next
+npm
+nx
+*.tgz
+/web@*
+/path-logic@*
