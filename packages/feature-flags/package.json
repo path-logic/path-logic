@@ -1,0 +1,62 @@
+{
+    "name": "@path-logic/feature-flags",
+    "version": "0.1.0",
+    "description": "Lightweight, cookie-based feature flags for Next.js with route-based toggling",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./client": {
+            "types": "./dist/client.d.ts",
+            "default": "./dist/client.js"
+        },
+        "./route": {
+            "types": "./dist/route.d.ts",
+            "default": "./dist/route.js"
+        },
+        "./components": {
+            "types": "./dist/components/index.d.ts",
+            "default": "./dist/components/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "typecheck": "tsc --noEmit",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [
+        "nextjs",
+        "feature-flags",
+        "feature-toggles",
+        "cookies",
+        "react",
+        "typescript"
+    ],
+    "author": "Path Logic Team",
+    "license": "MIT",
+    "peerDependencies": {
+        "next": ">=14.0.0",
+        "react": ">=18.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/react": "^18.0.0",
+        "typescript": "^5.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/path-logic/feature-flags.git"
+    },
+    "bugs": {
+        "url": "https://github.com/path-logic/feature-flags/issues"
+    },
+    "homepage": "https://github.com/path-logic/feature-flags#readme"
+}
