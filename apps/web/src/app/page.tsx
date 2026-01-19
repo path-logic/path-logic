@@ -226,7 +226,7 @@ function DashboardContent(): React.JSX.Element {
             <aside className="w-64 flex flex-col gap-4 flex-none overflow-hidden pr-2">
                 <Card className="bg-card border-border rounded-sm h-full flex flex-col overflow-hidden">
                     <div className="px-4 py-3 flex justify-between items-center border-b border-border bg-muted/30">
-                        <h2 className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Accounts</h2>
+                        <h2 className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Accounts</h2>
                         <Link href="/accounts" className="text-primary hover:text-white transition-colors">
                             <Plus className="w-3 h-3" />
                         </Link>
@@ -234,7 +234,7 @@ function DashboardContent(): React.JSX.Element {
                     <ScrollArea className="flex-1">
                         <div className="p-2 space-y-1">
                             {accounts.length === 0 ? (
-                                <p className="text-[9px] text-muted-foreground italic text-center py-4 uppercase">No accounts yet</p>
+                                <p className="text-xs text-muted-foreground italic text-center py-4 uppercase">No accounts yet</p>
                             ) : (
                                 accounts.map((acc: IAccount): React.JSX.Element => (
                                     <div
@@ -246,14 +246,14 @@ function DashboardContent(): React.JSX.Element {
                                         )}
                                     >
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className={cn("text-[11px] font-bold", activeAccountId === acc.id ? "text-primary" : "text-foreground")}>
+                                            <span className={cn("text-sm font-bold", activeAccountId === acc.id ? "text-primary" : "text-foreground")}>
                                                 {acc.name}
                                             </span>
-                                            <span className="text-[8px] text-muted-foreground opacity-50">
+                                            <span className="text-[10px] text-muted-foreground opacity-50">
                                                 {getAccountIcon(acc.type)}
                                             </span>
                                         </div>
-                                        <div className="text-[10px] font-mono font-bold text-muted-foreground">
+                                        <div className="text-sm font-mono font-bold text-muted-foreground">
                                             {Money.formatCurrency(transactions.filter((t: ITransaction): boolean => t.accountId === acc.id).reduce((s: number, t: ITransaction): number => s + t.totalAmount, 0))}
                                         </div>
                                     </div>
@@ -266,15 +266,15 @@ function DashboardContent(): React.JSX.Element {
                 {/* Quick Stats / Sync Mini Card */}
                 <Card className="bg-card border-border rounded-sm p-3">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">Sync Engine</span>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Sync Engine</span>
                         <SyncIndicator />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <div className="flex justify-between text-[10px]">
+                        <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground uppercase font-bold tracking-tighter">Cleared</span>
                             <span className="font-mono text-emerald-500 font-bold">{Money.formatCurrency(clearedBalance)}</span>
                         </div>
-                        <div className="flex justify-between text-[10px]">
+                        <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground uppercase font-bold tracking-tighter">Pending</span>
                             <span className="font-mono text-amber-500 font-bold">{Money.formatCurrency(pendingBalance)}</span>
                         </div>
@@ -287,17 +287,17 @@ function DashboardContent(): React.JSX.Element {
                 {/* Transaction Entry Form (MS Money Style) */}
                 <Card className="bg-card border-border rounded-sm p-3 shadow-lg flex-none relative z-10">
                     <form onSubmit={handleQuickAdd} className="grid grid-cols-12 gap-3 items-end">
-                        <div className="col-span-1">
-                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Date</label>
+                        <div className="col-span-2">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Date</label>
                             <Input
                                 type="date"
                                 value={entryDate}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryDate(e.target.value)}
-                                className="h-7 text-[10px] font-mono uppercase px-2"
+                                className="h-7 text-xs font-mono uppercase px-2"
                             />
                         </div>
                         <div className="col-span-3">
-                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Payee / Recipient</label>
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Payee / Recipient</label>
                             <div className="relative">
                                 <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
                                 <Input
@@ -305,33 +305,33 @@ function DashboardContent(): React.JSX.Element {
                                     placeholder="Who did you pay?"
                                     value={entryPayee}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryPayee(e.target.value)}
-                                    className="h-7 pl-7 text-[10px]"
+                                    className="h-7 pl-7 text-sm"
                                 />
                             </div>
                         </div>
                         <div className="col-span-2">
-                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Amount</label>
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Amount</label>
                             <Input
                                 type="number"
                                 step="0.01"
                                 placeholder="0.00"
                                 value={entryAmount}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryAmount(e.target.value)}
-                                className="h-7 text-[10px] font-mono text-emerald-500 px-2"
+                                className="h-7 text-sm font-mono text-emerald-500 px-2"
                             />
                         </div>
-                        <div className="col-span-4">
-                            <label className="text-[8px] font-bold text-muted-foreground uppercase block mb-1">Memo / Description</label>
+                        <div className="col-span-3">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Memo / Description</label>
                             <Input
                                 type="text"
                                 placeholder="What was it for?"
                                 value={entryMemo}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setEntryMemo(e.target.value)}
-                                className="h-7 text-[10px] px-2"
+                                className="h-7 text-sm px-2"
                             />
                         </div>
                         <div className="col-span-2 flex gap-2">
-                            <Button type="submit" className="flex-1 text-[9px] font-black uppercase h-7">
+                            <Button type="submit" className="flex-1 text-xs font-black uppercase h-7">
                                 Record
                             </Button>
                             <Button
@@ -339,7 +339,7 @@ function DashboardContent(): React.JSX.Element {
                                 variant="outline"
                                 onClick={(): void => setIsSplitDialogOpen(true)}
                                 className={cn(
-                                    "px-2 text-[9px] uppercase font-bold h-7",
+                                    "px-2 text-xs uppercase font-bold h-7",
                                     manualSplits.length > 0 && "border-primary text-primary bg-primary/10"
                                 )}
                             >
@@ -352,14 +352,14 @@ function DashboardContent(): React.JSX.Element {
                 {/* Toolbar */}
                 <div className="flex items-center justify-between flex-none px-1">
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handleImportClick} disabled={isImporting} className="h-7 text-[9px] font-black uppercase bg-primary/10 border-primary/20 text-primary hover:bg-primary/20">
+                        <Button variant="outline" size="sm" onClick={handleImportClick} disabled={isImporting} className="h-7 text-xs font-black uppercase bg-primary/10 border-primary/20 text-primary hover:bg-primary/20">
                             {isImporting ? 'Processing QIF...' : 'Import Data'}
                         </Button>
-                        <Button variant="outline" size="sm" className="h-7 text-[9px] font-black uppercase">
+                        <Button variant="outline" size="sm" className="h-7 text-xs font-black uppercase">
                             Reconcile
                         </Button>
                     </div>
-                    <div className="flex items-center gap-4 text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground font-bold uppercase tracking-tighter">
                         <span className="flex items-center gap-1.5 bg-primary/5 px-2 py-1 rounded-sm border border-primary/10 text-primary">
                             <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
                             90-Day Projection: + $4,240.00
@@ -373,7 +373,7 @@ function DashboardContent(): React.JSX.Element {
                         <div className="absolute inset-0 bg-background/80 z-20 flex items-center justify-center backdrop-blur-sm">
                             <div className="flex flex-col items-center gap-3">
                                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Processing Ledger Data...</p>
+                                <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">Processing Ledger Data...</p>
                             </div>
                         </div>
                     )}
