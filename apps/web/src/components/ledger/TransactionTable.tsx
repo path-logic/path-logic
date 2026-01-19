@@ -14,18 +14,18 @@ import {
     useReactTable,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { type ITransaction, Money, TransactionStatus } from '@path-logic/core';
+import { type ITransaction, Money, TransactionStatus, KnownCategory } from '@path-logic/core';
 import { cn } from '@/lib/utils';
 
 export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'date',
         header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Date</div>,
-        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-[#64748B] text-nowrap">{row.getValue('date')}</div>,
+        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-muted-foreground text-nowrap">{row.getValue('date')}</div>,
     },
     {
         accessorKey: 'payee',
@@ -34,10 +34,10 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             const tx = row.original;
             return (
                 <div className="flex flex-col">
-                    <span className="font-semibold text-[#38BDF8] group-hover:text-white text-[11px] truncate max-w-[300px]">
+                    <span className="font-semibold text-primary group-hover:text-foreground text-[11px] truncate max-w-[300px]">
                         {tx.payee}
                     </span>
-                    <span className="text-[9px] text-[#64748B] truncate max-w-[300px]">
+                    <span className="text-[9px] text-muted-foreground truncate max-w-[300px]">
                         {tx.splits.length > 0
                             ? `${tx.splits.length} Splits: ${tx.splits[0]?.memo}`
                             : tx.memo}
@@ -53,10 +53,10 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             const tx = row.original;
             return (
                 <div className="flex items-center">
-                    <span className="text-[9px] bg-[#1E293B] px-1.5 py-0.5 rounded-sm border border-[#334155] text-[#94A3B8] whitespace-nowrap uppercase tracking-tighter font-bold">
+                    <span className="text-[9px] bg-accent px-1.5 py-0.5 rounded-sm border border-border text-muted-foreground whitespace-nowrap uppercase tracking-tighter font-bold">
                         {tx.splits.length > 1
                             ? 'SPLIT'
-                            : (tx.splits[0]?.categoryId ?? 'UNCATEGORIZED')}
+                            : (tx.splits[0]?.categoryId ?? KnownCategory.Uncategorized)}
                     </span>
                 </div>
             );
@@ -70,11 +70,12 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             return (
                 <div
                     className={cn(
-                        "text-[9px] font-bold uppercase text-nowrap",
-                        status === TransactionStatus.Cleared ? "text-[#10B981]" :
-                            status === TransactionStatus.Pending ? "text-[#F59E0B]" : "text-[#38BDF8]"
+                        "text-[9px] font-bold uppercase text-nowrap flex items-center gap-1.5",
+                        status === TransactionStatus.Cleared ? "text-emerald-500" :
+                            status === TransactionStatus.Pending ? "text-amber-500" : "text-primary"
                     )}
                 >
+                    {status === TransactionStatus.Cleared ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                     {status}
                 </div>
             );
@@ -90,7 +91,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             return (
                 <div className={cn(
                     "text-right font-mono font-bold text-[11px] text-nowrap",
-                    amount < 0 ? "text-[#FCA5A5]" : "text-[#10B981]"
+                    amount < 0 ? "text-destructive" : "text-emerald-500"
                 )}>
                     {formatted}
                 </div>
@@ -107,7 +108,7 @@ export const columns: Array<ColumnDef<ITransaction>> = [
             return (
                 <div className={cn(
                     "text-right font-mono font-bold text-[11px] text-nowrap",
-                    balance < 0 ? "text-[#FCA5A5]" : "text-[#10B981]"
+                    balance < 0 ? "text-destructive" : "text-emerald-500"
                 )}>
                     {formatted}
                 </div>
@@ -142,8 +143,8 @@ const MemoizedLedgerRow = React.memo(({
             key={virtualRow.key}
             data-state={row.getIsSelected() && 'selected'}
             className={cn(
-                "flex items-center hover:bg-[#1E293B]/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
-                isActive && "bg-[#1E293B] outline outline-1 outline-[#38BDF8] z-10"
+                "flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
+                isActive && "bg-accent/80 outline outline-1 outline-primary z-10"
             )}
             style={{
                 top: 0,
@@ -156,7 +157,7 @@ const MemoizedLedgerRow = React.memo(({
                     'date': 'w-[100px]',
                     'payee': 'flex-1 min-w-[300px]',
                     'category': 'w-[140px]',
-                    'status': 'w-[100px]',
+                    'status': 'w-[120px]',
                     'totalAmount': 'w-[120px]',
                     'balance': 'w-[120px]'
                 };
@@ -339,23 +340,23 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     return (
         <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
             {/* Toolbar */}
-            <div className="flex items-center py-2 px-1 justify-between flex-none bg-[#0F1115]">
+            <div className="flex items-center py-2 px-1 justify-between flex-none bg-background">
                 <Input
                     placeholder="Filter ledger (CMD+K)..."
                     value={(table.getColumn('payee')?.getFilterValue() as string) ?? ''}
                     onChange={(event): void =>
                         table.getColumn('payee')?.setFilterValue(event.target.value)
                     }
-                    className="max-w-sm h-7 text-[10px] bg-[#0F1115] border-[#1E293B] uppercase tracking-wider focus-visible:ring-1 focus-visible:ring-[#38BDF8]"
+                    className="max-w-sm h-7 text-[10px] bg-background border-border uppercase tracking-wider focus-visible:ring-1 focus-visible:ring-primary"
                 />
-                <div className="text-[9px] font-mono text-[#64748B] uppercase px-2 translate-y-1">
+                <div className="text-[9px] font-mono text-muted-foreground uppercase px-2 translate-y-1">
                     Showing {rows.length} records • Last {monthsToShow} months
                 </div>
             </div>
 
-            <div className="flex-1 border border-[#1E293B] rounded-sm bg-[#0F1115] relative flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 border border-border rounded-sm bg-background relative flex flex-col min-h-0 overflow-hidden">
                 {/* Header - Fixed at top, independent of scroll */}
-                <div className="flex-none bg-[#1E293B] border-b border-[#0F1115] z-20">
+                <div className="flex-none bg-accent border-b border-border z-20">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <div key={headerGroup.id} className="flex h-8 px-1 items-center">
                             {headerGroup.headers.map((header) => {
@@ -364,7 +365,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     'date': 'w-[100px]',
                                     'payee': 'flex-1 min-w-[300px]',
                                     'category': 'w-[140px]',
-                                    'status': 'w-[100px]',
+                                    'status': 'w-[120px]',
                                     'totalAmount': 'w-[120px]',
                                     'balance': 'w-[120px]'
                                 };
@@ -374,7 +375,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     <div
                                         key={header.id}
                                         className={cn(
-                                            "px-3 text-[#64748B] font-bold text-[10px] uppercase",
+                                            "px-3 text-muted-foreground font-bold text-[10px] uppercase",
                                             widthClass
                                         )}
                                     >
@@ -398,10 +399,10 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 >
                     {/* Load Older History - Now at the top */}
                     {windowedData.length < data.length && rows.length > 0 && isAtTop && (
-                        <div className="px-3 border-b border-[#1E293B] bg-[#0F1115] sticky top-0 z-10">
+                        <div className="px-3 border-b border-border bg-background sticky top-0 z-10">
                             <button
                                 onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                                className="w-full py-4 text-[9px] font-bold text-[#38BDF8] hover:text-[#38BDF8] hover:bg-[#38BDF8]/5 uppercase tracking-[0.2em] transition-colors"
+                                className="w-full py-4 text-[9px] font-bold text-primary hover:text-primary hover:bg-primary/5 uppercase tracking-[0.2em] transition-colors"
                             >
                                 ↑ Load older history (currently showing {monthsToShow} months) ↑
                             </button>
@@ -426,10 +427,10 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                     </div>
 
                     {rows.length === 0 && (
-                        <div className="flex flex-col items-center justify-center text-[#64748B] text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10">
+                        <div className="flex flex-col items-center justify-center text-muted-foreground text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10">
                             {data.length === 0 ? (
                                 <>
-                                    <div className="text-[#38BDF8] font-bold">Ledger is empty</div>
+                                    <div className="text-primary font-bold">Ledger is empty</div>
                                     <div>Import a QIF file or add a transaction to get started</div>
                                 </>
                             ) : windowedData.length === 0 ? (
@@ -437,7 +438,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     <div>No transactions in the last {monthsToShow} months</div>
                                     <button
                                         onClick={(): void => setMonthsToShow(prev => prev + 6)}
-                                        className="text-[#38BDF8] hover:underline font-bold"
+                                        className="text-primary hover:underline font-bold"
                                     >
                                         Check older history?
                                     </button>
@@ -447,7 +448,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     <div>No transactions match your current filters</div>
                                     <button
                                         onClick={(): void => table.resetColumnFilters()}
-                                        className="text-[#38BDF8] hover:underline font-bold"
+                                        className="text-primary hover:underline font-bold"
                                     >
                                         Clear all filters
                                     </button>
@@ -458,7 +459,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 </div>
             </div>
 
-            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-[#64748B] uppercase bg-[#0F1115] flex-none">
+            <div className="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-muted-foreground uppercase bg-background flex-none">
                 <div className="flex-1">
                     Showing {windowedData.length} of {data.length} Transactions
                 </div>
