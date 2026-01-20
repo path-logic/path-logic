@@ -5,22 +5,14 @@ import { AccountType } from '../domain/types';
  * Check if an account type is a loan type
  */
 export function isLoanAccount(type: AccountType): boolean {
-    return [
-        AccountType.Mortgage,
-        AccountType.AutoLoan,
-        AccountType.PersonalLoan
-    ].includes(type);
+    return [AccountType.Mortgage, AccountType.AutoLoan, AccountType.PersonalLoan].includes(type);
 }
 
 /**
  * Type guard for Mortgage Metadata
  */
 export function isMortgageMetadata(metadata: unknown): metadata is IMortgageMetadata {
-    return (
-        typeof metadata === 'object' &&
-        metadata !== null &&
-        'escrowIncluded' in metadata
-    );
+    return typeof metadata === 'object' && metadata !== null && 'escrowIncluded' in metadata;
 }
 
 /**
@@ -30,11 +22,7 @@ export function isAutoLoanMetadata(metadata: unknown): metadata is IAutoLoanMeta
     return (
         typeof metadata === 'object' &&
         metadata !== null &&
-        (
-            'vehicleMake' in metadata ||
-            'vehicleModel' in metadata ||
-            'vin' in metadata
-        )
+        ('vehicleMake' in metadata || 'vehicleModel' in metadata || 'vin' in metadata)
     );
 }
 
@@ -42,9 +30,5 @@ export function isAutoLoanMetadata(metadata: unknown): metadata is IAutoLoanMeta
  * Type guard for Personal Loan Metadata
  */
 export function isPersonalLoanMetadata(metadata: unknown): metadata is IPersonalLoanMetadata {
-    return (
-        typeof metadata === 'object' &&
-        metadata !== null &&
-        'secured' in metadata
-    );
+    return typeof metadata === 'object' && metadata !== null && 'secured' in metadata;
 }

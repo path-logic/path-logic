@@ -7,7 +7,7 @@ import type { Cents, ILoanDetails, ISODateString } from '../domain/types';
 export function calculateMonthlyPayment(
     principal: Cents,
     annualRate: number,
-    termMonths: number
+    termMonths: number,
 ): Cents {
     if (annualRate === 0) {
         return Math.round(principal / termMonths);
@@ -30,7 +30,7 @@ export function calculateMonthlyPayment(
 export function calculateTotalInterest(
     monthlyPayment: Cents,
     termMonths: number,
-    principal: Cents
+    principal: Cents,
 ): Cents {
     const totalPaid: Cents = monthlyPayment * termMonths;
     return totalPaid - principal;
@@ -44,7 +44,7 @@ export function calculatePayoffDate(
     currentBalance: Cents,
     monthlyPayment: Cents,
     interestRate: number,
-    startDate: ISODateString
+    _startDate: ISODateString,
 ): ISODateString {
     const balanceNum = Math.abs(currentBalance / 100);
     const paymentNum = monthlyPayment / 100;
@@ -99,11 +99,13 @@ export function validateLoanDetails(details: ILoanDetails, currentBalance: Cents
         errors.push('Current balance cannot exceed original loan amount');
     }
 
-    if (details.interestRate < 0 || details.interestRate > 1) { // Allowing up to 100% APR
+    if (details.interestRate < 0 || details.interestRate > 1) {
+        // Allowing up to 100% APR
         errors.push('Interest rate must be between 0% and 100%');
     }
 
-    if (details.termMonths < 1 || details.termMonths > 600) { // Max 50 years
+    if (details.termMonths < 1 || details.termMonths > 600) {
+        // Max 50 years
         errors.push('Loan term must be between 1 and 600 months');
     }
 
@@ -120,7 +122,9 @@ export function validateLoanDetails(details: ILoanDetails, currentBalance: Cents
     const minPaymentCents = Math.floor(minInterestParam * 100);
 
     if (details.monthlyPayment <= minPaymentCents && details.originalAmount > 0) {
-        errors.push(`Monthly payment must be greater than interest-only amount ($${(minPaymentCents / 100).toFixed(2)})`);
+        errors.push(
+            `Monthly payment must be greater than interest-only amount ($${(minPaymentCents / 100).toFixed(2)})`,
+        );
     }
 
     return errors;

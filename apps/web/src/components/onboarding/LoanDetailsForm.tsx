@@ -17,8 +17,18 @@ interface ILoanDetailsFormProps {
 }
 
 export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProps): React.JSX.Element {
+    // Compute default name based on type
+    const getDefaultName = (accountType: AccountType): string => {
+        const defaultNames: Record<string, string> = {
+            [AccountType.Mortgage]: 'Home Mortgage',
+            [AccountType.AutoLoan]: 'Auto Loan',
+            [AccountType.PersonalLoan]: 'Personal Loan'
+        };
+        return defaultNames[accountType] || '';
+    };
+
     // Common Fields
-    const [accountName, setAccountName] = useState<string>('');
+    const [accountName, setAccountName] = useState<string>(getDefaultName(type));
     const [institutionName, setInstitutionName] = useState<string>('');
     const [originalAmount, setOriginalAmount] = useState<string>('');
     const [currentBalance, setCurrentBalance] = useState<string>('');
@@ -47,21 +57,6 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
     const [error, setError] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-    // Derived State (removed - not currently used)
-
-    // Set default name based on type (only on mount or type change)
-    useEffect(() => {
-        const defaultNames: Record<string, string> = {
-            [AccountType.Mortgage]: 'Home Mortgage',
-            [AccountType.AutoLoan]: 'Auto Loan',
-            [AccountType.PersonalLoan]: 'Personal Loan'
-        };
-        const name = defaultNames[type];
-        if (name) {
-            setAccountName(name);
-        }
-    }, [type]);
 
     const handleAutoCalculate = (): void => {
         const principalCents = Math.round(parseFloat(originalAmount || '0') * 100);
