@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import type { ITransaction } from '@path-logic/core';
 import { TransactionStatus, QIFParser, KnownCategory } from '@path-logic/core';
 import { useLedgerStore } from '@/store/ledgerStore';
@@ -10,6 +11,22 @@ import { exportDatabase } from '@/lib/storage/SQLiteAdapter';
 import { encryptDatabase, decryptDatabase } from '@/lib/crypto/encryption';
 import { findDatabaseFile, downloadDatabase } from '@/lib/storage/GoogleDriveAdapter';
 import { generateTestDataset, createTestTransaction } from '@/lib/testing/testData';
+import { Card } from '@/components/ui/card';
+import {
+    ArrowLeft,
+    Database,
+    Code,
+    ShieldCheck,
+    Cloud,
+    Zap,
+    AlertCircle,
+    CheckCircle2,
+    History,
+    Lock,
+    Globe,
+    AlertTriangle
+} from 'lucide-react';
+
 import { DataInspector } from './components/DataInspector';
 import { SyncStatusPanel } from './components/SyncStatusPanel';
 import { PerformanceMetrics } from './components/PerformanceMetrics';
@@ -316,66 +333,113 @@ export default function SyncTestPage(): React.ReactElement {
 
     if (!session) {
         return (
-            <div className="text-center">
-                <h1 className="text-2xl font-bold">Please sign in to use sync test tools</h1>
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center">
+                    <AlertCircle className="w-8 h-8 text-amber-500" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-black uppercase tracking-widest">Authentication Required</h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Please sign in to access sync architecture diagnostics</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900">Sync Test Suite</h1>
-                <p className="mt-2 text-gray-600">
-                    Manually verify the complete data sync pipeline: SQLite → Encryption → Google Drive → Decryption
-                </p>
-            </div>
+        <div className="space-y-12">
+            <header className="flex justify-between items-end border-b border-border/30 pb-8">
+                <div className="space-y-1">
+                    <Link href="/dev" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group">
+                        <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+                        Back to Dev Tools
+                    </Link>
+                    <h1 className="text-xl font-black uppercase tracking-[0.2em] text-primary">
+                        Sync <span className="text-foreground">Test Suite</span>
+                    </h1>
+                    <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-[0.2em] opacity-60">
+                        Diagnostics for the SQLite → Crypto → Cloud pipeline
+                    </p>
+                </div>
+            </header>
 
             {/* Test Data Section */}
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
-                <h2 className="mb-4 text-xl font-semibold text-gray-900">Test Data</h2>
+            <Card className="p-8">
+                <div className="flex items-center gap-3 mb-8">
+                    <Database className="w-5 h-5 text-primary" />
+                    <h2 className="text-sm font-black uppercase tracking-widest">Active Store Statistics</h2>
+                </div>
 
-                <div className="mb-4 grid grid-cols-2 gap-4">
-                    <div>
-                        <p className="text-sm text-gray-600">Current Transactions:</p>
-                        <p className="text-2xl font-bold text-gray-900">{transactions.length}</p>
+                <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Transaction Count</p>
+                        <p className="text-3xl font-black tabular-nums">{transactions.length}</p>
                     </div>
-                    <div>
-                        <p className="text-sm text-gray-600">Total Amount:</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                            ${(transactions.reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0) / 100).toFixed(2)}
+                    <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Total Ledger Aggregate</p>
+                        <p className="text-3xl font-black tabular-nums">
+                            ${(transactions.reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div>
-                        <h3 className="mb-2 font-semibold text-gray-700">Load Default Test Data</h3>
-                        <button
-                            onClick={handleLoadTestData}
-                            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                            type="button"
-                        >
-                            Load Test Transactions
-                        </button>
+                <div className="space-y-8 border-t border-border/20 pt-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <Zap className="w-3 h-3 text-blue-500" />
+                                Synthetic Data Injection
+                            </h3>
+                            <button
+                                onClick={handleLoadTestData}
+                                className="w-full h-11 rounded border border-blue-500/30 bg-blue-500/5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:bg-blue-500/10 transition-colors"
+                                type="button"
+                            >
+                                Inject Baseline Dataset
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <History className="w-3 h-3 text-indigo-500" />
+                                Bulk Import Channel (QIF)
+                            </h3>
+                            <input
+                                type="file"
+                                accept=".qif"
+                                ref={fileInputRef}
+                                onChange={handleQifImport}
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full h-11 rounded border border-indigo-500/30 bg-indigo-500/5 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-500/10 transition-colors flex items-center justify-center gap-2"
+                                type="button"
+                            >
+                                <Cloud className="w-4 h-4" />
+                                Stream QIF Binary
+                            </button>
+                        </div>
                     </div>
 
-                    <div>
-                        <h3 className="mb-2 font-semibold text-gray-700">Create Custom Transaction</h3>
-                        <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-4 pt-4">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                            <Code className="w-3 h-3 text-emerald-500" />
+                            Manual Entry Simulation
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <input
                                 type="text"
                                 placeholder="Payee"
                                 value={customPayee}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomPayee(e.target.value)}
-                                className="rounded border border-gray-300 px-3 py-2"
+                                className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                             />
                             <input
                                 type="number"
                                 placeholder="Amount (e.g., 25.50)"
                                 value={customAmount}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomAmount(e.target.value)}
-                                className="rounded border border-gray-300 px-3 py-2"
+                                className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                                 step="0.01"
                             />
                             <input
@@ -383,97 +447,91 @@ export default function SyncTestPage(): React.ReactElement {
                                 placeholder="Memo (optional)"
                                 value={customMemo}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomMemo(e.target.value)}
-                                className="rounded border border-gray-300 px-3 py-2"
+                                className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                             />
                         </div>
                         <button
                             onClick={handleCreateCustomTransaction}
-                            className="mt-2 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                            className="w-full h-11 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:bg-emerald-500/20 transition-colors"
                             type="button"
                         >
-                            Create Transaction
-                        </button>
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-100">
-                        <h3 className="mb-2 font-semibold text-gray-700">Bulk Import QIF</h3>
-                        <p className="text-xs text-gray-500 mb-3">Upload a .qif file to test with large datasets (e.g. 6,500+ records).</p>
-                        <input
-                            type="file"
-                            accept=".qif"
-                            ref={fileInputRef}
-                            onChange={handleQifImport}
-                            className="hidden"
-                        />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 flex items-center gap-2 transition-colors"
-                            type="button"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Select QIF File
+                            Commit Single record
                         </button>
                     </div>
                 </div>
 
-                {/* Transaction List */}
+                {/* Transaction Viewer */}
                 {transactions.length > 0 && (
-                    <div className="mt-4 max-h-60 overflow-auto rounded border border-gray-200">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-4 py-2 text-left">Date</th>
-                                    <th className="px-4 py-2 text-left">Payee</th>
-                                    <th className="px-4 py-2 text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions.map((tx: ITransaction): React.ReactElement => (
-                                    <tr key={tx.id} className="border-t border-gray-200">
-                                        <td className="px-4 py-2">{tx.date}</td>
-                                        <td className="px-4 py-2">{tx.payee}</td>
-                                        <td className="px-4 py-2 text-right">
-                                            ${(tx.totalAmount / 100).toFixed(2)}
-                                        </td>
+                    <div className="mt-8 overflow-hidden rounded-lg border border-border/20 bg-muted/5">
+                        <div className="max-h-60 overflow-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-muted/10 backdrop-blur-sm sticky top-0">
+                                    <tr>
+                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Date</th>
+                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Payee</th>
+                                        <th className="px-6 py-3 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">Value</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {transactions.slice(0, 100).map((tx: ITransaction): React.ReactElement => (
+                                        <tr key={tx.id} className="border-t border-border/5 hover:bg-primary/5 transition-colors">
+                                            <td className="px-6 py-3 text-[10px] font-bold font-mono opacity-60">{tx.date}</td>
+                                            <td className="px-6 py-3 text-[10px] font-bold uppercase tracking-tight">{tx.payee}</td>
+                                            <td className="px-6 py-3 text-right text-[10px] font-black tabular-nums">
+                                                ${(tx.totalAmount / 100).toFixed(2)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {transactions.length > 100 && (
+                                        <tr className="bg-muted/5">
+                                            <td colSpan={3} className="px-6 py-2 text-[9px] text-center font-bold uppercase text-muted-foreground/40 italic">
+                                                Showing first 100 of {transactions.length} records...
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
-            </div>
+            </Card>
 
-            {/* Sync Controls */}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-lg border border-gray-200 bg-white p-6">
-                    <h2 className="mb-4 text-xl font-semibold text-gray-900">Data Export & Encryption</h2>
-                    <div className="space-y-2">
+            {/* Sync Controls grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="p-8">
+                    <div className="flex items-center gap-3 mb-8">
+                        <ShieldCheck className="w-5 h-5 text-indigo-500" />
+                        <h2 className="text-sm font-black uppercase tracking-widest">Pipeline Validation</h2>
+                    </div>
+
+                    <div className="space-y-3">
                         <button
                             onClick={handleExportData}
-                            className="w-full rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+                            className="w-full h-12 rounded bg-muted/20 border border-border/50 text-[10px] font-black uppercase tracking-widest hover:border-primary/50 transition-colors flex items-center justify-center gap-3"
                             type="button"
                         >
-                            Export SQLite Data
+                            <Database className="w-4 h-4 opacity-40" />
+                            Dump SQLite Binary
                         </button>
                         <button
                             onClick={handleEncryptData}
-                            className="w-full rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                            className="w-full h-12 rounded bg-indigo-500/10 border border-indigo-500/30 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:bg-indigo-500/20 transition-colors flex items-center justify-center gap-3"
                             type="button"
                         >
-                            Encrypt Data
+                            <Lock className="w-4 h-4" />
+                            Execute AES-GCM Seal
                         </button>
                         <button
                             onClick={handleUploadToDrive}
-                            className="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                            className="w-full h-12 rounded bg-primary text-[10px] font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
                             type="button"
                             disabled={syncStatus.inProgress}
                         >
-                            Upload to Google Drive
+                            <Globe className="w-4 h-4" />
+                            Transmit to Google Drive
                         </button>
                     </div>
-                </div>
+                </Card>
 
                 <SyncStatusPanel status={syncStatus} error={syncError} />
             </div>
@@ -481,57 +539,74 @@ export default function SyncTestPage(): React.ReactElement {
             <PerformanceMetrics metrics={metrics} />
 
             {/* Data Inspection */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <DataInspector
-                    title="Raw SQLite Export"
+                    title="Domain Binary (Raw)"
                     data={rawData}
-                    description="Unencrypted database binary data"
+                    description="Decrypted SQLite binary dump from memory"
                 />
                 <DataInspector
-                    title="Encrypted Data"
+                    title="Ciphertext Binary"
                     data={encryptedData}
-                    description="AES-GCM encrypted with IV prepended"
+                    description="Encrypted payload with GCM Auth Tag"
                 />
             </div>
 
             {/* Google Drive Metadata */}
             {driveMetadata && (
-                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                    <h3 className="mb-2 font-semibold text-gray-900">Google Drive File</h3>
-                    <div className="space-y-1 text-sm">
-                        <div>
-                            <span className="text-gray-600">File ID:</span>{' '}
-                            <span className="font-mono text-gray-900">{driveMetadata.id}</span>
+                <Card className="p-6 bg-primary/5 border-primary/20">
+                    <div className="flex items-center gap-3 mb-6">
+                        <Cloud className="w-5 h-5 text-primary" />
+                        <h3 className="text-[11px] font-black uppercase tracking-widest">Remote Manifest (Cloud)</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">Resource Identifier</span>
+                            <span className="text-[10px] font-mono font-bold break-all">{driveMetadata.id}</span>
                         </div>
-                        <div>
-                            <span className="text-gray-600">Modified:</span>{' '}
-                            <span className="font-mono text-gray-900">{driveMetadata.modifiedTime}</span>
+                        <div className="space-y-1 text-right">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">Last Write Timestamp</span>
+                            <span className="text-[10px] font-mono font-bold">{driveMetadata.modifiedTime}</span>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Download & Restore */}
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
-                <h2 className="mb-4 text-xl font-semibold text-gray-900">Download & Restore</h2>
-                <button
-                    onClick={handleDownloadFromDrive}
-                    className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                    type="button"
-                    disabled={syncStatus.inProgress}
-                >
-                    Download from Google Drive
-                </button>
+            <Card className="p-8 border-emerald-500/20 bg-emerald-500/5">
+                <div className="flex justify-between items-center mb-8">
+                    <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        <h2 className="text-sm font-black uppercase tracking-widest text-emerald-500">Restore Pipeline</h2>
+                    </div>
+                    <button
+                        onClick={handleDownloadFromDrive}
+                        className="h-11 px-8 rounded bg-emerald-500 text-[10px] font-black uppercase tracking-widest text-white hover:opacity-90 transition-all flex items-center gap-3 shadow-lg shadow-emerald-500/20"
+                        type="button"
+                        disabled={syncStatus.inProgress}
+                    >
+                        <Cloud className="w-4 h-4" />
+                        Pull from Cloud
+                    </button>
+                </div>
 
                 {restoredTransactions.length > 0 && (
-                    <div className="mt-4">
-                        <h3 className="mb-2 font-semibold text-gray-700">Restored Transactions: {restoredTransactions.length}</h3>
-                        <div className={`rounded p-3 ${comparison.match ? 'bg-green-50' : 'bg-red-50'}`}>
-                            <p className={`font-semibold ${comparison.match ? 'text-green-700' : 'text-red-700'}`}>
-                                {comparison.match ? '✓ Data matches perfectly!' : '✗ Data mismatch detected'}
+                    <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
+                        <div className={`p-6 rounded-lg border flex flex-col items-center text-center space-y-2 ${comparison.match ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-destructive/10 border-destructive/30'}`}>
+                            {comparison.match ? (
+                                <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                            ) : (
+                                <AlertTriangle className="w-8 h-8 text-destructive" />
+                            )}
+                            <h3 className={`text-sm font-black uppercase tracking-widest ${comparison.match ? 'text-emerald-500' : 'text-destructive'}`}>
+                                {comparison.match ? 'Diagnostic Match: Perfect' : 'Diagnostic Failure: Mismatch'}
+                            </h3>
+                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-60">
+                                Total restored records: <span className="text-foreground">{restoredTransactions.length}</span>
                             </p>
+
                             {!comparison.match && (
-                                <ul className="mt-2 text-sm text-red-600">
+                                <ul className="mt-4 text-[10px] font-bold uppercase tracking-widest text-destructive/80 space-y-1">
                                     {comparison.differences.map((diff: string, i: number): React.ReactElement => (
                                         <li key={i}>• {diff}</li>
                                     ))}
@@ -540,7 +615,7 @@ export default function SyncTestPage(): React.ReactElement {
                         </div>
                     </div>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

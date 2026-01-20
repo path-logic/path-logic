@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     description: 'Developer testing and debugging tools',
 };
 
+import { AppShell } from '@/components/layout/AppShell';
+
 export default async function DevLayout({
     children,
 }: {
@@ -21,16 +23,19 @@ export default async function DevLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Warning Banner */}
-            <div className="bg-yellow-500 px-4 py-2 text-center text-sm font-semibold text-yellow-900">
-                ⚠️ Developer Tools - Not for Production Use
-            </div>
+        <AppShell>
+            <div className="flex-1 flex flex-col overflow-hidden h-full">
+                {/* Warning Banner inside the content area but above children */}
+                <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">
+                    ⚠️ Developer Tools - Not for Production Use
+                </div>
 
-            {/* Content */}
-            <div className="mx-auto max-w-7xl p-6">
-                {children}
+                <div className="flex-1 overflow-auto p-8">
+                    <div className="mx-auto max-w-7xl w-full">
+                        {children}
+                    </div>
+                </div>
             </div>
-        </div>
+        </AppShell>
     );
 }

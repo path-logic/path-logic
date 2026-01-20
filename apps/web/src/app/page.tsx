@@ -221,7 +221,7 @@ function DashboardContent(): React.JSX.Element {
     };
 
     return (
-        <AppShell>
+        <AppShell noPadding={accounts.length === 0}>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".qif" className="hidden" />
 
             {/* Show Welcome Wizard if no accounts exist */}

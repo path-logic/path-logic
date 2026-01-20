@@ -33,43 +33,43 @@ export function StyledFeatureFlagToggle({
                 toggle: (action: 'enable' | 'disable') => Promise<void>;
                 flagConfig?: IFlagConfig;
             }) => (
-                <div className="group flex items-center justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
+                <div className="flex items-center justify-between p-4 px-5">
                     <div className="flex-1">
                         <div className="flex items-center gap-3">
-                            <h3 className="text-base font-bold text-gray-900">{label}</h3>
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-tight">{label}</h3>
                             {enabled && flagConfig?.route && (
                                 <Link
                                     href={flagConfig.route}
-                                    className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-600 transition-colors hover:bg-blue-100"
+                                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary/20"
                                 >
-                                    View →
+                                    Jump →
                                 </Link>
                             )}
                         </div>
                         {description && (
-                            <p className="mt-1 text-sm leading-relaxed text-gray-500">{description}</p>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 leading-relaxed italic line-clamp-1">{description}</p>
                         )}
                     </div>
 
                     <div className="ml-6 flex items-center gap-4">
                         <span
-                            className={`text-[11px] font-bold uppercase tracking-widest ${enabled ? 'text-green-600' : 'text-gray-400'
+                            className={`text-[9px] font-black uppercase tracking-[0.2em] ${enabled ? 'text-emerald-500' : 'text-muted-foreground/40'
                                 }`}
                         >
-                            {enabled ? 'Active' : 'Inactive'}
+                            {enabled ? 'Active' : 'Offline'}
                         </span>
 
                         <button
                             onClick={(): Promise<void> => toggle(enabled ? 'disable' : 'enable')}
                             disabled={isToggling}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${enabled ? 'bg-blue-600' : 'bg-gray-200'
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background ${enabled ? 'bg-primary' : 'bg-muted-foreground/20'
                                 } ${isToggling ? 'opacity-50' : ''}`}
                             type="button"
                             role="switch"
                             aria-checked={enabled}
                         >
                             <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${enabled ? 'translate-x-6' : 'translate-x-1'
+                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'
                                     } ${isToggling ? 'animate-pulse' : ''}`}
                             />
                         </button>

@@ -12,6 +12,7 @@ import type { IFlagConfig } from '@path-logic/feature-flags/components';
 export enum FlagKey {
     DEV_TOOLS = 'dev',
     BETA_FEATURES = 'beta',
+    STYLE_GUIDE = 'style_guide',
 }
 
 export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
@@ -25,5 +26,11 @@ export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
         key: FlagKey.BETA_FEATURES,
         name: 'Beta Features',
         description: 'Try out experimental features before they\'re released',
+    },
+    [FlagKey.STYLE_GUIDE]: {
+        key: FlagKey.STYLE_GUIDE,
+        name: 'Style Guide',
+        description: 'Living design system and component showcase',
+        route: '/style-guide',
     },
 };

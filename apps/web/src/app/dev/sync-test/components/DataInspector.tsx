@@ -9,6 +9,8 @@ interface IDataInspectorProps {
     description?: string;
 }
 
+import { Card } from '@/components/ui/card';
+
 export function DataInspector({ title, data, description }: IDataInspectorProps): React.ReactElement {
     const [copied, setCopied] = useState<boolean>(false);
 
@@ -22,13 +24,18 @@ export function DataInspector({ title, data, description }: IDataInspectorProps)
     };
 
     return (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <div className="mb-2 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">{title}</h3>
+        <Card className="p-6">
+            <div className="mb-4 flex items-center justify-between">
+                <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-foreground">{title}</h3>
+                    {description && (
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">{description}</p>
+                    )}
+                </div>
                 {data && (
                     <button
                         onClick={handleCopy}
-                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200"
+                        className="h-8 px-3 rounded bg-muted/20 border border-border/50 text-[9px] font-black uppercase tracking-widest hover:border-primary transition-colors"
                         type="button"
                     >
                         {copied ? '✓ Copied' : 'Copy Hex'}
@@ -36,24 +43,22 @@ export function DataInspector({ title, data, description }: IDataInspectorProps)
                 )}
             </div>
 
-            {description && (
-                <p className="mb-2 text-sm text-gray-600">{description}</p>
-            )}
-
             {data ? (
-                <div className="space-y-2">
-                    <div className="text-sm text-gray-600">
-                        Size: <span className="font-mono font-semibold">{formatFileSize(data.length)}</span>
+                <div className="space-y-4">
+                    <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                        Binary Magnitude: <span className="font-mono text-primary">{formatFileSize(data.length)}</span>
                     </div>
-                    <div className="max-h-40 overflow-auto rounded bg-gray-50 p-2">
-                        <pre className="text-xs font-mono text-gray-700">
+                    <div className="max-h-40 overflow-auto rounded-lg border border-border/20 bg-muted/5 p-4">
+                        <pre className="text-[10px] font-mono text-muted-foreground break-all whitespace-pre-wrap leading-relaxed">
                             {formatBytes(data, 200)}
                         </pre>
                     </div>
                 </div>
             ) : (
-                <div className="text-sm text-gray-400">No data</div>
+                <div className="h-40 flex items-center justify-center rounded-lg border border-dashed border-border/30 bg-muted/5">
+                    <div className="text-[9px] font-black uppercase tracking-widest opacity-20">Diagnostic Stream Empty</div>
+                </div>
             )}
-        </div>
+        </Card>
     );
 }

@@ -2,16 +2,28 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">): React.JSX.Element {
+interface CardProps extends React.ComponentProps<"div"> {
+  interactive?: boolean | undefined;
+  accentColor?: string | undefined;
+}
+
+function Card({ className, interactive = false, accentColor, ...props }: CardProps): React.JSX.Element {
   return (
     <div
       data-slot="card"
+      data-interactive={interactive}
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border border-border/50 py-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.06)] relative overflow-hidden transition-all duration-200 cursor-default",
+        interactive && "hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.3),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 cursor-pointer group",
         className
       )}
       {...props}
-    />
+    >
+      {interactive && accentColor && (
+        <div className={cn("absolute top-0 left-0 w-full h-[3px] opacity-40 transition-opacity group-hover:opacity-100", accentColor)} />
+      )}
+      {props.children}
+    </div>
   )
 }
 

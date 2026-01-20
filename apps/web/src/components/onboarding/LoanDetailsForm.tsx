@@ -7,6 +7,7 @@ import { AccountType } from '@path-logic/core';
 import { LoanCalculations } from '@path-logic/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Calculator, Home, Car, Receipt, Calendar } from 'lucide-react';
 
@@ -174,138 +175,140 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
     }, [type]);
 
     return (
-        <Card className="w-full max-w-2xl bg-card border-border rounded-sm p-8">
-            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-border/50">
-                <div className="w-12 h-12 rounded-sm bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-amber-500" />
+        <Card interactive accentColor="bg-amber-500" className="w-full max-w-2xl p-8 border-border/50">
+            <div className="flex items-center gap-4 mb-8 pb-4 border-b border-border/30">
+                <div className="w-14 h-14 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-inner">
+                    <Icon className="w-7 h-7 text-amber-500" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-foreground">Create {type === AccountType.Mortgage ? 'Mortgage' : type === AccountType.AutoLoan ? 'Auto Loan' : 'Personal Loan'}</h2>
-                    <p className="text-xs text-muted-foreground">Enter your loan details for accurate tracking</p>
+                    <h2 className="text-xl font-bold text-foreground tracking-tight">Create {type === AccountType.Mortgage ? 'Mortgage' : type === AccountType.AutoLoan ? 'Auto Loan' : 'Personal Loan'}</h2>
+                    <p className="text-sm text-muted-foreground">Enter your loan details for accurate tracking</p>
                 </div>
             </div>
 
             <div className="space-y-8">
                 {/* Section 1: Account Info */}
-                <section className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <section className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Account Name *</label>
+                            <Label htmlFor="account-name">Account Name *</Label>
                             <Input
+                                id="account-name"
                                 value={accountName}
                                 onChange={(e) => setAccountName(e.target.value)}
                                 placeholder="e.g. Home Mortgage"
-                                className="h-10 text-sm"
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Institution Name</label>
+                            <Label htmlFor="institution-name">Institution Name</Label>
                             <Input
+                                id="institution-name"
                                 value={institutionName}
                                 onChange={(e) => setInstitutionName(e.target.value)}
                                 placeholder="e.g. Wells Fargo"
-                                className="h-10 text-sm"
                             />
                         </div>
                     </div>
                 </section>
 
                 {/* Section 2: Loan Terms */}
-                <section className="space-y-4">
-                    <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/30 pb-2">Loan Terms</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                <section className="space-y-6">
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Loan Terms</h3>
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Original Loan Amount *</label>
+                            <Label htmlFor="original-amount">Original Loan Amount *</Label>
                             <Input
+                                id="original-amount"
                                 type="number"
                                 value={originalAmount}
                                 onChange={(e) => setOriginalAmount(e.target.value)}
                                 placeholder="0.00"
-                                className="h-10 font-mono"
+                                className="font-mono"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Current Balance</label>
+                            <Label htmlFor="current-balance">Current Balance</Label>
                             <Input
+                                id="current-balance"
                                 type="number"
                                 value={currentBalance}
                                 onChange={(e) => setCurrentBalance(e.target.value)}
                                 placeholder="0.00"
-                                className="h-10 font-mono"
+                                className="font-mono"
                             />
-                            <p className="text-[10px] text-muted-foreground mt-1">Leave blank if same as original</p>
+                            <p className="text-[10px] text-muted-foreground mt-2 italic leading-relaxed">Leave blank if same as original</p>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Interest Rate (% APR)</label>
+                            <Label htmlFor="interest-rate">Interest Rate (% APR)</Label>
                             <Input
+                                id="interest-rate"
                                 type="number"
                                 step="0.001"
                                 value={interestRate}
                                 onChange={(e) => setInterestRate(e.target.value)}
                                 placeholder="3.5"
-                                className="h-10 font-mono"
+                                className="font-mono text-base"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Term (Months)</label>
+                            <Label htmlFor="term-months">Term (Months)</Label>
                             <Input
+                                id="term-months"
                                 type="number"
                                 value={termMonths}
                                 onChange={(e) => setTermMonths(e.target.value)}
                                 placeholder="360"
-                                className="h-10 font-mono"
+                                className="font-mono"
                             />
                         </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Start Date</label>
-                            <div className="relative">
-                                <Input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-10 font-mono pl-9"
-                                />
-                                <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-3 pointer-events-none" />
-                            </div>
+                        <div className="col-span-2">
+                            <Label htmlFor="start-date">Start Date</Label>
+                            <Input
+                                id="start-date"
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="font-mono text-base"
+                            />
                         </div>
                     </div>
                 </section>
 
-                {/* Section 3: Payment */}
-                <section className="space-y-4">
-                    <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/30 pb-2">Payment Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Monthly Payment</label>
-                            <div className="flex gap-2">
+                {/* Section 3: Payments */}
+                <section className="space-y-6">
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Payments</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2">
+                            <Label htmlFor="monthly-payment">Monthly Payment *</Label>
+                            <div className="flex gap-3">
                                 <Input
+                                    id="monthly-payment"
                                     type="number"
                                     value={monthlyPayment}
                                     onChange={(e) => setMonthlyPayment(e.target.value)}
                                     placeholder="0.00"
-                                    className="h-10 font-mono"
+                                    className="font-mono flex-1 text-base"
                                 />
                                 <Button
+                                    type="button"
                                     variant="outline"
-                                    size="icon"
                                     onClick={handleAutoCalculate}
-                                    title="Auto-calculate payment"
-                                    className="h-10 w-10 shrink-0"
+                                    className="h-11 px-4 text-[10px] font-bold uppercase tracking-wider"
                                 >
-                                    <Calculator className="w-4 h-4" />
+                                    Calculate
                                 </Button>
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Payment Due Day (1-31)</label>
+                            <Label htmlFor="due-day">Payment Due Day</Label>
                             <Input
+                                id="due-day"
                                 type="number"
                                 min="1"
                                 max="31"
                                 value={paymentDueDay}
                                 onChange={(e) => setPaymentDueDay(e.target.value)}
-                                placeholder="1"
-                                className="h-10 font-mono"
+                                className="font-mono"
                             />
                         </div>
                     </div>
@@ -313,45 +316,47 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {/* Section 4: Specific Details */}
                 {type === AccountType.Mortgage && (
-                    <section className="space-y-4">
-                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/30 pb-2">Property Details</h3>
-                        <div className="space-y-4">
+                    <section className="space-y-6">
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Property Details</h3>
+                        <div className="space-y-6">
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Property Address</label>
+                                <Label htmlFor="property-address">Property Address</Label>
                                 <Input
+                                    id="property-address"
                                     value={propertyAddress}
                                     onChange={(e) => setPropertyAddress(e.target.value)}
-                                    className="h-10"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Property Value</label>
+                                    <Label htmlFor="property-value">Property Value</Label>
                                     <Input
+                                        id="property-value"
                                         type="number"
                                         value={propertyValue}
                                         onChange={(e) => setPropertyValue(e.target.value)}
-                                        className="h-10 font-mono"
+                                        className="font-mono text-base"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2 pt-6">
+                                <div className="flex items-center gap-3 pt-6">
                                     <input
                                         type="checkbox"
                                         id="escrow"
                                         checked={escrowIncluded}
                                         onChange={(e) => setEscrowIncluded(e.target.checked)}
-                                        className="rounded border-input"
+                                        className="w-4 h-4 rounded border-border/50 bg-muted/30 accent-primary"
                                     />
-                                    <label htmlFor="escrow" className="text-sm">Includes Escrow?</label>
+                                    <label htmlFor="escrow" className="text-sm font-medium text-foreground cursor-pointer select-none">Includes Escrow?</label>
                                 </div>
                                 {escrowIncluded && (
-                                    <div>
-                                        <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Escrow Amount</label>
+                                    <div className="col-span-2">
+                                        <Label htmlFor="escrow-amount">Escrow Amount</Label>
                                         <Input
+                                            id="escrow-amount"
                                             type="number"
                                             value={escrowAmount}
                                             onChange={(e) => setEscrowAmount(e.target.value)}
-                                            className="h-10 font-mono"
+                                            className="font-mono text-base"
                                         />
                                     </div>
                                 )}
@@ -361,43 +366,45 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                 )}
 
                 {type === AccountType.AutoLoan && (
-                    <section className="space-y-4">
-                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/30 pb-2">Vehicle Details</h3>
-                        <div className="grid grid-cols-2 gap-4">
+                    <section className="space-y-6">
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Vehicle Details</h3>
+                        <div className="grid grid-cols-2 gap-6">
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Make</label>
+                                <Label htmlFor="vehicle-make">Make</Label>
                                 <Input
+                                    id="vehicle-make"
                                     value={vehicleMake}
                                     onChange={(e) => setVehicleMake(e.target.value)}
                                     placeholder="e.g. Toyota"
-                                    className="h-10"
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Model</label>
+                                <Label htmlFor="vehicle-model">Model</Label>
                                 <Input
+                                    id="vehicle-model"
                                     value={vehicleModel}
                                     onChange={(e) => setVehicleModel(e.target.value)}
                                     placeholder="e.g. Camry"
-                                    className="h-10"
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Year</label>
+                                <Label htmlFor="vehicle-year">Year</Label>
                                 <Input
+                                    id="vehicle-year"
                                     type="number"
                                     value={vehicleYear}
                                     onChange={(e) => setVehicleYear(e.target.value)}
                                     placeholder="2023"
-                                    className="h-10 font-mono"
+                                    className="font-mono"
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">VIN</label>
+                                <Label htmlFor="vin">VIN</Label>
                                 <Input
+                                    id="vin"
                                     value={vin}
                                     onChange={(e) => setVin(e.target.value)}
-                                    className="h-10 font-mono uppercase"
+                                    className="font-mono uppercase text-base"
                                     maxLength={17}
                                 />
                             </div>
@@ -406,44 +413,44 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                 )}
 
                 {type === AccountType.PersonalLoan && (
-                    <section className="space-y-4">
-                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-border/30 pb-2">Loan Details</h3>
-                        <div className="space-y-4">
+                    <section className="space-y-6">
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Loan Purpose</h3>
+                        <div className="space-y-6">
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Purpose</label>
+                                <Label htmlFor="purpose">Purpose / Description</Label>
                                 <Input
+                                    id="purpose"
                                     value={purpose}
                                     onChange={(e) => setPurpose(e.target.value)}
                                     placeholder="e.g. Debt Consolidation"
-                                    className="h-10"
                                 />
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
                                 <input
                                     type="checkbox"
                                     id="secured"
                                     checked={secured}
                                     onChange={(e) => setSecured(e.target.checked)}
-                                    className="rounded border-input"
+                                    className="w-4 h-4 rounded border-border/50 bg-muted/30 accent-primary"
                                 />
-                                <label htmlFor="secured" className="text-sm">Secured Loan?</label>
+                                <label htmlFor="secured" className="text-sm font-medium text-foreground cursor-pointer select-none">Secured Loan?</label>
                             </div>
                         </div>
                     </section>
                 )}
 
                 {error && (
-                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-sm">
-                        <p className="text-xs text-destructive font-medium">{error}</p>
+                    <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-md animate-in slide-in-from-top-2">
+                        <p className="text-xs text-destructive font-bold uppercase tracking-widest">{error}</p>
                     </div>
                 )}
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-4 pt-4">
                     <Button
                         variant="outline"
                         onClick={onBack}
                         disabled={isSubmitting}
-                        className="flex-1 h-12 text-xs font-bold uppercase"
+                        className="flex-1 h-11 text-xs font-bold uppercase tracking-widest hover:bg-muted"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back
@@ -451,7 +458,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="flex-1 h-12 text-xs font-bold uppercase bg-amber-600 hover:bg-amber-700 text-white"
+                        className="flex-1 h-11 text-xs font-bold uppercase tracking-widest bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-900/20"
                     >
                         {isSubmitting ? 'Creating...' : 'Create Loan Account'}
                         {!isSubmitting && <ArrowRight className="w-4 h-4 ml-2" />}

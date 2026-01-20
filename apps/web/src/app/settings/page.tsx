@@ -12,64 +12,62 @@ import type { IFlagConfig } from '@path-logic/feature-flags/components';
 export default function SettingsPage(): React.JSX.Element {
     return (
         <AppShell>
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden h-full">
-                <header className="flex justify-between items-center flex-none">
-                    <div>
-                        <h1 className="text-sm font-black uppercase tracking-widest mb-1 text-primary">
-                            System <span className="text-foreground">Settings</span>
-                        </h1>
-                        <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">
-                            Configure your Path Logic experience and experiment with features
-                        </p>
-                    </div>
-                </header>
+            <div className="flex-1 flex flex-col overflow-hidden h-full">
+                <div className="flex-1 overflow-auto p-8">
+                    <div className="mx-auto max-w-7xl w-full space-y-8">
+                        <header className="flex justify-between items-center flex-none">
+                            <div>
+                                <h1 className="text-sm font-black uppercase tracking-widest mb-1 text-primary">
+                                    System <span className="text-foreground">Settings</span>
+                                </h1>
+                                <p className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest">
+                                    Configure your Path Logic experience and experiment with features
+                                </p>
+                            </div>
+                        </header>
 
-                <Card className="flex-1 bg-card border-border rounded-sm overflow-hidden flex flex-col">
-                    <ScrollArea className="flex-1">
-                        <div className="p-6 space-y-8">
-                            <section>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Shield className="w-4 h-4 text-primary" />
-                                    <h2 className="text-[11px] font-black uppercase tracking-widest">Feature Flags</h2>
-                                </div>
-                                <div className="grid gap-3">
-                                    {Object.values(FLAG_CONFIGS).map((config: IFlagConfig): React.JSX.Element => (
-                                        <div key={config.key} className="bg-muted/20 border border-border/50 rounded-sm p-1 transition-colors hover:border-primary/30">
-                                            <StyledFeatureFlagToggle
-                                                flag={config.key}
-                                                label={config.name}
-                                                description={config.description}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
+                        <section className="space-y-6">
+                            <div className="flex items-center gap-2 px-1">
+                                <Shield className="w-4 h-4 text-primary" />
+                                <h2 className="text-[11px] font-black uppercase tracking-widest">Feature Flags</h2>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {Object.values(FLAG_CONFIGS).map((config: IFlagConfig): React.JSX.Element => (
+                                    <Card key={config.key} className="py-0 border-border/40 overflow-hidden">
+                                        <StyledFeatureFlagToggle
+                                            flag={config.key}
+                                            label={config.name}
+                                            description={config.description}
+                                        />
+                                    </Card>
+                                ))}
+                            </div>
+                        </section>
 
-                            <section>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Zap className="w-4 h-4 text-primary" />
-                                    <h2 className="text-[11px] font-black uppercase tracking-widest">Application Info</h2>
-                                </div>
-                                <div className="bg-muted/20 border border-border/50 rounded-sm p-4">
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                                            <span className="text-muted-foreground">Version</span>
-                                            <span className="text-foreground">4.2-Alpha</span>
-                                        </div>
-                                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                                            <span className="text-muted-foreground">Engine</span>
-                                            <span className="text-foreground text-emerald-500">Local-First WASM SQLite</span>
-                                        </div>
-                                        <div className="flex justify-between text-[10px] font-bold uppercase">
-                                            <span className="text-muted-foreground">Encryption</span>
-                                            <span className="text-foreground text-emerald-500">AES-GCM (Hardware Accelerated)</span>
-                                        </div>
+                        <section className="space-y-6">
+                            <div className="flex items-center gap-2 px-1">
+                                <Zap className="w-4 h-4 text-primary" />
+                                <h2 className="text-[11px] font-black uppercase tracking-widest">Application Info</h2>
+                            </div>
+                            <Card className="p-6">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                                        <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Version</span>
+                                        <span className="text-[11px] font-black uppercase text-foreground">4.2-Alpha</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                                        <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Engine</span>
+                                        <span className="text-[11px] font-black uppercase text-emerald-500">Local-First WASM SQLite</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                                        <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Encryption</span>
+                                        <span className="text-[11px] font-black uppercase text-emerald-500">AES-GCM (Hardware Accelerated)</span>
                                     </div>
                                 </div>
-                            </section>
-                        </div>
-                    </ScrollArea>
-                </Card>
+                            </Card>
+                        </section>
+                    </div>
+                </div>
             </div>
         </AppShell>
     );
