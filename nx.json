@@ -1,6 +1,7 @@
 {
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
     "nxCloudId": "696e99dead0d9cebee7b0eda",
+    "nxCloudAccessToken": "${NX_CLOUD_ACCESS_TOKEN}",
     "namedInputs": {
         "default": [
             "{projectRoot}/**/*",
