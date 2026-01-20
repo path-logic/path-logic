@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { AccountType, IAccount, ILoanDetails, ISODateString } from '@path-logic/core';
+import type { IAccount, ILoanDetails, ISODateString } from '@path-logic/core';
+import { AccountType } from '@path-logic/core';
 import { LoanCalculations } from '@path-logic/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,8 +61,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
         if (name) {
             setAccountName(name);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [type]); // Only run when type changes
+    }, [type]);
 
     const handleAutoCalculate = (): void => {
         const principalCents = Math.round(parseFloat(originalAmount || '0') * 100);
@@ -163,7 +163,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
             await onSubmit(newAccount);
 
-        } catch (_err) {
+        } catch {
             setError('Failed to create account. Please check your inputs.');
             setIsSubmitting(false);
         }

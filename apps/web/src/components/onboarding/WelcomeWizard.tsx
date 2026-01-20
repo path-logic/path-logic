@@ -148,8 +148,8 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
             };
 
             await onAccountCreated(newAccount);
-        } catch (err) {
-            setError('Failed to create account. Please try again.');
+        } catch {
+            setError('Failed to create account');
             setStep('enter-details');
         }
     };
@@ -279,7 +279,7 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                         </h1>
                     </div>
                     <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                        Let's get started by creating your first account. Choose the type that best fits your needs.
+                        Let&apos;s get started by creating your first account. Choose the type that best fits your needs.
                     </p>
                 </div>
 

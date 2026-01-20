@@ -1,9 +1,5 @@
-import {
-    AccountType,
-    IMortgageMetadata,
-    IAutoLoanMetadata,
-    IPersonalLoanMetadata
-} from '../domain/types';
+import type { IAutoLoanMetadata, IMortgageMetadata, IPersonalLoanMetadata } from '../domain/types';
+import { AccountType } from '../domain/types';
 
 /**
  * Check if an account type is a loan type

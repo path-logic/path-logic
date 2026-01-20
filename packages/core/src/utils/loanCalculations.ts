@@ -1,4 +1,4 @@
-import { Cents, ILoanDetails, ISODateString } from '../domain/types';
+import type { Cents, ILoanDetails, ISODateString } from '../domain/types';
 
 /**
  * Calculate monthly payment using standard amortization formula
@@ -53,10 +53,6 @@ export function calculatePayoffDate(
     // If no interest, simple division
     if (interestRate === 0) {
         const months = Math.ceil(balanceNum / paymentNum);
-        const payoffDate = new Date(startDate);
-        // If start date is in past, we should project from NOW, but calculation typically
-        // assumes balance is current. For a robust projection, we'd iterate.
-        // For this utility, let's assume projection from "today" for the remaining balance
         const today = new Date();
         today.setMonth(today.getMonth() + months);
         return today.toISOString() as ISODateString;
