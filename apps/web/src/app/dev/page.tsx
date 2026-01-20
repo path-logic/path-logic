@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Code, Database, Lock, Globe, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Code, Database, AlertTriangle } from 'lucide-react';
 
 export default function DevIndexPage(): React.ReactElement {
     return (
@@ -67,7 +67,7 @@ export default function DevIndexPage(): React.ReactElement {
                         <div className="space-y-1">
                             <h3 className="text-[11px] font-black uppercase tracking-widest text-amber-500">Security Requirement</h3>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500/60 leading-relaxed">
-                                These tools access the encrypted domain layer. Ensure the "Developer Tools" flag is disabled in production environments.
+                                These tools access the encrypted domain layer. Ensure the &quot;Developer Tools&quot; flag is disabled in production environments.
                             </p>
                         </div>
                     </div>

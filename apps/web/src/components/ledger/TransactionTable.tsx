@@ -234,6 +234,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         });
     }, [sortedDataWithBalances, monthsToShow]);
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
         data: windowedData,
         columns,

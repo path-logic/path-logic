@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { IAccount, ILoanDetails, ISODateString } from '@path-logic/core';
 import { AccountType } from '@path-logic/core';
 import { LoanCalculations } from '@path-logic/core';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Calculator, Home, Car, Receipt, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home, Car, Receipt } from 'lucide-react';
 
 interface ILoanDetailsFormProps {
     type: AccountType;

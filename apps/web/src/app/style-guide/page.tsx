@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Landmark, Wallet, CreditCard, Banknote, Shield, Check, Info } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export default function StyleGuidePage(): React.JSX.Element {
     return (

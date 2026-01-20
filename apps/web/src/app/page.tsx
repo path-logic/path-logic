@@ -47,7 +47,6 @@ function DashboardContent(): React.JSX.Element {
     } = useLedgerStore();
 
     const [isImporting, setIsImporting] = useState<boolean>(false);
-    const [mounted, setMounted] = useState<boolean>(true); // Initialize to true to avoid setState-in-effect
     const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
     const fileInputRef: React.RefObject<HTMLInputElement | null> = useRef<HTMLInputElement>(null);
 
@@ -207,8 +206,6 @@ function DashboardContent(): React.JSX.Element {
             setEntryAmount(Money.centsToDollars(newTotal).toString());
         }
     };
-
-    if (!mounted) return <div className="h-screen bg-background" />;
 
     const getAccountIcon = (type: AccountType): React.JSX.Element => {
         switch (type) {

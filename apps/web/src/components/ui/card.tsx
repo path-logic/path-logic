@@ -2,12 +2,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-interface CardProps extends React.ComponentProps<"div"> {
+interface ICardProps extends React.ComponentProps<"div"> {
   interactive?: boolean | undefined;
   accentColor?: string | undefined;
 }
 
-function Card({ className, interactive = false, accentColor, ...props }: CardProps): React.JSX.Element {
+function Card({ className, interactive = false, accentColor, ...props }: ICardProps): React.JSX.Element {
   return (
     <div
       data-slot="card"

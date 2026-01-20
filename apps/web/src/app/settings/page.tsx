@@ -5,7 +5,6 @@ import { StyledFeatureFlagToggle } from '@/components/StyledFeatureFlagToggle';
 import { FLAG_CONFIGS } from '@/lib/featureFlags/flags';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, Zap } from 'lucide-react';
 import type { IFlagConfig } from '@path-logic/feature-flags/components';
 

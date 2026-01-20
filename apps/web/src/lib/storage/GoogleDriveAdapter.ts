@@ -38,7 +38,7 @@ export async function findDatabaseFile(
         try {
             const errorData = await response.json();
             errorMessage += ` - ${JSON.stringify(errorData)}`;
-        } catch (_e) {
+        } catch {
             // Ignore parse error
         }
 
@@ -74,7 +74,7 @@ export async function downloadDatabase(
         try {
             const errorData = await response.json();
             errorMessage += ` - ${JSON.stringify(errorData)}`;
-        } catch (_e) {
+        } catch {
             // Ignore parse error
         }
 
@@ -131,7 +131,7 @@ export async function uploadDatabase(
         try {
             const errorData = await response.json();
             errorMessage += ` - ${JSON.stringify(errorData)}`;
-        } catch (_e) {
+        } catch {
             // Ignore parse error
         }
 
@@ -165,7 +165,7 @@ export async function deleteDatabaseFile(
         try {
             const errorData = await response.json();
             errorMessage += ` - ${JSON.stringify(errorData)}`;
-        } catch (_e) {
+        } catch {
             // Ignore parse error
         }
 
