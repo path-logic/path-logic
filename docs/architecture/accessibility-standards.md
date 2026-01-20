@@ -213,3 +213,58 @@ Accessibility violations are treated as **critical bugs** and must be fixed befo
 2. Manual keyboard navigation testing
 3. Screen reader testing for critical flows
 4. Color contrast verification for new UI components
+
+### Automated Linting
+
+The project uses **eslint-plugin-jsx-a11y** to automatically enforce accessibility rules during development and in CI/CD pipelines.
+
+#### Enabled Rules (Error Level)
+All of the following accessibility violations will **fail the build**:
+
+- `jsx-a11y/alt-text` - Images must have alt text
+- `jsx-a11y/anchor-has-content` - Links must have content
+- `jsx-a11y/anchor-is-valid` - Links must have valid href
+- `jsx-a11y/aria-*` - All ARIA attributes must be valid and properly used
+- `jsx-a11y/click-events-have-key-events` - Click handlers must have keyboard equivalents
+- `jsx-a11y/heading-has-content` - Headings must have content
+- `jsx-a11y/html-has-lang` - HTML must have lang attribute
+- `jsx-a11y/iframe-has-title` - iframes must have titles
+- `jsx-a11y/img-redundant-alt` - Alt text should not contain "image" or "picture"
+- `jsx-a11y/interactive-supports-focus` - Interactive elements must be focusable
+- `jsx-a11y/label-has-associated-control` - Labels must be associated with controls
+- `jsx-a11y/mouse-events-have-key-events` - Mouse events must have keyboard equivalents
+- `jsx-a11y/no-access-key` - Access keys are not allowed
+- `jsx-a11y/no-distracting-elements` - No `<marquee>` or `<blink>`
+- `jsx-a11y/no-noninteractive-element-interactions` - Non-interactive elements shouldn't have click handlers
+- `jsx-a11y/no-static-element-interactions` - Static elements shouldn't have click handlers without role
+- `jsx-a11y/role-*` - All roles must be valid and properly used
+- `jsx-a11y/tabindex-no-positive` - No positive tabindex values
+
+#### Warning Level Rules
+The following rules issue warnings but don't fail the build:
+
+- `jsx-a11y/media-has-caption` - Media should have captions (warn for flexibility)
+- `jsx-a11y/no-autofocus` - Autofocus can be disorienting (warn - sometimes needed for UX)
+
+#### Running Linting
+
+```bash
+# Lint all packages
+npm run lint
+
+# Lint specific package
+nx lint web
+nx lint @path-logic/core
+
+# Auto-fix issues where possible
+npm run lint -- --fix
+```
+
+#### CI/CD Integration
+
+Linting runs automatically on:
+- Every commit (pre-commit hook)
+- Every pull request (GitHub Actions)
+- Every push to main (NX Cloud)
+
+**All accessibility linting errors must be resolved before merging.**

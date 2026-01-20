@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { AccountType, IAccount, ILoanDetails, ISODateString, Cents } from '@path-logic/core';
+import { AccountType, IAccount, ILoanDetails, ISODateString } from '@path-logic/core';
 import { LoanCalculations } from '@path-logic/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,10 +47,9 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
     const [error, setError] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    // Derived State
-    const [calculatedPayment, setCalculatedPayment] = useState<string | null>(null);
+    // Derived State (removed - not currently used)
 
-    // Set default name based on type
+    // Set default name based on type (only on mount or type change)
     useEffect(() => {
         const defaultNames: Record<string, string> = {
             [AccountType.Mortgage]: 'Home Mortgage',
@@ -58,10 +57,11 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
             [AccountType.PersonalLoan]: 'Personal Loan'
         };
         const name = defaultNames[type];
-        if (name && !accountName) {
+        if (name) {
             setAccountName(name);
         }
-    }, [type, accountName]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [type]); // Only run when type changes
 
     const handleAutoCalculate = (): void => {
         const principalCents = Math.round(parseFloat(originalAmount || '0') * 100);
@@ -72,7 +72,6 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
             const paymentCents = LoanCalculations.calculateMonthlyPayment(principalCents, rateDecimal, term);
             const paymentDollars = (paymentCents / 100).toFixed(2);
             setMonthlyPayment(paymentDollars);
-            setCalculatedPayment(paymentDollars);
         }
     };
 
@@ -164,22 +163,20 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
             await onSubmit(newAccount);
 
-        } catch (err) {
+        } catch (_err) {
             setError('Failed to create account. Please check your inputs.');
             setIsSubmitting(false);
         }
     };
 
-    const getIcon = () => {
+    const Icon = React.useMemo((): React.ComponentType<{ className?: string }> => {
         switch (type) {
             case AccountType.Mortgage: return Home;
             case AccountType.AutoLoan: return Car;
             case AccountType.PersonalLoan: return Receipt;
             default: return Home; // Fallback
         }
-    };
-
-    const Icon = getIcon();
+    }, [type]);
 
     return (
         <Card className="w-full max-w-2xl bg-card border-border rounded-sm p-8">
