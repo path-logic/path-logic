@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { useState } from 'react';
-import { AccountType, type IAccount, type ISODateString } from '@path-logic/core';
+import { AccountType, type IAccount, type ISODateString, TypeGuards } from '@path-logic/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Landmark, Banknote, CreditCard, Wallet, ArrowRight, Sparkles } from 'lucide-react';
+import { Landmark, Banknote, CreditCard, Wallet, ArrowRight, Sparkles, Home, Car, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
+import { LoanDetailsForm } from './LoanDetailsForm';
 
 interface IWelcomeWizardProps {
     onAccountCreated: (account: IAccount) => Promise<void>;
@@ -22,7 +23,7 @@ interface IAccountTypeOption {
     description: string;
 }
 
-const ACCOUNT_TYPES: Array<IAccountTypeOption> = [
+const PRIMARY_TYPES: Array<IAccountTypeOption> = [
     {
         type: AccountType.Checking,
         icon: Landmark,
@@ -49,9 +50,33 @@ const ACCOUNT_TYPES: Array<IAccountTypeOption> = [
     }
 ];
 
+const LOAN_TYPES: Array<IAccountTypeOption> = [
+    {
+        type: AccountType.Mortgage,
+        icon: Home,
+        label: 'Mortgage',
+        description: 'Track home loan, escrow, and equity'
+    },
+    {
+        type: AccountType.AutoLoan,
+        icon: Car,
+        label: 'Auto Loan',
+        description: 'Track vehicle financing and payoff'
+    },
+    {
+        type: AccountType.PersonalLoan,
+        icon: Receipt,
+        label: 'Personal Loan',
+        description: 'Track unsecured debts and consolidation'
+    }
+];
+
 export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.JSX.Element {
     const [step, setStep] = useState<WizardStep>('select-type');
     const [selectedType, setSelectedType] = useState<AccountType | null>(null);
+    const [showLoans, setShowLoans] = useState<boolean>(false);
+
+    // Standard Form State
     const [accountName, setAccountName] = useState<string>('');
     const [initialBalance, setInitialBalance] = useState<string>('');
     const [error, setError] = useState<string>('');
@@ -59,18 +84,23 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
     const handleTypeSelect = (type: AccountType): void => {
         setSelectedType(type);
         setStep('enter-details');
+        setError('');
 
-        // Set a default name based on the type
-        const defaultNames: Record<AccountType, string> = {
+        // Set a default name based on the type (for standard accounts)
+        const defaultNames: Record<string, string> = {
             [AccountType.Checking]: 'Main Checking',
             [AccountType.Savings]: 'Savings',
             [AccountType.Credit]: 'Credit Card',
             [AccountType.Cash]: 'Cash'
         };
-        setAccountName(defaultNames[type]);
+        const defaultName = defaultNames[type];
+        if (defaultName) {
+            setAccountName(defaultName);
+            setInitialBalance('');
+        }
     };
 
-    const handleCreateAccount = async (): Promise<void> => {
+    const handleStandardAccountCreate = async (): Promise<void> => {
         // Validation
         if (!accountName.trim()) {
             setError('Account name is required');
@@ -87,13 +117,29 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
 
         try {
             const now: ISODateString = new Date().toISOString() as ISODateString;
-            const balanceCents: number = initialBalance ? Math.round(parseFloat(initialBalance) * 100) : 0;
+            // For standard accounts (Assets/Liabilities), user enters positive number
+            // IF Credit Card, balance is typically liability (negative), but user thinks "Balance: $500"
+            // Let's stick to simple: if Credit, negate it? Or assume user enters negative?
+            // Convention: Credit card balance of 100 means you owe 100. System stores -100.
+            // But for simplicity in wizard, let's treat input as "Amount in account".
+            // Checking: 100 -> +100. Credit: 100 -> -100?
+            // EXISTING LOGIC was: balanceCents = positive.
+            // Let's refine: If Credit, flip sign.
+
+            let val = parseFloat(initialBalance || '0');
+            if (selectedType === AccountType.Credit) {
+                val = -Math.abs(val); // Always negative for credit card debt
+            } else {
+                val = Math.abs(val); // Positive for assets
+            }
+
+            const balanceCents: number = Math.round(val * 100);
 
             const newAccount: IAccount = {
                 id: `acc-${Date.now()}`,
                 name: accountName.trim(),
                 type: selectedType,
-                institutionName: '', // User can update this later
+                institutionName: '',
                 clearedBalance: balanceCents,
                 pendingBalance: balanceCents,
                 isActive: true,
@@ -124,8 +170,26 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
         );
     }
 
+    // Creating a Loan Account?
+    if (step === 'enter-details' && selectedType && TypeGuards.isLoanAccount(selectedType)) {
+        return (
+            <div className="flex-1 flex items-center justify-center p-8 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+                <LoanDetailsForm
+                    type={selectedType}
+                    onBack={handleBack}
+                    onSubmit={onAccountCreated}
+                />
+            </div>
+        );
+    }
+
+    // Creating a Standard Account?
     if (step === 'enter-details' && selectedType) {
-        const selectedOption: IAccountTypeOption | undefined = ACCOUNT_TYPES.find((opt: IAccountTypeOption): boolean => opt.type === selectedType);
+        // Find option in either list
+        const selectedOption =
+            PRIMARY_TYPES.find(opt => opt.type === selectedType) ||
+            LOAN_TYPES.find(opt => opt.type === selectedType);
+
         const Icon = selectedOption?.icon || Landmark;
 
         return (
@@ -169,7 +233,9 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                                 className="h-10 font-mono"
                             />
                             <p className="text-[10px] text-muted-foreground mt-1">
-                                Enter your current balance, or leave blank to start at $0.00
+                                {selectedType === AccountType.Credit
+                                    ? "Enter amount owed (as positive number)"
+                                    : "Enter current balance"}
                             </p>
                         </div>
                     </div>
@@ -189,7 +255,7 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                             Back
                         </Button>
                         <Button
-                            onClick={handleCreateAccount}
+                            onClick={handleStandardAccountCreate}
                             className="flex-1 h-10 text-xs font-bold uppercase"
                         >
                             Create Account
@@ -203,9 +269,9 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
 
     // Select Type Step
     return (
-        <div className="flex-1 flex items-center justify-center p-8">
-            <div className="w-full max-w-4xl">
-                <div className="text-center mb-8">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto w-full">
+            <div className="w-full max-w-4xl py-12">
+                <div className="text-center mb-10">
                     <div className="flex items-center justify-center gap-2 mb-3">
                         <Sparkles className="w-6 h-6 text-primary" />
                         <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">
@@ -217,33 +283,114 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    {ACCOUNT_TYPES.map((option: IAccountTypeOption): React.JSX.Element => {
+                {/* Primary Types Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 max-w-[600px] mx-auto">
+                    {PRIMARY_TYPES.map((option: IAccountTypeOption): React.JSX.Element => {
                         const Icon = option.icon;
+
+                        // Define accent colors for each account type
+                        const accentColors: Record<string, string> = {
+                            [AccountType.Checking]: 'group-hover:border-teal-500',
+                            [AccountType.Savings]: 'group-hover:border-blue-500',
+                            [AccountType.Credit]: 'group-hover:border-purple-500',
+                            [AccountType.Cash]: 'group-hover:border-green-500'
+                        };
+
+                        const iconColors: Record<string, string> = {
+                            [AccountType.Checking]: 'text-teal-500',
+                            [AccountType.Savings]: 'text-blue-500',
+                            [AccountType.Credit]: 'text-purple-500',
+                            [AccountType.Cash]: 'text-green-500'
+                        };
+
+                        const hoverColor = accentColors[option.type] ?? 'group-hover:border-primary';
+                        const iconColor = iconColors[option.type] ?? 'text-primary';
+
                         return (
                             <Card
                                 key={option.type}
                                 onClick={(): void => handleTypeSelect(option.type)}
                                 className={cn(
-                                    "bg-card border-border rounded-sm p-6 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5",
-                                    "group relative overflow-hidden"
+                                    "cursor-pointer transition-all duration-200 group relative overflow-hidden",
+                                    "bg-card border border-border/50 rounded-lg p-6",
+                                    "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.06)]",
+                                    "hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.3),0_4px_6px_-2px_rgba(0,0,0,0.05)]",
+                                    "hover:-translate-y-0.5",
+                                    hoverColor
                                 )}
                             >
-                                <div className="relative z-10">
-                                    <div className="w-14 h-14 rounded-sm bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                                        <Icon className="w-7 h-7 text-primary" />
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    {/* Icon */}
+                                    <div className="w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center group-hover:bg-muted transition-colors">
+                                        <Icon className={cn("w-7 h-7", iconColor)} />
                                     </div>
-                                    <h3 className="text-base font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+
+                                    {/* Title */}
+                                    <h3 className="text-lg font-semibold text-foreground">
                                         {option.label}
                                     </h3>
-                                    <p className="text-xs text-muted-foreground leading-relaxed">
+
+                                    {/* Description */}
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
                                         {option.description}
                                     </p>
                                 </div>
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </Card>
                         );
                     })}
+                </div>
+
+                {/* Loan Account Expansion */}
+                <div className="flex flex-col items-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setShowLoans(!showLoans)}
+                        className="text-xs text-muted-foreground hover:text-foreground uppercase tracking-widest mb-6"
+                    >
+                        {showLoans ? 'Hide Loan Types' : 'More Account Types'}
+                        {showLoans ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+                    </Button>
+
+                    {showLoans && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[600px] mx-auto animate-in slide-in-from-top-4 duration-300 fill-mode-forwards">
+                            {LOAN_TYPES.map((option: IAccountTypeOption, idx: number): React.JSX.Element => {
+                                const Icon = option.icon;
+                                const isLastOdd = idx === LOAN_TYPES.length - 1 && LOAN_TYPES.length % 2 !== 0;
+
+                                return (
+                                    <Card
+                                        key={option.type}
+                                        onClick={(): void => handleTypeSelect(option.type)}
+                                        className={cn(
+                                            "cursor-pointer transition-all duration-200 group relative overflow-hidden",
+                                            "bg-card border border-amber-500/30 rounded-lg p-6",
+                                            "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.06)]",
+                                            "hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.3),0_4px_6px_-2px_rgba(0,0,0,0.05)]",
+                                            "hover:-translate-y-0.5 hover:border-amber-500",
+                                            isLastOdd ? "md:col-span-2 md:w-1/2 md:mx-auto" : ""
+                                        )}
+                                    >
+                                        <div className="flex flex-col items-center text-center space-y-4">
+                                            {/* Icon */}
+                                            <div className="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                                                <Icon className="w-7 h-7 text-amber-500" />
+                                            </div>
+
+                                            {/* Title */}
+                                            <h3 className="text-lg font-semibold text-foreground">
+                                                {option.label}
+                                            </h3>
+
+                                            {/* Description */}
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                                {option.description}
+                                            </p>
+                                        </div>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

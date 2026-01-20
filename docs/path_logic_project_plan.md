@@ -30,6 +30,17 @@
 
 See `docs/architecture/typescript-standards.md` for complete guidelines.
 
+### **1.3 Accessibility Mandate**
+
+**CRITICAL: All User Interface components MUST meet WCAG 2.2 AA standards.**
+
+- **Color Contrast:** Text and interactive elements must have a contrast ratio of at least 4.5:1 against the background (3:1 for large text).
+- **Keyboard Navigation:** All interactive elements must be reachable and actionable via keyboard.
+- **Screen Reader Support:** Use semantic HTML and ARIA labels where necessary.
+- **Focus Indicators:** Visible focus states are mandatory for all interactive elements.
+
+See `docs/architecture/accessibility-standards.md` for complete guidelines.
+
 ## **2. Functional & Technical Specifications**
 
 ### **2.1 The "Penny-Perfect" Core Engine**

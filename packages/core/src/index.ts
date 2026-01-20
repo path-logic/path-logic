@@ -5,14 +5,22 @@ export type {
     Cents,
     EntityId,
     IAccount,
+    IAutoLoanMetadata,
     ICategory,
+    ILoanDetails,
+    IMortgageMetadata,
     IPayee,
+    IPersonalLoanMetadata,
     IRecurringSchedule,
     ISODateString,
     ISplit,
     ITransaction,
 } from './domain/types';
 export { AccountType, Frequency, TransactionStatus } from './domain/types';
+
+// === Utils ===
+export * as LoanCalculations from './utils/loanCalculations';
+export * as TypeGuards from './utils/typeGuards';
 
 // === Engine ===
 export type {

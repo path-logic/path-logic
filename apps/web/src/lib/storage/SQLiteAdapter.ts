@@ -1,5 +1,6 @@
 import type { QueryExecResult, Database, SqlJsStatic } from 'sql.js';
-import type { ISODateString, ISplit, ITransaction, TransactionStatus, IAccount, ICategory, IPayee } from '@path-logic/core';
+import type { ISODateString, ISplit, ITransaction, TransactionStatus, IAccount, ICategory, IPayee, ILoanDetails, Cents } from '@path-logic/core';
+import { TypeGuards } from '@path-logic/core';
 
 // ============================================================================
 // SQL SCHEMA (DDL)
@@ -14,6 +15,20 @@ const SCHEMA_DDL = `
         isActive INTEGER NOT NULL DEFAULT 1,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS loan_details (
+        account_id TEXT PRIMARY KEY,
+        original_amount INTEGER NOT NULL,
+        interest_rate REAL NOT NULL,
+        term_months INTEGER NOT NULL,
+        monthly_payment INTEGER NOT NULL,
+        payment_due_day INTEGER NOT NULL,
+        start_date TEXT NOT NULL,
+        metadata TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS payees (
@@ -76,6 +91,7 @@ const SCHEMA_DDL = `
     CREATE INDEX IF NOT EXISTS idx_transactions_payee ON transactions(payeeId);
     CREATE INDEX IF NOT EXISTS idx_splits_transaction ON splits(transactionId);
     CREATE INDEX IF NOT EXISTS idx_splits_category ON splits(categoryId);
+    CREATE INDEX IF NOT EXISTS idx_loan_details_account ON loan_details(account_id);
 `;
 
 // ============================================================================
@@ -165,6 +181,20 @@ const SQL_QUERIES = {
 
     DELETE_ALL_SPLITS: `
         DELETE FROM splits
+    `,
+
+    // Loan Details queries
+    INSERT_LOAN_DETAILS: `
+        INSERT INTO loan_details (
+            account_id, original_amount, interest_rate, term_months, 
+            monthly_payment, payment_due_day, start_date, metadata, 
+            created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+
+    SELECT_LOAN_DETAILS: `
+        SELECT * FROM loan_details WHERE account_id = ?
     `,
 } as const;
 
@@ -530,17 +560,29 @@ export function getAllAccounts(): Array<IAccount> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_ACCOUNTS);
     if (result.length === 0 || !result[0]) return new Array<IAccount>();
 
-    return result[0].values.map((row: Array<SqlValue>): IAccount => ({
-        id: row[0] as string,
-        name: row[1] as string,
-        type: row[2] as IAccount['type'],
-        institutionName: row[3] as string,
-        isActive: Boolean(row[4]),
-        createdAt: row[5] as ISODateString,
-        updatedAt: row[6] as ISODateString,
-        clearedBalance: 0, // Calculated dynamically in store
-        pendingBalance: 0,  // Calculated dynamically in store
-    }));
+    return result[0].values.map((row: Array<SqlValue>): IAccount => {
+        const account: IAccount = {
+            id: row[0] as string,
+            name: row[1] as string,
+            type: row[2] as IAccount['type'],
+            institutionName: row[3] as string,
+            isActive: Boolean(row[4]),
+            createdAt: row[5] as ISODateString,
+            updatedAt: row[6] as ISODateString,
+            clearedBalance: 0, // Calculated dynamically in store
+            pendingBalance: 0,  // Calculated dynamically in store
+        };
+
+        // Load loan details if applicable
+        if (TypeGuards.isLoanAccount(account.type)) {
+            const details = getLoanDetails(account.id);
+            if (details) {
+                account.loanDetails = details;
+            }
+        }
+
+        return account;
+    });
 }
 
 /**
@@ -557,6 +599,67 @@ export function insertAccount(account: IAccount): void {
         account.createdAt,
         account.updatedAt
     ]);
+
+    // Insert loan details if present
+    if (account.loanDetails) {
+        insertLoanDetails(account.id, account.loanDetails);
+    }
+}
+
+/**
+ * Insert loan details for an account
+ */
+export function insertLoanDetails(accountId: string, details: ILoanDetails): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: ISODateString = new Date().toISOString() as ISODateString;
+
+    db.run(SQL_QUERIES.INSERT_LOAN_DETAILS, [
+        accountId,
+        details.originalAmount,
+        details.interestRate,
+        details.termMonths,
+        details.monthlyPayment,
+        details.paymentDueDay,
+        details.startDate,
+        details.metadata ? JSON.stringify(details.metadata) : null,
+        now,
+        now
+    ]);
+}
+
+/**
+ * Get loan details for an account
+ */
+export function getLoanDetails(accountId: string): ILoanDetails | undefined {
+    if (!db) throw new Error('Database not initialized');
+    const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_LOAN_DETAILS, [accountId]);
+
+    if (result.length === 0 || !result[0] || result[0].values.length === 0) return undefined;
+
+    const row: Array<SqlValue> | undefined = result[0].values.at(0);
+    if (!row) return undefined;
+
+    // Schema: 
+    // 0: account_id
+    // 1: original_amount
+    // 2: interest_rate
+    // 3: term_months
+    // 4: monthly_payment
+    // 5: payment_due_day
+    // 6: start_date
+    // 7: metadata
+
+    const metadataJson = row[7] as string | null;
+
+    return {
+        originalAmount: row[1] as Cents,
+        interestRate: row[2] as number,
+        termMonths: row[3] as number,
+        monthlyPayment: row[4] as Cents,
+        paymentDueDay: row[5] as number,
+        startDate: row[6] as ISODateString,
+        metadata: metadataJson ? JSON.parse(metadataJson) : undefined
+    };
 }
 
 /**

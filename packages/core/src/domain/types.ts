@@ -36,6 +36,45 @@ export enum AccountType {
     Savings = 'savings',
     Credit = 'credit',
     Cash = 'cash',
+    Mortgage = 'mortgage',
+    AutoLoan = 'auto_loan',
+    PersonalLoan = 'personal_loan',
+}
+
+export interface IMortgageMetadata {
+    propertyAddress?: string;
+    propertyValue?: Cents;
+    escrowIncluded: boolean;
+    escrowAmount?: Cents;
+}
+
+export interface IAutoLoanMetadata {
+    vehicleMake?: string;
+    vehicleModel?: string;
+    vehicleYear?: number;
+    vin?: string;
+}
+
+export interface IPersonalLoanMetadata {
+    purpose?: string;
+    secured: boolean;
+}
+
+export interface ILoanDetails {
+    /** Original principal amount in cents */
+    originalAmount: Cents;
+    /** Annual Percentage Rate as decimal (e.g., 0.0375 = 3.75%) */
+    interestRate: number;
+    /** Total loan term in months */
+    termMonths: number;
+    /** Monthly payment amount in cents */
+    monthlyPayment: Cents;
+    /** Day of month payment is due (1-31) */
+    paymentDueDay: number;
+    /** Loan origination date */
+    startDate: ISODateString;
+    /** Type-specific metadata */
+    metadata?: IMortgageMetadata | IAutoLoanMetadata | IPersonalLoanMetadata;
 }
 
 /**
@@ -162,6 +201,8 @@ export interface IAccount {
     createdAt: ISODateString;
     /** ISO timestamp when the record was last modified. */
     updatedAt: ISODateString;
+    /** Optional detailed information for loan accounts. */
+    loanDetails?: ILoanDetails;
 }
 
 /**
