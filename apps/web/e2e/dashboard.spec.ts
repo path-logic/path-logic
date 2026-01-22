@@ -8,11 +8,13 @@ test.describe('Dashboard Overview', () => {
 
     test('should load the overview page and show net position and projection', async ({ page }) => {
         // The app shows either a sign-in button or the overview
-        const hasSignIn = await page.locator('text=Sign in').count() > 0;
+        const signInButton = page.locator('text=Sign in');
+        const netPosition = page.locator('text=Net Position');
 
-        if (!hasSignIn) {
-            // Check for Overview elements
-            await expect(page.locator('text=Net Position')).toBeVisible();
+        // Wait for either the sign-in page or the dashboard to be ready
+        await expect(signInButton.or(netPosition)).toBeVisible();
+
+        if (await netPosition.isVisible()) {
             await expect(page.locator('text=Financial Overview')).toBeVisible();
 
             // Projection chart should be present (via svg or data container)
@@ -47,10 +49,11 @@ test.describe('Navigation & Routing', () => {
 
             // In CI or clean local environments, we might see the Welcome Wizard (Accounts.length === 0)
             // or the Accounts Management header (Accounts.length > 0)
-            const isWelcome = await page.locator('text=Welcome to Path Logic').count() > 0;
-            const isListing = await page.locator('text=Accounts Management').count() > 0;
+            const welcomeHeader = page.locator('text=Welcome to Path Logic');
+            const managementHeader = page.locator('text=Accounts Management');
 
-            expect(isWelcome || isListing).toBe(true);
+            // Use .or() which retries until one of them is visible
+            await expect(welcomeHeader.or(managementHeader)).toBeVisible();
         }
     });
 

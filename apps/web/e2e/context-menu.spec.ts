@@ -7,11 +7,11 @@ test.describe('Context Menus', () => {
     });
 
     test('right-clicking an account card should show context menu', async ({ page }) => {
-        // Find an account card in the sidebar
+        // Wait a short time for cards to appear before deciding to skip
         const accountCards = page.locator('[data-slot="context-menu-trigger"]');
-        const cardCount = await accountCards.count();
-
-        if (cardCount === 0) {
+        try {
+            await expect(accountCards.first()).toBeVisible({ timeout: 5000 });
+        } catch {
             test.skip(true, 'No account cards visible - likely no accounts yet');
             return;
         }

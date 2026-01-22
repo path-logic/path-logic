@@ -12,8 +12,9 @@ test.describe('Keyboard Shortcuts', () => {
         const searchInput = page.locator('input[placeholder*="Filter ledger"]');
 
         // Verify search input exists (if there are transactions)
-        const inputCount = await searchInput.count();
-        if (inputCount === 0) {
+        try {
+            await expect(searchInput).toBeVisible({ timeout: 5000 });
+        } catch {
             test.skip(true, 'No ledger search visible - likely no accounts yet');
             return;
         }
