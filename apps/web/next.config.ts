@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
         }
         return config;
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'lh3.googleusercontent.com',
+                pathname: '/**',
+            },
+        ],
+    },
     // next.js 16 requires turbopack config if webpack config is present
     turbopack: {},
 };

@@ -2,6 +2,7 @@
 
 import { type ITransaction, Money, TransactionStatus } from '@path-logic/core';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import * as React from 'react';
@@ -80,9 +81,11 @@ export function Header(): React.JSX.Element {
                         <DropdownMenuTrigger asChild>
                             <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-border hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
                                 {session?.user?.image ? (
-                                    <img
+                                    <Image
                                         src={session.user.image}
                                         alt={session.user.name || 'User'}
+                                        width={32}
+                                        height={32}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
@@ -97,9 +100,11 @@ export function Header(): React.JSX.Element {
                         <DropdownMenuContent align="end" className="bg-card border-border w-56">
                             <div className="flex items-center gap-3 px-3 py-2 border-b border-border mb-1">
                                 {session?.user?.image ? (
-                                    <img
+                                    <Image
                                         src={session.user.image}
                                         alt={session.user.name || 'User'}
+                                        width={40}
+                                        height={40}
                                         className="w-10 h-10 rounded-full object-cover border border-border"
                                     />
                                 ) : (
