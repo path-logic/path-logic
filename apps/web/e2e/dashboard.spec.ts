@@ -44,7 +44,13 @@ test.describe('Navigation & Routing', () => {
         if (await accountsLink.isVisible()) {
             await accountsLink.click();
             await expect(page).toHaveURL(/\/accounts/);
-            await expect(page.locator('text=Accounts Management')).toBeVisible();
+
+            // In CI or clean local environments, we might see the Welcome Wizard (Accounts.length === 0)
+            // or the Accounts Management header (Accounts.length > 0)
+            const isWelcome = await page.locator('text=Welcome to Path Logic').count() > 0;
+            const isListing = await page.locator('text=Accounts Management').count() > 0;
+
+            expect(isWelcome || isListing).toBe(true);
         }
     });
 
