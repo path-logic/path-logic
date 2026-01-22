@@ -19,8 +19,14 @@ function Card({ className, interactive = false, accentColor, ...props }: ICardPr
       )}
       {...props}
     >
-      {interactive && accentColor && (
-        <div className={cn("absolute top-0 left-0 w-full h-[3px] opacity-40 transition-opacity group-hover:opacity-100", accentColor)} />
+      {accentColor && (
+        <div
+          className={cn(
+            "absolute top-0 left-0 w-full h-[3px] transition-opacity",
+            interactive ? "opacity-40 group-hover:opacity-100" : "opacity-100",
+            accentColor
+          )}
+        />
       )}
       {props.children}
     </div>

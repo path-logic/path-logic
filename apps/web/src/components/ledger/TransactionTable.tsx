@@ -19,6 +19,13 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckCircle2, Clock } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+    ContextMenuSeparator,
+} from '@/components/ui/context-menu';
 import { type ITransaction, Money, TransactionStatus, KnownCategory } from '@path-logic/core';
 import { cn } from '@/lib/utils';
 
@@ -139,44 +146,71 @@ const MemoizedLedgerRow = React.memo(({
     isActive,
     setActiveIndex
 }: IMemoizedLedgerRowProps) => {
+    const tx = row.original;
     return (
-        <div
-            key={virtualRow.key}
-            data-state={row.getIsSelected() && 'selected'}
-            className={cn(
-                "flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
-                isActive && "bg-accent/80 outline outline-1 outline-primary z-10"
-            )}
-            style={{
-                top: 0,
-                transform: `translateY(${virtualRow.start}px)`,
-            }}
-            onClick={(): void => setActiveIndex(virtualRow.index)}
-        >
-            {row.getVisibleCells().map((cell) => {
-                const widthMap: Record<string, string> = {
-                    'date': 'w-[100px]',
-                    'payee': 'flex-1 min-w-[300px]',
-                    'category': 'w-[140px]',
-                    'status': 'w-[120px]',
-                    'totalAmount': 'w-[120px]',
-                    'balance': 'w-[120px]'
-                };
-                const widthClass = widthMap[cell.column.id] || 'w-[100px]';
+        <ContextMenu key={virtualRow.key}>
+            <ContextMenuTrigger>
+                <div
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={cn(
+                        "flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
+                        isActive && "bg-accent/80 outline outline-1 outline-primary z-10"
+                    )}
+                    style={{
+                        top: 0,
+                        transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    onClick={(): void => setActiveIndex(virtualRow.index)}
+                >
+                    {row.getVisibleCells().map((cell) => {
+                        const widthMap: Record<string, string> = {
+                            'date': 'w-[100px]',
+                            'payee': 'flex-1 min-w-[300px]',
+                            'category': 'w-[140px]',
+                            'status': 'w-[120px]',
+                            'totalAmount': 'w-[120px]',
+                            'balance': 'w-[120px]'
+                        };
+                        const widthClass = widthMap[cell.column.id] || 'w-[100px]';
 
-                return (
-                    <div
-                        key={cell.id}
-                        className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
-                    >
-                        {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                        )}
-                    </div>
-                );
-            })}
-        </div>
+                        return (
+                            <div
+                                key={cell.id}
+                                className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
+                            >
+                                {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-56">
+                <div className="px-2 py-1.5 text-[10px] uppercase font-bold text-muted-foreground opacity-50">
+                    Transaction Actions
+                </div>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={() => console.log('Edit transaction', tx)}>
+                    Edit Transaction
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => console.log('Duplicate transaction', tx)}>
+                    Duplicate
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={() => console.log('Categorize', tx)}>
+                    Categorize...
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem
+                    variant="destructive"
+                    onClick={() => console.log('Delete transaction', tx.id)}
+                >
+                    Delete
+                </ContextMenuItem>
+            </ContextMenuContent>
+        </ContextMenu>
     );
 }, (prev, next) => {
     return prev.isActive === next.isActive &&
@@ -197,6 +231,13 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     const [isAtTop, setIsAtTop] = React.useState(true);
     const parentRef = React.useRef<HTMLDivElement>(null);
     const lastKeyTime = React.useRef<number>(0);
+
+    // OS Awareness for Mod key in placeholder
+    const [modKey, setModKey] = React.useState<string>('Ctrl');
+    React.useEffect(() => {
+        const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        setModKey(isMac ? 'CMD' : 'Ctrl');
+    }, []);
 
     // Sort and calculate running balances for the ENTIRE dataset
     const sortedDataWithBalances = React.useMemo(() => {
@@ -344,7 +385,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
             {/* Toolbar */}
             <div className="flex items-center py-2 px-1 justify-between flex-none bg-background">
                 <Input
-                    placeholder="Filter ledger (CMD+K)..."
+                    placeholder={`Filter ledger (${modKey}+K)...`}
                     value={(table.getColumn('payee')?.getFilterValue() as string) ?? ''}
                     onChange={(event): void =>
                         table.getColumn('payee')?.setFilterValue(event.target.value)

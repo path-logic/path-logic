@@ -73,6 +73,16 @@ const LOAN_TYPES: Array<IAccountTypeOption> = [
     }
 ];
 
+const TYPE_THEMING: Record<string, { accentBg: string; borderHover: string; iconText: string; iconBg: string; iconBorder: string }> = {
+    [AccountType.Checking]: { accentBg: 'bg-teal-500', borderHover: 'border-teal-500/30 hover:border-teal-500', iconText: 'text-teal-500', iconBg: 'bg-teal-500/10', iconBorder: 'border-teal-500/20' },
+    [AccountType.Savings]: { accentBg: 'bg-blue-500', borderHover: 'border-blue-500/30 hover:border-blue-500', iconText: 'text-blue-500', iconBg: 'bg-blue-500/10', iconBorder: 'border-blue-500/20' },
+    [AccountType.Credit]: { accentBg: 'bg-purple-500', borderHover: 'border-purple-500/30 hover:border-purple-500', iconText: 'text-purple-500', iconBg: 'bg-purple-500/10', iconBorder: 'border-purple-500/20' },
+    [AccountType.Cash]: { accentBg: 'bg-green-500', borderHover: 'border-green-500/30 hover:border-green-500', iconText: 'text-green-500', iconBg: 'bg-green-500/10', iconBorder: 'border-green-500/20' },
+    [AccountType.Mortgage]: { accentBg: 'bg-amber-500', borderHover: 'border-amber-500/30 hover:border-amber-500', iconText: 'text-amber-500', iconBg: 'bg-amber-500/10', iconBorder: 'border-amber-500/20' },
+    [AccountType.AutoLoan]: { accentBg: 'bg-amber-500', borderHover: 'border-amber-500/30 hover:border-amber-500', iconText: 'text-amber-500', iconBg: 'bg-amber-500/10', iconBorder: 'border-amber-500/20' },
+    [AccountType.PersonalLoan]: { accentBg: 'bg-amber-500', borderHover: 'border-amber-500/30 hover:border-amber-500', iconText: 'text-amber-500', iconBg: 'bg-amber-500/10', iconBorder: 'border-amber-500/20' },
+};
+
 export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.JSX.Element {
     const [step, setStep] = useState<WizardStep>('select-type');
     const [selectedType, setSelectedType] = useState<AccountType | null>(null);
@@ -145,6 +155,7 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                 clearedBalance: balanceCents,
                 pendingBalance: balanceCents,
                 isActive: true,
+                deletedAt: null,
                 createdAt: now,
                 updatedAt: now
             };
@@ -194,15 +205,16 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
             PRIMARY_TYPES.find(opt => opt.type === selectedType) ||
             LOAN_TYPES.find(opt => opt.type === selectedType);
 
+        const theming = TYPE_THEMING[selectedType] || { accentBg: 'bg-primary', borderHover: 'border-primary/30', iconText: 'text-primary', iconBg: 'bg-primary/10', iconBorder: 'border-primary/20' };
         const Icon = selectedOption?.icon || Landmark;
 
         return (
             <div className="flex-1 overflow-y-auto w-full bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 cursor-default">
                 <div className="min-h-full flex items-center justify-center p-8">
-                    <Card interactive accentColor="bg-primary" className="w-full max-w-2xl p-8 border-border/50">
+                    <Card accentColor={theming.accentBg} className="w-full max-w-2xl p-8 border-border/50">
                         <div className="flex items-center gap-4 mb-8 pb-4 border-b border-border/30">
-                            <div className="w-14 h-14 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
-                                <Icon className="w-7 h-7 text-primary" />
+                            <div className={cn("w-14 h-14 rounded-lg flex items-center justify-center shadow-inner border", theming.iconBg, theming.iconBorder)}>
+                                <Icon className={cn("w-7 h-7", theming.iconText)} />
                             </div>
                             <div>
                                 <h2 className="text-xl font-bold text-foreground tracking-tight">{selectedOption?.label}</h2>
@@ -291,60 +303,23 @@ export function WelcomeWizard({ onAccountCreated }: IWelcomeWizardProps): React.
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 max-w-[600px] mx-auto">
                         {PRIMARY_TYPES.map((option: IAccountTypeOption): React.JSX.Element => {
                             const Icon = option.icon;
-
-                            const accentColors: Record<string, string> = {
-                                [AccountType.Checking]: 'teal',
-                                [AccountType.Savings]: 'blue',
-                                [AccountType.Credit]: 'purple',
-                                [AccountType.Cash]: 'green'
-                            };
-
-                            type AccentKey = 'teal' | 'blue' | 'purple' | 'green' | 'primary';
-                            const baseColor: AccentKey = (accentColors[option.type] as AccentKey) ?? 'primary';
-
-                            const borderColors: Record<AccentKey, string> = {
-                                teal: 'border-teal-500/30 hover:border-teal-500',
-                                blue: 'border-blue-500/30 hover:border-blue-500',
-                                purple: 'border-purple-500/30 hover:border-purple-500',
-                                green: 'border-green-500/30 hover:border-green-500',
-                                primary: 'border-primary/30 hover:border-primary'
-                            };
-
-                            const accentBgColors: Record<AccentKey, string> = {
-                                teal: 'bg-teal-500',
-                                blue: 'bg-blue-500',
-                                purple: 'bg-purple-500',
-                                green: 'bg-green-500',
-                                primary: 'bg-primary'
-                            };
-
-                            const iconTextColors: Record<AccentKey, string> = {
-                                teal: 'text-teal-500',
-                                blue: 'text-blue-500',
-                                purple: 'text-purple-500',
-                                green: 'text-green-500',
-                                primary: 'text-primary'
-                            };
-
-                            const borderColor = borderColors[baseColor];
-                            const accentBg = accentBgColors[baseColor];
-                            const iconColor = iconTextColors[baseColor];
+                            const theming = TYPE_THEMING[option.type] || { accentBg: 'bg-primary', borderHover: 'border-primary/30', iconText: 'text-primary', iconBg: 'bg-primary/10', iconBorder: 'border-primary/20' };
 
                             return (
                                 <Card
                                     key={option.type}
                                     onClick={(): void => handleTypeSelect(option.type)}
                                     interactive
-                                    accentColor={accentBg}
+                                    accentColor={theming.accentBg}
                                     className={cn(
                                         "p-6",
-                                        borderColor
+                                        theming.borderHover
                                     )}
                                 >
                                     <div className="flex flex-col items-center text-center space-y-4">
                                         {/* Icon */}
                                         <div className="w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center group-hover:bg-muted transition-colors">
-                                            <Icon className={cn("w-7 h-7", iconColor)} />
+                                            <Icon className={cn("w-7 h-7", theming.iconText)} />
                                         </div>
 
                                         {/* Title */}

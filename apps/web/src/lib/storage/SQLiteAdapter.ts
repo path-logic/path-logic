@@ -13,6 +13,7 @@ const SCHEMA_DDL = `
         type TEXT NOT NULL,
         institutionName TEXT NOT NULL,
         isActive INTEGER NOT NULL DEFAULT 1,
+        deletedAt TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
     );
@@ -92,6 +93,12 @@ const SCHEMA_DDL = `
     CREATE INDEX IF NOT EXISTS idx_splits_transaction ON splits(transactionId);
     CREATE INDEX IF NOT EXISTS idx_splits_category ON splits(categoryId);
     CREATE INDEX IF NOT EXISTS idx_loan_details_account ON loan_details(account_id);
+
+    CREATE TABLE IF NOT EXISTS user_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+    );
 `;
 
 // ============================================================================
@@ -129,8 +136,16 @@ const SQL_QUERIES = {
 
     // Account queries
     INSERT_ACCOUNT: `
-        INSERT INTO accounts (id, name, type, institutionName, isActive, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO accounts (id, name, type, institutionName, isActive, deletedAt, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+
+    SOFT_DELETE_ACCOUNT: `
+        UPDATE accounts SET isActive = 0, deletedAt = ?, updatedAt = ? WHERE id = ?
+    `,
+
+    UPDATE_ACCOUNT: `
+        UPDATE accounts SET name = ?, type = ?, institutionName = ?, isActive = ?, deletedAt = ?, updatedAt = ? WHERE id = ?
     `,
 
     SELECT_ALL_ACCOUNTS: `
@@ -195,6 +210,16 @@ const SQL_QUERIES = {
 
     SELECT_LOAN_DETAILS: `
         SELECT * FROM loan_details WHERE account_id = ?
+    `,
+
+    // User Settings queries
+    INSERT_USER_SETTING: `
+        INSERT OR REPLACE INTO user_settings (key, value, updatedAt)
+        VALUES (?, ?, ?)
+    `,
+
+    SELECT_USER_SETTING: `
+        SELECT value FROM user_settings WHERE key = ?
     `,
 } as const;
 
@@ -296,6 +321,16 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
             ]);
 
             dbInstance.run("UPDATE transactions SET payeeId = ?", [legacyPayeeId]);
+        }
+    }
+
+    // Migration: Add deletedAt to accounts if missing
+    const accountColumns: Array<QueryExecResult> = dbInstance.exec("PRAGMA table_info(accounts)");
+    const accountsResult = accountColumns.at(0);
+    if (accountsResult && accountsResult.values) {
+        const hasDeletedAt: boolean = accountsResult.values.some((v: Array<SqlValue>): boolean => v[1] === 'deletedAt');
+        if (!hasDeletedAt) {
+            dbInstance.run("ALTER TABLE accounts ADD COLUMN deletedAt TEXT");
         }
     }
 
@@ -554,35 +589,38 @@ export function deleteTransaction(txId: string): void {
 /**
  * Get all accounts
  */
-export function getAllAccounts(): Array<IAccount> {
+export function getAllAccounts(includeDeleted = false): Array<IAccount> {
     if (!db) throw new Error('Database not initialized');
 
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_ACCOUNTS);
     if (result.length === 0 || !result[0]) return new Array<IAccount>();
 
-    return result[0].values.map((row: Array<SqlValue>): IAccount => {
-        const account: IAccount = {
-            id: row[0] as string,
-            name: row[1] as string,
-            type: row[2] as IAccount['type'],
-            institutionName: row[3] as string,
-            isActive: Boolean(row[4]),
-            createdAt: row[5] as ISODateString,
-            updatedAt: row[6] as ISODateString,
-            clearedBalance: 0, // Calculated dynamically in store
-            pendingBalance: 0,  // Calculated dynamically in store
-        };
+    return result[0].values
+        .map((row: Array<SqlValue>): IAccount => {
+            const account: IAccount = {
+                id: row[0] as string,
+                name: row[1] as string,
+                type: row[2] as IAccount['type'],
+                institutionName: row[3] as string,
+                isActive: Boolean(row[4]),
+                deletedAt: (row[5] as string) || null,
+                createdAt: row[6] as ISODateString,
+                updatedAt: row[7] as ISODateString,
+                clearedBalance: 0, // Calculated dynamically in store
+                pendingBalance: 0,  // Calculated dynamically in store
+            };
 
-        // Load loan details if applicable
-        if (TypeGuards.isLoanAccount(account.type)) {
-            const details = getLoanDetails(account.id);
-            if (details) {
-                account.loanDetails = details;
+            // Load loan details if applicable
+            if (TypeGuards.isLoanAccount(account.type)) {
+                const details = getLoanDetails(account.id);
+                if (details) {
+                    account.loanDetails = details;
+                }
             }
-        }
 
-        return account;
-    });
+            return account;
+        })
+        .filter(acc => includeDeleted || !acc.deletedAt);
 }
 
 /**
@@ -596,6 +634,7 @@ export function insertAccount(account: IAccount): void {
         account.type,
         account.institutionName,
         account.isActive ? 1 : 0,
+        account.deletedAt || null,
         account.createdAt,
         account.updatedAt
     ]);
@@ -604,6 +643,38 @@ export function insertAccount(account: IAccount): void {
     if (account.loanDetails) {
         insertLoanDetails(account.id, account.loanDetails);
     }
+}
+
+/**
+ * Update an account's details
+ */
+export function updateAccount(account: IAccount): void {
+    if (!db) throw new Error('Database not initialized');
+    db.run(SQL_QUERIES.UPDATE_ACCOUNT, [
+        account.name,
+        account.type,
+        account.institutionName,
+        account.isActive ? 1 : 0,
+        account.deletedAt || null,
+        account.updatedAt,
+        account.id
+    ]);
+
+    // Update loan details if present
+    if (account.loanDetails) {
+        // For simplicity, we delete and re-insert loan details for updates
+        db?.run("DELETE FROM loan_details WHERE account_id = ?", [account.id]);
+        insertLoanDetails(account.id, account.loanDetails);
+    }
+}
+
+/**
+ * Soft delete an account by setting deletedAt and isActive = 0
+ */
+export function softDeleteAccount(id: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now = new Date().toISOString();
+    db.run(SQL_QUERIES.SOFT_DELETE_ACCOUNT, [now, now, id]);
 }
 
 /**
@@ -759,6 +830,26 @@ export function getAllCategories(): Array<ICategory> {
         createdAt: row[5] as ISODateString,
         updatedAt: row[6] as ISODateString,
     }));
+}
+
+/**
+ * Get a user setting by key
+ */
+export function getUserSetting(key: string): string | null {
+    if (!db) throw new Error('Database not initialized');
+    const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_USER_SETTING, [key]);
+
+    if (result.length === 0 || !result[0] || result[0].values.length === 0) return null;
+    return result[0].values[0]?.[0] as string || null;
+}
+
+/**
+ * Set a user setting
+ */
+export function setUserSetting(key: string, value: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    db.run(SQL_QUERIES.INSERT_USER_SETTING, [key, value, now]);
 }
 
 /**

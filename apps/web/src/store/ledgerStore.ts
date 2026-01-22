@@ -11,6 +11,8 @@ import {
     loadDatabase,
     getAllAccounts,
     insertAccount,
+    updateAccount,
+    softDeleteAccount,
     getAllPayees,
     insertPayee,
     getPayeeByName,
@@ -24,10 +26,14 @@ interface ILedgerStore {
     categories: Array<ICategory>;
     isLoading: boolean;
     isInitialized: boolean;
+    authError: boolean;
+    isDirty: boolean;
 
     // Actions
     initialize: () => Promise<void>;
     loadFromEncryptedData: (data: Uint8Array) => Promise<void>;
+    setAuthError: (error: boolean) => void;
+    setDirty: (dirty: boolean) => void;
 
     // Transaction Actions
     addTransaction: (tx: ITransaction) => Promise<void>;
@@ -37,6 +43,8 @@ interface ILedgerStore {
 
     // Account Actions
     addAccount: (account: IAccount) => Promise<void>;
+    updateAccount: (account: IAccount) => Promise<void>;
+    softDeleteAccount: (accountId: string) => Promise<void>;
 
     // Payee Actions
     getOrCreatePayee: (name: string) => Promise<IPayee>;
@@ -52,6 +60,8 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
     categories: new Array<ICategory>(),
     isLoading: false,
     isInitialized: false,
+    authError: false,
+    isDirty: false,
 
     initialize: async (): Promise<void> => {
         set({ isLoading: true });
@@ -103,7 +113,7 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         try {
             insertTransaction(tx);
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions });
+            set({ transactions, isDirty: true });
         } catch (error) {
             console.error('Failed to add transaction:', error);
             throw error;
@@ -114,7 +124,7 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         try {
             insertTransactions(txs);
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions });
+            set({ transactions, isDirty: true });
         } catch (error) {
             console.error('Failed to add transactions:', error);
             throw error;
@@ -125,7 +135,7 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         try {
             updateTransaction(tx);
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions });
+            set({ transactions, isDirty: true });
         } catch (error) {
             console.error('Failed to update transaction:', error);
             throw error;
@@ -136,7 +146,7 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         try {
             deleteTransaction(txId);
             const transactions: Array<ITransaction> = getAllTransactions();
-            set({ transactions });
+            set({ transactions, isDirty: true });
         } catch (error) {
             console.error('Failed to delete transaction:', error);
             throw error;
@@ -147,9 +157,31 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         try {
             insertAccount(account);
             const accounts: Array<IAccount> = getAllAccounts();
-            set({ accounts });
+            set({ accounts, isDirty: true });
         } catch (error) {
             console.error('Failed to add account:', error);
+            throw error;
+        }
+    },
+
+    updateAccount: async (account: IAccount): Promise<void> => {
+        try {
+            updateAccount(account);
+            const accounts: Array<IAccount> = getAllAccounts();
+            set({ accounts, isDirty: true });
+        } catch (error) {
+            console.error('Failed to update account:', error);
+            throw error;
+        }
+    },
+
+    softDeleteAccount: async (accountId: string): Promise<void> => {
+        try {
+            softDeleteAccount(accountId);
+            const accounts: Array<IAccount> = getAllAccounts();
+            set({ accounts, isDirty: true });
+        } catch (error) {
+            console.error('Failed to soft delete account:', error);
             throw error;
         }
     },
@@ -186,8 +218,16 @@ export const useLedgerStore = create<ILedgerStore>((set: (partial: Partial<ILedg
         };
 
         insertPayee(newPayee);
-        set({ payees: getAllPayees() });
+        set({ payees: getAllPayees(), isDirty: true });
         return newPayee;
+    },
+
+    setAuthError: (error: boolean): void => {
+        set({ authError: error });
+    },
+
+    setDirty: (dirty: boolean): void => {
+        set({ isDirty: dirty });
     },
 
     exportForSync: (): Uint8Array => {

@@ -5,6 +5,8 @@ import { Header } from './Header';
 import { cn } from '@/lib/utils';
 
 import { SyncIndicator } from '../sync/SyncIndicator';
+import { useSecurityManager } from '@/hooks/useSecurityManager';
+import { SecurityOverlay } from './SecurityOverlay';
 
 interface IAppShellProps {
     children: React.ReactNode;
@@ -17,8 +19,11 @@ interface IAppShellProps {
  * Bloomberg-style background, and overflow management.
  */
 export function AppShell({ children, className, noPadding = false }: IAppShellProps): React.JSX.Element {
+    const { isIdle, unlock } = useSecurityManager();
+
     return (
-        <div className="h-screen bg-background text-foreground font-sans selection:bg-primary/30 overflow-hidden flex flex-col">
+        <div className="h-screen bg-background text-foreground font-sans selection:bg-primary/30 overflow-hidden flex flex-col relative">
+            <SecurityOverlay isVisible={isIdle} onUnlock={unlock} />
             <Header />
             <main className={cn(
                 "flex-1 w-full flex gap-4 overflow-hidden min-h-0",

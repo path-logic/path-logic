@@ -53,9 +53,17 @@ export async function loadFromDrive(
         // Load into SQLite
         await useLedgerStore.getState().loadFromEncryptedData(decryptedData);
 
+        // Clear auth error on success
+        useLedgerStore.getState().setAuthError(false);
+
         console.log('Database loaded from Drive successfully');
     } catch (error) {
         console.error('Failed to load from Drive:', error);
+
+        if (error instanceof Error && error.name === 'GDriveAuthError') {
+            useLedgerStore.getState().setAuthError(true);
+        }
+
         // Fall back to empty database
         await useLedgerStore.getState().initialize();
     }
@@ -94,9 +102,18 @@ export async function saveToDrive(
             existingFile?.id
         );
 
+        // Success! Clear dirty flag and auth error
+        useLedgerStore.getState().setDirty(false);
+        useLedgerStore.getState().setAuthError(false);
+
         console.log('Database saved to Drive successfully');
     } catch (error) {
         console.error('Failed to save to Drive:', error);
+
+        if (error instanceof Error && error.name === 'GDriveAuthError') {
+            useLedgerStore.getState().setAuthError(true);
+        }
+
         throw error;
     } finally {
         syncInProgress = false;

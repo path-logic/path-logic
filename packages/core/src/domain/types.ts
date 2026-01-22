@@ -201,6 +201,8 @@ export interface IAccount {
     createdAt: ISODateString;
     /** ISO timestamp when the record was last modified. */
     updatedAt: ISODateString;
+    /** ISO timestamp when the record was soft-deleted (null if active). */
+    deletedAt: ISODateString | null;
     /** Optional detailed information for loan accounts. */
     loanDetails?: ILoanDetails;
 }

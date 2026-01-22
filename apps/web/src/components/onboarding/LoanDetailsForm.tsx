@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Home, Car, Receipt } from 'lucide-react';
+import { FormGuide } from '@/components/ui/FormGuide';
 
 interface ILoanDetailsFormProps {
     type: AccountType;
@@ -58,6 +59,35 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
     const [error, setError] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    const LOAN_GUIDE_CONTENT = {
+        'original-amount': {
+            title: 'Initial Principal',
+            description: 'The total amount you borrowed at the start of the loan.',
+            tips: ['Check your opening statement or disclosure.', 'Excludes future interest payments.']
+        },
+        'interest-rate': {
+            title: 'Interest Rate (APR)',
+            description: 'The annual cost of borrowing, expressed as a percentage.',
+            tips: ['Enter exactly as seen on your bill (e.g. 5.25 for 5.25%).', 'Fixed rates stay the same; variable rates change.']
+        },
+        'term-months': {
+            title: 'Loan Duration',
+            description: 'The total length of time given to repay the loan in full.',
+            tips: ['Standard mortgages are 360 months (30 years).', 'Auto loans are often 60 or 72 months.']
+        },
+        'monthly-payment': {
+            title: 'Recurring Payment',
+            description: 'The amount you are required to pay each month.',
+            tips: ['Use the Calculate button to estimate based on principal and rate.', 'Does not include potential late fees.']
+        },
+        'escrow': {
+            title: 'Escrow Account',
+            description: 'Funds held by the lender for property taxes and insurance.',
+            tips: ['Most mortgages include property tax and insurance in the payment.', 'Select this if your monthly payment includes these costs.']
+        }
+    };
 
     const handleAutoCalculate = (): void => {
         const principalCents = Math.round(parseFloat(originalAmount || '0') * 100);
@@ -152,6 +182,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                 clearedBalance: currentBalanceCents,
                 pendingBalance: currentBalanceCents,
                 isActive: true,
+                deletedAt: null,
                 createdAt: new Date().toISOString() as ISODateString,
                 updatedAt: new Date().toISOString() as ISODateString,
                 loanDetails: loanDetails
@@ -175,7 +206,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
     }, [type]);
 
     return (
-        <Card interactive accentColor="bg-amber-500" className="w-full max-w-2xl p-8 border-border/50">
+        <Card accentColor="bg-amber-500" className="w-full max-w-2xl p-8 border-border/50">
             <div className="flex items-center gap-4 mb-8 pb-4 border-b border-border/30">
                 <div className="w-14 h-14 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-inner">
                     <Icon className="w-7 h-7 text-amber-500" />
@@ -222,6 +253,8 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 type="number"
                                 value={originalAmount}
                                 onChange={(e) => setOriginalAmount(e.target.value)}
+                                onFocus={() => setFocusedField('original-amount')}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="0.00"
                                 className="font-mono"
                             />
@@ -246,6 +279,8 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 step="0.001"
                                 value={interestRate}
                                 onChange={(e) => setInterestRate(e.target.value)}
+                                onFocus={() => setFocusedField('interest-rate')}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="3.5"
                                 className="font-mono text-base"
                             />
@@ -257,6 +292,8 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 type="number"
                                 value={termMonths}
                                 onChange={(e) => setTermMonths(e.target.value)}
+                                onFocus={() => setFocusedField('term-months')}
+                                onBlur={() => setFocusedField(null)}
                                 placeholder="360"
                                 className="font-mono"
                             />
@@ -286,6 +323,8 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                     type="number"
                                     value={monthlyPayment}
                                     onChange={(e) => setMonthlyPayment(e.target.value)}
+                                    onFocus={() => setFocusedField('monthly-payment')}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder="0.00"
                                     className="font-mono flex-1 text-base"
                                 />
@@ -344,6 +383,8 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                         id="escrow"
                                         checked={escrowIncluded}
                                         onChange={(e) => setEscrowIncluded(e.target.checked)}
+                                        onFocus={() => setFocusedField('escrow')}
+                                        onBlur={() => setFocusedField(null)}
                                         className="w-4 h-4 rounded border-border/50 bg-muted/30 accent-primary"
                                     />
                                     <label htmlFor="escrow" className="text-sm font-medium text-foreground cursor-pointer select-none">Includes Escrow?</label>
@@ -465,6 +506,12 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                     </Button>
                 </div>
             </div>
+
+            <FormGuide
+                guideId="loan-details"
+                targetFieldId={focusedField}
+                content={LOAN_GUIDE_CONTENT}
+            />
         </Card>
     );
 }

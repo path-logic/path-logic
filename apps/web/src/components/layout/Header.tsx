@@ -1,17 +1,18 @@
 'use client';
 
-import * as React from 'react';
-import { usePathname } from 'next/navigation';
+import { type ITransaction, Money, TransactionStatus } from '@path-logic/core';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { Money, TransactionStatus, type ITransaction } from '@path-logic/core';
-import { useLedgerStore } from '@/store/ledgerStore';
-import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
+import * as React from 'react';
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { useLedgerStore } from '@/store/ledgerStore';
 
 export function Header(): React.JSX.Element {
     const pathname: string | null = usePathname();
-    const { transactions, isInitialized } = useLedgerStore();
+    const { transactions } = useLedgerStore();
     const { data: session } = useSession();
 
     const clearedBalance: number = transactions
@@ -28,7 +29,7 @@ export function Header(): React.JSX.Element {
     }
 
     const navItems: Array<INavItem> = [
-        { name: 'Ledger', href: '/' },
+        { name: 'Overview', href: '/' },
         { name: 'Accounts', href: '/accounts' },
         { name: 'Payees', href: '/payees' },
         { name: 'Reports', href: '#' },
@@ -77,18 +78,53 @@ export function Header(): React.JSX.Element {
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="w-8 h-8 rounded-sm bg-accent border border-border flex items-center justify-center hover:bg-accent/80 transition-colors">
-                                <div className={cn("w-2 h-2 rounded-full", isInitialized ? "bg-emerald-500 animate-pulse" : "bg-muted")}></div>
+                            <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-border hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background">
+                                {session?.user?.image ? (
+                                    <img
+                                        src={session.user.image}
+                                        alt={session.user.name || 'User'}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-primary flex items-center justify-center">
+                                        <span className="text-primary-foreground font-bold text-xs">
+                                            {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </span>
+                                    </div>
+                                )}
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-card border-border">
-                            <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase border-b border-border mb-1">
-                                {session?.user?.email || 'User Session'}
+                        <DropdownMenuContent align="end" className="bg-card border-border w-56">
+                            <div className="flex items-center gap-3 px-3 py-2 border-b border-border mb-1">
+                                {session?.user?.image ? (
+                                    <img
+                                        src={session.user.image}
+                                        alt={session.user.name || 'User'}
+                                        className="w-10 h-10 rounded-full object-cover border border-border"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                                        <span className="text-primary-foreground font-bold text-sm">
+                                            {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="text-sm font-bold text-foreground truncate">
+                                        {session?.user?.name || 'User'}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground truncate">
+                                        {session?.user?.email || ''}
+                                    </span>
+                                </div>
                             </div>
                             <DropdownMenuItem className="text-[10px] uppercase font-bold focus:bg-accent cursor-pointer">
                                 Profile Settings
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-[10px] uppercase font-bold focus:bg-accent cursor-pointer text-destructive">
+                            <DropdownMenuItem
+                                onClick={(): void => { void signOut({ callbackUrl: '/' }); }}
+                                className="text-[10px] uppercase font-bold focus:bg-accent cursor-pointer text-destructive"
+                            >
                                 Sign Out
                             </DropdownMenuItem>
                         </DropdownMenuContent>
