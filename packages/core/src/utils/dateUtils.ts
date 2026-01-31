@@ -10,7 +10,7 @@ export function formatLocaleDate(isoDate: string, locale: string = 'en-US'): str
             dateStyle: 'long',
             timeZone: 'UTC',
         }).format(date);
-    } catch (e) {
+    } catch {
         return isoDate;
     }
 }

@@ -41,7 +41,7 @@ export function CalculatorInput({
                 onChange(finalValue);
                 return finalValue;
             }
-        } catch (_e) {
+        } catch {
             // Ignore parse errors while typing
         }
         return expr;

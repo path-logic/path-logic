@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
+import { Frequency, type IRecurringSchedule, PaymentMethod, ScheduleType } from '../domain/types';
 import { RecurringEngine } from './RecurringEngine';
-import { Frequency, PaymentMethod, ScheduleType, type IRecurringSchedule } from '../domain/types';
 
 describe('RecurringEngine', () => {
     describe('calculateNextDueDate', () => {

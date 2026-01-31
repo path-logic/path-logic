@@ -5,7 +5,6 @@ import {
     type IRecurringSchedule,
     type IAccount,
     type Frequency,
-    type PaymentMethod,
     Money,
     formatLocaleDate,
 } from '@path-logic/core';
@@ -55,7 +54,7 @@ export function RecurringSummaryTable({
             .join(' ');
     };
 
-    const getPaymentMethodIcon = (_method: PaymentMethod): React.JSX.Element => {
+    const getPaymentMethodIcon = (): React.JSX.Element => {
         // Placeholder for method-specific icons
         return <Calendar className="w-3 h-3 opacity-50" />;
     };
@@ -146,7 +145,7 @@ export function RecurringSummaryTable({
                                 </TableCell>
                                 <TableCell className="py-2">
                                     <div className="flex items-center gap-1.5">
-                                        {getPaymentMethodIcon(schedule.paymentMethod)}
+                                        {getPaymentMethodIcon()}
                                         <span className="text-[10px] font-bold uppercase text-muted-foreground/70 tracking-tight">
                                             {schedule.paymentMethod.replace('_', ' ')}
                                         </span>

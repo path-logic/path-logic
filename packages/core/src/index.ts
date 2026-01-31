@@ -26,9 +26,9 @@ export {
 export { RecurringEngine } from './engine/RecurringEngine';
 
 // === Utils ===
+export { formatLocaleDate } from './utils/dateUtils';
 export * as LoanCalculations from './utils/loanCalculations';
 export * as TypeGuards from './utils/typeGuards';
-export { formatLocaleDate } from './utils/dateUtils';
 
 // === Engine ===
 export type {
@@ -56,7 +56,6 @@ export type {
 export { QIFAccountType, QIFParser } from './parsers/QIFParser';
 export { centsToDollars, dollarsToCents, formatCurrency, parseCurrencyInput } from './shared/Money';
 export type { IEngineError, Result } from './shared/Result';
-export { Money };
-
 // === Shared ===
 import * as Money from './shared/Money';
+export { Money };

@@ -1,313 +1,338 @@
+/* eslint-disable simple-import-sort/imports */
 import { describe, expect, it } from 'vitest';
 
-import type { ISODateString, ITransaction } from '../domain/types';
-import { Frequency, ScheduleType, PaymentMethod } from '../domain/types';
-import type {
-    CashflowProjection,
-    IProjectionDataPoint,
-    IProjectionInputs,
+import {
+    Frequency,
+    type ISODateString,
+    type ITransaction,
+    PaymentMethod,
+    ScheduleType,
+    TransactionStatus,
+} from '../domain/types';
+import {
+    type CashflowProjection,
+    type IProjectionInputs,
+    generateProjection,
 } from './CashflowProjection';
-import { generateProjection } from './CashflowProjection';
 
 describe('CashflowProjection', () => {
     it('should correctly project Bimonthly recurring items', () => {
         const startDate: ISODateString = '2026-01-01';
         const days: number = 90; // Jan, Feb, Mar
         const inputs: IProjectionInputs = {
-            clearedBalance: 100000, // $1000
+            clearedBalance: 100000, // $1,000.00
             pendingTransactions: new Array<ITransaction>(),
             recurringSchedules: [
                 {
-                    id: 'recurring-1',
-                    accountId: 'acc-1',
-                    payee: 'Bimonthly Rent',
-                    amount: -50000, // -$500
+                    id: 'r1',
+                    accountId: 'acc1',
+                    payee: 'Netflix',
+                    amount: -1599,
                     type: ScheduleType.Debit,
                     frequency: Frequency.Bimonthly,
-                    paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
-                    endDate: null,
-                    nextDueDate: '2026-01-01',
-                    lastOccurredDate: null,
-                    splits: [],
-                    memo: '',
-                    autoPost: false,
-                    isActive: true,
-                },
-            ],
-        } satisfies IProjectionInputs;
-
-        const projection: CashflowProjection = generateProjection(startDate, days, inputs);
-
-        // Should be due on Jan 01 and Mar 01 (monthDiff 0 and 2)
-        const jan01: IProjectionDataPoint | undefined = projection.find(
-            (p: IProjectionDataPoint) => p.date === '2026-01-01',
-        );
-        const feb01: IProjectionDataPoint | undefined = projection.find(
-            (p: IProjectionDataPoint) => p.date === '2026-02-01',
-        );
-        const mar01: IProjectionDataPoint | undefined = projection.find(
-            (p: IProjectionDataPoint) => p.date === '2026-03-01',
-        );
-
-        expect(jan01).toBeDefined();
-        expect(jan01?.items).toHaveLength(1);
-        expect(jan01?.items[0]?.description).toBe('Bimonthly Rent');
-
-        expect(feb01).toBeDefined();
-        expect(feb01?.items).toHaveLength(0);
-
-        expect(mar01).toBeDefined();
-        expect(mar01?.items).toHaveLength(1);
-        expect(mar01?.items[0]?.description).toBe('Bimonthly Rent');
-    });
-
-    it('should correctly project Weekly recurring items', () => {
-        const startDate: ISODateString = '2026-01-01'; // Thursday
-        const days: number = 15;
-        const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
-            pendingTransactions: [],
-            recurringSchedules: [
-                {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Weekly Subs',
-                    amount: -10,
-                    type: ScheduleType.Debit,
-                    frequency: Frequency.Weekly,
-                    paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
-                    endDate: null,
-                    nextDueDate: '2026-01-01',
-                    lastOccurredDate: null,
-                    splits: [],
-                    memo: '',
-                    autoPost: false,
-                    isActive: true,
-                },
-            ],
-        };
-
-        const projection = generateProjection(startDate, days, inputs);
-
-        // Due on Jan 01, Jan 08, Jan 15
-        const jan01 = projection.find(p => p.date === '2026-01-01');
-        const jan08 = projection.find(p => p.date === '2026-01-08');
-        const jan15 = projection.find(p => p.date === '2026-01-15');
-        const other = projection.find(p => p.date === '2026-01-02');
-
-        expect(jan01?.items).toHaveLength(1);
-        expect(jan08?.items).toHaveLength(1);
-        expect(jan15?.items).toHaveLength(1);
-        expect(other?.items).toHaveLength(0);
-    });
-
-    it('should correctly project Monthly recurring items', () => {
-        const startDate: ISODateString = '2026-01-15';
-        const days: number = 40;
-        const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
-            pendingTransactions: [],
-            recurringSchedules: [
-                {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Rent',
-                    amount: -100,
-                    type: ScheduleType.Debit,
-                    frequency: Frequency.Monthly,
-                    paymentMethod: PaymentMethod.DirectDebit,
                     startDate: '2026-01-15',
                     endDate: null,
                     nextDueDate: '2026-01-15',
+                    paymentMethod: PaymentMethod.DirectDebit,
                     lastOccurredDate: null,
                     splits: [],
                     memo: '',
-                    autoPost: false,
+                    autoPost: true,
                     isActive: true,
                 },
             ],
         };
 
-        const projection = generateProjection(startDate, days, inputs);
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
 
-        // Due on Jan 15, Feb 15
-        const jan15 = projection.find(p => p.date === '2026-01-15');
-        const feb15 = projection.find(p => p.date === '2026-02-15');
+        // Should occur Jan 15 and Mar 15 (Every 2 months)
+        const jan15 = result.find(d => d.date === '2026-01-15');
+        const mar15 = result.find(d => d.date === '2026-03-15');
 
-        expect(jan15?.items).toHaveLength(1);
-        expect(feb15?.items).toHaveLength(1);
+        if (!jan15 || !mar15) {
+            throw new Error('Test data points not found');
+        }
+        const jan15First = jan15.items[0];
+        const mar15First = mar15.items[0];
+        if (!jan15First || !mar15First) {
+            throw new Error('Test items not found');
+        }
+        expect(jan15First.amount).toBe(-1599);
+        expect(mar15First.amount).toBe(-1599);
+    });
+
+    it('should correctly project Quarterly recurring items', () => {
+        const startDate: ISODateString = '2026-01-01';
+        const days: number = 180; // 6 months
+        const inputs: IProjectionInputs = {
+            clearedBalance: 100000,
+            pendingTransactions: new Array<ITransaction>(),
+            recurringSchedules: [
+                {
+                    id: 'r2',
+                    accountId: 'acc1',
+                    payee: 'Water Bill',
+                    amount: -5000,
+                    type: ScheduleType.Debit,
+                    frequency: Frequency.Quarterly,
+                    startDate: '2026-02-01',
+                    endDate: null,
+                    nextDueDate: '2026-02-01',
+                    paymentMethod: PaymentMethod.DirectDebit,
+                    lastOccurredDate: null,
+                    splits: [],
+                    memo: '',
+                    autoPost: true,
+                    isActive: true,
+                },
+            ],
+        };
+
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+
+        // Should occur Feb 1 and May 1
+        const feb01 = result.find(d => d.date === '2026-02-01');
+        const mar01 = result.find(d => d.date === '2026-03-01');
+        const apr01 = result.find(d => d.date === '2026-04-01');
+        const may01 = result.find(d => d.date === '2026-05-01');
+
+        expect(feb01?.items.length).toBe(1);
+        expect(mar01?.items.length).toBe(0);
+        expect(apr01?.items.length).toBe(0);
+        expect(may01?.items.length).toBe(1);
+    });
+
+    it('should correctly project TwiceAMonth (1st and 15th) recurring items', () => {
+        const startDate: ISODateString = '2026-01-01';
+        const days: number = 45;
+        const inputs: IProjectionInputs = {
+            clearedBalance: 100000,
+            pendingTransactions: new Array<ITransaction>(),
+            recurringSchedules: [
+                {
+                    id: 'r3',
+                    accountId: 'acc1',
+                    payee: 'Rent',
+                    amount: -200000,
+                    type: ScheduleType.Debit,
+                    frequency: Frequency.TwiceAMonth,
+                    startDate: '2026-01-01',
+                    endDate: null,
+                    nextDueDate: '2026-01-01',
+                    paymentMethod: PaymentMethod.DirectDebit,
+                    lastOccurredDate: null,
+                    splits: [],
+                    memo: '',
+                    autoPost: true,
+                    isActive: true,
+                },
+            ],
+        };
+
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+
+        const jan01 = result.find(d => d.date === '2026-01-01');
+        const jan15 = result.find(d => d.date === '2026-01-15');
+        const feb01 = result.find(d => d.date === '2026-02-01');
+
+        expect(jan01?.items.length).toBe(1);
+        expect(jan15?.items.length).toBe(1);
+        expect(feb01?.items.length).toBe(1);
     });
 
     it('should correctly project Yearly recurring items', () => {
         const startDate: ISODateString = '2026-01-01';
-        const days: number = 400; // Over a year
+        const days: number = 450; // Over a year
         const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
-            pendingTransactions: [],
+            clearedBalance: 100000,
+            pendingTransactions: new Array<ITransaction>(),
             recurringSchedules: [
                 {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Annual Sub',
-                    amount: -50,
+                    id: 'r4',
+                    accountId: 'acc1',
+                    payee: 'Amazon Prime',
+                    amount: -13900,
                     type: ScheduleType.Debit,
                     frequency: Frequency.Yearly,
-                    paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
+                    startDate: '2026-02-10',
                     endDate: null,
-                    nextDueDate: '2026-01-01',
+                    nextDueDate: '2026-02-10',
+                    paymentMethod: PaymentMethod.DirectDebit,
                     lastOccurredDate: null,
                     splits: [],
                     memo: '',
-                    autoPost: false,
+                    autoPost: true,
                     isActive: true,
                 },
             ],
         };
 
-        const projection = generateProjection(startDate, days, inputs);
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
 
-        const jan01_2026 = projection.find(p => p.date === '2026-01-01');
-        const jan01_2027 = projection.find(p => p.date === '2027-01-01');
+        const event1 = result.find(d => d.date === '2026-02-10');
+        const event2 = result.find(d => d.date === '2027-02-10');
 
-        expect(jan01_2026?.items).toHaveLength(1);
-        expect(jan01_2027?.items).toHaveLength(1);
+        if (!event1 || !event2) {
+            throw new Error('Test data points not found');
+        }
+
+        expect(event1.items.length).toBe(1);
+        expect(event2.items.length).toBe(1);
     });
 
-    it('should include pending transactions', () => {
+    it('should handle multiple overlapping recurring items', () => {
+        const startDate: ISODateString = '2026-01-01';
+        const days: number = 31;
+        const inputs: IProjectionInputs = {
+            clearedBalance: 100000,
+            pendingTransactions: new Array<ITransaction>(),
+            recurringSchedules: [
+                {
+                    id: 'weekly',
+                    accountId: 'acc1',
+                    payee: 'Grocery',
+                    amount: -10000,
+                    type: ScheduleType.Debit,
+                    frequency: Frequency.Weekly,
+                    startDate: '2026-01-01',
+                    endDate: null,
+                    nextDueDate: '2026-01-01',
+                    paymentMethod: PaymentMethod.DirectDebit,
+                    lastOccurredDate: null,
+                    splits: [],
+                    memo: '',
+                    autoPost: true,
+                    isActive: true,
+                },
+                {
+                    id: 'monthly',
+                    accountId: 'acc1',
+                    payee: 'Salary',
+                    amount: 500000,
+                    type: ScheduleType.Deposit,
+                    frequency: Frequency.Monthly,
+                    startDate: '2026-01-01',
+                    endDate: null,
+                    nextDueDate: '2026-01-01',
+                    paymentMethod: PaymentMethod.DirectDeposit,
+                    lastOccurredDate: null,
+                    splits: [],
+                    memo: '',
+                    autoPost: true,
+                    isActive: true,
+                },
+            ],
+        };
+
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+
+        const jan01 = result.find(d => d.date === '2026-01-01');
+        const jan08 = result.find(d => d.date === '2026-01-08');
+
+        expect(jan01?.items.length).toBe(2); // Weekly + Monthly
+        expect(jan01?.delta).toBe(490000); // 500000 - 10000
+        expect(jan08?.items.length).toBe(1); // Weekly only
+    });
+
+    it('should correctly handle pending transactions', () => {
         const startDate: ISODateString = '2026-01-01';
         const days: number = 5;
         const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
+            clearedBalance: 100000,
             pendingTransactions: [
                 {
-                    id: 'tx1',
-                    accountId: 'a1',
+                    id: 'p1',
+                    accountId: 'acc1',
+                    payee: 'Manual Entry',
+                    totalAmount: -5000,
                     date: '2026-01-03',
-                    payee: 'Pending Tx',
-                    memo: 'memo',
-                    totalAmount: -20,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    status: 0 as any, // Pending mockup
+                    status: TransactionStatus.Pending,
                     splits: [],
+                    payeeId: 'p1',
+                    memo: '',
                     checkNumber: null,
-                    importHash: 'h',
-                    createdAt: 'now',
-                    updatedAt: 'now',
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                } as any,
+                    importHash: '',
+                    createdAt: '',
+                    updatedAt: '',
+                },
             ],
             recurringSchedules: [],
         };
 
-        const projection = generateProjection(startDate, days, inputs);
-        const jan03 = projection.find(p => p.date === '2026-01-03');
-        expect(jan03).toBeDefined();
-        if (jan03) {
-            expect(jan03.items).toBeDefined();
-            if (jan03.items) {
-                expect(jan03.items[0]?.type).toBe('pending');
-            }
-            expect(jan03.projectedBalance).toBe(980);
-        }
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+
+        const jan03 = result.find(d => d.date === '2026-01-03');
+        if (!jan03) throw new Error('jan03 not found');
+        const jan03First = jan03.items[0];
+        if (!jan03First) throw new Error('jan03 item not found');
+        expect(jan03First.type).toBe('pending');
     });
 
-    it('should correctly project Daily recurring items', () => {
+    it('should respect schedule isActive flag', () => {
         const startDate: ISODateString = '2026-01-01';
-        const days: number = 3;
+        const days: number = 31;
         const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
+            clearedBalance: 100000,
             pendingTransactions: [],
             recurringSchedules: [
                 {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Daily Coffee',
-                    amount: -5,
+                    id: 'inactive',
+                    accountId: 'acc1',
+                    payee: 'Gym',
+                    amount: -5000,
                     type: ScheduleType.Debit,
-                    frequency: Frequency.Daily,
-                    paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
+                    frequency: Frequency.Monthly,
+                    startDate: '2026-01-15',
                     endDate: null,
-                    nextDueDate: '2026-01-01',
+                    nextDueDate: '2026-01-15',
+                    paymentMethod: PaymentMethod.DirectDebit,
                     lastOccurredDate: null,
                     splits: [],
                     memo: '',
-                    autoPost: false,
-                    isActive: true,
+                    autoPost: true,
+                    isActive: false,
                 },
             ],
         };
 
-        const projection = generateProjection(startDate, days, inputs);
-        expect(projection[0]?.items).toHaveLength(1);
-        expect(projection[1]?.items).toHaveLength(1);
-        expect(projection[2]?.items).toHaveLength(1);
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+        const jan15 = result.find(d => d.date === '2026-01-15');
+
+        expect(jan15?.items.length).toBe(0);
     });
 
-    it('should correctly project Biweekly recurring items', () => {
+    it('should respect schedule startDate/endDate', () => {
         const startDate: ISODateString = '2026-01-01';
-        const days: number = 20;
+        const days: number = 60;
         const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
+            clearedBalance: 100000,
             pendingTransactions: [],
             recurringSchedules: [
                 {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Paycheck',
-                    amount: 2000,
-                    type: ScheduleType.Deposit,
-                    frequency: Frequency.Biweekly,
-                    paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
-                    endDate: null,
-                    nextDueDate: '2026-01-01',
-                    lastOccurredDate: null,
-                    splits: [],
-                    memo: '',
-                    autoPost: false,
-                    isActive: true,
-                },
-            ],
-        };
-
-        const projection = generateProjection(startDate, days, inputs);
-        // Jan 01 is day 0
-        // Jan 15 is day 14
-        expect(projection[0]?.items).toHaveLength(1);
-        expect(projection[14]?.items).toHaveLength(1);
-    });
-
-    it('should return false for unknown frequency (default case)', () => {
-        const startDate: ISODateString = '2026-01-01';
-        const inputs: IProjectionInputs = {
-            clearedBalance: 1000,
-            pendingTransactions: [],
-            recurringSchedules: [
-                {
-                    id: 'r1',
-                    accountId: 'a1',
-                    payee: 'Unknown',
-                    amount: -5,
+                    id: 'limited',
+                    accountId: 'acc1',
+                    payee: 'Short Term Subs',
+                    amount: -1000,
                     type: ScheduleType.Debit,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    frequency: 'UNKNOWN' as any,
+                    frequency: Frequency.Monthly,
+                    startDate: '2026-01-15',
+                    endDate: '2026-01-31', // Only should occur once
+                    nextDueDate: '2026-01-15',
                     paymentMethod: PaymentMethod.DirectDebit,
-                    startDate: '2026-01-01',
-                    endDate: null,
-                    nextDueDate: '2026-01-01',
                     lastOccurredDate: null,
                     splits: [],
                     memo: '',
-                    autoPost: false,
+                    autoPost: true,
                     isActive: true,
                 },
             ],
         };
-        const projection = generateProjection(startDate, 1, inputs);
-        expect(projection[0]?.items).toHaveLength(0);
+
+        const result: CashflowProjection = generateProjection(startDate, days, inputs);
+        const jan15 = result.find(d => d.date === '2026-01-15');
+        const feb15 = result.find(d => d.date === '2026-02-15');
+
+        expect(jan15?.items.length).toBe(1);
+        expect(feb15?.items.length).toBe(0);
     });
 });

@@ -1,14 +1,10 @@
 import { Frequency, type IRecurringSchedule, type ISODateString } from '../domain/types';
 
-/**
- * Core engine for calculating recurring transaction dates and overdue status.
- * All date math is performed in UTC to ensure consistency across clients.
- */
-export class RecurringEngine {
+export const RecurringEngine = {
     /**
      * Calculates the next due date after the provided target date.
      */
-    public static calculateNextDueDate(
+    calculateNextDueDate(
         startDate: ISODateString,
         frequency: Frequency,
         lastDueDate?: ISODateString,
@@ -38,12 +34,12 @@ export class RecurringEngine {
             default:
                 return baseDateString;
         }
-    }
+    },
 
     /**
      * Determines if a schedule is due on a specific date.
      */
-    public static isDueOnDate(schedule: IRecurringSchedule, targetDate: ISODateString): boolean {
+    isDueOnDate(schedule: IRecurringSchedule, targetDate: ISODateString): boolean {
         if (!schedule.isActive) return false;
         // Ensure frequency is supported
         if (!Object.values(Frequency).includes(schedule.frequency as Frequency)) return false;
@@ -65,12 +61,12 @@ export class RecurringEngine {
         }
 
         return false;
-    }
+    },
 
     /**
      * Calculates how many occurrences are between nextDueDate and today.
      */
-    public static getOverdueCount(schedule: IRecurringSchedule, today: ISODateString): number {
+    getOverdueCount(schedule: IRecurringSchedule, today: ISODateString): number {
         if (!schedule.isActive || schedule.nextDueDate > today) return 0;
 
         let count = 0;
@@ -91,15 +87,15 @@ export class RecurringEngine {
         }
 
         return count;
-    }
+    },
 
-    private static addDays(date: Date, days: number): ISODateString {
+    addDays(date: Date, days: number): ISODateString {
         const result = new Date(date);
         result.setUTCDate(result.getUTCDate() + days);
         return result.toISOString().split('T')[0] as ISODateString;
-    }
+    },
 
-    private static addMonths(date: Date, months: number): ISODateString {
+    addMonths(date: Date, months: number): ISODateString {
         const result = new Date(date);
         const dayOfMonth = result.getUTCDate();
         result.setUTCMonth(result.getUTCMonth() + months);
@@ -109,9 +105,9 @@ export class RecurringEngine {
             result.setUTCDate(0);
         }
         return result.toISOString().split('T')[0] as ISODateString;
-    }
+    },
 
-    private static calculateNextSemiMonthly(date: Date): ISODateString {
+    calculateNextSemiMonthly(date: Date): ISODateString {
         const day = date.getUTCDate();
         const result = new Date(date);
 
@@ -125,5 +121,5 @@ export class RecurringEngine {
         }
 
         return result.toISOString().split('T')[0] as ISODateString;
-    }
-}
+    },
+};

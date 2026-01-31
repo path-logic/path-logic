@@ -58,7 +58,7 @@ export const CreateNew: Story = {
 
 export const EditExisting: Story = {
     args: {
-        accounts: mockAccounts as any,
+        accounts: mockAccounts as Array<IAccount>,
         initialData: {
             id: 's1',
             payee: 'Panther Psychology',
@@ -77,7 +77,7 @@ export const EditExisting: Story = {
 
 export const Paycheck: Story = {
     args: {
-        accounts: mockAccounts as any,
+        accounts: mockAccounts as Array<IAccount>,
         initialData: {
             id: 'p1',
             payee: 'Acme Corp',
