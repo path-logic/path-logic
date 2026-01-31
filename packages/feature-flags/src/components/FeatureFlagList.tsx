@@ -4,10 +4,10 @@ import type { IFeatureFlagListProps, IFeatureFlagListRenderProps } from '../type
 
 /**
  * Headless FeatureFlagList component using render props pattern
- * 
+ *
  * Iterates over flag configurations and provides render props for each flag.
  * Allows consumers to control the layout and styling of the list.
- * 
+ *
  * @example
  * <FeatureFlagList flagConfigs={Object.values(FLAG_CONFIGS)}>
  *   {({ flag, index, total }) => (

@@ -16,11 +16,19 @@ export type {
     ISplit,
     ITransaction,
 } from './domain/types';
-export { AccountType, Frequency, TransactionStatus } from './domain/types';
+export {
+    AccountType,
+    Frequency,
+    PaymentMethod,
+    ScheduleType,
+    TransactionStatus,
+} from './domain/types';
+export { RecurringEngine } from './engine/RecurringEngine';
 
 // === Utils ===
 export * as LoanCalculations from './utils/loanCalculations';
 export * as TypeGuards from './utils/typeGuards';
+export { formatLocaleDate } from './utils/dateUtils';
 
 // === Engine ===
 export type {

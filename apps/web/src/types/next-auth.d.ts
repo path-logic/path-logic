@@ -1,6 +1,6 @@
-import "next-auth";
+import 'next-auth';
 
-declare module "next-auth" {
+declare module 'next-auth' {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     interface Session {
         accessToken?: string;

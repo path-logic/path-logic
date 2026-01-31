@@ -18,7 +18,7 @@ export enum AccountType {
     Cash = 'CASH',
     Mortgage = 'MORTGAGE',
     AutoLoan = 'AUTO_LOAN',
-    PersonalLoan = 'PERSONAL_LOAN'
+    PersonalLoan = 'PERSONAL_LOAN',
 }
 
 export interface IAccount {
@@ -83,17 +83,17 @@ export interface IPersonalLoanMetadata {
 export function calculateMonthlyPayment(
     principal: Cents,
     annualRate: number,
-    termMonths: number
+    termMonths: number,
 ): Cents {
     if (annualRate === 0) {
         return Math.round(principal / termMonths);
     }
-    
+
     const monthlyRate: number = annualRate / 12;
     const numerator: number = monthlyRate * Math.pow(1 + monthlyRate, termMonths);
     const denominator: number = Math.pow(1 + monthlyRate, termMonths) - 1;
     const payment: number = (principal / 100) * (numerator / denominator);
-    
+
     return Math.round(payment * 100);
 }
 
@@ -103,7 +103,7 @@ export function calculateMonthlyPayment(
 export function calculateTotalInterest(
     monthlyPayment: Cents,
     termMonths: number,
-    principal: Cents
+    principal: Cents,
 ): Cents {
     const totalPaid: Cents = monthlyPayment * termMonths;
     return totalPaid - principal;
@@ -116,18 +116,18 @@ export function calculatePayoffDate(
     currentBalance: Cents,
     monthlyPayment: Cents,
     interestRate: number,
-    startDate: ISODateString
+    startDate: ISODateString,
 ): ISODateString {
     // Simplified calculation - actual implementation would use amortization schedule
     const monthlyRate: number = interestRate / 12;
     const monthsRemaining: number = Math.ceil(
         Math.log(monthlyPayment / (monthlyPayment - Math.abs(currentBalance / 100) * monthlyRate)) /
-        Math.log(1 + monthlyRate)
+            Math.log(1 + monthlyRate),
     );
-    
+
     const payoffDate: Date = new Date(startDate);
     payoffDate.setMonth(payoffDate.getMonth() + monthsRemaining);
-    
+
     return payoffDate.toISOString() as ISODateString;
 }
 
@@ -136,28 +136,32 @@ export function calculatePayoffDate(
  */
 export function validateLoanDetails(details: ILoanDetails, currentBalance: Cents): Array<string> {
     const errors: Array<string> = [];
-    
+
     if (Math.abs(currentBalance) > details.originalAmount) {
         errors.push('Current balance cannot exceed original loan amount');
     }
-    
+
     if (details.interestRate < 0 || details.interestRate > 1) {
         errors.push('Interest rate must be between 0% and 100%');
     }
-    
+
     if (details.termMonths < 1 || details.termMonths > 600) {
         errors.push('Loan term must be between 1 and 600 months');
     }
-    
+
     if (details.paymentDueDay < 1 || details.paymentDueDay > 31) {
         errors.push('Payment due day must be between 1 and 31');
     }
-    
-    const minPayment: Cents = Math.round((details.originalAmount / 100) * (details.interestRate / 12) * 100);
+
+    const minPayment: Cents = Math.round(
+        (details.originalAmount / 100) * (details.interestRate / 12) * 100,
+    );
     if (details.monthlyPayment < minPayment) {
-        errors.push(`Monthly payment must be at least $${(minPayment / 100).toFixed(2)} (interest-only)`);
+        errors.push(
+            `Monthly payment must be at least $${(minPayment / 100).toFixed(2)} (interest-only)`,
+        );
     }
-    
+
     return errors;
 }
 ```
@@ -168,11 +172,7 @@ export function validateLoanDetails(details: ILoanDetails, currentBalance: Cents
 
 ```typescript
 export function isLoanAccount(type: AccountType): boolean {
-    return [
-        AccountType.Mortgage,
-        AccountType.AutoLoan,
-        AccountType.PersonalLoan
-    ].includes(type);
+    return [AccountType.Mortgage, AccountType.AutoLoan, AccountType.PersonalLoan].includes(type);
 }
 
 export function isMortgageMetadata(metadata: unknown): metadata is IMortgageMetadata {
@@ -180,8 +180,11 @@ export function isMortgageMetadata(metadata: unknown): metadata is IMortgageMeta
 }
 
 export function isAutoLoanMetadata(metadata: unknown): metadata is IAutoLoanMetadata {
-    return typeof metadata === 'object' && metadata !== null && 
-           ('vehicleMake' in metadata || 'vehicleModel' in metadata || 'vin' in metadata);
+    return (
+        typeof metadata === 'object' &&
+        metadata !== null &&
+        ('vehicleMake' in metadata || 'vehicleModel' in metadata || 'vin' in metadata)
+    );
 }
 
 export function isPersonalLoanMetadata(metadata: unknown): metadata is IPersonalLoanMetadata {
@@ -221,7 +224,7 @@ CREATE INDEX IF NOT EXISTS idx_loan_details_account_id ON loan_details(account_i
 ```typescript
 export function insertAccount(account: IAccount): void {
     const db: Database = getDatabase();
-    
+
     db.run(
         `INSERT INTO accounts (id, name, type, institution_name, cleared_balance, pending_balance, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -234,10 +237,10 @@ export function insertAccount(account: IAccount): void {
             account.pendingBalance,
             account.isActive ? 1 : 0,
             account.createdAt,
-            account.updatedAt
-        ]
+            account.updatedAt,
+        ],
     );
-    
+
     // Insert loan details if present
     if (account.loanDetails) {
         insertLoanDetails(account.id, account.loanDetails);
@@ -247,7 +250,7 @@ export function insertAccount(account: IAccount): void {
 export function insertLoanDetails(accountId: string, details: ILoanDetails): void {
     const db: Database = getDatabase();
     const now: ISODateString = new Date().toISOString() as ISODateString;
-    
+
     db.run(
         `INSERT INTO loan_details (account_id, original_amount, interest_rate, term_months, monthly_payment, payment_due_day, start_date, metadata, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -261,20 +264,17 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
             details.startDate,
             details.metadata ? JSON.stringify(details.metadata) : null,
             now,
-            now
-        ]
+            now,
+        ],
     );
 }
 
 export function getLoanDetails(accountId: string): ILoanDetails | null {
     const db: Database = getDatabase();
-    const row = db.exec(
-        `SELECT * FROM loan_details WHERE account_id = ?`,
-        [accountId]
-    )[0];
-    
+    const row = db.exec(`SELECT * FROM loan_details WHERE account_id = ?`, [accountId])[0];
+
     if (!row || row.values.length === 0) return null;
-    
+
     const [
         _accountId,
         originalAmount,
@@ -283,9 +283,9 @@ export function getLoanDetails(accountId: string): ILoanDetails | null {
         monthlyPayment,
         paymentDueDay,
         startDate,
-        metadataJson
+        metadataJson,
     ] = row.values[0];
-    
+
     return {
         originalAmount: originalAmount as Cents,
         interestRate: interestRate as number,
@@ -293,16 +293,16 @@ export function getLoanDetails(accountId: string): ILoanDetails | null {
         monthlyPayment: monthlyPayment as Cents,
         paymentDueDay: paymentDueDay as number,
         startDate: startDate as ISODateString,
-        metadata: metadataJson ? JSON.parse(metadataJson as string) : undefined
+        metadata: metadataJson ? JSON.parse(metadataJson as string) : undefined,
     };
 }
 
 export function getAllAccounts(): Array<IAccount> {
     const db: Database = getDatabase();
     const result = db.exec(`SELECT * FROM accounts WHERE is_active = 1`);
-    
+
     if (!result || !result[0]) return [];
-    
+
     return result[0].values.map((row): IAccount => {
         const account: IAccount = {
             id: row[0] as string,
@@ -313,14 +313,14 @@ export function getAllAccounts(): Array<IAccount> {
             pendingBalance: row[5] as Cents,
             isActive: Boolean(row[6]),
             createdAt: row[7] as ISODateString,
-            updatedAt: row[8] as ISODateString
+            updatedAt: row[8] as ISODateString,
         };
-        
+
         // Load loan details if this is a loan account
         if (isLoanAccount(account.type)) {
             account.loanDetails = getLoanDetails(account.id) || undefined;
         }
-        
+
         return account;
     });
 }
@@ -333,6 +333,7 @@ export function getAllAccounts(): Array<IAccount> {
 **File**: `apps/web/src/components/onboarding/WelcomeWizard.tsx`
 
 Key changes:
+
 - Add state for expansion: `const [showMoreTypes, setShowMoreTypes] = useState<boolean>(false);`
 - Render primary types in grid
 - Render expansion button
@@ -344,6 +345,7 @@ Key changes:
 **File**: `apps/web/src/components/onboarding/LoanDetailsForm.tsx`
 
 New component for loan-specific fields with:
+
 - Common loan fields (all types)
 - Type-specific metadata fields
 - Real-time payment calculation
@@ -353,16 +355,19 @@ New component for loan-specific fields with:
 ## 5. Testing Strategy
 
 ### Unit Tests
+
 - Loan calculation functions (monthly payment, total interest, payoff date)
 - Validation functions
 - Type guards
 
 ### Integration Tests
+
 - Account creation with loan details
 - Database persistence and retrieval
 - Loan details update operations
 
 ### E2E Tests (Playwright)
+
 - Complete wizard flow for each loan type
 - Expansion/collapse interaction
 - Form validation
@@ -375,13 +380,15 @@ For existing databases without `loan_details` table:
 ```typescript
 export function migrateToLoanSupport(): void {
     const db: Database = getDatabase();
-    
+
     // Check if migration needed
-    const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='loan_details'");
+    const tables = db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='loan_details'",
+    );
     if (tables && tables[0] && tables[0].values.length > 0) {
         return; // Already migrated
     }
-    
+
     // Create loan_details table
     db.run(/* CREATE TABLE SQL from schema.sql */);
 }

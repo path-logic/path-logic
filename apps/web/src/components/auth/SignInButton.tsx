@@ -1,9 +1,9 @@
 'use client';
 
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShieldCheck, Database, Zap } from "lucide-react";
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ShieldCheck, Database, Zap } from 'lucide-react';
 
 export function SignInButton(): React.JSX.Element {
     return (
@@ -28,25 +28,32 @@ export function SignInButton(): React.JSX.Element {
                             <div>
                                 <p className="text-sm font-bold text-foreground">100% Private</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
-                                    All data encrypted client-side using AES-GCM 256-bit before storage.
+                                    All data encrypted client-side using AES-GCM 256-bit before
+                                    storage.
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent/30 transition-colors">
                             <Database className="text-emerald-500 w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm font-bold text-foreground">You Own the Data</p>
+                                <p className="text-sm font-bold text-foreground">
+                                    You Own the Data
+                                </p>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
-                                    Stored in your personal Google Drive. We never see it, and we never sell it.
+                                    Stored in your personal Google Drive. We never see it, and we
+                                    never sell it.
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent/30 transition-colors">
                             <Zap className="text-emerald-500 w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm font-bold text-foreground">Next-Gen Performance</p>
+                                <p className="text-sm font-bold text-foreground">
+                                    Next-Gen Performance
+                                </p>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
-                                    Local-first architecture with SQLite-WASM for blazing fast interaction.
+                                    Local-first architecture with SQLite-WASM for blazing fast
+                                    interaction.
                                 </p>
                             </div>
                         </div>
@@ -54,11 +61,14 @@ export function SignInButton(): React.JSX.Element {
 
                     <Button
                         onClick={(): void => {
-                            void signIn("google", { callbackUrl: "/" });
+                            void signIn('google', { callbackUrl: '/' });
                         }}
                         className="w-full text-foreground bg-white hover:bg-gray-100 font-bold py-6 rounded-md transition-all flex items-center justify-center gap-3 shadow-lg group"
                     >
-                        <svg className="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                        <svg
+                            className="w-5 h-5 transition-transform group-hover:scale-110"
+                            viewBox="0 0 24 24"
+                        >
                             <path
                                 fill="#4285F4"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -80,7 +90,8 @@ export function SignInButton(): React.JSX.Element {
                     </Button>
 
                     <p className="text-[10px] text-muted-foreground text-center mt-8 font-medium leading-relaxed max-w-[280px] mx-auto">
-                        By signing in, you agree to store encrypted financial data in your Google Drive appDataFolder.
+                        By signing in, you agree to store encrypted financial data in your Google
+                        Drive appDataFolder.
                     </p>
                 </CardContent>
             </Card>

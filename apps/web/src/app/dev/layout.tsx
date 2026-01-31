@@ -31,9 +31,7 @@ export default async function DevLayout({
                 </div>
 
                 <div className="flex-1 overflow-auto p-8">
-                    <div className="mx-auto max-w-7xl w-full">
-                        {children}
-                    </div>
+                    <div className="mx-auto max-w-7xl w-full">{children}</div>
                 </div>
             </div>
         </AppShell>

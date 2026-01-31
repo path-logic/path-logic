@@ -7,7 +7,15 @@ import { Money, type IAccount, AccountType } from '@path-logic/core';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, ChevronDown, ChevronRight, Landmark, CreditCard, Wallet, Banknote } from 'lucide-react';
+import {
+    Plus,
+    ChevronDown,
+    ChevronRight,
+    Landmark,
+    CreditCard,
+    Wallet,
+    Banknote,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SignInButton } from '@/components/auth/SignInButton';
 import { AppShell } from '@/components/layout/AppShell';
@@ -31,11 +39,16 @@ export default function AccountsPage(): React.JSX.Element {
 
     const getIcon = (type: AccountType): React.JSX.Element => {
         switch (type) {
-            case AccountType.Checking: return <Landmark className="w-3.5 h-3.5" />;
-            case AccountType.Savings: return <Banknote className="w-3.5 h-3.5" />;
-            case AccountType.Credit: return <CreditCard className="w-3.5 h-3.5" />;
-            case AccountType.Cash: return <Wallet className="w-3.5 h-3.5" />;
-            default: return <Landmark className="w-3.5 h-3.5" />;
+            case AccountType.Checking:
+                return <Landmark className="w-3.5 h-3.5" />;
+            case AccountType.Savings:
+                return <Banknote className="w-3.5 h-3.5" />;
+            case AccountType.Credit:
+                return <CreditCard className="w-3.5 h-3.5" />;
+            case AccountType.Cash:
+                return <Wallet className="w-3.5 h-3.5" />;
+            default:
+                return <Landmark className="w-3.5 h-3.5" />;
         }
     };
 
@@ -57,7 +70,9 @@ export default function AccountsPage(): React.JSX.Element {
                             </div>
                             <Button
                                 onClick={() => setIsAddDialogOpen(true)}
-                                variant="outline" size="sm" className="font-black text-[10px] uppercase h-8 border-primary/20 text-primary hover:bg-primary/10 tracking-widest"
+                                variant="outline"
+                                size="sm"
+                                className="font-black text-[10px] uppercase h-8 border-primary/20 text-primary hover:bg-primary/10 tracking-widest"
                             >
                                 <Plus className="w-3.5 h-3.5 mr-2" /> Add Account
                             </Button>
@@ -71,39 +86,68 @@ export default function AccountsPage(): React.JSX.Element {
                                             <div
                                                 key={account.id}
                                                 className={cn(
-                                                    "transition-all overflow-hidden border rounded-sm",
+                                                    'transition-all overflow-hidden border rounded-sm',
                                                     expandedId === account.id
-                                                        ? "bg-accent/40 border-primary/50 shadow-[0_0_20px_rgba(56,189,248,0.1)]"
-                                                        : "bg-transparent border-border/50 hover:border-primary/30"
+                                                        ? 'bg-accent/40 border-primary/50 shadow-[0_0_20px_rgba(56,189,248,0.1)]'
+                                                        : 'bg-transparent border-border/50 hover:border-primary/30',
                                                 )}
                                             >
                                                 <div
                                                     className="p-3 flex items-center justify-between cursor-pointer select-none h-14"
-                                                    onClick={(): void => setExpandedId(expandedId === account.id ? null : account.id)}
+                                                    onClick={(): void =>
+                                                        setExpandedId(
+                                                            expandedId === account.id
+                                                                ? null
+                                                                : account.id,
+                                                        )
+                                                    }
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className={cn(
-                                                            "w-8 h-8 rounded-sm flex items-center justify-center transition-colors shadow-inner",
-                                                            expandedId === account.id ? "bg-primary text-primary-foreground font-black" : "bg-muted text-muted-foreground"
-                                                        )}>
+                                                        <div
+                                                            className={cn(
+                                                                'w-8 h-8 rounded-sm flex items-center justify-center transition-colors shadow-inner',
+                                                                expandedId === account.id
+                                                                    ? 'bg-primary text-primary-foreground font-black'
+                                                                    : 'bg-muted text-muted-foreground',
+                                                            )}
+                                                        >
                                                             {getIcon(account.type)}
                                                         </div>
                                                         <div>
-                                                            <h3 className="text-[11px] font-black uppercase tracking-tight">{account.name}</h3>
-                                                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{account.institutionName}</p>
+                                                            <h3 className="text-[11px] font-black uppercase tracking-tight">
+                                                                {account.name}
+                                                            </h3>
+                                                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]">
+                                                                {account.institutionName}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-8">
                                                         <div className="text-right">
-                                                            <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Current Balance</p>
-                                                            <p className={cn(
-                                                                "font-mono font-bold text-[12px]",
-                                                                (account.clearedBalance + account.pendingBalance) >= 0 ? "text-emerald-500" : "text-destructive"
-                                                            )}>
-                                                                {Money.formatCurrency(account.clearedBalance + account.pendingBalance)}
+                                                            <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">
+                                                                Current Balance
+                                                            </p>
+                                                            <p
+                                                                className={cn(
+                                                                    'font-mono font-bold text-[12px]',
+                                                                    account.clearedBalance +
+                                                                        account.pendingBalance >=
+                                                                        0
+                                                                        ? 'text-emerald-500'
+                                                                        : 'text-destructive',
+                                                                )}
+                                                            >
+                                                                {Money.formatCurrency(
+                                                                    account.clearedBalance +
+                                                                        account.pendingBalance,
+                                                                )}
                                                             </p>
                                                         </div>
-                                                        {expandedId === account.id ? <ChevronDown className="w-4 h-4 text-primary" /> : <ChevronRight className="w-4 h-4 text-muted-foreground/50" />}
+                                                        {expandedId === account.id ? (
+                                                            <ChevronDown className="w-4 h-4 text-primary" />
+                                                        ) : (
+                                                            <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -111,28 +155,80 @@ export default function AccountsPage(): React.JSX.Element {
                                                     <div className="px-14 pb-4 pt-0 border-t border-border/50 animate-in slide-in-from-top-1">
                                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
                                                             <div>
-                                                                <p className="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest">Metadata</p>
+                                                                <p className="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest">
+                                                                    Metadata
+                                                                </p>
                                                                 <div className="space-y-1">
-                                                                    <p className="text-[10px] font-bold uppercase"><span className="text-muted-foreground/50">Type:</span> {account.type}</p>
-                                                                    <p className="text-[10px] font-bold uppercase"><span className="text-muted-foreground/50">Status:</span> {account.isActive ? 'Active' : 'Archived'}</p>
-                                                                    <p className="text-[10px] font-mono text-muted-foreground/70"><span className="uppercase font-sans font-bold text-[10px] text-muted-foreground/50">ID:</span> {account.id}</p>
+                                                                    <p className="text-[10px] font-bold uppercase">
+                                                                        <span className="text-muted-foreground/50">
+                                                                            Type:
+                                                                        </span>{' '}
+                                                                        {account.type}
+                                                                    </p>
+                                                                    <p className="text-[10px] font-bold uppercase">
+                                                                        <span className="text-muted-foreground/50">
+                                                                            Status:
+                                                                        </span>{' '}
+                                                                        {account.isActive
+                                                                            ? 'Active'
+                                                                            : 'Archived'}
+                                                                    </p>
+                                                                    <p className="text-[10px] font-mono text-muted-foreground/70">
+                                                                        <span className="uppercase font-sans font-bold text-[10px] text-muted-foreground/50">
+                                                                            ID:
+                                                                        </span>{' '}
+                                                                        {account.id}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest">Summary</p>
+                                                                <p className="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest">
+                                                                    Summary
+                                                                </p>
                                                                 <div className="space-y-1">
-                                                                    <p className="text-[10px] font-bold uppercase"><span className="text-muted-foreground/50">Cleared:</span> <span className="font-mono text-emerald-500">{Money.formatCurrency(account.clearedBalance)}</span></p>
-                                                                    <p className="text-[10px] font-bold uppercase"><span className="text-muted-foreground/50">Pending:</span> <span className="font-mono text-amber-500">{Money.formatCurrency(account.pendingBalance)}</span></p>
+                                                                    <p className="text-[10px] font-bold uppercase">
+                                                                        <span className="text-muted-foreground/50">
+                                                                            Cleared:
+                                                                        </span>{' '}
+                                                                        <span className="font-mono text-emerald-500">
+                                                                            {Money.formatCurrency(
+                                                                                account.clearedBalance,
+                                                                            )}
+                                                                        </span>
+                                                                    </p>
+                                                                    <p className="text-[10px] font-bold uppercase">
+                                                                        <span className="text-muted-foreground/50">
+                                                                            Pending:
+                                                                        </span>{' '}
+                                                                        <span className="font-mono text-amber-500">
+                                                                            {Money.formatCurrency(
+                                                                                account.pendingBalance,
+                                                                            )}
+                                                                        </span>
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                             <div className="flex flex-col justify-end gap-2">
-                                                                <Link href={`/accounts/${account.id}/info`} className="w-full">
-                                                                    <Button variant="outline" size="sm" className="w-full text-[9px] uppercase font-black h-7 tracking-widest">
+                                                                <Link
+                                                                    href={`/accounts/${account.id}/info`}
+                                                                    className="w-full"
+                                                                >
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="w-full text-[9px] uppercase font-black h-7 tracking-widest"
+                                                                    >
                                                                         Edit Details
                                                                     </Button>
                                                                 </Link>
-                                                                <Link href={`/accounts/${account.id}`} className="w-full">
-                                                                    <Button size="sm" className="w-full bg-primary/10 hover:bg-primary/20 text-primary text-[9px] uppercase font-black h-7 border border-primary/20 tracking-widest">
+                                                                <Link
+                                                                    href={`/accounts/${account.id}`}
+                                                                    className="w-full"
+                                                                >
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="w-full bg-primary/10 hover:bg-primary/20 text-primary text-[9px] uppercase font-black h-7 border border-primary/20 tracking-widest"
+                                                                    >
                                                                         View
                                                                     </Button>
                                                                 </Link>
@@ -153,7 +249,7 @@ export default function AccountsPage(): React.JSX.Element {
             <NewAccountDialog
                 isOpen={isAddDialogOpen}
                 onClose={() => setIsAddDialogOpen(false)}
-                onAccountCreated={async (acc) => {
+                onAccountCreated={async acc => {
                     await addAccount(acc);
                     setIsAddDialogOpen(false);
                 }}
@@ -161,4 +257,3 @@ export default function AccountsPage(): React.JSX.Element {
         </AppShell>
     );
 }
-

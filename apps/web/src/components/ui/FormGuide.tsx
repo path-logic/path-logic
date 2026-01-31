@@ -14,7 +14,12 @@ interface IFormGuideProps {
     className?: string;
 }
 
-export function FormGuide({ guideId, targetFieldId, content, className }: IFormGuideProps): React.JSX.Element | null {
+export function FormGuide({
+    guideId,
+    targetFieldId,
+    content,
+    className,
+}: IFormGuideProps): React.JSX.Element | null {
     const { getSetting, updateSetting } = useUserStore();
     const [isVisible, setIsVisible] = useState(true);
 
@@ -42,7 +47,7 @@ export function FormGuide({ guideId, targetFieldId, content, className }: IFormG
     // Trigger button if disabled
     if (isDisabled) {
         return (
-            <div className={cn("fixed bottom-6 right-6 z-50", className)}>
+            <div className={cn('fixed bottom-6 right-6 z-50', className)}>
                 <Button
                     variant="outline"
                     size="sm"
@@ -58,15 +63,19 @@ export function FormGuide({ guideId, targetFieldId, content, className }: IFormG
     if (!isVisible || !activeGuide) return null;
 
     return (
-        <div className={cn(
-            "fixed bottom-6 right-6 w-80 bg-card border border-border/50 shadow-2xl rounded-sm overflow-hidden animate-in slide-in-from-right-4 duration-300 z-50",
-            className
-        )}>
+        <div
+            className={cn(
+                'fixed bottom-6 right-6 w-80 bg-card border border-border/50 shadow-2xl rounded-sm overflow-hidden animate-in slide-in-from-right-4 duration-300 z-50',
+                className,
+            )}
+        >
             {/* Header */}
             <div className="bg-muted px-4 py-2 border-b border-border/30 flex justify-between items-center bg-primary/5">
                 <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Guide</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                        Intelligence Guide
+                    </span>
                 </div>
                 <div className="flex items-center gap-1">
                     <button
@@ -99,10 +108,15 @@ export function FormGuide({ guideId, targetFieldId, content, className }: IFormG
 
                 {activeGuide.tips && activeGuide.tips.length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-border/20">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-primary/60">Pro Tips</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-primary/60">
+                            Pro Tips
+                        </span>
                         <ul className="space-y-1.5">
                             {activeGuide.tips.map((tip, idx) => (
-                                <li key={idx} className="flex gap-2 text-[10px] text-muted-foreground leading-snug">
+                                <li
+                                    key={idx}
+                                    className="flex gap-2 text-[10px] text-muted-foreground leading-snug"
+                                >
                                     <span className="text-primary font-black opacity-50">•</span>
                                     <span>{tip}</span>
                                 </li>
@@ -114,7 +128,9 @@ export function FormGuide({ guideId, targetFieldId, content, className }: IFormG
 
             {/* Footer */}
             <div className="bg-muted/30 px-4 py-2 flex justify-between items-center border-t border-border/20">
-                <span className="text-[9px] font-bold uppercase text-muted-foreground opacity-40 italic">Serialized Context Engine</span>
+                <span className="text-[9px] font-bold uppercase text-muted-foreground opacity-40 italic">
+                    Serialized Context Engine
+                </span>
                 <span className="text-[9px] font-black text-primary/60">LVL 4.2</span>
             </div>
         </div>

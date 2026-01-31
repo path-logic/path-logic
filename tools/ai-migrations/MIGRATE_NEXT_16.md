@@ -382,10 +382,10 @@ export function proxy(request) {
 
 **Action Items**:
 
-- [ ] Rename `middleware.ts/js` to `proxy.ts/js`
-- [ ] Rename exported function from `middleware` to `proxy`
-- [ ] Update config option names
-- [ ] Remove Edge runtime usage from proxy files
+- [x] Rename `middleware.ts/js` to `proxy.ts/js`
+- [x] Rename exported function from `middleware` to `proxy`
+- [x] Update config option names
+- [x] Remove Edge runtime usage from proxy files
 
 ### 6. Parallel Routes default.js Requirement
 

@@ -14,17 +14,20 @@ Extend the welcome wizard to support loan account types (Mortgage, Auto Loan, Pe
 ## User Experience Goals
 
 ### Primary Account Types (Always Visible)
+
 - Checking Account
 - Savings Account
 - Credit Card
 - Cash
 
 ### Loan Account Types (Expandable Section)
+
 - Mortgage
 - Auto Loan
 - Personal Loan
 
 ### UI Flow
+
 1. User sees 4 primary account type cards
 2. "More Account Types" button/link at bottom
 3. Click expands to show 3 additional loan type cards
@@ -34,6 +37,7 @@ Extend the welcome wizard to support loan account types (Mortgage, Auto Loan, Pe
 ## Loan-Specific Settings
 
 ### Common Loan Fields
+
 - **Account Name**: e.g., "Home Mortgage", "Honda Civic Loan"
 - **Institution Name**: Lender name
 - **Current Balance**: Outstanding principal (negative value)
@@ -47,17 +51,20 @@ Extend the welcome wizard to support loan account types (Mortgage, Auto Loan, Pe
 ### Loan Type Specifics
 
 **Mortgage**
+
 - Property address (optional)
 - Property value (optional)
 - Escrow included (yes/no)
 - Escrow amount (if applicable)
 
 **Auto Loan**
+
 - Vehicle make/model (optional)
 - Vehicle year (optional)
 - VIN (optional)
 
 **Personal Loan**
+
 - Loan purpose (optional)
 - Secured/Unsecured
 
@@ -66,6 +73,7 @@ Extend the welcome wizard to support loan account types (Mortgage, Auto Loan, Pe
 ### Core Domain Updates
 
 **AccountType Enum** (packages/core/src/domain/types.ts)
+
 ```typescript
 export enum AccountType {
     Checking = 'CHECKING',
@@ -74,15 +82,16 @@ export enum AccountType {
     Cash = 'CASH',
     Mortgage = 'MORTGAGE',
     AutoLoan = 'AUTO_LOAN',
-    PersonalLoan = 'PERSONAL_LOAN'
+    PersonalLoan = 'PERSONAL_LOAN',
 }
 ```
 
 **IAccount Interface Extension**
+
 ```typescript
 export interface IAccount {
     // ... existing fields
-    
+
     // Loan-specific fields (optional, only for loan types)
     loanDetails?: ILoanDetails;
 }
@@ -94,7 +103,7 @@ export interface ILoanDetails {
     monthlyPayment: Cents;
     paymentDueDay: number; // 1-31
     startDate: ISODateString;
-    
+
     // Type-specific metadata
     metadata?: IMortgageMetadata | IAutoLoanMetadata | IPersonalLoanMetadata;
 }
@@ -122,11 +131,13 @@ export interface IPersonalLoanMetadata {
 ### UI Components
 
 **WelcomeWizard Updates**
+
 - Add "More Account Types" expansion section
 - Add loan-specific form step
 - Implement loan details form with validation
 
 **New Component: LoanDetailsForm**
+
 - Reusable form for loan-specific fields
 - Type-specific metadata fields
 - Interest rate calculator helper
@@ -135,6 +146,7 @@ export interface IPersonalLoanMetadata {
 ### Database Schema
 
 **SQLite Schema Updates**
+
 ```sql
 -- Add loan_details table
 CREATE TABLE IF NOT EXISTS loan_details (
@@ -153,6 +165,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ## Implementation Phases
 
 ### Phase 1: Core Domain (packages/core)
+
 - [ ] Add new AccountType enum values
 - [ ] Define ILoanDetails and metadata interfaces
 - [ ] Update IAccount interface
@@ -160,12 +173,14 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - [ ] Add loan calculation utilities (amortization, interest)
 
 ### Phase 2: Database Layer (apps/web/src/lib/storage)
+
 - [ ] Update SQLite schema with loan_details table
 - [ ] Add loan details CRUD operations
 - [ ] Update account insertion to handle loan details
 - [ ] Add migration for existing databases
 
 ### Phase 3: UI Components (apps/web/src/components)
+
 - [ ] Update WelcomeWizard with expandable section
 - [ ] Create LoanDetailsForm component
 - [ ] Add loan-specific icons
@@ -173,6 +188,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - [ ] Add payment schedule preview
 
 ### Phase 4: Integration & Testing
+
 - [ ] Update ledger store to handle loan accounts
 - [ ] Test account creation flow
 - [ ] Test loan calculations
@@ -180,6 +196,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - [ ] Test expansion UI interaction
 
 ### Phase 5: Polish & Documentation
+
 - [ ] Add tooltips for loan fields
 - [ ] Create help documentation
 - [ ] Update project plan
@@ -193,6 +210,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ![Primary Account Types](mockups/wizard_primary_types.png)
 
 **Design Principles:**
+
 - **Soft Box Shadows**: Subtle elevation with `box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3)`
 - **No Neon Glow**: Clean, modern aesthetic without dated glow effects
 - **Minimal Icons**: Simple line art style, not overly detailed
@@ -200,6 +218,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Approachable**: Professional but consumer-friendly
 
 **Layout:**
+
 - Welcome header with small sparkles icon
 - 4 primary account type cards in 2x2 grid
 - "More Account Types" button centered at bottom
@@ -210,15 +229,17 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ![Expanded Loan Types](mockups/wizard_expanded_loans.png)
 
 **Design Highlights:**
+
 - **Large Viewport**: Designed for 1920x1080 desktop experience
 - **Vibrant Loan Accents**: Bright amber/orange (#f59e0b) beautifully contrasts dark background
-- **2-Column Loan Layout**: 
-  - Row 1: Mortgage | Auto Loan
-  - Row 2: Personal Loan (centered)
+- **2-Column Loan Layout**:
+    - Row 1: Mortgage | Auto Loan
+    - Row 2: Personal Loan (centered)
 - **Visual Hierarchy**: Loan cards clearly distinguished from primary types
 - **Excellent Spacing**: Generous margins and padding throughout
 
 **Color Strategy:**
+
 - Primary accounts: Subtle green accents
 - Loan accounts: **Vibrant warm amber/orange** - creates visual excitement against dark background
 - Maintains professional feel while being consumer-friendly
@@ -228,22 +249,25 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ![Mortgage Form](mockups/mortgage_form.png)
 
 **Consumer-Grade Design:**
+
 - **Column-Oriented Layout**: Single column for easy scanning and completion
 - **Excellent Whitespace**: 24px spacing between fields, breathing room throughout
 - **Accessibility First**:
-  - Large input fields (48px height) for easy interaction
-  - High contrast labels (14px, clear hierarchy)
-  - Helper text below each field in muted color
-  - Clear focus states with visible borders
-  - Optional fields clearly marked
+    - Large input fields (48px height) for easy interaction
+    - High contrast labels (14px, clear hierarchy)
+    - Helper text below each field in muted color
+    - Clear focus states with visible borders
+    - Optional fields clearly marked
 
 **Form Sections:**
+
 1. **Account Name**: Single field with example placeholder
 2. **Loan Details**: Amount, Rate, Term stacked vertically
 3. **Payment**: Monthly payment with calculator icon, due date
 4. **Property Info (Optional)**: Address, value, type - clearly marked as optional
 
 **Interaction Design:**
+
 - Large "Create Account" button (56px height) at bottom
 - Calculator icon for auto-calculation affordance
 - Date picker for due date field
@@ -253,12 +277,14 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Step 4: Auto Loan Form
 
 **Form Sections:**
+
 1. **Account Details**: Name, Institution
 2. **Loan Terms**: Original Amount, Current Balance, Interest Rate, Term
 3. **Payment Info**: Monthly Payment, Due Date
 4. **Vehicle Details**: Make, Model, Year, VIN
 
 **Example Values:**
+
 - Name: "Honda Civic Loan"
 - Make: "Honda"
 - Model: "Civic"
@@ -268,12 +294,14 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Step 5: Personal Loan Form
 
 **Form Sections:**
+
 1. **Account Details**: Name, Institution
 2. **Loan Terms**: Original Amount, Current Balance, Interest Rate, Term
 3. **Payment Info**: Monthly Payment, Due Date
 4. **Loan Details**: Purpose, Secured/Unsecured toggle
 
 **Example Values:**
+
 - Name: "Debt Consolidation Loan"
 - Purpose: "Consolidate credit card debt"
 - Secured: No
@@ -281,11 +309,12 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Payment Calculator Helper
 
 **Display:**
+
 - Input fields: Principal, Interest Rate, Term
 - Calculated results in highlighted box:
-  - Monthly Payment (large, primary color)
-  - Total Interest
-  - Payoff Date
+    - Monthly Payment (large, primary color)
+    - Total Interest
+    - Payoff Date
 - Info icons with tooltips
 - Monospace fonts for numbers
 
@@ -294,6 +323,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Grid System
 
 **Primary Types (2x2 Grid):**
+
 ```
 ┌──────────────────┐  ┌──────────────────┐
 │   Checking       │  │   Savings        │
@@ -309,6 +339,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ```
 
 **Loan Types (2-Column Layout):**
+
 ```
         ┌─────────────────────────┐
         │ ⊕ More Account Types    │
@@ -331,6 +362,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Spacing & Sizing
 
 **Card Dimensions:**
+
 - **Card Width**: ~280px each
 - **Card Height**: ~180px
 - **Gap Between Cards**: 20px horizontal, 16px vertical
@@ -338,6 +370,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Card Border Radius**: 8px (modern, friendly)
 
 **Form Fields:**
+
 - **Input Height**: 48px (accessible, easy to tap/click)
 - **Label Font Size**: 14px (readable, clear hierarchy)
 - **Helper Text**: 12px muted color
@@ -345,6 +378,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Section Spacing**: 32px between sections
 
 **Animations:**
+
 - **Expansion**: 300ms ease-in-out
 - **Card Hover**: 200ms ease-out with subtle lift
 - **Focus States**: Immediate with smooth border transition
@@ -352,11 +386,13 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Visual Effects
 
 **Box Shadows (Soft, Not Neon):**
+
 - **Card Rest State**: `0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`
 - **Card Hover State**: `0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05)`
 - **No Glow Effects**: Clean, modern aesthetic without dated neon glows
 
 **Focus States (Accessibility):**
+
 - **Visible Border**: 2px solid primary color
 - **Outline Offset**: 2px for clear visual separation
 - **High Contrast**: Meets WCAG AA standards
@@ -364,6 +400,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Color Palette
 
 **Primary Account Types:**
+
 - **Background**: `#0a0a0a` (very dark, high contrast)
 - **Border**: `rgba(255, 255, 255, 0.1)` (subtle)
 - **Hover Border**: `#22c55e` (primary green)
@@ -371,6 +408,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Muted Text**: `#a1a1aa` (readable, WCAG AA compliant)
 
 **Loan Account Types:**
+
 - **Background**: `#0a0a0a` (same as primary)
 - **Border**: `rgba(251, 146, 60, 0.3)` (warm amber)
 - **Hover Border**: `#f59e0b` (vibrant amber-500)
@@ -378,6 +416,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Text**: `#ffffff` (high contrast)
 
 **Form Elements:**
+
 - **Input Background**: `#1a1a1a` (slightly lighter than card)
 - **Input Border**: `rgba(255, 255, 255, 0.15)`
 - **Input Focus Border**: `#22c55e` or `#f59e0b` (depending on context)
@@ -388,6 +427,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 ### Typography
 
 **Hierarchy:**
+
 - **Page Title**: 28px, bold, letter-spacing: -0.02em
 - **Subtitle**: 16px, regular, muted color
 - **Card Title**: 18px, semibold
@@ -399,12 +439,14 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Button Text**: 16px, semibold
 
 **Font Stack:**
+
 - Primary: `Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`
 - Monospace (for numbers): `'JetBrains Mono', 'Fira Code', monospace`
 
 ### Accessibility Standards
 
 **WCAG 2.1 AA Compliance:**
+
 - **Color Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text
 - **Focus Indicators**: Visible 2px border with 2px offset
 - **Touch Targets**: Minimum 48x48px for all interactive elements
@@ -413,6 +455,7 @@ CREATE TABLE IF NOT EXISTS loan_details (
 - **Form Validation**: Clear error messages associated with fields via `aria-describedby`
 
 **Consumer-Friendly Principles:**
+
 - **Generous Whitespace**: Reduces cognitive load
 - **Clear Hierarchy**: Easy to scan and understand
 - **Helpful Hints**: Contextual help text for every field

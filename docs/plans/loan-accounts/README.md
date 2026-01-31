@@ -19,17 +19,20 @@ All UI mockups are located in the `mockups/` directory:
 ## Feature Overview
 
 ### Primary Account Types (Always Visible)
+
 - Checking Account
 - Savings Account
 - Credit Card
 - Cash
 
 ### Loan Account Types (Expandable)
+
 - Mortgage
 - Auto Loan
 - Personal Loan
 
 ### Key Features
+
 - **Expandable UI**: "More Account Types" button reveals loan options
 - **Loan-Specific Settings**: Interest rates, payment schedules, property/vehicle details
 - **Consumer-Friendly Design**: Column-oriented forms with excellent whitespace and accessibility

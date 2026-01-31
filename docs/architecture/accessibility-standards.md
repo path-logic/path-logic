@@ -7,11 +7,13 @@ All user interface components in Path Logic **MUST** meet Web Content Accessibil
 ## Color Contrast Requirements
 
 ### Text Contrast
+
 - **Normal text** (< 18pt or < 14pt bold): Minimum contrast ratio of **4.5:1** against background
 - **Large text** (≥ 18pt or ≥ 14pt bold): Minimum contrast ratio of **3:1** against background
 - **UI components and graphics**: Minimum contrast ratio of **3:1** against adjacent colors
 
 ### Testing Tools
+
 - Use [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - Chrome DevTools Lighthouse accessibility audit
 - axe DevTools browser extension
@@ -21,6 +23,7 @@ All user interface components in Path Logic **MUST** meet Web Content Accessibil
 The following color combinations have been verified to meet WCAG 2.2 AA standards:
 
 #### Account Type Colors (Welcome Wizard)
+
 - **Checking**: Teal gradient (`from-teal-600 to-teal-700`) with white text - **7.2:1 ratio** ✅
 - **Savings**: Blue gradient (`from-blue-600 to-blue-700`) with white text - **6.8:1 ratio** ✅
 - **Credit**: Purple gradient (`from-purple-600 to-purple-700`) with white text - **5.9:1 ratio** ✅
@@ -30,15 +33,17 @@ The following color combinations have been verified to meet WCAG 2.2 AA standard
 ## Keyboard Navigation
 
 ### Requirements
+
 - All interactive elements **MUST** be reachable via keyboard alone
 - Tab order **MUST** follow a logical sequence
 - Focus indicators **MUST** be clearly visible (minimum 2px outline or equivalent)
 - Keyboard shortcuts **SHOULD NOT** conflict with browser/screen reader shortcuts
 
 ### Implementation Guidelines
+
 ```typescript
 // ✅ Good: Proper keyboard support
-<button 
+<button
   onClick={handleClick}
   onKeyDown={(e) => e.key === 'Enter' && handleClick()}
   tabIndex={0}
@@ -51,6 +56,7 @@ The following color combinations have been verified to meet WCAG 2.2 AA standard
 ```
 
 ### Focus Management
+
 - Use `:focus-visible` for keyboard-only focus indicators
 - Maintain focus when navigating between views
 - Return focus to triggering element after modal closes
@@ -59,20 +65,22 @@ The following color combinations have been verified to meet WCAG 2.2 AA standard
 ## Screen Reader Support
 
 ### Semantic HTML
+
 - Use proper heading hierarchy (`<h1>` → `<h2>` → `<h3>`)
 - Use `<button>` for actions, `<a>` for navigation
 - Use `<label>` elements for all form inputs
 - Use `<table>` with proper `<th>` and `<caption>` for tabular data
 
 ### ARIA Labels
+
 ```typescript
 // ✅ Good: Descriptive ARIA labels
 <button aria-label="Close dialog">
   <X className="w-4 h-4" />
 </button>
 
-<input 
-  type="text" 
+<input
+  type="text"
   aria-label="Account name"
   aria-required="true"
   aria-invalid={hasError}
@@ -83,7 +91,9 @@ The following color combinations have been verified to meet WCAG 2.2 AA standard
 ```
 
 ### ARIA Live Regions
+
 Use for dynamic content updates:
+
 ```typescript
 <div aria-live="polite" aria-atomic="true">
   {statusMessage}
@@ -93,12 +103,14 @@ Use for dynamic content updates:
 ## Form Accessibility
 
 ### Input Requirements
+
 - All inputs **MUST** have associated `<label>` elements
 - Error messages **MUST** be programmatically associated with inputs
 - Required fields **MUST** be indicated with `aria-required="true"`
 - Invalid fields **MUST** use `aria-invalid="true"` and `aria-describedby`
 
 ### Example
+
 ```typescript
 <div>
   <label htmlFor="account-name" className="...">
@@ -122,33 +134,37 @@ Use for dynamic content updates:
 ## Focus Indicators
 
 ### Visual Requirements
+
 - Focus indicators **MUST** have a contrast ratio of at least **3:1** against the background
 - Minimum thickness of **2px** (or equivalent visual weight)
 - Must be visible on all interactive elements
 
 ### Implementation
+
 ```css
 /* Tailwind classes */
-.focus-visible:outline-none 
-.focus-visible:ring-2 
-.focus-visible:ring-primary 
+.focus-visible:outline-none
+.focus-visible:ring-2
+.focus-visible:ring-primary
 .focus-visible:ring-offset-2
 ```
 
 ## Motion and Animation
 
 ### Respect User Preferences
+
 ```css
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 ```
 
 ### Guidelines
+
 - Animations **SHOULD** be subtle and purposeful
 - Avoid auto-playing videos or animations
 - Provide pause/stop controls for moving content
@@ -157,10 +173,12 @@ Use for dynamic content updates:
 ## Touch Targets
 
 ### Size Requirements
+
 - Minimum touch target size: **44x44 pixels** (iOS) or **48x48 pixels** (Android)
 - Adequate spacing between touch targets (minimum 8px)
 
 ### Implementation
+
 ```typescript
 // ✅ Good: Adequate touch target
 <button className="h-12 w-12 p-3">
@@ -191,17 +209,20 @@ Before marking any UI work as complete, verify:
 ## Tools and Resources
 
 ### Browser Extensions
+
 - [axe DevTools](https://www.deque.com/axe/devtools/) - Comprehensive accessibility testing
 - [WAVE](https://wave.webaim.org/extension/) - Visual accessibility evaluation
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse) - Built into Chrome DevTools
 
 ### Screen Readers for Testing
+
 - **macOS**: VoiceOver (Cmd + F5)
 - **Windows**: NVDA (free) or JAWS
 - **iOS**: VoiceOver (Settings → Accessibility)
 - **Android**: TalkBack (Settings → Accessibility)
 
 ### Reference Documentation
+
 - [WCAG 2.2 Guidelines](https://www.w3.org/WAI/WCAG22/quickref/)
 - [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
 - [A11y Project Checklist](https://www.a11yproject.com/checklist/)
@@ -209,6 +230,7 @@ Before marking any UI work as complete, verify:
 ## Enforcement
 
 Accessibility violations are treated as **critical bugs** and must be fixed before deployment. All pull requests should include:
+
 1. Lighthouse accessibility score of 90+ (aim for 100)
 2. Manual keyboard navigation testing
 3. Screen reader testing for critical flows
@@ -219,6 +241,7 @@ Accessibility violations are treated as **critical bugs** and must be fixed befo
 The project uses **eslint-plugin-jsx-a11y** to automatically enforce accessibility rules during development and in CI/CD pipelines.
 
 #### Enabled Rules (Error Level)
+
 All of the following accessibility violations will **fail the build**:
 
 - `jsx-a11y/alt-text` - Images must have alt text
@@ -241,6 +264,7 @@ All of the following accessibility violations will **fail the build**:
 - `jsx-a11y/tabindex-no-positive` - No positive tabindex values
 
 #### Warning Level Rules
+
 The following rules issue warnings but don't fail the build:
 
 - `jsx-a11y/media-has-caption` - Media should have captions (warn for flexibility)
@@ -263,6 +287,7 @@ npm run lint -- --fix
 #### CI/CD Integration
 
 Linting runs automatically on:
+
 - Every commit (pre-commit hook)
 - Every pull request (GitHub Actions)
 - Every push to main (NX Cloud)

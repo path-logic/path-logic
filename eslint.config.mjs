@@ -30,7 +30,7 @@ export default tseslint.config(
     {
         plugins: {
             'simple-import-sort': simpleImportSort,
-            'react': react,
+            react: react,
             'react-hooks': reactHooks,
         },
         languageOptions: {

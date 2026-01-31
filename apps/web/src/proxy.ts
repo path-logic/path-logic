@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { auth } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-import type { Session } from "next-auth";
+import type { Session } from 'next-auth';
 
 /**
- * Next.js Middleware for route protection.
+ * Next.js Proxy for route protection.
  */
-export default auth((req: NextRequest & { auth: Session | null }) => {
+export const proxy = auth((req: NextRequest & { auth: Session | null }) => {
     const isLoggedIn = !!req.auth;
     const isPrivatePath = req.nextUrl.pathname.startsWith('/accounts');
 

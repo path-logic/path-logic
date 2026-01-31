@@ -16,7 +16,7 @@ function getCookieName(flag: string): string {
 /**
  * Check if a feature flag is enabled (server-side)
  * Use this in Server Components, Route Handlers, and Server Actions
- * 
+ *
  * @param flag - The feature flag name (e.g., 'dev', 'beta')
  * @returns Promise<boolean> - Whether the flag is enabled
  */
@@ -29,7 +29,7 @@ export async function getFlag(flag: string): Promise<boolean> {
 /**
  * Set a feature flag (server-side)
  * Use this in Route Handlers and Server Actions
- * 
+ *
  * @param flag - The feature flag name
  * @param enabled - Whether to enable or disable the flag
  */
@@ -46,7 +46,7 @@ export async function setFlag(flag: string, enabled: boolean): Promise<void> {
 
 /**
  * Clear a feature flag
- * 
+ *
  * @param flag - The feature flag name
  */
 export async function clearFlag(flag: string): Promise<void> {
@@ -77,10 +77,10 @@ export async function getAllFlags(): Promise<Record<string, boolean>> {
 /**
  * Create a validator function for allowed flags
  * Use this in your route handler to restrict which flags can be toggled
- * 
+ *
  * @param allowedFlags - Array of allowed flag names
  * @returns Validator function
- * 
+ *
  * @example
  * const isValidFlag = createFlagValidator(['dev', 'beta']);
  * if (!isValidFlag('dev')) throw new Error('Invalid flag');

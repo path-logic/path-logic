@@ -1,5 +1,5 @@
 import type { Cents, IRecurringSchedule, ISODateString, ITransaction } from '../domain/types';
-import { Frequency } from '../domain/types';
+import { RecurringEngine } from './RecurringEngine';
 
 export enum ProjectedItemType {
     Pending = 'pending',
@@ -61,7 +61,7 @@ export function generateProjection(
 
         // 2. Add recurring items due on this date
         for (const schedule of recurringSchedules) {
-            if (isDueOnDate(schedule, currentDate)) {
+            if (RecurringEngine.isDueOnDate(schedule, currentDate)) {
                 dailyDelta += schedule.amount;
                 items.push({
                     type: ProjectedItemType.Recurring,
@@ -91,41 +91,4 @@ function addDays(date: string, days: number): string {
     const d: Date = new Date(date + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + days);
     return d.toISOString().split('T')[0] || '';
-}
-
-function isDueOnDate(schedule: IRecurringSchedule, date: string): boolean {
-    if (!schedule.isActive) return false;
-    if (date < schedule.startDate) return false;
-    if (schedule.endDate && date > schedule.endDate) return false;
-
-    const start: Date = new Date(schedule.startDate + 'T00:00:00Z');
-    const current: Date = new Date(date + 'T00:00:00Z');
-
-    // Simplistic frequency check for baseline implementation
-    const diffTime: number = Math.abs(current.getTime() - start.getTime());
-    const diffDays: number = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    switch (schedule.frequency) {
-        case Frequency.Daily:
-            return true;
-        case Frequency.Weekly:
-            return diffDays % 7 === 0;
-        case Frequency.Biweekly:
-            return diffDays % 14 === 0;
-        case Frequency.Monthly:
-            return current.getUTCDate() === start.getUTCDate();
-        case Frequency.Bimonthly: {
-            const monthDiff: number =
-                (current.getUTCFullYear() - start.getUTCFullYear()) * 12 +
-                (current.getUTCMonth() - start.getUTCMonth());
-            return monthDiff % 2 === 0 && current.getUTCDate() === start.getUTCDate();
-        }
-        case Frequency.Yearly:
-            return (
-                current.getUTCDate() === start.getUTCDate() &&
-                current.getUTCMonth() === start.getUTCMonth()
-            );
-        default:
-            return false;
-    }
 }

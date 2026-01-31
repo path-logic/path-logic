@@ -3,11 +3,7 @@
     "compilerOptions": {
         "baseUrl": ".",
         "target": "es2022",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
+        "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -25,18 +21,10 @@
             }
         ],
         "paths": {
-            "@/*": [
-                "./src/*"
-            ],
-            "@path-logic/core": [
-                "../../packages/core/src/index.ts"
-            ],
-            "@path-logic/feature-flags": [
-                "../../packages/feature-flags/src/index.ts"
-            ],
-            "@path-logic/feature-flags/client": [
-                "../../packages/feature-flags/src/client.ts"
-            ],
+            "@/*": ["./src/*"],
+            "@path-logic/core": ["../../packages/core/src/index.ts"],
+            "@path-logic/feature-flags": ["../../packages/feature-flags/src/index.ts"],
+            "@path-logic/feature-flags/client": ["../../packages/feature-flags/src/client.ts"],
             "@path-logic/feature-flags/components": [
                 "../../packages/feature-flags/src/components/index.ts"
             ]
@@ -49,7 +37,5 @@
         ".next/types/**/*.ts",
         "../../packages/core/src/**/*.ts"
     ],
-    "exclude": [
-        "node_modules"
-    ]
+    "exclude": ["node_modules"]
 }

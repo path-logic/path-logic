@@ -4,7 +4,7 @@
 
 Path Logic is built as a high-performance Progressive Web App (PWA) using modern React patterns.
 
-- **Framework**: Next.js 15 (App Router).
+- **Framework**: Next.js 16 (App Router).
 - **Language**: TypeScript with `strict` mode enforced.
 - **Styling**: Tailwind CSS for high-performance, utility-first design.
 - **Component Library**: shadcn/ui for consistent, accessible primitives (Modals, Toasts, Inputs).

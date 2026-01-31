@@ -7,14 +7,15 @@ This project uses NX Cloud for distributed caching and task execution. To enable
 ## Getting the Access Token
 
 1. **Login to NX Cloud:**
-   ```bash
-   npx nx-cloud login
-   ```
+
+    ```bash
+    npx nx-cloud login
+    ```
 
 2. **Get your access token:**
-   - Visit [https://cloud.nx.app](https://cloud.nx.app)
-   - Navigate to your workspace settings
-   - Copy the "Access Token" from the workspace settings
+    - Visit [https://cloud.nx.app](https://cloud.nx.app)
+    - Navigate to your workspace settings
+    - Copy the "Access Token" from the workspace settings
 
 ## Setting up GitHub Actions
 
@@ -30,6 +31,7 @@ This project uses NX Cloud for distributed caching and task execution. To enable
 ## How It Works
 
 ### With Access Token
+
 - ✅ Full NX Cloud features enabled
 - ✅ Remote caching across CI runs
 - ✅ Distributed task execution
@@ -37,6 +39,7 @@ This project uses NX Cloud for distributed caching and task execution. To enable
 - ✅ Faster CI builds (cached results)
 
 ### Without Access Token
+
 - ⚠️ NX Cloud features disabled
 - ✅ Builds still work (local cache only)
 - ⚠️ Slower CI builds (no remote cache)
@@ -66,16 +69,19 @@ npx nx-cloud login
 ### "Workspace is unable to be authorized" Error
 
 This error occurs when:
+
 1. The `NX_CLOUD_ACCESS_TOKEN` secret is not set in GitHub
 2. The token is invalid or expired
 
 **Solution:**
+
 - Add the token to GitHub secrets (see above)
 - Or run locally: `npx nx-cloud login`
 
 ### Builds Work Locally But Fail in CI
 
 Check that:
+
 1. The secret is named exactly `NX_CLOUD_ACCESS_TOKEN`
 2. The secret is available to the workflow (check repository settings)
 3. The workflow has `env:` section with the token reference

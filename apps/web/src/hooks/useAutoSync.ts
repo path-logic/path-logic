@@ -13,8 +13,8 @@ import { saveToDrive } from '@/lib/sync/syncService';
  */
 export function useAutoSync(): void {
     const { data: session } = useSession();
-    const transactions: Array<ITransaction> = useLedgerStore((state) => state.transactions);
-    const isInitialized: boolean = useLedgerStore((state) => state.isInitialized);
+    const transactions: Array<ITransaction> = useLedgerStore(state => state.transactions);
+    const isInitialized: boolean = useLedgerStore(state => state.isInitialized);
 
     // Track the previous transactions array to detect actual mutations vs. initial load
     const prevTransactionsRef = useRef<Array<ITransaction>>(transactions);

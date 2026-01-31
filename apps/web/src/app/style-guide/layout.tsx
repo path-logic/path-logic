@@ -31,9 +31,7 @@ export default async function StyleGuideLayout({
                     </div>
                 </header>
                 <div className="flex-1 overflow-auto p-8">
-                    <div className="mx-auto max-w-7xl">
-                        {children}
-                    </div>
+                    <div className="mx-auto max-w-7xl">{children}</div>
                 </div>
             </div>
         </AppShell>

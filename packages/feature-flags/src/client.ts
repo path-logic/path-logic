@@ -61,7 +61,7 @@ function getCookie(name: string): string | null {
 /**
  * React hook to check if a feature flag is enabled (client-side)
  * Uses CookieStore API change events when available, falls back to custom events
- * 
+ *
  * @example
  * const devToolsEnabled = useFeatureFlag('dev');
  * if (devToolsEnabled) {
@@ -106,7 +106,8 @@ export function useFeatureFlag(flag: string): boolean {
         } else {
             // Fallback to custom event for browsers without CookieStore API
             const handleFlagChange = (event: Event): void => {
-                const customEvent: CustomEvent<IFlagChangeDetail> = event as CustomEvent<IFlagChangeDetail>;
+                const customEvent: CustomEvent<IFlagChangeDetail> =
+                    event as CustomEvent<IFlagChangeDetail>;
                 if (customEvent.detail.flag === flag) {
                     setEnabled(customEvent.detail.enabled);
                 }
@@ -126,7 +127,7 @@ export function useFeatureFlag(flag: string): boolean {
 /**
  * React hook to get all feature flags (client-side)
  * Uses CookieStore API change events when available, falls back to custom events
- * 
+ *
  * @example
  * const flags = useAllFlags();
  * console.log(flags); // { dev: true, beta: false }
@@ -190,11 +191,14 @@ export function useAllFlags(): Record<string, boolean> {
             };
         } else {
             const handleFlagChange = (event: Event): void => {
-                const customEvent: CustomEvent<IFlagChangeDetail> = event as CustomEvent<IFlagChangeDetail>;
-                setFlags((prev: Record<string, boolean>): Record<string, boolean> => ({
-                    ...prev,
-                    [customEvent.detail.flag]: customEvent.detail.enabled,
-                }));
+                const customEvent: CustomEvent<IFlagChangeDetail> =
+                    event as CustomEvent<IFlagChangeDetail>;
+                setFlags(
+                    (prev: Record<string, boolean>): Record<string, boolean> => ({
+                        ...prev,
+                        [customEvent.detail.flag]: customEvent.detail.enabled,
+                    }),
+                );
             };
 
             window.addEventListener(FLAG_CHANGE_EVENT, handleFlagChange);

@@ -36,7 +36,9 @@ export function StyledFeatureFlagToggle({
                 <div className="flex items-center justify-between p-4 px-5">
                     <div className="flex-1">
                         <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-bold text-foreground uppercase tracking-tight">{label}</h3>
+                            <h3 className="text-sm font-bold text-foreground uppercase tracking-tight">
+                                {label}
+                            </h3>
                             {enabled && flagConfig?.route && (
                                 <Link
                                     href={flagConfig.route}
@@ -47,14 +49,17 @@ export function StyledFeatureFlagToggle({
                             )}
                         </div>
                         {description && (
-                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 leading-relaxed italic line-clamp-1">{description}</p>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 leading-relaxed italic line-clamp-1">
+                                {description}
+                            </p>
                         )}
                     </div>
 
                     <div className="ml-6 flex items-center gap-4">
                         <span
-                            className={`text-[9px] font-black uppercase tracking-[0.2em] ${enabled ? 'text-emerald-500' : 'text-muted-foreground/40'
-                                }`}
+                            className={`text-[9px] font-black uppercase tracking-[0.2em] ${
+                                enabled ? 'text-emerald-500' : 'text-muted-foreground/40'
+                            }`}
                         >
                             {enabled ? 'Active' : 'Offline'}
                         </span>
@@ -62,15 +67,17 @@ export function StyledFeatureFlagToggle({
                         <button
                             onClick={(): Promise<void> => toggle(enabled ? 'disable' : 'enable')}
                             disabled={isToggling}
-                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background ${enabled ? 'bg-primary' : 'bg-muted-foreground/20'
-                                } ${isToggling ? 'opacity-50' : ''}`}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background ${
+                                enabled ? 'bg-primary' : 'bg-muted-foreground/20'
+                            } ${isToggling ? 'opacity-50' : ''}`}
                             type="button"
                             role="switch"
                             aria-checked={enabled}
                         >
                             <span
-                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'
-                                    } ${isToggling ? 'animate-pulse' : ''}`}
+                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${
+                                    enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'
+                                } ${isToggling ? 'animate-pulse' : ''}`}
                             />
                         </button>
                     </div>

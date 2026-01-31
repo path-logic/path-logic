@@ -41,30 +41,32 @@ export { GET };
 ### 3. Use in Components
 
 **Server Component:**
+
 ```typescript
 import { getFlag, FLAGS } from '@path-logic/feature-flags';
 
 export default async function Page() {
     const devEnabled = await getFlag(FLAGS.DEV_TOOLS);
-    
+
     if (!devEnabled) {
         redirect('/');
     }
-    
+
     return <DevTools />;
 }
 ```
 
 **Client Component:**
+
 ```typescript
 'use client';
 import { useFeatureFlag } from '@path-logic/feature-flags/client';
 
 export function DevToolsLink() {
     const devEnabled = useFeatureFlag('dev');
-    
+
     if (!devEnabled) return null;
-    
+
     return <a href="/dev">Dev Tools</a>;
 }
 ```
@@ -74,23 +76,29 @@ export function DevToolsLink() {
 ### Server-Side Functions
 
 #### `getFlag(flag: string): Promise<boolean>`
+
 Check if a feature flag is enabled.
 
 #### `setFlag(flag: string, enabled: boolean): Promise<void>`
+
 Set a feature flag value.
 
 #### `getAllFlags(): Promise<Record<string, boolean>>`
+
 Get all feature flags.
 
 #### `isValidFlag(flag: string): boolean`
+
 Validate if a flag name is allowed.
 
 ### Client-Side Hooks
 
 #### `useFeatureFlag(flag: string): boolean`
+
 React hook to check if a flag is enabled.
 
 #### `useAllFlags(): Record<string, boolean>`
+
 React hook to get all flags.
 
 ## Usage
@@ -98,6 +106,7 @@ React hook to get all flags.
 ### Toggle Flags
 
 Navigate to these URLs to toggle flags:
+
 - Enable: `/ff/dev/enable`
 - Disable: `/ff/dev/disable`
 
@@ -113,7 +122,7 @@ export function MyFeatureFlagToggle({ flag, label }) {
             {({ enabled, isToggling, toggle, flagConfig }) => (
                 <div>
                     <h3>{label}</h3>
-                    <button 
+                    <button
                         onClick={() => toggle(enabled ? 'disable' : 'enable')}
                         disabled={isToggling}
                     >
@@ -139,7 +148,7 @@ The package provides headless components using the render props pattern, giving 
 import { FeatureFlagToggle } from '@path-logic/feature-flags/components';
 import type { IFlagConfig } from '@path-logic/feature-flags/components';
 
-<FeatureFlagToggle 
+<FeatureFlagToggle
     flag="dev"
     flagConfigs={YOUR_FLAG_CONFIGS}
     apiBasePath="/ff"
@@ -147,7 +156,7 @@ import type { IFlagConfig } from '@path-logic/feature-flags/components';
 >
     {({ enabled, isToggling, toggle, flagConfig }) => (
         // Your custom UI here
-        <YourCustomComponent 
+        <YourCustomComponent
             enabled={enabled}
             loading={isToggling}
             onToggle={() => toggle(enabled ? 'disable' : 'enable')}
@@ -158,6 +167,7 @@ import type { IFlagConfig } from '@path-logic/feature-flags/components';
 ```
 
 **Render Props:**
+
 - `enabled: boolean` - Current flag state
 - `isToggling: boolean` - Loading state during API call
 - `toggle: (action: 'enable' | 'disable') => Promise<void>` - Toggle function
@@ -180,10 +190,10 @@ import { FeatureFlagList } from '@path-logic/feature-flags/components';
 ```
 
 **Render Props:**
+
 - `flag: IFlagConfig` - Flag configuration object
 - `index: number` - Current index in the list
 - `total: number` - Total number of flags
-
 
 ### Route Protection
 
@@ -194,11 +204,11 @@ import { redirect } from 'next/navigation';
 
 export default async function DevLayout({ children }) {
     const devEnabled = await getFlag(FLAGS.DEV_TOOLS);
-    
+
     if (!devEnabled) {
         redirect('/');
     }
-    
+
     return <>{children}</>;
 }
 ```
@@ -208,6 +218,7 @@ export default async function DevLayout({ children }) {
 ### Cookie Settings
 
 Flags are stored as cookies with the following defaults:
+
 - **Prefix**: `ff_`
 - **Max Age**: 30 days
 - **HttpOnly**: `false` (allows client-side access)

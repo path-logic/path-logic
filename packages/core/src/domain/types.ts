@@ -41,6 +41,15 @@ export enum AccountType {
     PersonalLoan = 'personal_loan',
 }
 
+/**
+ * Types of recurring schedules.
+ */
+export enum ScheduleType {
+    Debit = 'debit',
+    Deposit = 'deposit',
+    Paycheck = 'paycheck',
+}
+
 export interface IMortgageMetadata {
     propertyAddress?: string;
     propertyValue?: Cents;
@@ -214,10 +223,23 @@ export enum Frequency {
     Daily = 'daily',
     Weekly = 'weekly',
     Biweekly = 'biweekly',
+    EveryFourWeeks = 'every_four_weeks',
     Monthly = 'monthly',
+    TwiceAMonth = 'twice_a_month',
     Bimonthly = 'bimonthly',
     Quarterly = 'quarterly',
     Yearly = 'yearly',
+}
+
+/**
+ * Payment methods for scheduled transactions.
+ */
+export enum PaymentMethod {
+    DirectDebit = 'direct_debit',
+    DirectDeposit = 'direct_deposit',
+    WriteCheck = 'write_check',
+    ElectronicTransfer = 'electronic_transfer',
+    Other = 'other',
 }
 
 /**
@@ -230,18 +252,28 @@ export interface IRecurringSchedule {
     accountId: EntityId;
     /** Default payee for generated transactions. */
     payee: string;
-    /** Default amount in cents. */
+    /** Total amount for the transaction (parent). */
     amount: Cents;
+    /** The type of schedule (Debit, Deposit, Paycheck). */
+    type: ScheduleType;
     /** How often the transaction repeats. */
     frequency: Frequency;
+    /** How the payment is processed. */
+    paymentMethod: PaymentMethod;
     /** Date when the schedule begins. */
     startDate: ISODateString;
     /** Optional date when the schedule ends. */
     endDate: ISODateString | null;
     /** Calculated date of the next occurrence. */
     nextDueDate: ISODateString;
-    /** Default category ID for the primary split. */
-    categoryId: EntityId | null;
+    /** Date when the last transaction was posted from this schedule. */
+    lastOccurredDate: ISODateString | null;
+    /** Splits for the generated transaction. */
+    splits: Array<ISplit>;
+    /** Optional memo for the transaction. */
+    memo: string;
+    /** Whether to automatically post the transaction to the ledger on the due date. */
+    autoPost: boolean;
     /** Whether the schedule is active and generating projections. */
     isActive: boolean;
 }

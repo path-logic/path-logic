@@ -20,7 +20,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface ISplitEntryDialogProps {
     isOpen: boolean;
@@ -41,7 +41,14 @@ export function SplitEntryDialog({
     const [splits, setSplits] = React.useState<Array<ISplit>>(() =>
         initialSplits.length > 0
             ? initialSplits
-            : [{ id: `split-${Date.now()}`, amount: totalAmount, memo: '', categoryId: KnownCategory.Uncategorized }]
+            : [
+                  {
+                      id: `split-${Date.now()}`,
+                      amount: totalAmount,
+                      memo: '',
+                      categoryId: KnownCategory.Uncategorized,
+                  },
+              ],
     );
 
     const sumSplits = splits.reduce((sum, s) => sum + s.amount, 0);
@@ -51,7 +58,12 @@ export function SplitEntryDialog({
     const handleAddSplit = (): void => {
         setSplits([
             ...splits,
-            { id: `split-${Date.now()}`, amount: 0, memo: '', categoryId: KnownCategory.Uncategorized }
+            {
+                id: `split-${Date.now()}`,
+                amount: 0,
+                memo: '',
+                categoryId: KnownCategory.Uncategorized,
+            },
         ]);
     };
 
@@ -61,7 +73,7 @@ export function SplitEntryDialog({
     };
 
     const handleUpdateSplit = (id: string, updates: Partial<ISplit>): void => {
-        setSplits(splits.map(s => s.id === id ? { ...s, ...updates } : s));
+        setSplits(splits.map(s => (s.id === id ? { ...s, ...updates } : s)));
     };
 
     const handleQuickBalance = (): void => {
@@ -94,15 +106,25 @@ export function SplitEntryDialog({
                     {/* Summary Header */}
                     <div className="flex justify-between items-center bg-accent/30 p-3 rounded-sm border border-border">
                         <div>
-                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Target Total</p>
-                            <p className="font-mono font-bold text-lg text-primary">{Money.formatCurrency(totalAmount)}</p>
+                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">
+                                Target Total
+                            </p>
+                            <p className="font-mono font-bold text-lg text-primary">
+                                {Money.formatCurrency(totalAmount)}
+                            </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Remaining</p>
-                            <p className={cn(
-                                "font-mono font-bold text-lg",
-                                isBalanced ? "text-emerald-500" : "text-destructive animate-pulse"
-                            )}>
+                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">
+                                Remaining
+                            </p>
+                            <p
+                                className={cn(
+                                    'font-mono font-bold text-lg',
+                                    isBalanced
+                                        ? 'text-emerald-500'
+                                        : 'text-destructive animate-pulse',
+                                )}
+                            >
                                 {Money.formatCurrency(difference)}
                             </p>
                         </div>
@@ -111,18 +133,28 @@ export function SplitEntryDialog({
                     {/* Split Table */}
                     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
                         {splits.map((split, index) => (
-                            <div key={split.id} className="flex gap-3 items-center group animate-in slide-in-from-left-2" style={{ animationDelay: `${index * 50}ms` }}>
+                            <div
+                                key={split.id}
+                                className="flex gap-3 items-center group animate-in slide-in-from-left-2"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
                                 <div className="w-[180px]">
                                     <Select
                                         value={split.categoryId || KnownCategory.Uncategorized}
-                                        onValueChange={(value) => handleUpdateSplit(split.id, { categoryId: value })}
+                                        onValueChange={value =>
+                                            handleUpdateSplit(split.id, { categoryId: value })
+                                        }
                                     >
                                         <SelectTrigger className="h-8 text-[10px] uppercase font-bold bg-background border-border text-muted-foreground focus:ring-1 focus:ring-primary">
                                             <SelectValue placeholder="Category" />
                                         </SelectTrigger>
                                         <SelectContent className="bg-card border-border">
                                             {categories.map(cat => (
-                                                <SelectItem key={cat.id} value={cat.id} className="text-[10px] uppercase font-bold">
+                                                <SelectItem
+                                                    key={cat.id}
+                                                    value={cat.id}
+                                                    className="text-[10px] uppercase font-bold"
+                                                >
                                                     {cat.name}
                                                 </SelectItem>
                                             ))}
@@ -133,7 +165,9 @@ export function SplitEntryDialog({
                                     <Input
                                         placeholder="Split Memo"
                                         value={split.memo}
-                                        onChange={(e) => handleUpdateSplit(split.id, { memo: e.target.value })}
+                                        onChange={e =>
+                                            handleUpdateSplit(split.id, { memo: e.target.value })
+                                        }
                                         className="bg-background border-border text-[10px] h-8 focus:ring-1 focus:ring-primary px-2"
                                     />
                                 </div>
@@ -143,7 +177,13 @@ export function SplitEntryDialog({
                                         step="0.01"
                                         placeholder="0.00"
                                         value={split.amount / 100}
-                                        onChange={(e) => handleUpdateSplit(split.id, { amount: Money.dollarsToCents(parseFloat(e.target.value) || 0) })}
+                                        onChange={e =>
+                                            handleUpdateSplit(split.id, {
+                                                amount: Money.dollarsToCents(
+                                                    parseFloat(e.target.value) || 0,
+                                                ),
+                                            })
+                                        }
                                         className="bg-background border-border text-[10px] font-mono h-8 text-right focus:ring-1 focus:ring-primary px-2"
                                     />
                                 </div>
@@ -176,7 +216,8 @@ export function SplitEntryDialog({
                                 onClick={handleAdjustTotal}
                                 className="border-primary/30 text-primary text-[9px] font-black uppercase h-8 px-3"
                             >
-                                <Scale className="w-3 h-3 mr-2" /> Adjust Total to {Money.formatCurrency(sumSplits)}
+                                <Scale className="w-3 h-3 mr-2" /> Adjust Total to{' '}
+                                {Money.formatCurrency(sumSplits)}
                             </Button>
                             <Button
                                 variant="outline"
@@ -188,7 +229,11 @@ export function SplitEntryDialog({
                         </div>
                     )}
                     <div className="flex gap-2">
-                        <Button variant="ghost" onClick={onClose} className="text-[10px] font-bold uppercase h-8 text-muted-foreground">
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}
+                            className="text-[10px] font-bold uppercase h-8 text-muted-foreground"
+                        >
                             Cancel
                         </Button>
                         <Button

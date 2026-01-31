@@ -41,7 +41,7 @@ export function formatTimestamp(ms: number): string {
  */
 export function compareTransactions(
     a: Array<ITransaction>,
-    b: Array<ITransaction>
+    b: Array<ITransaction>,
 ): { match: boolean; differences: Array<string> } {
     const differences: Array<string> = [];
 

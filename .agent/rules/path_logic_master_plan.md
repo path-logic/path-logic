@@ -19,6 +19,16 @@ trigger: always_on
     - **React Native**: Native CloudKit (iOS) + Google Drive Native API (Android)
 - **Documentation Convention:** All project documentation (Specs, Plans, Architecture) MUST be stored in the ./docs directory. With subdirectories based upon doc type.
 
+### **1.2 Mandatory AI Verification Protocol**
+
+Before performing any `commit` and `push`, the AI agent MUST follow this exact verification sequence:
+
+1.  **Static Analysis**: Run `npm run lint` and `npm run typecheck` (or `make lint` and `make typecheck`).
+2.  **Testing**: Run the full unit/integration/component/e2e test suites (`npm run test` or `make test`).
+3.  **Formatting**: Run `npm run format` (or `make format`).
+
+Only after ALL steps complete successfully is the agent permitted to generate a comprehensive commit message and perform the push. Failure in any step blocks the commit.
+
 ## **2\. Functional & Technical Specifications**
 
 ### **2.1 The "Penny-Perfect" Core Engine**

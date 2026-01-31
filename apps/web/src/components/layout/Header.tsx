@@ -7,7 +7,12 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import * as React from 'react';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useLedgerStore } from '@/store/ledgerStore';
 
@@ -52,14 +57,18 @@ export function Header(): React.JSX.Element {
 
                     <nav className="hidden md:flex items-center gap-1">
                         {navItems.map((item: INavItem): React.JSX.Element => {
-                            const isActive: boolean = pathname === item.href || (item.href !== '/' && !!pathname?.startsWith(item.href));
+                            const isActive: boolean =
+                                pathname === item.href ||
+                                (item.href !== '/' && !!pathname?.startsWith(item.href));
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
                                     className={cn(
-                                        "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm",
-                                        isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                                        'px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm',
+                                        isActive
+                                            ? 'text-primary bg-primary/10'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-accent',
                                     )}
                                 >
                                     {item.name}
@@ -71,8 +80,17 @@ export function Header(): React.JSX.Element {
 
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Net Position</span>
-                        <span className={cn("text-sm font-mono font-bold leading-none", clearedBalance + pendingBalance < 0 ? 'text-destructive' : 'text-emerald-500')}>
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
+                            Net Position
+                        </span>
+                        <span
+                            className={cn(
+                                'text-sm font-mono font-bold leading-none',
+                                clearedBalance + pendingBalance < 0
+                                    ? 'text-destructive'
+                                    : 'text-emerald-500',
+                            )}
+                        >
                             {Money.formatCurrency(clearedBalance + pendingBalance)}
                         </span>
                     </div>
@@ -127,7 +145,9 @@ export function Header(): React.JSX.Element {
                                 Profile Settings
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={(): void => { void signOut({ callbackUrl: '/' }); }}
+                                onClick={(): void => {
+                                    void signOut({ callbackUrl: '/' });
+                                }}
                                 className="text-[10px] uppercase font-bold focus:bg-accent cursor-pointer text-destructive"
                             >
                                 Sign Out

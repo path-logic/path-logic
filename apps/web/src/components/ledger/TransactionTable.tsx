@@ -6,7 +6,7 @@ import type {
     ColumnFiltersState,
     Row,
     SortingState,
-    VisibilityState
+    VisibilityState,
 } from '@tanstack/react-table';
 import {
     flexRender,
@@ -32,12 +32,20 @@ import { cn } from '@/lib/utils';
 export const columns: Array<ColumnDef<ITransaction>> = [
     {
         accessorKey: 'date',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Date</div>,
-        cell: ({ row }): React.JSX.Element => <div className="font-mono text-[10px] text-muted-foreground text-nowrap">{row.getValue('date')}</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase text-nowrap">Date</div>
+        ),
+        cell: ({ row }): React.JSX.Element => (
+            <div className="font-mono text-[10px] text-muted-foreground text-nowrap">
+                {row.getValue('date')}
+            </div>
+        ),
     },
     {
         accessorKey: 'payee',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Payee / Memo</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase text-nowrap">Payee / Memo</div>
+        ),
         cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const tx = row.original;
             return (
@@ -56,7 +64,9 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         id: 'category',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase">Category</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase">Category</div>
+        ),
         cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const tx = row.original;
             return (
@@ -72,18 +82,27 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         accessorKey: 'status',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Status</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase text-nowrap">Status</div>
+        ),
         cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const status = row.original.status;
             return (
                 <div
                     className={cn(
-                        "text-[9px] font-bold uppercase text-nowrap flex items-center gap-1.5",
-                        status === TransactionStatus.Cleared ? "text-emerald-500" :
-                            status === TransactionStatus.Pending ? "text-amber-500" : "text-primary"
+                        'text-[9px] font-bold uppercase text-nowrap flex items-center gap-1.5',
+                        status === TransactionStatus.Cleared
+                            ? 'text-emerald-500'
+                            : status === TransactionStatus.Pending
+                              ? 'text-amber-500'
+                              : 'text-primary',
                     )}
                 >
-                    {status === TransactionStatus.Cleared ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                    {status === TransactionStatus.Cleared ? (
+                        <CheckCircle2 className="w-3 h-3" />
+                    ) : (
+                        <Clock className="w-3 h-3" />
+                    )}
                     {status}
                 </div>
             );
@@ -91,16 +110,20 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         accessorKey: 'totalAmount',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Amount</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase text-nowrap">Amount</div>
+        ),
         cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
             const amount = parseFloat(row.getValue('totalAmount'));
             const formatted = Money.formatCurrency(amount);
 
             return (
-                <div className={cn(
-                    "text-right font-mono font-bold text-[11px] text-nowrap",
-                    amount < 0 ? "text-destructive" : "text-emerald-500"
-                )}>
+                <div
+                    className={cn(
+                        'text-right font-mono font-bold text-[11px] text-nowrap',
+                        amount < 0 ? 'text-destructive' : 'text-emerald-500',
+                    )}
+                >
                     {formatted}
                 </div>
             );
@@ -108,16 +131,21 @@ export const columns: Array<ColumnDef<ITransaction>> = [
     },
     {
         id: 'balance',
-        header: (): React.JSX.Element => <div className="text-[10px] font-bold uppercase text-nowrap">Balance</div>,
+        header: (): React.JSX.Element => (
+            <div className="text-[10px] font-bold uppercase text-nowrap">Balance</div>
+        ),
         cell: ({ row }: { row: Row<ITransaction> }): React.JSX.Element => {
-            const balance = (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
+            const balance =
+                (row.original as ITransaction & { runningBalance?: number }).runningBalance ?? 0;
             const formatted = Money.formatCurrency(balance);
 
             return (
-                <div className={cn(
-                    "text-right font-mono font-bold text-[11px] text-nowrap",
-                    balance < 0 ? "text-destructive" : "text-emerald-500"
-                )}>
+                <div
+                    className={cn(
+                        'text-right font-mono font-bold text-[11px] text-nowrap',
+                        balance < 0 ? 'text-destructive' : 'text-emerald-500',
+                    )}
+                >
                     {formatted}
                 </div>
             );
@@ -140,85 +168,85 @@ interface IMemoizedLedgerRowProps {
     setActiveIndex: (index: number) => void;
 }
 
-const MemoizedLedgerRow = React.memo(({
-    row,
-    virtualRow,
-    isActive,
-    setActiveIndex
-}: IMemoizedLedgerRowProps) => {
-    const tx = row.original;
-    return (
-        <ContextMenu key={virtualRow.key}>
-            <ContextMenuTrigger>
-                <div
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                        "flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full",
-                        isActive && "bg-accent/80 outline outline-1 outline-primary z-10"
-                    )}
-                    style={{
-                        top: 0,
-                        transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                    onClick={(): void => setActiveIndex(virtualRow.index)}
-                >
-                    {row.getVisibleCells().map((cell) => {
-                        const widthMap: Record<string, string> = {
-                            'date': 'w-[100px]',
-                            'payee': 'flex-1 min-w-[300px]',
-                            'category': 'w-[140px]',
-                            'status': 'w-[120px]',
-                            'totalAmount': 'w-[120px]',
-                            'balance': 'w-[120px]'
-                        };
-                        const widthClass = widthMap[cell.column.id] || 'w-[100px]';
+const MemoizedLedgerRow = React.memo(
+    ({ row, virtualRow, isActive, setActiveIndex }: IMemoizedLedgerRowProps) => {
+        const tx = row.original;
+        return (
+            <ContextMenu key={virtualRow.key}>
+                <ContextMenuTrigger>
+                    <div
+                        data-state={row.getIsSelected() && 'selected'}
+                        className={cn(
+                            'flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full',
+                            isActive && 'bg-accent/80 outline outline-1 outline-primary z-10',
+                        )}
+                        style={{
+                            top: 0,
+                            transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        onClick={(): void => setActiveIndex(virtualRow.index)}
+                    >
+                        {row.getVisibleCells().map(cell => {
+                            const widthMap: Record<string, string> = {
+                                date: 'w-[100px]',
+                                payee: 'flex-1 min-w-[300px]',
+                                category: 'w-[140px]',
+                                status: 'w-[120px]',
+                                totalAmount: 'w-[120px]',
+                                balance: 'w-[120px]',
+                            };
+                            const widthClass = widthMap[cell.column.id] || 'w-[100px]';
 
-                        return (
-                            <div
-                                key={cell.id}
-                                className={cn("px-3 h-9 flex items-center overflow-hidden", widthClass)}
-                            >
-                                {flexRender(
-                                    cell.column.columnDef.cell,
-                                    cell.getContext()
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent className="w-56">
-                <div className="px-2 py-1.5 text-[10px] uppercase font-bold text-muted-foreground opacity-50">
-                    Transaction Actions
-                </div>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => console.log('Edit transaction', tx)}>
-                    Edit Transaction
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => console.log('Duplicate transaction', tx)}>
-                    Duplicate
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={() => console.log('Categorize', tx)}>
-                    Categorize...
-                </ContextMenuItem>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                    variant="destructive"
-                    onClick={() => console.log('Delete transaction', tx.id)}
-                >
-                    Delete
-                </ContextMenuItem>
-            </ContextMenuContent>
-        </ContextMenu>
-    );
-}, (prev, next) => {
-    return prev.isActive === next.isActive &&
-        prev.virtualRow.index === next.virtualRow.index &&
-        prev.virtualRow.start === next.virtualRow.start &&
-        prev.row.id === next.row.id &&
-        prev.row.getIsSelected() === next.row.getIsSelected();
-});
+                            return (
+                                <div
+                                    key={cell.id}
+                                    className={cn(
+                                        'px-3 h-9 flex items-center overflow-hidden',
+                                        widthClass,
+                                    )}
+                                >
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-56">
+                    <div className="px-2 py-1.5 text-[10px] uppercase font-bold text-muted-foreground opacity-50">
+                        Transaction Actions
+                    </div>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => console.log('Edit transaction', tx)}>
+                        Edit Transaction
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={() => console.log('Duplicate transaction', tx)}>
+                        Duplicate
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => console.log('Categorize', tx)}>
+                        Categorize...
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                        variant="destructive"
+                        onClick={() => console.log('Delete transaction', tx.id)}
+                    >
+                        Delete
+                    </ContextMenuItem>
+                </ContextMenuContent>
+            </ContextMenu>
+        );
+    },
+    (prev, next) => {
+        return (
+            prev.isActive === next.isActive &&
+            prev.virtualRow.index === next.virtualRow.index &&
+            prev.virtualRow.start === next.virtualRow.start &&
+            prev.row.id === next.row.id &&
+            prev.row.getIsSelected() === next.row.getIsSelected()
+        );
+    },
+);
 MemoizedLedgerRow.displayName = 'MemoizedLedgerRow';
 
 export function TransactionTable({ data }: ITransactionTableProps): React.JSX.Element {
@@ -235,7 +263,8 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     // OS Awareness for Mod key in placeholder
     const [modKey, setModKey] = React.useState<string>('Ctrl');
     React.useEffect(() => {
-        const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const isMac =
+            typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         setModKey(isMac ? 'CMD' : 'Ctrl');
     }, []);
 
@@ -255,7 +284,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
         // 2. Calculate cumulative running balance
         let runningBalance = 0;
-        return sorted.map((tx) => {
+        return sorted.map(tx => {
             runningBalance += tx.totalAmount;
             return { ...tx, runningBalance };
         });
@@ -269,7 +298,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         const futureCutoff = new Date(today);
         futureCutoff.setMonth(futureCutoff.getMonth() + 3); // Show 3 months into future
 
-        return sortedDataWithBalances.filter((tx) => {
+        return sortedDataWithBalances.filter(tx => {
             const txDate = new Date(tx.date);
             return txDate >= pastCutoff && txDate <= futureCutoff;
         });
@@ -316,9 +345,10 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
 
             if (rows.length === 0) return;
 
-            const nextIndex = e.key === 'ArrowDown'
-                ? Math.min(activeIndex + 1, rows.length - 1)
-                : Math.max(activeIndex - 1, 0);
+            const nextIndex =
+                e.key === 'ArrowDown'
+                    ? Math.min(activeIndex + 1, rows.length - 1)
+                    : Math.max(activeIndex - 1, 0);
 
             if (nextIndex !== activeIndex) {
                 setActiveIndex(nextIndex);
@@ -364,7 +394,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
         today.setHours(0, 0, 0, 0);
 
         // Find the index of today's date or the closest future date
-        let targetIndex = rows.findIndex((row) => {
+        let targetIndex = rows.findIndex(row => {
             const rowDate = new Date(row.original.date);
             rowDate.setHours(0, 0, 0, 0);
             return rowDate >= today;
@@ -381,7 +411,11 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
     }, [rows, virtualizer]);
 
     return (
-        <div className="w-full flex flex-col h-full overflow-hidden focus:outline-none" onKeyDown={handleKeyDown} tabIndex={0}>
+        <div
+            className="w-full flex flex-col h-full overflow-hidden focus:outline-none"
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+        >
             {/* Toolbar */}
             <div className="flex items-center py-2 px-1 justify-between flex-none bg-background">
                 <Input
@@ -400,17 +434,17 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
             <div className="flex-1 border border-border rounded-sm bg-background relative flex flex-col min-h-0 overflow-hidden">
                 {/* Header - Fixed at top, independent of scroll */}
                 <div className="flex-none bg-accent border-b border-border z-20">
-                    {table.getHeaderGroups().map((headerGroup) => (
+                    {table.getHeaderGroups().map(headerGroup => (
                         <div key={headerGroup.id} className="flex h-8 px-1 items-center">
-                            {headerGroup.headers.map((header) => {
+                            {headerGroup.headers.map(header => {
                                 // Define explicit widths or flex basis for alignment
                                 const widthMap: Record<string, string> = {
-                                    'date': 'w-[100px]',
-                                    'payee': 'flex-1 min-w-[300px]',
-                                    'category': 'w-[140px]',
-                                    'status': 'w-[120px]',
-                                    'totalAmount': 'w-[120px]',
-                                    'balance': 'w-[120px]'
+                                    date: 'w-[100px]',
+                                    payee: 'flex-1 min-w-[300px]',
+                                    category: 'w-[140px]',
+                                    status: 'w-[120px]',
+                                    totalAmount: 'w-[120px]',
+                                    balance: 'w-[120px]',
                                 };
                                 const widthClass = widthMap[header.id] || 'w-[100px]';
 
@@ -418,16 +452,16 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                                     <div
                                         key={header.id}
                                         className={cn(
-                                            "px-3 text-muted-foreground font-bold text-[10px] uppercase",
-                                            widthClass
+                                            'px-3 text-muted-foreground font-bold text-[10px] uppercase',
+                                            widthClass,
                                         )}
                                     >
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
+                                                  header.column.columnDef.header,
+                                                  header.getContext(),
+                                              )}
                                     </div>
                                 );
                             })}
@@ -436,10 +470,7 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                 </div>
 
                 {/* Body - Scrollable Virtual Area */}
-                <div
-                    ref={parentRef}
-                    className="flex-1 overflow-auto ledger-scroll"
-                >
+                <div ref={parentRef} className="flex-1 overflow-auto ledger-scroll">
                     {/* Load Older History - Now at the top */}
                     {windowedData.length < data.length && rows.length > 0 && isAtTop && (
                         <div className="px-3 border-b border-border bg-background sticky top-0 z-10">
@@ -452,8 +483,14 @@ export function TransactionTable({ data }: ITransactionTableProps): React.JSX.El
                         </div>
                     )}
 
-                    <div style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
-                        {virtualizer.getVirtualItems().map((virtualRow) => {
+                    <div
+                        style={{
+                            height: `${virtualizer.getTotalSize()}px`,
+                            width: '100%',
+                            position: 'relative',
+                        }}
+                    >
+                        {virtualizer.getVirtualItems().map(virtualRow => {
                             const row = rows[virtualRow.index];
                             if (!row) return null;
 

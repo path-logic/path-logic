@@ -29,7 +29,7 @@ export const useUserStore = create<IUserState>((set, get) => ({
         try {
             const value = getUserSetting(key);
             if (value !== null) {
-                set((state) => ({ settings: { ...state.settings, [key]: value } }));
+                set(state => ({ settings: { ...state.settings, [key]: value } }));
                 return value;
             }
         } catch (e) {
@@ -42,7 +42,7 @@ export const useUserStore = create<IUserState>((set, get) => ({
     updateSetting: (key: string, value: string): void => {
         try {
             setUserSetting(key, value);
-            set((state) => ({ settings: { ...state.settings, [key]: value } }));
+            set(state => ({ settings: { ...state.settings, [key]: value } }));
         } catch (e) {
             console.error('Failed to update setting in DB:', e);
         }

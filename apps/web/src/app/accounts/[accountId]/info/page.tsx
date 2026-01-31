@@ -25,7 +25,7 @@ export default function AccountInfoPage({ params }: IAccountInfoPageProps): Reac
     }, [isInitialized, initialize]);
 
     const account = useMemo(() => {
-        return accounts.find((acc) => acc.id === accountId) || null;
+        return accounts.find(acc => acc.id === accountId) || null;
     }, [accountId, accounts]);
 
     useEffect((): void => {
@@ -72,7 +72,7 @@ export default function AccountInfoPage({ params }: IAccountInfoPageProps): Reac
                         <AccountEditForm
                             account={account}
                             onCancel={() => router.back()}
-                            onSubmit={async (updated) => {
+                            onSubmit={async updated => {
                                 await updateAccount(updated);
                                 router.back();
                             }}

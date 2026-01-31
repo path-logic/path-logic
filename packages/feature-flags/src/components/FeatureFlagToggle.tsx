@@ -2,19 +2,15 @@
 
 import { useState } from 'react';
 
-import { emitFlagChange,useFeatureFlag } from '../client';
-import type {
-    IFeatureFlagToggleProps,
-    IFeatureFlagToggleRenderProps,
-    IFlagConfig,
-} from '../types';
+import { emitFlagChange, useFeatureFlag } from '../client';
+import type { IFeatureFlagToggleProps, IFeatureFlagToggleRenderProps, IFlagConfig } from '../types';
 
 /**
  * Headless FeatureFlagToggle component using render props pattern
- * 
+ *
  * Provides all the business logic for toggling feature flags while allowing
  * consumers to provide their own UI via the children render prop.
- * 
+ *
  * @example
  * <FeatureFlagToggle flag="dev" flagConfigs={FLAG_CONFIGS}>
  *   {({ enabled, isToggling, toggle, flagConfig }) => (

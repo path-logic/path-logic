@@ -25,7 +25,7 @@ test.describe('Dashboard Overview', () => {
 
     test('should load without JavaScript errors', async ({ page }) => {
         const errors: Array<string> = [];
-        page.on('pageerror', (error) => {
+        page.on('pageerror', error => {
             errors.push(error.message);
         });
 

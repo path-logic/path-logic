@@ -6,7 +6,7 @@
 
 ### **1.1 Technical Guardrails**
 
-- **Framework:** Next.js 15 (App Router), TypeScript (Strict), Tailwind CSS.
+- **Framework:** Next.js 16 (App Router), TypeScript (Strict), Tailwind CSS.
 - **State Management:** Zustand with Immer middleware for immutable ledger updates.
 - **Persistence:** Local-first SQLite (via SQL.js/WASM).
 - **Security:** AES-GCM 256-bit client-side encryption via Web Crypto API.
@@ -159,5 +159,5 @@ Hermetic End-to-End testing to ensure ledger integrity.
 
 ### **6.2 The Job Hunt "Vibe"**
 
-- **LinkedIn Strategy:** Weekly technical deep-dives into "How I solved X in Next.js 15."
-- **Resume Bullet:** "Architected a decentralized, local-first finance app using Next.js 15 and Web Crypto, migrating 15 years of Angular architectural rigor into a modern React/Full-Stack ecosystem."
+- **LinkedIn Strategy:** Weekly technical deep-dives into "How I solved X in Next.js 16."
+- **Resume Bullet:** "Architected a decentralized, local-first finance app using Next.js 16 and Web Crypto, migrating 15 years of Angular architectural rigor into a modern React/Full-Stack ecosystem."

@@ -3,6 +3,7 @@
 ## Overview
 
 The feature flags system has been prepared for extraction as a standalone npm package. This will allow you to:
+
 1. Open source the package for community use
 2. Reuse across multiple projects
 3. Accept community contributions
@@ -73,6 +74,7 @@ npm link @path-logic/feature-flags
 ```
 
 Update imports in `apps/web`:
+
 ```typescript
 // Before
 import { getFlag } from '@/lib/featureFlags/featureFlags';
@@ -122,12 +124,12 @@ If you want to keep it private but still organized:
 
 1. Keep in `packages/feature-flags`
 2. Reference it in `apps/web/package.json`:
-   ```json
-   {
-     "dependencies": {
-       "@path-logic/feature-flags": "workspace:*"
-     }
-   }
-   ```
+    ```json
+    {
+        "dependencies": {
+            "@path-logic/feature-flags": "workspace:*"
+        }
+    }
+    ```
 3. Use workspace protocol for local development
 4. Publish later when ready

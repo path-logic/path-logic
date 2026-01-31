@@ -25,7 +25,7 @@ export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
     [FlagKey.BETA_FEATURES]: {
         key: FlagKey.BETA_FEATURES,
         name: 'Beta Features',
-        description: 'Try out experimental features before they\'re released',
+        description: "Try out experimental features before they're released",
     },
     [FlagKey.STYLE_GUIDE]: {
         key: FlagKey.STYLE_GUIDE,

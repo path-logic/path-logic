@@ -29,13 +29,11 @@ const SYNC_DEBOUNCE_MS = 2000; // 2 seconds
 /**
  * Load encrypted database from Drive and initialize local store
  */
-export async function loadFromDrive(
-    accessToken: string,
-    userId: string
-): Promise<void> {
+export async function loadFromDrive(accessToken: string, userId: string): Promise<void> {
     try {
         // Find the database file in Drive
-        const file: Awaited<ReturnType<typeof findDatabaseFile>> = await findDatabaseFile(accessToken);
+        const file: Awaited<ReturnType<typeof findDatabaseFile>> =
+            await findDatabaseFile(accessToken);
 
         if (!file) {
             // No existing database, initialize empty
@@ -72,10 +70,7 @@ export async function loadFromDrive(
 /**
  * Save current database to Drive (debounced)
  */
-export async function saveToDrive(
-    accessToken: string,
-    userId: string
-): Promise<void> {
+export async function saveToDrive(accessToken: string, userId: string): Promise<void> {
     // Debounce to avoid excessive uploads
     const now: number = Date.now();
     if (syncInProgress || now - lastSyncTime < SYNC_DEBOUNCE_MS) {
@@ -93,14 +88,11 @@ export async function saveToDrive(
         const encryptedData: Uint8Array = await encryptDatabase(dbExport, userId);
 
         // Find existing file
-        const existingFile: Awaited<ReturnType<typeof findDatabaseFile>> = await findDatabaseFile(accessToken);
+        const existingFile: Awaited<ReturnType<typeof findDatabaseFile>> =
+            await findDatabaseFile(accessToken);
 
         // Upload (create or update)
-        await uploadDatabase(
-            accessToken,
-            encryptedData,
-            existingFile?.id
-        );
+        await uploadDatabase(accessToken, encryptedData, existingFile?.id);
 
         // Success! Clear dirty flag and auth error
         useLedgerStore.getState().setDirty(false);

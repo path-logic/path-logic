@@ -154,9 +154,10 @@ This is the foundational integrity constraint. Every transaction MUST satisfy th
 To provide a conservative and useful running balance, transactions on the same day MUST be sorted such that income (deposits) are processed before expenses (withdrawals).
 
 > **Sort Priority:**
+>
 > 1. **Date** (Chronological)
 > 2. **Transaction Type** (Income > Expense)
-> 
+>
 > **Implementation**: Positive amounts have higher priority than negative amounts for transactions sharing the same `ISODateString`.
 
 ```typescript

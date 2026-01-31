@@ -1,6 +1,6 @@
 /**
  * Google Drive API adapter for encrypted database sync
- * 
+ *
  * Uses the appDataFolder scope for user-owned, app-specific storage.
  * The appDataFolder is hidden from the user and automatically deleted
  * when the app is uninstalled.
@@ -21,16 +21,14 @@ interface IDriveFile {
 /**
  * Find the encrypted database file in appDataFolder
  */
-export async function findDatabaseFile(
-    accessToken: string
-): Promise<IDriveFile | null> {
+export async function findDatabaseFile(accessToken: string): Promise<IDriveFile | null> {
     const response: Response = await fetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${DB_FILENAME}'`,
         {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
-        }
+        },
     );
 
     if (!response.ok) {
@@ -49,25 +47,21 @@ export async function findDatabaseFile(
         throw new Error(errorMessage);
     }
 
-    const data: { files: Array<IDriveFile> } = (await response.json()) as { files: Array<IDriveFile> };
+    const data: { files: Array<IDriveFile> } = (await response.json()) as {
+        files: Array<IDriveFile>;
+    };
     return data.files.length > 0 ? data.files[0]! : null;
 }
 
 /**
  * Download the encrypted database from Drive
  */
-export async function downloadDatabase(
-    accessToken: string,
-    fileId: string
-): Promise<Uint8Array> {
-    const response: Response = await fetch(
-        `${DRIVE_API_BASE}/files/${fileId}?alt=media`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
-    );
+export async function downloadDatabase(accessToken: string, fileId: string): Promise<Uint8Array> {
+    const response: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
 
     if (!response.ok) {
         let errorMessage = `Failed to download file: ${response.status} ${response.statusText}`;
@@ -95,7 +89,7 @@ export async function downloadDatabase(
 export async function uploadDatabase(
     accessToken: string,
     encryptedData: Uint8Array,
-    existingFileId?: string
+    existingFileId?: string,
 ): Promise<string> {
     const metadata: { name: string; parents?: Array<string> } = {
         name: DB_FILENAME,
@@ -106,10 +100,7 @@ export async function uploadDatabase(
     }
 
     const form: FormData = new FormData();
-    form.append(
-        'metadata',
-        new Blob([JSON.stringify(metadata)], { type: 'application/json' })
-    );
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', new Blob([encryptedData as BlobPart]), DB_FILENAME);
 
     const url: string = existingFileId
@@ -149,10 +140,7 @@ export async function uploadDatabase(
 /**
  * Delete the database file from Drive
  */
-export async function deleteDatabaseFile(
-    accessToken: string,
-    fileId: string
-): Promise<void> {
+export async function deleteDatabaseFile(accessToken: string, fileId: string): Promise<void> {
     const response: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}`, {
         method: 'DELETE',
         headers: {

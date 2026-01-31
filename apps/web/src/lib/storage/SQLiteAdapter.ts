@@ -1,5 +1,16 @@
 import type { QueryExecResult, Database, SqlJsStatic } from 'sql.js';
-import type { ISODateString, ISplit, ITransaction, TransactionStatus, IAccount, ICategory, IPayee, ILoanDetails, Cents } from '@path-logic/core';
+import type {
+    ISODateString,
+    ISplit,
+    ITransaction,
+    TransactionStatus,
+    IAccount,
+    ICategory,
+    IPayee,
+    ILoanDetails,
+    Cents,
+    IRecurringSchedule,
+} from '@path-logic/core';
 import { TypeGuards } from '@path-logic/core';
 
 // ============================================================================
@@ -98,6 +109,36 @@ const SCHEMA_DDL = `
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
         updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS recurring_schedules (
+        id TEXT PRIMARY KEY,
+        accountId TEXT NOT NULL,
+        payee TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        frequency TEXT NOT NULL,
+        paymentMethod TEXT NOT NULL,
+        startDate TEXT NOT NULL,
+        endDate TEXT,
+        nextDueDate TEXT NOT NULL,
+        lastOccurredDate TEXT,
+        memo TEXT NOT NULL,
+        autoPost INTEGER NOT NULL DEFAULT 0,
+        isActive INTEGER NOT NULL DEFAULT 1,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (accountId) REFERENCES accounts(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS recurring_splits (
+        id TEXT PRIMARY KEY,
+        scheduleId TEXT NOT NULL,
+        categoryId TEXT,
+        memo TEXT,
+        amount INTEGER NOT NULL,
+        FOREIGN KEY (scheduleId) REFERENCES recurring_schedules(id) ON DELETE CASCADE,
+        FOREIGN KEY (categoryId) REFERENCES categories(id)
     );
 `;
 
@@ -221,6 +262,46 @@ const SQL_QUERIES = {
     SELECT_USER_SETTING: `
         SELECT value FROM user_settings WHERE key = ?
     `,
+
+    // Recurring Schedule queries
+    INSERT_RECURRING_SCHEDULE: `
+        INSERT INTO recurring_schedules (
+            id, accountId, payee, amount, type, frequency, paymentMethod, 
+            startDate, endDate, nextDueDate, lastOccurredDate, 
+            memo, autoPost, isActive, createdAt, updatedAt
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+
+    SELECT_ALL_RECURRING_SCHEDULES: `
+        SELECT * FROM recurring_schedules ORDER BY nextDueDate ASC
+    `,
+
+    UPDATE_RECURRING_SCHEDULE: `
+        UPDATE recurring_schedules 
+        SET accountId = ?, payee = ?, amount = ?, type = ?, frequency = ?, 
+            paymentMethod = ?, startDate = ?, endDate = ?, 
+            nextDueDate = ?, lastOccurredDate = ?, 
+            memo = ?, autoPost = ?, isActive = ?, updatedAt = ?
+        WHERE id = ?
+    `,
+
+    DELETE_RECURRING_SCHEDULE: `
+        DELETE FROM recurring_schedules WHERE id = ?
+    `,
+
+    INSERT_RECURRING_SPLIT: `
+        INSERT INTO recurring_splits (id, scheduleId, categoryId, memo, amount)
+        VALUES (?, ?, ?, ?, ?)
+    `,
+
+    SELECT_RECURRING_SPLITS_BY_SCHEDULE: `
+        SELECT * FROM recurring_splits WHERE scheduleId = ? ORDER BY id
+    `,
+
+    DELETE_RECURRING_SPLITS_BY_SCHEDULE: `
+        DELETE FROM recurring_splits WHERE scheduleId = ?
+    `,
 } as const;
 
 // ============================================================================
@@ -302,40 +383,57 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
     dbInstance.run(SCHEMA_DDL);
 
     // 2. Migration: Add payeeId to transactions if missing (for legacy databases)
-    const columns: Array<QueryExecResult> = dbInstance.exec("PRAGMA table_info(transactions)");
+    const columns: Array<QueryExecResult> = dbInstance.exec('PRAGMA table_info(transactions)');
     const firstResult: QueryExecResult | undefined = columns.at(0);
     if (firstResult && firstResult.values) {
-        const hasPayeeId: boolean = firstResult.values.some((v: Array<SqlValue>): boolean => v[1] === 'payeeId');
+        const hasPayeeId: boolean = firstResult.values.some(
+            (v: Array<SqlValue>): boolean => v[1] === 'payeeId',
+        );
         if (!hasPayeeId) {
             // Add column allowing NULL initially for migration
-            dbInstance.run("ALTER TABLE transactions ADD COLUMN payeeId TEXT");
+            dbInstance.run('ALTER TABLE transactions ADD COLUMN payeeId TEXT');
 
             // Create a default 'Legacy Import' payee to link existing transactions
             const now: string = new Date().toISOString();
             const legacyPayeeId: string = 'payee-legacy-import';
 
             dbInstance.run(SQL_QUERIES.INSERT_PAYEE, [
-                legacyPayeeId, 'Legacy Import', null, null, null, null,
-                null, null, null, null, 'Automatically generated for legacy migration',
-                null, now, now
+                legacyPayeeId,
+                'Legacy Import',
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                'Automatically generated for legacy migration',
+                null,
+                now,
+                now,
             ]);
 
-            dbInstance.run("UPDATE transactions SET payeeId = ?", [legacyPayeeId]);
+            dbInstance.run('UPDATE transactions SET payeeId = ?', [legacyPayeeId]);
         }
     }
 
     // Migration: Add deletedAt to accounts if missing
-    const accountColumns: Array<QueryExecResult> = dbInstance.exec("PRAGMA table_info(accounts)");
+    const accountColumns: Array<QueryExecResult> = dbInstance.exec('PRAGMA table_info(accounts)');
     const accountsResult = accountColumns.at(0);
     if (accountsResult && accountsResult.values) {
-        const hasDeletedAt: boolean = accountsResult.values.some((v: Array<SqlValue>): boolean => v[1] === 'deletedAt');
+        const hasDeletedAt: boolean = accountsResult.values.some(
+            (v: Array<SqlValue>): boolean => v[1] === 'deletedAt',
+        );
         if (!hasDeletedAt) {
-            dbInstance.run("ALTER TABLE accounts ADD COLUMN deletedAt TEXT");
+            dbInstance.run('ALTER TABLE accounts ADD COLUMN deletedAt TEXT');
         }
     }
 
     // 3. Seeding: Default Categories
-    const catCountResult: Array<QueryExecResult> = dbInstance.exec("SELECT COUNT(*) FROM categories");
+    const catCountResult: Array<QueryExecResult> = dbInstance.exec(
+        'SELECT COUNT(*) FROM categories',
+    );
     const count: number = (catCountResult[0]?.values[0]?.[0] as number) || 0;
 
     if (count === 0) {
@@ -344,7 +442,13 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
             const now: string = new Date().toISOString();
             for (const cat of DEFAULT_CATEGORIES) {
                 dbInstance.run(SQL_QUERIES.INSERT_CATEGORY, [
-                    cat.id, cat.parentId, cat.name, cat.description, 1, now, now
+                    cat.id,
+                    cat.parentId,
+                    cat.name,
+                    cat.description,
+                    1,
+                    now,
+                    now,
                 ]);
             }
             dbInstance.run('COMMIT');
@@ -365,7 +469,9 @@ export async function initDatabase(): Promise<Database> {
     if (!SQL) {
         await loadSqlJsScript();
 
-        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
+        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (
+            window as ISqlJsWindow
+        ).initSqlJs;
         if (!initSqlJs) {
             throw new Error('initSqlJs not found on window');
         }
@@ -391,7 +497,9 @@ export async function loadDatabase(data: Uint8Array): Promise<Database> {
     if (!SQL) {
         await loadSqlJsScript();
 
-        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (window as ISqlJsWindow).initSqlJs;
+        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (
+            window as ISqlJsWindow
+        ).initSqlJs;
         if (!initSqlJs) {
             throw new Error('initSqlJs not found on window');
         }
@@ -510,7 +618,10 @@ export function getAllTransactions(): Array<ITransaction> {
         if (!txId) continue;
 
         // Get splits for this transaction
-        const splitRows: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_SPLITS_BY_TRANSACTION, [txId]);
+        const splitRows: Array<QueryExecResult> = db.exec(
+            SQL_QUERIES.SELECT_SPLITS_BY_TRANSACTION,
+            [txId],
+        );
 
         const splits: Array<ISplit> = new Array<ISplit>();
         if (splitRows.length > 0 && splitRows[0]) {
@@ -607,7 +718,7 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
                 createdAt: row[6] as ISODateString,
                 updatedAt: row[7] as ISODateString,
                 clearedBalance: 0, // Calculated dynamically in store
-                pendingBalance: 0,  // Calculated dynamically in store
+                pendingBalance: 0, // Calculated dynamically in store
             };
 
             // Load loan details if applicable
@@ -636,7 +747,7 @@ export function insertAccount(account: IAccount): void {
         account.isActive ? 1 : 0,
         account.deletedAt || null,
         account.createdAt,
-        account.updatedAt
+        account.updatedAt,
     ]);
 
     // Insert loan details if present
@@ -657,13 +768,13 @@ export function updateAccount(account: IAccount): void {
         account.isActive ? 1 : 0,
         account.deletedAt || null,
         account.updatedAt,
-        account.id
+        account.id,
     ]);
 
     // Update loan details if present
     if (account.loanDetails) {
         // For simplicity, we delete and re-insert loan details for updates
-        db?.run("DELETE FROM loan_details WHERE account_id = ?", [account.id]);
+        db?.run('DELETE FROM loan_details WHERE account_id = ?', [account.id]);
         insertLoanDetails(account.id, account.loanDetails);
     }
 }
@@ -694,7 +805,7 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
         details.startDate,
         details.metadata ? JSON.stringify(details.metadata) : null,
         now,
-        now
+        now,
     ]);
 }
 
@@ -710,7 +821,7 @@ export function getLoanDetails(accountId: string): ILoanDetails | undefined {
     const row: Array<SqlValue> | undefined = result[0].values.at(0);
     if (!row) return undefined;
 
-    // Schema: 
+    // Schema:
     // 0: account_id
     // 1: original_amount
     // 2: interest_rate
@@ -729,7 +840,7 @@ export function getLoanDetails(accountId: string): ILoanDetails | undefined {
         monthlyPayment: row[4] as Cents,
         paymentDueDay: row[5] as number,
         startDate: row[6] as ISODateString,
-        metadata: metadataJson ? JSON.parse(metadataJson) : undefined
+        metadata: metadataJson ? JSON.parse(metadataJson) : undefined,
     };
 }
 
@@ -742,22 +853,24 @@ export function getAllPayees(): Array<IPayee> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_PAYEES);
     if (result.length === 0 || !result[0]) return new Array<IPayee>();
 
-    return result[0].values.map((row: Array<SqlValue>): IPayee => ({
-        id: row[0] as string,
-        name: row[1] as string,
-        address: row[2] as string | null,
-        city: row[3] as string | null,
-        state: row[4] as string | null,
-        zipCode: row[5] as string | null,
-        latitude: row[6] as number | null,
-        longitude: row[7] as number | null,
-        website: row[8] as string | null,
-        phone: row[9] as string | null,
-        notes: row[10] as string | null,
-        defaultCategoryId: row[11] as string | null,
-        createdAt: row[12] as ISODateString,
-        updatedAt: row[13] as ISODateString,
-    }));
+    return result[0].values.map(
+        (row: Array<SqlValue>): IPayee => ({
+            id: row[0] as string,
+            name: row[1] as string,
+            address: row[2] as string | null,
+            city: row[3] as string | null,
+            state: row[4] as string | null,
+            zipCode: row[5] as string | null,
+            latitude: row[6] as number | null,
+            longitude: row[7] as number | null,
+            website: row[8] as string | null,
+            phone: row[9] as string | null,
+            notes: row[10] as string | null,
+            defaultCategoryId: row[11] as string | null,
+            createdAt: row[12] as ISODateString,
+            updatedAt: row[13] as ISODateString,
+        }),
+    );
 }
 
 /**
@@ -808,7 +921,7 @@ export function insertPayee(payee: IPayee): void {
         payee.notes,
         payee.defaultCategoryId,
         payee.createdAt,
-        payee.updatedAt
+        payee.updatedAt,
     ]);
 }
 
@@ -821,15 +934,17 @@ export function getAllCategories(): Array<ICategory> {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_ALL_CATEGORIES);
     if (result.length === 0 || !result[0]) return new Array<ICategory>();
 
-    return result[0].values.map((row: Array<SqlValue>): ICategory => ({
-        id: row[0] as string,
-        parentId: row[1] as string | null,
-        name: row[2] as string,
-        description: row[3] as string | null,
-        isActive: Boolean(row[4]),
-        createdAt: row[5] as ISODateString,
-        updatedAt: row[6] as ISODateString,
-    }));
+    return result[0].values.map(
+        (row: Array<SqlValue>): ICategory => ({
+            id: row[0] as string,
+            parentId: row[1] as string | null,
+            name: row[2] as string,
+            description: row[3] as string | null,
+            isActive: Boolean(row[4]),
+            createdAt: row[5] as ISODateString,
+            updatedAt: row[6] as ISODateString,
+        }),
+    );
 }
 
 /**
@@ -840,7 +955,7 @@ export function getUserSetting(key: string): string | null {
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_USER_SETTING, [key]);
 
     if (result.length === 0 || !result[0] || result[0].values.length === 0) return null;
-    return result[0].values[0]?.[0] as string || null;
+    return (result[0].values[0]?.[0] as string) || null;
 }
 
 /**
@@ -859,7 +974,137 @@ export function clearDatabase(): void {
     if (!db) throw new Error('Database not initialized');
     db.run(SQL_QUERIES.DELETE_ALL_SPLITS);
     db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS);
-    db.run("DELETE FROM categories");
-    db.run("DELETE FROM payees");
-    db.run("DELETE FROM accounts");
+    db.run('DELETE FROM categories');
+    db.run('DELETE FROM payees');
+    db.run('DELETE FROM accounts');
+}
+/**
+ * Get all recurring schedules
+ */
+export function getAllRecurringSchedules(): Array<IRecurringSchedule> {
+    if (!db) throw new Error('Database not initialized');
+
+    const result = db.exec(SQL_QUERIES.SELECT_ALL_RECURRING_SCHEDULES);
+    if (result.length === 0 || !result[0]) return [];
+
+    return result[0].values.map(row => {
+        const scheduleId = row[0] as string;
+
+        // Fetch splits for this schedule
+        const splitResult = db?.exec(SQL_QUERIES.SELECT_RECURRING_SPLITS_BY_SCHEDULE, [scheduleId]);
+        const splits: Array<ISplit> = [];
+
+        if (splitResult && splitResult[0]) {
+            for (const splitRow of splitResult[0].values) {
+                splits.push({
+                    id: splitRow[0] as string,
+                    amount: splitRow[4] as number,
+                    memo: (splitRow[3] as string) || '',
+                    categoryId: (splitRow[2] as string) || null,
+                });
+            }
+        }
+
+        return {
+            id: scheduleId,
+            accountId: row[1] as string,
+            payee: row[2] as string,
+            amount: row[3] as number,
+            type: row[4] as IRecurringSchedule['type'],
+            frequency: row[5] as IRecurringSchedule['frequency'],
+            paymentMethod: row[6] as IRecurringSchedule['paymentMethod'],
+            startDate: row[7] as ISODateString,
+            endDate: (row[8] as string) || null,
+            nextDueDate: row[9] as ISODateString,
+            lastOccurredDate: (row[10] as string) || null,
+            memo: row[11] as string,
+            autoPost: Boolean(row[12]),
+            isActive: Boolean(row[13]),
+            splits,
+        };
+    }) as Array<IRecurringSchedule>;
+}
+
+/**
+ * Insert a new recurring schedule
+ */
+export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
+    if (!db) throw new Error('Database not initialized');
+    const now = new Date().toISOString();
+
+    db.run(SQL_QUERIES.INSERT_RECURRING_SCHEDULE, [
+        schedule.id,
+        schedule.accountId,
+        schedule.payee,
+        schedule.amount,
+        schedule.type,
+        schedule.frequency,
+        schedule.paymentMethod,
+        schedule.startDate,
+        schedule.endDate || null,
+        schedule.nextDueDate,
+        schedule.lastOccurredDate || null,
+        schedule.memo,
+        schedule.autoPost ? 1 : 0,
+        schedule.isActive ? 1 : 0,
+        now,
+        now,
+    ]);
+
+    // Insert splits
+    for (const split of schedule.splits) {
+        db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
+            split.id,
+            schedule.id,
+            split.categoryId || null,
+            split.memo,
+            split.amount,
+        ]);
+    }
+}
+
+/**
+ * Update an existing recurring schedule
+ */
+export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
+    if (!db) throw new Error('Database not initialized');
+    const now = new Date().toISOString();
+
+    db.run(SQL_QUERIES.UPDATE_RECURRING_SCHEDULE, [
+        schedule.accountId,
+        schedule.payee,
+        schedule.amount,
+        schedule.type,
+        schedule.frequency,
+        schedule.paymentMethod,
+        schedule.startDate,
+        schedule.endDate || null,
+        schedule.nextDueDate,
+        schedule.lastOccurredDate || null,
+        schedule.memo,
+        schedule.autoPost ? 1 : 0,
+        schedule.isActive ? 1 : 0,
+        now,
+        schedule.id,
+    ]);
+
+    // Update splits (delete and re-insert)
+    db.run(SQL_QUERIES.DELETE_RECURRING_SPLITS_BY_SCHEDULE, [schedule.id]);
+    for (const split of schedule.splits) {
+        db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
+            split.id,
+            schedule.id,
+            split.categoryId || null,
+            split.memo,
+            split.amount,
+        ]);
+    }
+}
+
+/**
+ * Delete a recurring schedule
+ */
+export function deleteRecurringSchedule(id: string): void {
+    if (!db) throw new Error('Database not initialized');
+    db.run(SQL_QUERIES.DELETE_RECURRING_SCHEDULE, [id]);
 }

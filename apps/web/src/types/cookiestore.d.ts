@@ -38,12 +38,12 @@ interface ICookieStore extends EventTarget {
     addEventListener(
         type: 'change',
         listener: (event: ICookieChangeEvent) => void,
-        options?: boolean | AddEventListenerOptions
+        options?: boolean | AddEventListenerOptions,
     ): void;
     removeEventListener(
         type: 'change',
         listener: (event: ICookieChangeEvent) => void,
-        options?: boolean | EventListenerOptions
+        options?: boolean | EventListenerOptions,
     ): void;
 }
 

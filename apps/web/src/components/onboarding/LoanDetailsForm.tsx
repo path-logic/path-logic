@@ -18,13 +18,17 @@ interface ILoanDetailsFormProps {
     onSubmit: (account: IAccount) => Promise<void>;
 }
 
-export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProps): React.JSX.Element {
+export function LoanDetailsForm({
+    type,
+    onBack,
+    onSubmit,
+}: ILoanDetailsFormProps): React.JSX.Element {
     // Compute default name based on type
     const getDefaultName = (accountType: AccountType): string => {
         const defaultNames: Record<string, string> = {
             [AccountType.Mortgage]: 'Home Mortgage',
             [AccountType.AutoLoan]: 'Auto Loan',
-            [AccountType.PersonalLoan]: 'Personal Loan'
+            [AccountType.PersonalLoan]: 'Personal Loan',
         };
         return defaultNames[accountType] || '';
     };
@@ -38,7 +42,9 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
     const [termMonths, setTermMonths] = useState<string>('');
     const [monthlyPayment, setMonthlyPayment] = useState<string>('');
     const [paymentDueDay, setPaymentDueDay] = useState<string>('1');
-    const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0] ?? '');
+    const [startDate, setStartDate] = useState<string>(
+        new Date().toISOString().split('T')[0] ?? '',
+    );
 
     // Metadata Fields
     // Mortgage
@@ -65,28 +71,43 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
         'original-amount': {
             title: 'Initial Principal',
             description: 'The total amount you borrowed at the start of the loan.',
-            tips: ['Check your opening statement or disclosure.', 'Excludes future interest payments.']
+            tips: [
+                'Check your opening statement or disclosure.',
+                'Excludes future interest payments.',
+            ],
         },
         'interest-rate': {
             title: 'Interest Rate (APR)',
             description: 'The annual cost of borrowing, expressed as a percentage.',
-            tips: ['Enter exactly as seen on your bill (e.g. 5.25 for 5.25%).', 'Fixed rates stay the same; variable rates change.']
+            tips: [
+                'Enter exactly as seen on your bill (e.g. 5.25 for 5.25%).',
+                'Fixed rates stay the same; variable rates change.',
+            ],
         },
         'term-months': {
             title: 'Loan Duration',
             description: 'The total length of time given to repay the loan in full.',
-            tips: ['Standard mortgages are 360 months (30 years).', 'Auto loans are often 60 or 72 months.']
+            tips: [
+                'Standard mortgages are 360 months (30 years).',
+                'Auto loans are often 60 or 72 months.',
+            ],
         },
         'monthly-payment': {
             title: 'Recurring Payment',
             description: 'The amount you are required to pay each month.',
-            tips: ['Use the Calculate button to estimate based on principal and rate.', 'Does not include potential late fees.']
+            tips: [
+                'Use the Calculate button to estimate based on principal and rate.',
+                'Does not include potential late fees.',
+            ],
         },
-        'escrow': {
+        escrow: {
             title: 'Escrow Account',
             description: 'Funds held by the lender for property taxes and insurance.',
-            tips: ['Most mortgages include property tax and insurance in the payment.', 'Select this if your monthly payment includes these costs.']
-        }
+            tips: [
+                'Most mortgages include property tax and insurance in the payment.',
+                'Select this if your monthly payment includes these costs.',
+            ],
+        },
     };
 
     const handleAutoCalculate = (): void => {
@@ -95,7 +116,11 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
         const term = parseInt(termMonths || '0', 10);
 
         if (principalCents > 0 && term > 0) {
-            const paymentCents = LoanCalculations.calculateMonthlyPayment(principalCents, rateDecimal, term);
+            const paymentCents = LoanCalculations.calculateMonthlyPayment(
+                principalCents,
+                rateDecimal,
+                term,
+            );
             const paymentDollars = (paymentCents / 100).toFixed(2);
             setMonthlyPayment(paymentDollars);
         }
@@ -124,10 +149,12 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
             const principalCents = Math.round(parseFloat(originalAmount) * 100);
 
-            // Current balance is typically negative for liabilities in this system? 
+            // Current balance is typically negative for liabilities in this system?
             // The prompt/spec says: "Current Balance: Outstanding principal (negative value)"
             // But user inputs positive number. We convert to negative.
-            const currentBalanceInput = currentBalance ? parseFloat(currentBalance) : parseFloat(originalAmount);
+            const currentBalanceInput = currentBalance
+                ? parseFloat(currentBalance)
+                : parseFloat(originalAmount);
             const currentBalanceCents = Math.round(currentBalanceInput * 100) * -1; // Debt is negative
 
             const rateDecimal = interestRate ? parseFloat(interestRate) / 100 : 0;
@@ -148,26 +175,33 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
             if (type === AccountType.Mortgage) {
                 loanDetails.metadata = {
                     ...(propertyAddress ? { propertyAddress } : {}),
-                    ...(propertyValue ? { propertyValue: Math.round(parseFloat(propertyValue) * 100) } : {}),
+                    ...(propertyValue
+                        ? { propertyValue: Math.round(parseFloat(propertyValue) * 100) }
+                        : {}),
                     escrowIncluded,
-                    ...(escrowAmount ? { escrowAmount: Math.round(parseFloat(escrowAmount) * 100) } : {})
+                    ...(escrowAmount
+                        ? { escrowAmount: Math.round(parseFloat(escrowAmount) * 100) }
+                        : {}),
                 };
             } else if (type === AccountType.AutoLoan) {
                 loanDetails.metadata = {
                     ...(vehicleMake ? { vehicleMake } : {}),
                     ...(vehicleModel ? { vehicleModel } : {}),
                     ...(vehicleYear ? { vehicleYear: parseInt(vehicleYear, 10) } : {}),
-                    ...(vin ? { vin } : {})
+                    ...(vin ? { vin } : {}),
                 };
             } else if (type === AccountType.PersonalLoan) {
                 loanDetails.metadata = {
                     ...(purpose ? { purpose } : {}),
-                    secured
+                    secured,
                 };
             }
 
             // Validation
-            const validationErrors = LoanCalculations.validateLoanDetails(loanDetails, currentBalanceCents);
+            const validationErrors = LoanCalculations.validateLoanDetails(
+                loanDetails,
+                currentBalanceCents,
+            );
             if (validationErrors.length > 0) {
                 setError(validationErrors[0] ?? 'Invalid details');
                 setIsSubmitting(false);
@@ -185,11 +219,10 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                 deletedAt: null,
                 createdAt: new Date().toISOString() as ISODateString,
                 updatedAt: new Date().toISOString() as ISODateString,
-                loanDetails: loanDetails
+                loanDetails: loanDetails,
             };
 
             await onSubmit(newAccount);
-
         } catch {
             setError('Failed to create account. Please check your inputs.');
             setIsSubmitting(false);
@@ -198,10 +231,14 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
     const Icon = React.useMemo((): React.ComponentType<{ className?: string }> => {
         switch (type) {
-            case AccountType.Mortgage: return Home;
-            case AccountType.AutoLoan: return Car;
-            case AccountType.PersonalLoan: return Receipt;
-            default: return Home; // Fallback
+            case AccountType.Mortgage:
+                return Home;
+            case AccountType.AutoLoan:
+                return Car;
+            case AccountType.PersonalLoan:
+                return Receipt;
+            default:
+                return Home; // Fallback
         }
     }, [type]);
 
@@ -212,8 +249,17 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                     <Icon className="w-7 h-7 text-amber-500" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-foreground tracking-tight">Create {type === AccountType.Mortgage ? 'Mortgage' : type === AccountType.AutoLoan ? 'Auto Loan' : 'Personal Loan'}</h2>
-                    <p className="text-sm text-muted-foreground">Enter your loan details for accurate tracking</p>
+                    <h2 className="text-xl font-bold text-foreground tracking-tight">
+                        Create{' '}
+                        {type === AccountType.Mortgage
+                            ? 'Mortgage'
+                            : type === AccountType.AutoLoan
+                              ? 'Auto Loan'
+                              : 'Personal Loan'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                        Enter your loan details for accurate tracking
+                    </p>
                 </div>
             </div>
 
@@ -226,7 +272,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                             <Input
                                 id="account-name"
                                 value={accountName}
-                                onChange={(e) => setAccountName(e.target.value)}
+                                onChange={e => setAccountName(e.target.value)}
                                 placeholder="e.g. Home Mortgage"
                             />
                         </div>
@@ -235,7 +281,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                             <Input
                                 id="institution-name"
                                 value={institutionName}
-                                onChange={(e) => setInstitutionName(e.target.value)}
+                                onChange={e => setInstitutionName(e.target.value)}
                                 placeholder="e.g. Wells Fargo"
                             />
                         </div>
@@ -244,7 +290,9 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {/* Section 2: Loan Terms */}
                 <section className="space-y-6">
-                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Loan Terms</h3>
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">
+                        Loan Terms
+                    </h3>
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <Label htmlFor="original-amount">Original Loan Amount *</Label>
@@ -252,7 +300,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 id="original-amount"
                                 type="number"
                                 value={originalAmount}
-                                onChange={(e) => setOriginalAmount(e.target.value)}
+                                onChange={e => setOriginalAmount(e.target.value)}
                                 onFocus={() => setFocusedField('original-amount')}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="0.00"
@@ -265,11 +313,13 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 id="current-balance"
                                 type="number"
                                 value={currentBalance}
-                                onChange={(e) => setCurrentBalance(e.target.value)}
+                                onChange={e => setCurrentBalance(e.target.value)}
                                 placeholder="0.00"
                                 className="font-mono"
                             />
-                            <p className="text-[10px] text-muted-foreground mt-2 italic leading-relaxed">Leave blank if same as original</p>
+                            <p className="text-[10px] text-muted-foreground mt-2 italic leading-relaxed">
+                                Leave blank if same as original
+                            </p>
                         </div>
                         <div>
                             <Label htmlFor="interest-rate">Interest Rate (% APR)</Label>
@@ -278,7 +328,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 type="number"
                                 step="0.001"
                                 value={interestRate}
-                                onChange={(e) => setInterestRate(e.target.value)}
+                                onChange={e => setInterestRate(e.target.value)}
                                 onFocus={() => setFocusedField('interest-rate')}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="3.5"
@@ -291,7 +341,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 id="term-months"
                                 type="number"
                                 value={termMonths}
-                                onChange={(e) => setTermMonths(e.target.value)}
+                                onChange={e => setTermMonths(e.target.value)}
                                 onFocus={() => setFocusedField('term-months')}
                                 onBlur={() => setFocusedField(null)}
                                 placeholder="360"
@@ -304,7 +354,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 id="start-date"
                                 type="date"
                                 value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
+                                onChange={e => setStartDate(e.target.value)}
                                 className="font-mono text-base"
                             />
                         </div>
@@ -313,7 +363,9 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {/* Section 3: Payments */}
                 <section className="space-y-6">
-                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Payments</h3>
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">
+                        Payments
+                    </h3>
                     <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
                             <Label htmlFor="monthly-payment">Monthly Payment *</Label>
@@ -322,7 +374,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                     id="monthly-payment"
                                     type="number"
                                     value={monthlyPayment}
-                                    onChange={(e) => setMonthlyPayment(e.target.value)}
+                                    onChange={e => setMonthlyPayment(e.target.value)}
                                     onFocus={() => setFocusedField('monthly-payment')}
                                     onBlur={() => setFocusedField(null)}
                                     placeholder="0.00"
@@ -346,7 +398,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 min="1"
                                 max="31"
                                 value={paymentDueDay}
-                                onChange={(e) => setPaymentDueDay(e.target.value)}
+                                onChange={e => setPaymentDueDay(e.target.value)}
                                 className="font-mono"
                             />
                         </div>
@@ -356,14 +408,16 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                 {/* Section 4: Specific Details */}
                 {type === AccountType.Mortgage && (
                     <section className="space-y-6">
-                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Property Details</h3>
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">
+                            Property Details
+                        </h3>
                         <div className="space-y-6">
                             <div>
                                 <Label htmlFor="property-address">Property Address</Label>
                                 <Input
                                     id="property-address"
                                     value={propertyAddress}
-                                    onChange={(e) => setPropertyAddress(e.target.value)}
+                                    onChange={e => setPropertyAddress(e.target.value)}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-6">
@@ -373,7 +427,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                         id="property-value"
                                         type="number"
                                         value={propertyValue}
-                                        onChange={(e) => setPropertyValue(e.target.value)}
+                                        onChange={e => setPropertyValue(e.target.value)}
                                         className="font-mono text-base"
                                     />
                                 </div>
@@ -382,12 +436,17 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                         type="checkbox"
                                         id="escrow"
                                         checked={escrowIncluded}
-                                        onChange={(e) => setEscrowIncluded(e.target.checked)}
+                                        onChange={e => setEscrowIncluded(e.target.checked)}
                                         onFocus={() => setFocusedField('escrow')}
                                         onBlur={() => setFocusedField(null)}
                                         className="w-4 h-4 rounded border-border/50 bg-muted/30 accent-primary"
                                     />
-                                    <label htmlFor="escrow" className="text-sm font-medium text-foreground cursor-pointer select-none">Includes Escrow?</label>
+                                    <label
+                                        htmlFor="escrow"
+                                        className="text-sm font-medium text-foreground cursor-pointer select-none"
+                                    >
+                                        Includes Escrow?
+                                    </label>
                                 </div>
                                 {escrowIncluded && (
                                     <div className="col-span-2">
@@ -396,7 +455,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                             id="escrow-amount"
                                             type="number"
                                             value={escrowAmount}
-                                            onChange={(e) => setEscrowAmount(e.target.value)}
+                                            onChange={e => setEscrowAmount(e.target.value)}
                                             className="font-mono text-base"
                                         />
                                     </div>
@@ -408,14 +467,16 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {type === AccountType.AutoLoan && (
                     <section className="space-y-6">
-                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Vehicle Details</h3>
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">
+                            Vehicle Details
+                        </h3>
                         <div className="grid grid-cols-2 gap-6">
                             <div>
                                 <Label htmlFor="vehicle-make">Make</Label>
                                 <Input
                                     id="vehicle-make"
                                     value={vehicleMake}
-                                    onChange={(e) => setVehicleMake(e.target.value)}
+                                    onChange={e => setVehicleMake(e.target.value)}
                                     placeholder="e.g. Toyota"
                                 />
                             </div>
@@ -424,7 +485,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 <Input
                                     id="vehicle-model"
                                     value={vehicleModel}
-                                    onChange={(e) => setVehicleModel(e.target.value)}
+                                    onChange={e => setVehicleModel(e.target.value)}
                                     placeholder="e.g. Camry"
                                 />
                             </div>
@@ -434,7 +495,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                     id="vehicle-year"
                                     type="number"
                                     value={vehicleYear}
-                                    onChange={(e) => setVehicleYear(e.target.value)}
+                                    onChange={e => setVehicleYear(e.target.value)}
                                     placeholder="2023"
                                     className="font-mono"
                                 />
@@ -444,7 +505,7 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                 <Input
                                     id="vin"
                                     value={vin}
-                                    onChange={(e) => setVin(e.target.value)}
+                                    onChange={e => setVin(e.target.value)}
                                     className="font-mono uppercase text-base"
                                     maxLength={17}
                                 />
@@ -455,14 +516,16 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {type === AccountType.PersonalLoan && (
                     <section className="space-y-6">
-                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">Loan Purpose</h3>
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-border/30 pb-3">
+                            Loan Purpose
+                        </h3>
                         <div className="space-y-6">
                             <div>
                                 <Label htmlFor="purpose">Purpose / Description</Label>
                                 <Input
                                     id="purpose"
                                     value={purpose}
-                                    onChange={(e) => setPurpose(e.target.value)}
+                                    onChange={e => setPurpose(e.target.value)}
                                     placeholder="e.g. Debt Consolidation"
                                 />
                             </div>
@@ -471,10 +534,15 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
                                     type="checkbox"
                                     id="secured"
                                     checked={secured}
-                                    onChange={(e) => setSecured(e.target.checked)}
+                                    onChange={e => setSecured(e.target.checked)}
                                     className="w-4 h-4 rounded border-border/50 bg-muted/30 accent-primary"
                                 />
-                                <label htmlFor="secured" className="text-sm font-medium text-foreground cursor-pointer select-none">Secured Loan?</label>
+                                <label
+                                    htmlFor="secured"
+                                    className="text-sm font-medium text-foreground cursor-pointer select-none"
+                                >
+                                    Secured Loan?
+                                </label>
                             </div>
                         </div>
                     </section>
@@ -482,7 +550,9 @@ export function LoanDetailsForm({ type, onBack, onSubmit }: ILoanDetailsFormProp
 
                 {error && (
                     <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-md animate-in slide-in-from-top-2">
-                        <p className="text-xs text-destructive font-bold uppercase tracking-widest">{error}</p>
+                        <p className="text-xs text-destructive font-bold uppercase tracking-widest">
+                            {error}
+                        </p>
                     </div>
                 )}
 

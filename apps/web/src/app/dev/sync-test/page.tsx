@@ -24,7 +24,7 @@ import {
     History,
     Lock,
     Globe,
-    AlertTriangle
+    AlertTriangle,
 } from 'lucide-react';
 
 import { DataInspector } from './components/DataInspector';
@@ -39,7 +39,11 @@ export default function SyncTestPage(): React.ReactElement {
     // State for data inspection
     const [rawData, setRawData] = useState<Uint8Array | null>(null);
     const [encryptedData, setEncryptedData] = useState<Uint8Array | null>(null);
-    const [driveMetadata, setDriveMetadata] = useState<{ id: string; modifiedTime: string; size: number } | null>(null);
+    const [driveMetadata, setDriveMetadata] = useState<{
+        id: string;
+        modifiedTime: string;
+        size: number;
+    } | null>(null);
     const [restoredTransactions, setRestoredTransactions] = useState<Array<ITransaction>>([]);
     const [syncError, setSyncError] = useState<string | null>(null);
 
@@ -107,7 +111,7 @@ export default function SyncTestPage(): React.ReactElement {
                 new Date().toISOString().split('T')[0] as `${number}-${number}-${number}`,
                 customPayee,
                 amount,
-                TransactionStatus.Cleared
+                TransactionStatus.Cleared,
             );
 
             // Override memo if provided
@@ -149,27 +153,30 @@ export default function SyncTestPage(): React.ReactElement {
             }
 
             const mapStart = performance.now();
-            const now = new Date().toISOString() as `${number}-${number}-${number}T${number}:${number}:${number}.${number}Z`;
-            const mappedTxs: Array<ITransaction> = result.transactions.map((pt, index: number): ITransaction => ({
-                id: `qif-${Date.now()}-${index}`,
-                accountId: 'test-account',
-                payeeId: 'payee-legacy-import',
-                date: pt.date,
-                payee: pt.payee,
-                memo: pt.memo || '',
-                totalAmount: pt.amount,
-                status: TransactionStatus.Cleared,
-                checkNumber: pt.checkNumber || '',
-                importHash: pt.importHash || '',
-                createdAt: now,
-                updatedAt: now,
-                splits: pt.splits.map((s, si: number) => ({
-                    id: `qif-${Date.now()}-${index}-s${si}`,
-                    amount: s.amount,
-                    memo: s.memo || '',
-                    categoryId: s.category || KnownCategory.Uncategorized
-                }))
-            }));
+            const now =
+                new Date().toISOString() as `${number}-${number}-${number}T${number}:${number}:${number}.${number}Z`;
+            const mappedTxs: Array<ITransaction> = result.transactions.map(
+                (pt, index: number): ITransaction => ({
+                    id: `qif-${Date.now()}-${index}`,
+                    accountId: 'test-account',
+                    payeeId: 'payee-legacy-import',
+                    date: pt.date,
+                    payee: pt.payee,
+                    memo: pt.memo || '',
+                    totalAmount: pt.amount,
+                    status: TransactionStatus.Cleared,
+                    checkNumber: pt.checkNumber || '',
+                    importHash: pt.importHash || '',
+                    createdAt: now,
+                    updatedAt: now,
+                    splits: pt.splits.map((s, si: number) => ({
+                        id: `qif-${Date.now()}-${index}-s${si}`,
+                        amount: s.amount,
+                        memo: s.memo || '',
+                        categoryId: s.category || KnownCategory.Uncategorized,
+                    })),
+                }),
+            );
 
             // If no splits, create a default one
             mappedTxs.forEach((tx: ITransaction): void => {
@@ -178,7 +185,7 @@ export default function SyncTestPage(): React.ReactElement {
                         id: `${tx.id}-split-0`,
                         amount: tx.totalAmount,
                         memo: tx.memo,
-                        categoryId: KnownCategory.Uncategorized
+                        categoryId: KnownCategory.Uncategorized,
                     });
                 }
             });
@@ -207,7 +214,6 @@ export default function SyncTestPage(): React.ReactElement {
 
             // Clear input
             if (fileInputRef.current) fileInputRef.current.value = '';
-
         } catch (error) {
             console.error('QIF Import failed:', error);
             setSyncError(error instanceof Error ? error.message : 'Unknown error');
@@ -249,7 +255,6 @@ export default function SyncTestPage(): React.ReactElement {
         }
 
         try {
-
             const exportStart = performance.now();
             const exported: Uint8Array = exportDatabase();
             const exportEnd = performance.now();
@@ -272,7 +277,7 @@ export default function SyncTestPage(): React.ReactElement {
                 });
             }
 
-            setMetrics((prev) => ({
+            setMetrics(prev => ({
                 ...(prev || { downloadTimeMs: 0, decryptionTimeMs: 0 }),
                 exportTimeMs: exportEnd - exportStart,
                 encryptionTimeMs: encryptEnd - encryptStart,
@@ -313,13 +318,20 @@ export default function SyncTestPage(): React.ReactElement {
             const currentTxs = useLedgerStore.getState().transactions;
             setRestoredTransactions([...currentTxs]);
 
-            setMetrics((prev) => ({
-                ...(prev || { exportTimeMs: 0, encryptionTimeMs: 0, uploadTimeMs: 0, rawSize: 0, encryptedSize: 0, recordCount: 0 }),
+            setMetrics(prev => ({
+                ...(prev || {
+                    exportTimeMs: 0,
+                    encryptionTimeMs: 0,
+                    uploadTimeMs: 0,
+                    rawSize: 0,
+                    encryptedSize: 0,
+                    recordCount: 0,
+                }),
                 downloadTimeMs: downloadEnd - downloadStart,
                 decryptionTimeMs: decryptEnd - decryptStart,
                 recordCount: currentTxs.length,
                 encryptedSize: encryptedData.length,
-                rawSize: decrypted.length
+                rawSize: decrypted.length,
             }));
 
             setSyncError(null);
@@ -338,8 +350,12 @@ export default function SyncTestPage(): React.ReactElement {
                     <AlertCircle className="w-8 h-8 text-amber-500" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-black uppercase tracking-widest">Authentication Required</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Please sign in to access sync architecture diagnostics</p>
+                    <h1 className="text-xl font-black uppercase tracking-widest">
+                        Authentication Required
+                    </h1>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Please sign in to access sync architecture diagnostics
+                    </p>
                 </div>
             </div>
         );
@@ -349,7 +365,10 @@ export default function SyncTestPage(): React.ReactElement {
         <div className="space-y-12">
             <header className="flex justify-between items-end border-b border-border/30 pb-8">
                 <div className="space-y-1">
-                    <Link href="/dev" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group">
+                    <Link
+                        href="/dev"
+                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group"
+                    >
                         <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
                         Back to Dev Tools
                     </Link>
@@ -366,18 +385,33 @@ export default function SyncTestPage(): React.ReactElement {
             <Card className="p-8">
                 <div className="flex items-center gap-3 mb-8">
                     <Database className="w-5 h-5 text-primary" />
-                    <h2 className="text-sm font-black uppercase tracking-widest">Active Store Statistics</h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest">
+                        Active Store Statistics
+                    </h2>
                 </div>
 
                 <div className="grid grid-cols-2 gap-8 mb-8">
                     <div className="space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Transaction Count</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
+                            Transaction Count
+                        </p>
                         <p className="text-3xl font-black tabular-nums">{transactions.length}</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Total Ledger Aggregate</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
+                            Total Ledger Aggregate
+                        </p>
                         <p className="text-3xl font-black tabular-nums">
-                            ${(transactions.reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            $
+                            {(
+                                transactions.reduce(
+                                    (sum: number, tx: ITransaction): number => sum + tx.totalAmount,
+                                    0,
+                                ) / 100
+                            ).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </p>
                     </div>
                 </div>
@@ -431,14 +465,18 @@ export default function SyncTestPage(): React.ReactElement {
                                 type="text"
                                 placeholder="Payee"
                                 value={customPayee}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomPayee(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                                    setCustomPayee(e.target.value)
+                                }
                                 className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                             />
                             <input
                                 type="number"
                                 placeholder="Amount (e.g., 25.50)"
                                 value={customAmount}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomAmount(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                                    setCustomAmount(e.target.value)
+                                }
                                 className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                                 step="0.01"
                             />
@@ -446,7 +484,9 @@ export default function SyncTestPage(): React.ReactElement {
                                 type="text"
                                 placeholder="Memo (optional)"
                                 value={customMemo}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void => setCustomMemo(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>): void =>
+                                    setCustomMemo(e.target.value)
+                                }
                                 className="h-11 rounded bg-muted/10 border border-border/50 px-4 text-xs font-bold focus:border-primary transition-colors"
                             />
                         </div>
@@ -467,25 +507,44 @@ export default function SyncTestPage(): React.ReactElement {
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-muted/10 backdrop-blur-sm sticky top-0">
                                     <tr>
-                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Date</th>
-                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Payee</th>
-                                        <th className="px-6 py-3 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">Value</th>
+                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                            Date
+                                        </th>
+                                        <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                            Payee
+                                        </th>
+                                        <th className="px-6 py-3 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                            Value
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {transactions.slice(0, 100).map((tx: ITransaction): React.ReactElement => (
-                                        <tr key={tx.id} className="border-t border-border/5 hover:bg-primary/5 transition-colors">
-                                            <td className="px-6 py-3 text-[10px] font-bold font-mono opacity-60">{tx.date}</td>
-                                            <td className="px-6 py-3 text-[10px] font-bold uppercase tracking-tight">{tx.payee}</td>
-                                            <td className="px-6 py-3 text-right text-[10px] font-black tabular-nums">
-                                                ${(tx.totalAmount / 100).toFixed(2)}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {transactions.slice(0, 100).map(
+                                        (tx: ITransaction): React.ReactElement => (
+                                            <tr
+                                                key={tx.id}
+                                                className="border-t border-border/5 hover:bg-primary/5 transition-colors"
+                                            >
+                                                <td className="px-6 py-3 text-[10px] font-bold font-mono opacity-60">
+                                                    {tx.date}
+                                                </td>
+                                                <td className="px-6 py-3 text-[10px] font-bold uppercase tracking-tight">
+                                                    {tx.payee}
+                                                </td>
+                                                <td className="px-6 py-3 text-right text-[10px] font-black tabular-nums">
+                                                    ${(tx.totalAmount / 100).toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        ),
+                                    )}
                                     {transactions.length > 100 && (
                                         <tr className="bg-muted/5">
-                                            <td colSpan={3} className="px-6 py-2 text-[9px] text-center font-bold uppercase text-muted-foreground/40 italic">
-                                                Showing first 100 of {transactions.length} records...
+                                            <td
+                                                colSpan={3}
+                                                className="px-6 py-2 text-[9px] text-center font-bold uppercase text-muted-foreground/40 italic"
+                                            >
+                                                Showing first 100 of {transactions.length}{' '}
+                                                records...
                                             </td>
                                         </tr>
                                     )}
@@ -501,7 +560,9 @@ export default function SyncTestPage(): React.ReactElement {
                 <Card className="p-8">
                     <div className="flex items-center gap-3 mb-8">
                         <ShieldCheck className="w-5 h-5 text-indigo-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest">Pipeline Validation</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest">
+                            Pipeline Validation
+                        </h2>
                     </div>
 
                     <div className="space-y-3">
@@ -557,16 +618,26 @@ export default function SyncTestPage(): React.ReactElement {
                 <Card className="p-6 bg-primary/5 border-primary/20">
                     <div className="flex items-center gap-3 mb-6">
                         <Cloud className="w-5 h-5 text-primary" />
-                        <h3 className="text-[11px] font-black uppercase tracking-widest">Remote Manifest (Cloud)</h3>
+                        <h3 className="text-[11px] font-black uppercase tracking-widest">
+                            Remote Manifest (Cloud)
+                        </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">Resource Identifier</span>
-                            <span className="text-[10px] font-mono font-bold break-all">{driveMetadata.id}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">
+                                Resource Identifier
+                            </span>
+                            <span className="text-[10px] font-mono font-bold break-all">
+                                {driveMetadata.id}
+                            </span>
                         </div>
                         <div className="space-y-1 text-right">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">Last Write Timestamp</span>
-                            <span className="text-[10px] font-mono font-bold">{driveMetadata.modifiedTime}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 block">
+                                Last Write Timestamp
+                            </span>
+                            <span className="text-[10px] font-mono font-bold">
+                                {driveMetadata.modifiedTime}
+                            </span>
                         </div>
                     </div>
                 </Card>
@@ -577,7 +648,9 @@ export default function SyncTestPage(): React.ReactElement {
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-3">
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-emerald-500">Restore Pipeline</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-emerald-500">
+                            Restore Pipeline
+                        </h2>
                     </div>
                     <button
                         onClick={handleDownloadFromDrive}
@@ -592,24 +665,35 @@ export default function SyncTestPage(): React.ReactElement {
 
                 {restoredTransactions.length > 0 && (
                     <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
-                        <div className={`p-6 rounded-lg border flex flex-col items-center text-center space-y-2 ${comparison.match ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-destructive/10 border-destructive/30'}`}>
+                        <div
+                            className={`p-6 rounded-lg border flex flex-col items-center text-center space-y-2 ${comparison.match ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-destructive/10 border-destructive/30'}`}
+                        >
                             {comparison.match ? (
                                 <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                             ) : (
                                 <AlertTriangle className="w-8 h-8 text-destructive" />
                             )}
-                            <h3 className={`text-sm font-black uppercase tracking-widest ${comparison.match ? 'text-emerald-500' : 'text-destructive'}`}>
-                                {comparison.match ? 'Diagnostic Match: Perfect' : 'Diagnostic Failure: Mismatch'}
+                            <h3
+                                className={`text-sm font-black uppercase tracking-widest ${comparison.match ? 'text-emerald-500' : 'text-destructive'}`}
+                            >
+                                {comparison.match
+                                    ? 'Diagnostic Match: Perfect'
+                                    : 'Diagnostic Failure: Mismatch'}
                             </h3>
                             <p className="text-[10px] uppercase font-bold tracking-widest opacity-60">
-                                Total restored records: <span className="text-foreground">{restoredTransactions.length}</span>
+                                Total restored records:{' '}
+                                <span className="text-foreground">
+                                    {restoredTransactions.length}
+                                </span>
                             </p>
 
                             {!comparison.match && (
                                 <ul className="mt-4 text-[10px] font-bold uppercase tracking-widest text-destructive/80 space-y-1">
-                                    {comparison.differences.map((diff: string, i: number): React.ReactElement => (
-                                        <li key={i}>• {diff}</li>
-                                    ))}
+                                    {comparison.differences.map(
+                                        (diff: string, i: number): React.ReactElement => (
+                                            <li key={i}>• {diff}</li>
+                                        ),
+                                    )}
                                 </ul>
                             )}
                         </div>

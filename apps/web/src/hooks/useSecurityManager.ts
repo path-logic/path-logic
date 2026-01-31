@@ -17,8 +17,8 @@ export function useSecurityManager(): {
     unlock: () => void;
 } {
     const { data: session } = useSession();
-    const isDirty = useLedgerStore((state) => state.isDirty);
-    const authError = useLedgerStore((state) => state.authError);
+    const isDirty = useLedgerStore(state => state.isDirty);
+    const authError = useLedgerStore(state => state.authError);
 
     const [isIdle, setIsIdle] = useState(false);
     const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -71,10 +71,12 @@ export function useSecurityManager(): {
                 cancelAnimationFrame(frameId);
                 if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
                 if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-                events.forEach((event: string) => window.removeEventListener(event, handleActivity));
+                events.forEach((event: string) =>
+                    window.removeEventListener(event, handleActivity),
+                );
             };
         }
-        return (): void => { };
+        return (): void => {};
     }, [session, isIdle, resetTimers]);
 
     // 2. Refresh Guard (beforeunload)
@@ -97,6 +99,6 @@ export function useSecurityManager(): {
         isIdle,
         isDirty,
         authError,
-        unlock: resetTimers
+        unlock: resetTimers,
     };
 }
