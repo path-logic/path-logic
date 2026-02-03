@@ -4,6 +4,7 @@ const isCI = !!process.env['CI'];
 
 /**
  * See https://playwright.dev/docs/test-configuration.
+ * CI Cache Bust: 2026-02-03
  */
 export default defineConfig({
     testDir: './e2e',
