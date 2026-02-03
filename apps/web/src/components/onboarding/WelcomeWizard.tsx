@@ -1,14 +1,6 @@
 'use client';
 
-import * as React from 'react';
-import { useState } from 'react';
 import { AccountType, type IAccount, type ISODateString, TypeGuards } from '@path-logic/core';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import {
     ArrowRight,
     Banknote,
@@ -22,6 +14,16 @@ import {
     Sparkles,
     Wallet,
 } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+
 import { LoanDetailsForm } from './LoanDetailsForm';
 
 interface IWelcomeWizardProps {
