@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import type { StorybookConfig } from '@storybook/nextjs-vite';
+import type { StorybookConfig } from '@storybook/nextjs';
 
 const config: StorybookConfig = {
     stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
     framework: {
-        name: getAbsolutePath('@storybook/nextjs-vite'),
+        name: getAbsolutePath('@storybook/nextjs'),
         options: {},
     },
     staticDirs: ['../public'],

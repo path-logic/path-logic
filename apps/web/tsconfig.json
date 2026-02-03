@@ -37,5 +37,5 @@
         ".next/types/**/*.ts",
         "../../packages/core/src/**/*.ts"
     ],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "**/*.stories.tsx", "**/__stories__"]
 }
