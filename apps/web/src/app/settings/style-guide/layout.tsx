@@ -23,14 +23,14 @@ export default async function StyleGuideLayout({
     }
 
     return (
-        <AppShell>
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden h-full">
+        <AppShell scrollable>
+            <div className="space-y-4">
                 <header className="flex justify-between items-center flex-none">
                     <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 w-full text-center text-[10px] font-black uppercase tracking-widest text-primary">
                         Living Design System & Style Guide
                     </div>
                 </header>
-                <div className="flex-1 overflow-auto p-8">
+                <div className="p-8 pb-12">
                     <div className="mx-auto max-w-7xl">{children}</div>
                 </div>
             </div>

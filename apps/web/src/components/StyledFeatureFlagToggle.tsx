@@ -21,7 +21,7 @@ export function StyledFeatureFlagToggle({
     description,
 }: IStyledFeatureFlagToggleProps): React.ReactElement {
     return (
-        <FeatureFlagToggle flag={flag} flagConfigs={FLAG_CONFIGS}>
+        <FeatureFlagToggle flag={flag} flagConfigs={FLAG_CONFIGS} apiBasePath="/settings/ff">
             {({
                 enabled,
                 isToggling,

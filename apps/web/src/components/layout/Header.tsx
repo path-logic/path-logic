@@ -44,7 +44,7 @@ export function Header(): React.JSX.Element {
 
     return (
         <header className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-30">
-            <div className="max-w-[1600px] mx-auto px-4 h-14 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="w-6 h-6 bg-primary rounded-sm flex items-center justify-center group-hover:shadow-[0_0_10px_rgba(56,189,248,0.5)] transition-all">

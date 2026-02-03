@@ -1,9 +1,11 @@
-import type { StorybookConfig } from '@storybook/nextjs';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+import type { StorybookConfig } from '@storybook/nextjs-vite';
 
 const config: StorybookConfig = {
     stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
     framework: {
-        name: '@storybook/nextjs',
+        name: getAbsolutePath('@storybook/nextjs-vite'),
         options: {},
     },
     staticDirs: ['../public'],
@@ -13,3 +15,7 @@ const config: StorybookConfig = {
 };
 
 export default config;
+
+function getAbsolutePath(value: string): any {
+    return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}

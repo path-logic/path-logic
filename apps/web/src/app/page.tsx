@@ -95,7 +95,7 @@ function DashboardOverview(): React.JSX.Element {
 
     return (
         <AppShell>
-            <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            <div className="w-full mx-auto space-y-8 pb-12">
                 {/* Header Section */}
                 <div className="flex justify-between items-end">
                     <div>

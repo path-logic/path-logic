@@ -13,7 +13,7 @@ export default function SettingsPage(): React.JSX.Element {
         <AppShell>
             <div className="flex-1 flex flex-col overflow-hidden h-full">
                 <div className="flex-1 overflow-auto p-8">
-                    <div className="mx-auto max-w-7xl w-full space-y-8">
+                    <div className="w-full mx-auto space-y-8">
                         <header className="flex justify-between items-center flex-none">
                             <div>
                                 <h1 className="text-sm font-black uppercase tracking-widest mb-1 text-primary">

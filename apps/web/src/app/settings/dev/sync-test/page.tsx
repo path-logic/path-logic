@@ -366,7 +366,7 @@ export default function SyncTestPage(): React.ReactElement {
             <header className="flex justify-between items-end border-b border-border/30 pb-8">
                 <div className="space-y-1">
                     <Link
-                        href="/dev"
+                        href="/settings/dev"
                         className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group"
                     >
                         <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />

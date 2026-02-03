@@ -20,7 +20,7 @@ export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
         key: FlagKey.DEV_TOOLS,
         name: 'Developer Tools',
         description: 'Access sync test suite and debugging tools',
-        route: '/dev',
+        route: '/settings/dev',
     },
     [FlagKey.BETA_FEATURES]: {
         key: FlagKey.BETA_FEATURES,
@@ -31,6 +31,6 @@ export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
         key: FlagKey.STYLE_GUIDE,
         name: 'Style Guide',
         description: 'Living design system and component showcase',
-        route: '/style-guide',
+        route: '/settings/style-guide',
     },
 };

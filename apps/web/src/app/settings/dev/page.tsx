@@ -18,7 +18,7 @@ export default function DevIndexPage(): React.ReactElement {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Sync Test Suite */}
-                <Link href="/dev/sync-test" className="group">
+                <Link href="/settings/dev/sync-test" className="group">
                     <Card interactive accentColor="bg-blue-500" className="p-8 h-full">
                         <div className="flex flex-col h-full space-y-6">
                             <div className="flex justify-between items-start">
@@ -54,7 +54,7 @@ export default function DevIndexPage(): React.ReactElement {
                 </Link>
 
                 {/* Auth Diagnostics */}
-                <Link href="/dev/auth" className="group">
+                <Link href="/settings/dev/auth" className="group">
                     <Card interactive accentColor="bg-emerald-500" className="p-8 h-full">
                         <div className="flex flex-col h-full space-y-6">
                             <div className="flex justify-between items-start">

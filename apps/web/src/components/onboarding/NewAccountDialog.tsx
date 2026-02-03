@@ -218,7 +218,15 @@ export function NewAccountDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-            <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-card border-border">
+            <DialogContent
+                className="sm:max-w-[500px] p-0 overflow-hidden bg-card border-border shadow-2xl relative z-50"
+                overlayClassName="!bg-transparent !bg-none !backdrop-blur-none"
+                overlayStyle={{
+                    backgroundColor: 'transparent',
+                    backgroundImage: 'none',
+                    backdropFilter: 'none',
+                }}
+            >
                 <div className="p-6 border-b border-border bg-muted/30">
                     <div className="flex items-center gap-2 mb-1">
                         <div className="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
