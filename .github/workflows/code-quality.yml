@@ -14,6 +14,9 @@ jobs:
             NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
             # Disable NX Cloud if token is not available
             NX_CLOUD_NO_TIMEOUTS: true
+            # NextAuth Configuration for Tests
+            AUTH_SECRET: 'ci-secret-for-testing-purpose-only'
+            AUTH_URL: 'http://localhost:3000'
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
