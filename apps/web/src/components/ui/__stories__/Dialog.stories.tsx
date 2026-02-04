@@ -8,7 +8,6 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogClose,
 } from '../dialog';
 import { Button } from '../button';
 
