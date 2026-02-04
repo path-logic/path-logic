@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { within, expect } from '@storybook/test';
 import React from 'react';
 import {
     Breadcrumb,
@@ -40,6 +41,17 @@ export const Default: Story = {
             </BreadcrumbList>
         </Breadcrumb>
     ),
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        const nav = canvas.getByRole('navigation');
+        await expect(nav).toBeVisible();
+        await expect(nav).toHaveAttribute('aria-label', 'breadcrumb');
+
+        // const current = canvas.getByRole('link', { current: 'page' }); // breadcrumb page is span
+        // Actually BreadcrumbPage usually renders a span.
+        // Let's check for 'page' text
+        await expect(canvas.getByText('Breadcrumb')).toBeVisible();
+    },
 };
 
 export const CustomSeparator: Story = {

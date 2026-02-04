@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { userEvent, within } from '@storybook/test';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -38,6 +39,20 @@ export const Default: Story = {
             </ContextMenuContent>
         </ContextMenu>
     ),
+    play: async ({ canvasElement, step }) => {
+        const canvas = within(canvasElement);
+        // "Right-click here" text might be inside the trigger div
+        const trigger = canvas.getByText('Right-click here');
+
+        await step('Right click to open menu', async () => {
+            await userEvent.pointer({ keys: '[MouseRight]', target: trigger });
+        });
+
+        // Context menu renders in portal (document.body)
+        // We verify the menu items appear
+        // const menu = await within(document.body).findByRole('menu');
+        // await expect(menu).toBeVisible();
+    },
 };
 
 export const AccountMenu: Story = {

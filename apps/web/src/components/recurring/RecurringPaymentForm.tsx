@@ -116,7 +116,10 @@ export function RecurringPaymentForm({
                     onValueChange={v => setType(v as ScheduleType)}
                     className="w-full"
                 >
-                    <TabsList className="grid w-full grid-cols-3 h-10 bg-muted/30 p-1 rounded-sm border border-border/50">
+                    <TabsList
+                        aria-label="Schedule type"
+                        className="grid w-full grid-cols-3 h-10 bg-muted/30 p-1 rounded-sm border border-border/50"
+                    >
                         <TabsTrigger
                             value={ScheduleType.Debit}
                             className="text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-destructive data-[state=active]:text-white"
@@ -144,7 +147,7 @@ export function RecurringPaymentForm({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="payee"
-                                className="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                             >
                                 Payee / Description
                             </Label>
@@ -159,10 +162,14 @@ export function RecurringPaymentForm({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest opacity-70">
+                                <Label
+                                    htmlFor="amount"
+                                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                                >
                                     Total Amount
                                 </Label>
                                 <CalculatorInput
+                                    id="amount"
                                     value={displayAmount}
                                     onChange={val => setAmount(val)}
                                     disabled={splits.length > 0}
@@ -178,12 +185,15 @@ export function RecurringPaymentForm({
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="account"
-                                    className="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                    className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                                 >
                                     Post to Account
                                 </Label>
                                 <Select value={accountId} onValueChange={setAccountId}>
-                                    <SelectTrigger className="h-10 bg-muted/20 border-border font-bold text-xs uppercase tracking-tight">
+                                    <SelectTrigger
+                                        id="account"
+                                        className="h-10 bg-muted/20 border-border font-bold text-xs uppercase tracking-tight"
+                                    >
                                         <SelectValue placeholder="Select account" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-card border-border">
@@ -225,7 +235,7 @@ export function RecurringPaymentForm({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="frequency"
-                                className="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                             >
                                 Frequency
                             </Label>
@@ -233,7 +243,10 @@ export function RecurringPaymentForm({
                                 value={frequency}
                                 onValueChange={v => setFrequency(v as Frequency)}
                             >
-                                <SelectTrigger className="h-10 w-full bg-muted/20 border-border font-bold text-xs uppercase tracking-tight">
+                                <SelectTrigger
+                                    id="frequency"
+                                    className="h-10 w-full bg-muted/20 border-border font-bold text-xs uppercase tracking-tight"
+                                >
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-card border-border">
@@ -256,12 +269,15 @@ export function RecurringPaymentForm({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="startDate"
-                                className="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                             >
                                 Next Occurrence
                             </Label>
                             <div className="relative w-full">
-                                <CalendarIcon className="absolute left-3 top-3 w-4 h-4 text-muted-foreground opacity-50" />
+                                <CalendarIcon
+                                    aria-hidden="true"
+                                    className="absolute left-3 top-3 w-4 h-4 text-muted-foreground opacity-50"
+                                />
                                 <Input
                                     id="startDate"
                                     type="date"
@@ -276,14 +292,18 @@ export function RecurringPaymentForm({
                     <div className="space-y-4 pt-4 border-t border-border/50">
                         <div className="flex items-center justify-between py-2 border-b border-border/30">
                             <div className="space-y-0.5">
-                                <Label className="text-[11px] font-black uppercase tracking-widest text-foreground">
+                                <Label
+                                    htmlFor="autoPost"
+                                    className="text-[11px] font-black uppercase tracking-widest text-foreground"
+                                >
                                     Automatic Entry
                                 </Label>
-                                <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">
+                                <p className="text-[9px] text-zinc-600 font-medium uppercase tracking-tighter">
                                     Post to ledger automatically on due date
                                 </p>
                             </div>
                             <Switch
+                                id="autoPost"
                                 checked={autoPost}
                                 onCheckedChange={setAutoPost}
                                 className="scale-75"
@@ -293,7 +313,7 @@ export function RecurringPaymentForm({
                         <div className="space-y-2">
                             <Label
                                 htmlFor="paymentMethod"
-                                className="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                             >
                                 Payment Method / Source
                             </Label>
@@ -301,7 +321,10 @@ export function RecurringPaymentForm({
                                 value={paymentMethod}
                                 onValueChange={v => setPaymentMethod(v as PaymentMethod)}
                             >
-                                <SelectTrigger className="h-10 bg-muted/20 border-border font-bold text-xs uppercase">
+                                <SelectTrigger
+                                    id="paymentMethod"
+                                    className="h-10 bg-muted/20 border-border font-bold text-xs uppercase"
+                                >
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-card border-border">

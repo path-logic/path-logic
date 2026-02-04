@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { within, expect } from '@storybook/test';
 import React, { useEffect } from 'react';
 import { BreadcrumbNav } from '../BreadcrumbNav';
 import { useLedgerStore } from '@/store/ledgerStore';
@@ -76,6 +77,11 @@ export const AccountDetail: Story = {
                 pathname: '/accounts/chase-123',
             },
         },
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByRole('link', { name: 'Accounts' })).toBeVisible();
+        await expect(canvas.getByText('Chase Checking')).toBeVisible();
     },
 };
 

@@ -92,6 +92,7 @@ export function CalculatorInput({
                 <PopoverTrigger asChild>
                     <button
                         type="button"
+                        aria-label="Open calculator"
                         className="absolute right-2 top-2 p-1 rounded-sm hover:bg-accent text-muted-foreground transition-colors"
                     >
                         <Calculator className="w-4 h-4" />

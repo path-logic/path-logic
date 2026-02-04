@@ -9,6 +9,7 @@ const config: StorybookConfig = {
         options: {},
     },
     staticDirs: ['../public'],
+    addons: ['@storybook/addon-interactions', '@storybook/addon-a11y', '@storybook/addon-coverage'],
     typescript: {
         check: false,
     },

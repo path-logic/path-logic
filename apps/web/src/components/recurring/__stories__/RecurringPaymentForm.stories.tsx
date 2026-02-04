@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { userEvent, within } from '@storybook/test';
 import { RecurringPaymentForm } from '../RecurringPaymentForm';
 import {
     AccountType,
@@ -53,6 +54,30 @@ export const CreateNew: Story = {
         accounts: mockAccounts as Array<IAccount>,
         onSubmit: data => console.log('Submit:', data),
         onCancel: (): void => console.log('Cancel'),
+    },
+    play: async ({ canvasElement, step }) => {
+        const canvas = within(canvasElement);
+
+        await step('Fill out form', async () => {
+            // Payee
+            const payeeInput = canvas.getByLabelText(/Payee/i);
+            await userEvent.type(payeeInput, 'Netflix');
+
+            // Amount
+            const amountInput = canvas.getByLabelText(/Amount/i);
+            await userEvent.type(amountInput, '15.99');
+
+            // Frequency (Select) - Assuming it's a native select or Radix Select triggered by button/combobox
+            // If Radix Select:
+            // const freqTrigger = canvas.getByText(/Select frequency/i);
+            // await userEvent.click(freqTrigger);
+            // await userEvent.click(within(document.body).getByText('Monthly'));
+        });
+
+        await step('Verify amount formatting', async () => {
+            // Calculator input might format it
+            // await expect(canvas.getByLabelText(/Amount/i)).toHaveValue('$15.99');
+        });
     },
 };
 

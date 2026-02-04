@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { userEvent, within, expect } from '@storybook/test';
 import { Button } from '../button';
 
 const meta: Meta<typeof Button> = {
@@ -62,5 +63,20 @@ export const Large: Story = {
     args: {
         children: 'Large',
         size: 'lg',
+    },
+};
+
+export const Interaction: Story = {
+    args: {
+        children: 'Click Me',
+        variant: 'default',
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        const button = canvas.getByRole('button', { name: 'Click Me' });
+
+        await expect(button).toBeVisible();
+        await userEvent.click(button);
+        await expect(button).toHaveFocus();
     },
 };

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+import { within, expect } from '@storybook/test';
 import { RecurringSummaryTable } from '../RecurringSummaryTable';
 import {
     Frequency,
@@ -120,6 +121,16 @@ export const Default: Story = {
     args: {
         schedules: mockSchedules as Array<IRecurringSchedule>,
         accounts: mockAccounts as Array<IAccount>,
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        // Verify headers
+        await expect(canvas.getByText('Payee')).toBeVisible();
+        await expect(canvas.getByText('Amount')).toBeVisible();
+        // Verify data row
+        await expect(canvas.getByText('Panther Psychology')).toBeVisible();
+        await expect(canvas.getByText('-$25.00')).toBeVisible(); // 2500 cents
+        await expect(canvas.getByText('Weekly')).toBeVisible();
     },
 };
 

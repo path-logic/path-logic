@@ -117,7 +117,7 @@ export function RecurringSummaryTable({
                                             'font-mono font-bold text-xs',
                                             schedule.amount < 0
                                                 ? 'text-destructive'
-                                                : 'text-emerald-500',
+                                                : 'text-emerald-700',
                                         )}
                                     >
                                         {Money.formatCurrency(schedule.amount)}
@@ -138,7 +138,7 @@ export function RecurringSummaryTable({
                                 <TableCell className="py-2">
                                     <Badge
                                         variant="outline"
-                                        className="text-[9px] font-black uppercase tracking-tighter px-1.5 h-4 border-muted-foreground/30 text-muted-foreground"
+                                        className="text-[9px] font-black uppercase tracking-tighter px-1.5 h-4 border-muted-foreground/30 text-foreground"
                                     >
                                         {formatFrequency(schedule.frequency)}
                                     </Badge>
@@ -159,7 +159,10 @@ export function RecurringSummaryTable({
                                 <TableCell className="py-2 text-right">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="p-1 rounded-sm hover:bg-accent text-muted-foreground transition-colors">
+                                            <button
+                                                className="p-1 rounded-sm hover:bg-accent text-muted-foreground transition-colors"
+                                                aria-label="Actions"
+                                            >
                                                 <MoreHorizontal className="w-4 h-4" />
                                             </button>
                                         </DropdownMenuTrigger>

@@ -60,7 +60,10 @@ export function RecurringSplitEditor({
                     value={split.categoryId || KnownCategory.Uncategorized}
                     onValueChange={val => updateSplit(split.id, { categoryId: val })}
                 >
-                    <SelectTrigger className="h-8 text-[11px] bg-background border-border font-bold uppercase tracking-tight">
+                    <SelectTrigger
+                        aria-label="Category"
+                        className="h-8 text-[11px] bg-background border-border font-bold uppercase tracking-tight"
+                    >
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border">
@@ -78,6 +81,7 @@ export function RecurringSplitEditor({
             </div>
             <div className="col-span-4">
                 <CalculatorInput
+                    aria-label="Amount"
                     value={(split.amount / 100).toString()}
                     onChange={val =>
                         updateSplit(split.id, { amount: Math.round(parseFloat(val || '0') * 100) })
@@ -87,6 +91,7 @@ export function RecurringSplitEditor({
             </div>
             <div className="col-span-2">
                 <input
+                    aria-label="Memo"
                     placeholder="Memo"
                     value={split.memo}
                     onChange={e => updateSplit(split.id, { memo: e.target.value })}
@@ -99,6 +104,7 @@ export function RecurringSplitEditor({
                     variant="ghost"
                     size="icon"
                     onClick={() => removeSplit(split.id)}
+                    aria-label="Remove split"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -118,8 +124,8 @@ export function RecurringSplitEditor({
                         className={cn(
                             'text-[10px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-sm',
                             remaining === 0
-                                ? 'bg-emerald-500/10 text-emerald-500'
-                                : 'bg-amber-500/10 text-amber-500',
+                                ? 'bg-emerald-500/10 text-emerald-700'
+                                : 'bg-amber-500/10 text-amber-700',
                         )}
                     >
                         Out of Balance: {Money.formatCurrency(remaining)}
@@ -222,8 +228,8 @@ export function RecurringSplitEditor({
                     className={cn(
                         'text-[10px] font-mono px-2 py-0.5 rounded-full border',
                         remaining === 0
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-500',
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-700',
                     )}
                 >
                     Remaining: {Money.formatCurrency(remaining)}
