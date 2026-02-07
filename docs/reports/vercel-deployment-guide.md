@@ -43,7 +43,31 @@ npx vercel link
 
 Follow the prompts. This will create a `.vercel` folder with a `project.json` file containing your `orgId` and `projectId`.
 
-## 3. Benefits of Early Deployment
+## 3. Environment Variables
+
+For the application to function correctly in production (especially Authentication and Google Drive sync), you must configure the following Environment Variables in the Vercel Dashboard (`Settings > Environment Variables`):
+
+| Variable Name                  | Description                              | Source                                  |
+| :----------------------------- | :--------------------------------------- | :-------------------------------------- |
+| `AUTH_SECRET`                  | Secret used to encrypt Auth.js sessions. | Generate with `openssl rand -base64 32` |
+| `GOOGLE_CLIENT_ID`             | Google OAuth Client ID.                  | Google Cloud Console                    |
+| `GOOGLE_CLIENT_SECRET`         | Google OAuth Client Secret.              | Google Cloud Console                    |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Public ID for Google Client.             | Should match `GOOGLE_CLIENT_ID`         |
+
+> [!IMPORTANT]
+> Ensure these are added for **Production**, **Preview**, and **Development** environments in Vercel to ensure consistent behavior across all stages.
+
+## 4. Troubleshooting
+
+### 🛑 500 Internal Server Error on `/api/auth/session`
+
+If you see a 500 error in the browser console relating to `auth/session`, it is usually due to:
+
+1.  **Missing `AUTH_SECRET`**: Ensure `AUTH_SECRET` is set in Vercel.
+2.  **Host Mismatch**: We have added `trustHost: true` to `auth.ts` to mitigate this, but ensure your `NEXTAUTH_URL` (if used) matches your Vercel deployment URL.
+3.  **Google OAuth Redirect URI**: Ensure `https://your-app.vercel.app/api/auth/callback/google` is added to the "Authorized redirect URIs" in your Google Cloud Project.
+
+## 5. Benefits of Early Deployment
 
 - **Fail Fast**: Catch SSR errors or build-time issues that don't show up in local development.
 - **Mobile Testing**: Easily test the PWA features on actual mobile devices via the preview URL.
