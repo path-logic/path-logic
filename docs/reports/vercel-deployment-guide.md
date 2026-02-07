@@ -59,13 +59,21 @@ For the application to function correctly in production (especially Authenticati
 
 ## 4. Troubleshooting
 
-### 🛑 500 Internal Server Error on `/api/auth/session`
+### 🛑 Google OAuth `redirect_uri_mismatch`
 
-If you see a 500 error in the browser console relating to `auth/session`, it is usually due to:
+If you are using a custom domain (e.g., `www.pathlogicfinance.com`), you must register the exact callback URL in your Google Cloud Project:
 
-1.  **Missing `AUTH_SECRET`**: Ensure `AUTH_SECRET` is set in Vercel.
-2.  **Host Mismatch**: We have added `trustHost: true` to `auth.ts` to mitigate this, but ensure your `NEXTAUTH_URL` (if used) matches your Vercel deployment URL.
-3.  **Google OAuth Redirect URI**: Ensure `https://your-app.vercel.app/api/auth/callback/google` is added to the "Authorized redirect URIs" in your Google Cloud Project.
+1.  Go to the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+2.  Select your project and click the **Client ID** under "OAuth 2.0 Client IDs".
+3.  Scroll to **Authorized redirect URIs**.
+4.  Add the following URIs:
+    - `https://www.pathlogicfinance.com/api/auth/callback/google`
+    - `https://pathlogicfinance.com/api/auth/callback/google`
+    - `https://path-logic.vercel.app/api/auth/callback/google` (Keep this for the Vercel domain)
+5.  Click **Save**.
+
+> [!NOTE]
+> It can take a few minutes for Google to propagate these changes.
 
 ## 5. Benefits of Early Deployment
 
