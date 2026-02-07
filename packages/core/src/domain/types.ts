@@ -282,3 +282,26 @@ export interface IRecurringSchedule {
     /** Whether the schedule is active and generating projections. */
     isActive: boolean;
 }
+
+/**
+ * Result of parsing a single split from an external source (e.g. QIF).
+ */
+export interface IParsedSplit {
+    category: string | null;
+    amount: Cents;
+    memo: string | null;
+}
+
+/**
+ * Result of parsing a single transaction from an external source (e.g. QIF).
+ */
+export interface IParsedTransaction {
+    date: ISODateString;
+    amount: Cents;
+    payee: string;
+    memo: string;
+    checkNumber: string | null;
+    category: string | null;
+    splits: Array<IParsedSplit>;
+    importHash: string;
+}

@@ -1,15 +1,15 @@
 import type { Database } from 'sql.js';
-import type { IParsedTransaction } from '@path-logic/core';
+import {
+    type IParsedTransaction,
+    ReconciliationEngine as CoreReconciliationEngine,
+    type IReconciliationMatch,
+} from '@path-logic/core';
 
-export interface IReconciliationMatch {
-    type: 'exact' | 'fuzzy' | 'none';
-    parsedTx: IParsedTransaction;
-    existingTxId?: string;
-    confidence: number; // 0 to 1
-}
+export type { IReconciliationMatch };
 
 /**
  * ReconciliationEngine handles matching external data (QIF) against the local ledger.
+ * This version uses SQL.js to fetch existing transactions then delegates matching to core.
  */
 export class ReconciliationEngine {
     /**
@@ -20,13 +20,10 @@ export class ReconciliationEngine {
         parsedTransactions: Array<IParsedTransaction>,
         accountId: string,
     ): Promise<Array<IReconciliationMatch>> {
-        const results: Array<IReconciliationMatch> = [];
-
-        // 1. Get all existing transactions for this account for fuzzy matching
-        // (We might want to limit this to a date range for performance)
+        // 1. Get all existing transactions for this account
         const existingTxsResult = db.exec(
             `
-            SELECT id, date, totalAmount, payee, importHash 
+            SELECT id, date, totalAmount, importHash 
             FROM transactions 
             WHERE accountId = ? AND isDeleted = 0
         `,
@@ -36,52 +33,11 @@ export class ReconciliationEngine {
         const existingTxs = (existingTxsResult[0]?.values || []).map(row => ({
             id: row[0] as string,
             date: row[1] as string,
-            amount: row[2] as number,
-            payee: row[3] as string,
-            importHash: row[4] as string,
+            totalAmount: row[2] as number,
+            importHash: row[3] as string,
         }));
 
-        for (const parsed of parsedTransactions) {
-            // A. Exact match by importHash
-            const exactMatch = existingTxs.find(tx => tx.importHash === parsed.importHash);
-            if (exactMatch) {
-                results.push({
-                    type: 'exact',
-                    parsedTx: parsed,
-                    existingTxId: exactMatch.id,
-                    confidence: 1.0,
-                });
-                continue;
-            }
-
-            // B. Fuzzy match by Date (+/- 5 days) and Amount (exact)
-            // This handles cases where the user manual entered a transaction and the bank cleared it on a different date.
-            const fuzzyMatch = existingTxs.find(tx => {
-                const dateDiff =
-                    Math.abs(new Date(tx.date).getTime() - new Date(parsed.date).getTime()) /
-                    (1000 * 60 * 60 * 24);
-
-                return dateDiff <= 5 && tx.amount === parsed.amount;
-            });
-
-            if (fuzzyMatch) {
-                results.push({
-                    type: 'fuzzy',
-                    parsedTx: parsed,
-                    existingTxId: fuzzyMatch.id,
-                    confidence: 0.8,
-                });
-                continue;
-            }
-
-            // C. No match
-            results.push({
-                type: 'none',
-                parsedTx: parsed,
-                confidence: 0,
-            });
-        }
-
-        return results;
+        // 2. Delegate matching to core engine
+        return CoreReconciliationEngine.reconcile(parsedTransactions, existingTxs);
     }
 }

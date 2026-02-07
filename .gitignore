@@ -58,3 +58,5 @@ playwright-report/
 test-results/
 lint_output.txt
 storybook-static/
+.vercel
+.env*.local

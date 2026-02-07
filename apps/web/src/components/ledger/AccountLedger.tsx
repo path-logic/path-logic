@@ -9,6 +9,7 @@ import {
     type IAccount,
     type IPayee,
     type IQIFParseResult,
+    type IParsedSplit,
     TransactionStatus,
     Money,
     QIFParser,
@@ -165,7 +166,7 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
                 splits:
                     pt.splits.length > 0
                         ? pt.splits.map(
-                              (s, sIdx): ISplit => ({
+                              (s: IParsedSplit, sIdx: number): ISplit => ({
                                   id: `split-${Date.now()}-${idx}-${sIdx}`,
                                   amount: s.amount,
                                   memo: s.memo || '',

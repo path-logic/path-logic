@@ -1,27 +1,10 @@
-import type { Cents, ISODateString } from '../domain/types';
+import type { Cents, IParsedSplit, IParsedTransaction, ISODateString } from '../domain/types';
 import { generateImportHash } from '../engine/hashing';
 
 export enum QIFAccountType {
     Bank = 'Bank',
     CCard = 'CCard',
     Cash = 'Cash',
-}
-
-export interface IParsedSplit {
-    category: string | null;
-    amount: Cents;
-    memo: string | null;
-}
-
-export interface IParsedTransaction {
-    date: ISODateString;
-    amount: Cents;
-    payee: string;
-    memo: string;
-    checkNumber: string | null;
-    category: string | null;
-    splits: Array<IParsedSplit>;
-    importHash: string;
 }
 
 export interface IParseError {
@@ -39,6 +22,7 @@ export interface IParseWarning {
 export interface IQIFParseResult {
     transactions: Array<IParsedTransaction>;
     accountType: QIFAccountType;
+    accountName: string | null;
     errors: Array<IParseError>;
     warnings: Array<IParseWarning>;
 }
@@ -64,6 +48,7 @@ export class QIFParser {
         const result: IQIFParseResult = {
             transactions: new Array<IParsedTransaction>(),
             accountType: QIFAccountType.Bank,
+            accountName: null,
             errors: new Array<IParseError>(),
             warnings: new Array<IParseWarning>(),
         };
@@ -80,21 +65,31 @@ export class QIFParser {
         let lineNumber: number = 0;
         let currentAccountType: QIFAccountType = QIFAccountType.Bank;
 
-        // Parse account type header if present
-        if (lines[0]?.startsWith('!Type:')) {
-            const typeHeader: string = lines[0].substring(6);
-            if (typeHeader === 'Bank') currentAccountType = QIFAccountType.Bank;
-            else if (typeHeader === 'CCard') currentAccountType = QIFAccountType.CCard;
-            else if (typeHeader === 'Cash') currentAccountType = QIFAccountType.Cash;
-            else {
-                result.warnings.push({
-                    code: 'UNKNOWN_ACCOUNT_TYPE',
-                    message: `Unknown account type: ${typeHeader}, defaulting to Bank`,
-                    line: 1,
-                });
+        // Parse headers (!Type, !Account)
+        while (lineNumber < lines.length && lines[lineNumber]?.startsWith('!')) {
+            const line: string = lines[lineNumber] ?? '';
+            if (line.startsWith('!Type:')) {
+                const typeHeader: string = line.substring(6);
+                if (typeHeader === 'Bank') currentAccountType = QIFAccountType.Bank;
+                else if (typeHeader === 'CCard') currentAccountType = QIFAccountType.CCard;
+                else if (typeHeader === 'Cash') currentAccountType = QIFAccountType.Cash;
+                else {
+                    result.warnings.push({
+                        code: 'UNKNOWN_ACCOUNT_TYPE',
+                        message: `Unknown account type: ${typeHeader}, defaulting to Bank`,
+                        line: lineNumber + 1,
+                    });
+                }
+                result.accountType = currentAccountType;
+            } else if (line.startsWith('!Account')) {
+                // Peek at next line for account name (N field)
+                const nextLine = lines[lineNumber + 1];
+                if (nextLine?.startsWith('N')) {
+                    result.accountName = nextLine.substring(1).trim();
+                    lineNumber++;
+                }
             }
-            result.accountType = currentAccountType;
-            lineNumber = 1;
+            lineNumber++;
         }
 
         // Parse transactions
