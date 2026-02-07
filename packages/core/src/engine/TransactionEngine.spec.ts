@@ -106,4 +106,64 @@ describe('TransactionEngine', () => {
             expect(result.success).toBe(true);
         });
     });
+
+    describe('createPaycheck', () => {
+        it('should create a balanced paycheck with granular splits', () => {
+            const paycheck = engine.createPaycheck({
+                id: 'paycheck-1',
+                accountId: 'acc-1',
+                payeeId: 'payee-1',
+                date: '2026-02-01' as ISODateString,
+                grossPay: 500000, // $5000.00
+                federalTax: 100000, // $1000.00
+                stateTax: 50000, // $500.00
+                socialSecurity: 30000, // $300.00
+                fourOhOneK: 50000, // $500.00
+            });
+
+            expect(paycheck.totalAmount).toBe(270000); // 5000 - 1000 - 500 - 300 - 500 = 2700
+            expect(paycheck.splits.length).toBe(5);
+            expect(paycheck.splits.find(s => s.memo === 'Gross Pay')?.amount).toBe(500000);
+            expect(paycheck.splits.find(s => s.memo === 'Federal Income Tax')?.amount).toBe(
+                -100000,
+            );
+            expect(engine.validateTransaction(paycheck).success).toBe(true);
+        });
+
+        it('should handle zero or undefined optional taxes', () => {
+            const paycheck = engine.createPaycheck({
+                id: 'paycheck-2',
+                accountId: 'acc-1',
+                payeeId: 'payee-1',
+                date: '2026-02-01' as ISODateString,
+                grossPay: 100000,
+                federalTax: 0,
+            });
+
+            expect(paycheck.splits.length).toBe(1);
+            expect(paycheck.totalAmount).toBe(100000);
+        });
+    });
+
+    describe('createMortgagePayment', () => {
+        it('should create a balanced mortgage payment', () => {
+            const mortgage = engine.createMortgagePayment({
+                id: 'mortgage-1',
+                accountId: 'acc-2',
+                payeeId: 'payee-2',
+                date: '2026-02-01' as ISODateString,
+                totalAmount: 250000, // $2500.00
+                principal: 100000,
+                interest: 100000,
+                escrow: 40000,
+                pmi: 10000,
+            });
+
+            expect(mortgage.totalAmount).toBe(250000);
+            expect(mortgage.splits.length).toBe(4);
+            expect(mortgage.splits.find(s => s.memo === 'Principal')?.amount).toBe(100000);
+            expect(mortgage.splits.find(s => s.memo === 'Interest')?.amount).toBe(100000);
+            expect(engine.validateTransaction(mortgage).success).toBe(true);
+        });
+    });
 });

@@ -4,8 +4,6 @@ import { useState, useRef, useMemo } from 'react';
 import { useLedgerStore } from '@/store/ledgerStore';
 import {
     type ITransaction,
-    type IParsedTransaction,
-    type IParsedSplit,
     type ISplit,
     type ISODateString,
     type IAccount,
@@ -24,6 +22,8 @@ import { Landmark, Banknote, CreditCard, Wallet, Plus, Search, Calendar } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SyncIndicator } from '@/components/sync/SyncIndicator';
+import { ReconciliationDialog } from './ReconciliationDialog';
+import { type IReconciliationMatch } from '@/lib/sync/ReconciliationEngine';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
@@ -58,6 +58,7 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
         getOrCreatePayee,
         updateAccount,
         softDeleteAccount,
+        reconcileTransactions,
     } = useLedgerStore();
 
     const [isImporting, setIsImporting] = useState<boolean>(false);
@@ -75,6 +76,10 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
     const [manualSplits, setManualSplits] = useState<Array<ISplit>>([]);
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
     const [accountToEdit, setAccountToEdit] = useState<IAccount | null>(null);
+    const [reconciliationMatches, setReconciliationMatches] = useState<Array<IReconciliationMatch>>(
+        [],
+    );
+    const [isReconciliationOpen, setIsReconciliationOpen] = useState<boolean>(false);
 
     // Filter transactions for active account
     const filteredTransactions = useMemo(() => {
@@ -108,50 +113,21 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
             const result: IQIFParseResult = parser.parse(content);
 
             if (result.transactions.length > 0) {
-                const now: ISODateString = new Date().toISOString() as ISODateString;
-                const newTransactions: Array<ITransaction> = await Promise.all(
-                    result.transactions.map(
-                        async (pt: IParsedTransaction, idx: number): Promise<ITransaction> => {
-                            const payeeEntity: IPayee = await getOrCreatePayee(pt.payee);
-
-                            return {
-                                id: `import-${Date.now()}-${idx}`,
-                                accountId: activeAccountId || 'imported',
-                                payeeId: payeeEntity.id,
-                                date: pt.date,
-                                payee: pt.payee,
-                                memo: pt.memo || '',
-                                totalAmount: pt.amount,
-                                status: TransactionStatus.Cleared,
-                                checkNumber: pt.checkNumber || '',
-                                importHash: pt.importHash || '',
-                                splits: pt.splits.map(
-                                    (s: IParsedSplit, sIdx: number): ISplit => ({
-                                        id: `split-${Date.now()}-${idx}-${sIdx}`,
-                                        amount: s.amount,
-                                        memo: s.memo || '',
-                                        categoryId: s.category || KnownCategory.Uncategorized,
-                                    }),
-                                ),
-                                createdAt: now,
-                                updatedAt: now,
-                            };
-                        },
-                    ),
+                const matches = await reconcileTransactions(
+                    result.transactions,
+                    activeAccountId || 'imported',
                 );
 
-                newTransactions.forEach((tx: ITransaction): void => {
-                    if (tx.splits.length === 0) {
-                        tx.splits.push({
-                            id: `${tx.id}-split-0`,
-                            amount: tx.totalAmount,
-                            memo: tx.memo,
-                            categoryId: KnownCategory.Uncategorized,
-                        });
-                    }
-                });
+                // If only exact matches, nothing to do
+                const hasWork = matches.some(m => m.type !== 'exact');
+                if (!hasWork) {
+                    setIsImporting(false);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                    return;
+                }
 
-                await addTransactions(newTransactions);
+                setReconciliationMatches(matches);
+                setIsReconciliationOpen(true);
             }
 
             setIsImporting(false);
@@ -159,6 +135,61 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
         };
 
         reader.readAsText(file);
+    };
+
+    const handleReconciliationConfirm = async (
+        decisions: Record<number, 'import' | 'match' | 'ignore'>,
+    ): Promise<void> => {
+        const now: ISODateString = new Date().toISOString() as ISODateString;
+        const toImport: Array<ITransaction> = [];
+
+        for (const [idxStr, decision] of Object.entries(decisions)) {
+            const idx = parseInt(idxStr, 10);
+            const match = reconciliationMatches[idx];
+            if (!match || decision !== 'import') continue;
+
+            const pt = match.parsedTx;
+            const payeeEntity = await getOrCreatePayee(pt.payee);
+
+            const tx: ITransaction = {
+                id: `import-${Date.now()}-${idx}`,
+                accountId: activeAccountId || 'imported',
+                payeeId: payeeEntity.id,
+                date: pt.date,
+                payee: pt.payee,
+                memo: pt.memo || '',
+                totalAmount: pt.amount,
+                status: TransactionStatus.Cleared,
+                checkNumber: pt.checkNumber || '',
+                importHash: pt.importHash || '',
+                splits:
+                    pt.splits.length > 0
+                        ? pt.splits.map(
+                              (s, sIdx): ISplit => ({
+                                  id: `split-${Date.now()}-${idx}-${sIdx}`,
+                                  amount: s.amount,
+                                  memo: s.memo || '',
+                                  categoryId: s.category || KnownCategory.Uncategorized,
+                              }),
+                          )
+                        : [
+                              {
+                                  id: `split-${Date.now()}-${idx}-0`,
+                                  amount: pt.amount,
+                                  memo: pt.memo || '',
+                                  categoryId: KnownCategory.Uncategorized,
+                              },
+                          ],
+                createdAt: now,
+                updatedAt: now,
+            };
+            toImport.push(tx);
+        }
+
+        if (toImport.length > 0) {
+            await addTransactions(toImport);
+        }
+        setIsReconciliationOpen(false);
     };
 
     const handleQuickAdd = async (e: React.FormEvent): Promise<void> => {
@@ -550,6 +581,13 @@ export function AccountLedger({ initialAccountId = null }: IAccountLedgerProps):
                     )}
                 </DialogContent>
             </Dialog>
+
+            <ReconciliationDialog
+                isOpen={isReconciliationOpen}
+                onClose={() => setIsReconciliationOpen(false)}
+                matches={reconciliationMatches}
+                onConfirm={handleReconciliationConfirm}
+            />
         </>
     );
 }

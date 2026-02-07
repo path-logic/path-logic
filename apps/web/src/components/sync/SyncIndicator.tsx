@@ -2,29 +2,37 @@
 
 import { signIn, useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
-import { getSyncStatus } from '@/lib/sync/syncService';
+import { getSyncStatus, refreshLockStatus, type ISyncStatus } from '@/lib/sync/syncService';
 import { cn } from '@/lib/utils';
 import { Cloud, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useLedgerStore } from '@/store/ledgerStore';
 import { Button } from '@/components/ui/button';
+import { LockManager } from './LockManager';
+import type { TimerHandle } from '@path-logic/core';
 
 /**
  * Global indicator for Google Drive sync status.
  * Visualizes when the app is in-progress, idle, or has encountered an error.
  */
 export function SyncIndicator(): React.JSX.Element {
-    const authError = useLedgerStore(state => state.authError);
-    const { update: updateSession } = useSession();
-    const [status, setStatus] = useState(getSyncStatus());
+    const authError = useLedgerStore((state): boolean => state.authError);
+    const syncStatus = useLedgerStore((state): string => state.syncStatus);
+    const hasLocalFallback = useLedgerStore((state): boolean => state.hasLocalFallback);
+    const { data: session, update: updateSession } = useSession();
+    const [status, setStatus] = useState<ISyncStatus>(getSyncStatus());
 
-    useEffect(() => {
+    useEffect((): (() => void) => {
         const handleAuthMessage = async (event: MessageEvent): Promise<void> => {
             if (event.origin !== window.location.origin) return;
 
-            if (event.data?.type === 'PATH_LOGIC_AUTH_SUCCESS') {
+            if (
+                event.data &&
+                typeof event.data === 'object' &&
+                (event.data as { type?: string }).type === 'PATH_LOGIC_AUTH_SUCCESS'
+            ) {
                 console.log('Auth success message received!');
                 await updateSession(); // Refresh the session
-                useLedgerStore.setState({ authError: false }); // Clear error
+                useLedgerStore.getState().setAuthError(false); // Clear error
             }
         };
 
@@ -40,22 +48,6 @@ export function SyncIndicator(): React.JSX.Element {
         const top = window.screenY + (window.outerHeight - height) / 2;
 
         try {
-            // NextAuth v5 requires POST for signin, so we can't just window.open the API route.
-            // We use signIn with redirect: false to get the OAuth URL.
-            // Note: We might need to handle the popup/redirect manually or let generic signIn handle it if we didn't want a popup.
-            // But user specifically wants a popup to preserve state.
-
-            // To properly do a popup flow with NextAuth v5 is tricky because signIn() with redirect:false
-            // returns the *final* callback URL or valid redirect, but for OAuth it returns the Provider URL?
-            // Let's test if we can get the provider URL.
-            // Actually, normally 'signIn' automatically redirects.
-            // If we want a popup, the standard way is to open a window that *calls* signIn, or
-            // open a window to a custom page that calls signIn.
-            //
-            // However, sticking to the strategy:
-            // If we use signIn('google', { redirect: false }), it should return { url: 'https://accounts.google.com...' }
-            // Let's try that.
-
             const result = await signIn('google', {
                 redirect: false,
                 callbackUrl: `${window.location.origin}/auth-success`,
@@ -74,9 +66,9 @@ export function SyncIndicator(): React.JSX.Element {
     };
 
     useEffect((): (() => void) => {
-        const interval: NodeJS.Timeout = setInterval((): void => {
+        const interval: TimerHandle = setInterval((): void => {
             const currentStatus = getSyncStatus();
-            setStatus(prev => {
+            setStatus((prev: ISyncStatus): ISyncStatus => {
                 if (
                     prev.inProgress === currentStatus.inProgress &&
                     prev.lastSyncTime === currentStatus.lastSyncTime
@@ -90,13 +82,25 @@ export function SyncIndicator(): React.JSX.Element {
         return (): void => clearInterval(interval);
     }, []);
 
+    // Poll for lock status every 30 seconds
+    useEffect((): (() => void) | undefined => {
+        if (session?.accessToken) {
+            refreshLockStatus(session.accessToken as string);
+            const interval: TimerHandle = setInterval((): void => {
+                refreshLockStatus(session.accessToken as string);
+            }, 30000);
+            return (): void => clearInterval(interval);
+        }
+        return undefined;
+    }, [session?.accessToken]);
+
     const isSyncing: boolean = status.inProgress;
 
     return (
         <div className="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase">
             <div className="flex items-center gap-1.5">
                 <div className="relative flex items-center justify-center">
-                    {!authError && (
+                    {syncStatus === 'synced' && !authError && (
                         <>
                             <div
                                 className={cn(
@@ -109,18 +113,35 @@ export function SyncIndicator(): React.JSX.Element {
                             )}
                         </>
                     )}
+                    {(syncStatus === 'pending-local' || (authError && hasLocalFallback)) && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    )}
+                    {syncStatus === 'error' && !hasLocalFallback && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                    )}
                 </div>
                 <span className="flex items-center gap-1">
-                    {authError ? (
+                    {syncStatus === 'error' ? (
                         <AlertTriangle className="w-2.5 h-2.5 text-destructive" />
+                    ) : syncStatus === 'pending-local' ? (
+                        <RefreshCw className="w-2.5 h-2.5 text-amber-500 animate-spin" />
                     ) : isSyncing ? (
                         <RefreshCw className="w-2.5 h-2.5 animate-spin" />
                     ) : (
                         <Cloud className="w-2.5 h-2.5" />
                     )}
-                    Cloud Sync: {authError ? 'Action Required' : isSyncing ? 'Active...' : 'Idle'}
+                    Cloud Sync:{' '}
+                    {syncStatus === 'error'
+                        ? 'Sync Error'
+                        : syncStatus === 'pending-local'
+                          ? 'Local Only'
+                          : isSyncing
+                            ? 'Active...'
+                            : 'Idle'}
                 </span>
             </div>
+
+            <LockManager />
 
             {authError && (
                 <Button

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import type { ITransaction } from '@path-logic/core';
+import type { ITransaction, TimerHandle } from '@path-logic/core';
 import { TransactionStatus, QIFParser, KnownCategory } from '@path-logic/core';
 import { useLedgerStore } from '@/store/ledgerStore';
 import { getSyncStatus, loadFromDrive, saveToDrive } from '@/lib/sync/syncService';
@@ -74,7 +74,7 @@ export default function SyncTestPage(): React.ReactElement {
     const [syncStatus, setSyncStatus] = useState(getSyncStatus());
 
     useEffect((): (() => void) => {
-        const interval: NodeJS.Timeout = setInterval((): void => {
+        const interval: TimerHandle = setInterval((): void => {
             setSyncStatus(getSyncStatus());
         }, 500);
 

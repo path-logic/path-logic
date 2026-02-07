@@ -25,6 +25,8 @@ const SCHEMA_DDL = `
         institutionName TEXT NOT NULL,
         isActive INTEGER NOT NULL DEFAULT 1,
         deletedAt TEXT,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
     );
@@ -38,6 +40,8 @@ const SCHEMA_DDL = `
         payment_due_day INTEGER NOT NULL,
         start_date TEXT NOT NULL,
         metadata TEXT,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
@@ -56,6 +60,8 @@ const SCHEMA_DDL = `
         phone TEXT,
         notes TEXT,
         defaultCategoryId TEXT,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
     );
@@ -66,6 +72,8 @@ const SCHEMA_DDL = `
         name TEXT NOT NULL,
         description TEXT,
         isActive INTEGER NOT NULL DEFAULT 1,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (parentId) REFERENCES categories(id) ON DELETE CASCADE
@@ -82,6 +90,8 @@ const SCHEMA_DDL = `
         status TEXT NOT NULL,
         checkNumber TEXT,
         importHash TEXT NOT NULL,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (accountId) REFERENCES accounts(id),
@@ -94,6 +104,9 @@ const SCHEMA_DDL = `
         categoryId TEXT,
         memo TEXT,
         amount INTEGER NOT NULL,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
+        updatedAt TEXT NOT NULL,
         FOREIGN KEY (transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
         FOREIGN KEY (categoryId) REFERENCES categories(id)
     );
@@ -106,6 +119,12 @@ const SCHEMA_DDL = `
     CREATE INDEX IF NOT EXISTS idx_loan_details_account ON loan_details(account_id);
 
     CREATE TABLE IF NOT EXISTS user_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_metadata (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
         updatedAt TEXT NOT NULL
@@ -126,6 +145,8 @@ const SCHEMA_DDL = `
         memo TEXT NOT NULL,
         autoPost INTEGER NOT NULL DEFAULT 0,
         isActive INTEGER NOT NULL DEFAULT 1,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (accountId) REFERENCES accounts(id)
@@ -137,6 +158,9 @@ const SCHEMA_DDL = `
         categoryId TEXT,
         memo TEXT,
         amount INTEGER NOT NULL,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        clientId TEXT,
+        updatedAt TEXT NOT NULL,
         FOREIGN KEY (scheduleId) REFERENCES recurring_schedules(id) ON DELETE CASCADE,
         FOREIGN KEY (categoryId) REFERENCES categories(id)
     );
@@ -146,51 +170,51 @@ const SCHEMA_DDL = `
 // SQL QUERIES
 // ============================================================================
 
-const SQL_QUERIES = {
+export const SQL_QUERIES = {
     // Transaction queries
     INSERT_TRANSACTION: `
         INSERT INTO transactions (
             id, accountId, payeeId, date, payee, memo, totalAmount, 
-            status, checkNumber, importHash, createdAt, updatedAt
+            status, checkNumber, importHash, isDeleted, clientId, createdAt, updatedAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_TRANSACTIONS: `
-        SELECT * FROM transactions ORDER BY date DESC
+        SELECT * FROM transactions WHERE isDeleted = 0 ORDER BY date DESC
     `,
 
     UPDATE_TRANSACTION: `
         UPDATE transactions 
         SET accountId = ?, payeeId = ?, date = ?, payee = ?, memo = ?, totalAmount = ?, 
-            status = ?, checkNumber = ?, importHash = ?, updatedAt = ?
+            status = ?, checkNumber = ?, importHash = ?, isDeleted = ?, clientId = ?, updatedAt = ?
         WHERE id = ?
     `,
 
     DELETE_TRANSACTION: `
-        DELETE FROM transactions WHERE id = ?
+        UPDATE transactions SET isDeleted = 1, updatedAt = ? WHERE id = ?
     `,
 
     DELETE_ALL_TRANSACTIONS: `
-        DELETE FROM transactions
+        UPDATE transactions SET isDeleted = 1, updatedAt = ?
     `,
 
     // Account queries
     INSERT_ACCOUNT: `
-        INSERT INTO accounts (id, name, type, institutionName, isActive, deletedAt, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO accounts (id, name, type, institutionName, isActive, deletedAt, isDeleted, clientId, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SOFT_DELETE_ACCOUNT: `
-        UPDATE accounts SET isActive = 0, deletedAt = ?, updatedAt = ? WHERE id = ?
+        UPDATE accounts SET isActive = 0, deletedAt = ?, isDeleted = 1, updatedAt = ? WHERE id = ?
     `,
 
     UPDATE_ACCOUNT: `
-        UPDATE accounts SET name = ?, type = ?, institutionName = ?, isActive = ?, deletedAt = ?, updatedAt = ? WHERE id = ?
+        UPDATE accounts SET name = ?, type = ?, institutionName = ?, isActive = ?, deletedAt = ?, isDeleted = ?, clientId = ?, updatedAt = ? WHERE id = ?
     `,
 
     SELECT_ALL_ACCOUNTS: `
-        SELECT * FROM accounts ORDER BY name ASC
+        SELECT * FROM accounts WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
     // Payee queries
@@ -198,45 +222,45 @@ const SQL_QUERIES = {
         INSERT INTO payees (
             id, name, address, city, state, zipCode, 
             latitude, longitude, website, phone, notes, 
-            defaultCategoryId, createdAt, updatedAt
+            defaultCategoryId, isDeleted, clientId, createdAt, updatedAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_PAYEES: `
-        SELECT * FROM payees ORDER BY name ASC
+        SELECT * FROM payees WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
     SELECT_PAYEE_BY_NAME: `
-        SELECT * FROM payees WHERE name = ?
+        SELECT * FROM payees WHERE name = ? AND isDeleted = 0
     `,
 
     // Category queries
     INSERT_CATEGORY: `
-        INSERT INTO categories (id, parentId, name, description, isActive, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO categories (id, parentId, name, description, isActive, isDeleted, clientId, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_CATEGORIES: `
-        SELECT * FROM categories ORDER BY name ASC
+        SELECT * FROM categories WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
     // Split queries
     INSERT_SPLIT: `
-        INSERT INTO splits (id, transactionId, categoryId, memo, amount)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO splits (id, transactionId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_SPLITS_BY_TRANSACTION: `
-        SELECT * FROM splits WHERE transactionId = ? ORDER BY id
+        SELECT * FROM splits WHERE transactionId = ? AND isDeleted = 0 ORDER BY id
     `,
 
     DELETE_SPLITS_BY_TRANSACTION: `
-        DELETE FROM splits WHERE transactionId = ?
+        UPDATE splits SET isDeleted = 1, updatedAt = ? WHERE transactionId = ?
     `,
 
     DELETE_ALL_SPLITS: `
-        DELETE FROM splits
+        UPDATE splits SET isDeleted = 1, updatedAt = ?
     `,
 
     // Loan Details queries
@@ -244,13 +268,13 @@ const SQL_QUERIES = {
         INSERT INTO loan_details (
             account_id, original_amount, interest_rate, term_months, 
             monthly_payment, payment_due_day, start_date, metadata, 
-            created_at, updated_at
+            isDeleted, clientId, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_LOAN_DETAILS: `
-        SELECT * FROM loan_details WHERE account_id = ?
+        SELECT * FROM loan_details WHERE account_id = ? AND isDeleted = 0
     `,
 
     // User Settings queries
@@ -263,18 +287,28 @@ const SQL_QUERIES = {
         SELECT value FROM user_settings WHERE key = ?
     `,
 
+    // Sync Metadata queries
+    INSERT_SYNC_METADATA: `
+        INSERT OR REPLACE INTO sync_metadata (key, value, updatedAt)
+        VALUES (?, ?, ?)
+    `,
+
+    SELECT_SYNC_METADATA: `
+        SELECT value FROM sync_metadata WHERE key = ?
+    `,
+
     // Recurring Schedule queries
     INSERT_RECURRING_SCHEDULE: `
         INSERT INTO recurring_schedules (
             id, accountId, payee, amount, type, frequency, paymentMethod, 
             startDate, endDate, nextDueDate, lastOccurredDate, 
-            memo, autoPost, isActive, createdAt, updatedAt
+            memo, autoPost, isActive, isDeleted, clientId, createdAt, updatedAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_RECURRING_SCHEDULES: `
-        SELECT * FROM recurring_schedules ORDER BY nextDueDate ASC
+        SELECT * FROM recurring_schedules WHERE isDeleted = 0 ORDER BY nextDueDate ASC
     `,
 
     UPDATE_RECURRING_SCHEDULE: `
@@ -282,25 +316,25 @@ const SQL_QUERIES = {
         SET accountId = ?, payee = ?, amount = ?, type = ?, frequency = ?, 
             paymentMethod = ?, startDate = ?, endDate = ?, 
             nextDueDate = ?, lastOccurredDate = ?, 
-            memo = ?, autoPost = ?, isActive = ?, updatedAt = ?
+            memo = ?, autoPost = ?, isActive = ?, isDeleted = ?, clientId = ?, updatedAt = ?
         WHERE id = ?
     `,
 
     DELETE_RECURRING_SCHEDULE: `
-        DELETE FROM recurring_schedules WHERE id = ?
+        UPDATE recurring_schedules SET isDeleted = 1, updatedAt = ? WHERE id = ?
     `,
 
     INSERT_RECURRING_SPLIT: `
-        INSERT INTO recurring_splits (id, scheduleId, categoryId, memo, amount)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO recurring_splits (id, scheduleId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_RECURRING_SPLITS_BY_SCHEDULE: `
-        SELECT * FROM recurring_splits WHERE scheduleId = ? ORDER BY id
+        SELECT * FROM recurring_splits WHERE scheduleId = ? AND isDeleted = 0 ORDER BY id
     `,
 
     DELETE_RECURRING_SPLITS_BY_SCHEDULE: `
-        DELETE FROM recurring_splits WHERE scheduleId = ?
+        UPDATE recurring_splits SET isDeleted = 1, updatedAt = ? WHERE scheduleId = ?
     `,
 } as const;
 
@@ -312,7 +346,7 @@ const SQL_QUERIES = {
  * Column indices for the transactions table
  * Maps to the order in SELECT * FROM transactions
  */
-const TRANSACTION_COLUMNS = {
+export const TRANSACTION_COLUMNS = {
     ID: 0,
     ACCOUNT_ID: 1,
     PAYEE_ID: 2,
@@ -323,21 +357,44 @@ const TRANSACTION_COLUMNS = {
     STATUS: 7,
     CHECK_NUMBER: 8,
     IMPORT_HASH: 9,
-    CREATED_AT: 10,
-    UPDATED_AT: 11,
+    IS_DELETED: 10,
+    CLIENT_ID: 11,
+    CREATED_AT: 12,
+    UPDATED_AT: 13,
 } as const;
 
 /**
  * Column indices for the splits table
  * Maps to the order in SELECT * FROM splits
  */
-const SPLIT_COLUMNS = {
+export const SPLIT_COLUMNS = {
     ID: 0,
     TRANSACTION_ID: 1,
     CATEGORY_ID: 2,
     MEMO: 3,
     AMOUNT: 4,
+    IS_DELETED: 5,
+    CLIENT_ID: 6,
+    UPDATED_AT: 7,
 } as const;
+
+// ============================================================================
+// DEVICE IDENTITY
+// ============================================================================
+
+/**
+ * Get or create a unique ID for this browser instance
+ */
+export function getClientId(): string {
+    if (typeof window === 'undefined') return 'server';
+
+    let id: string | null = localStorage.getItem('path_logic_client_id');
+    if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('path_logic_client_id', id);
+    }
+    return id;
+}
 
 // ============================================================================
 // DATABASE STATE
@@ -410,6 +467,8 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
                 null,
                 'Automatically generated for legacy migration',
                 null,
+                0, // isDeleted
+                getClientId(),
                 now,
                 now,
             ]);
@@ -418,9 +477,43 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
         }
     }
 
+    // Migration: Add isDeleted and clientId to all tables if missing
+    const tables: Array<string> = [
+        'accounts',
+        'payees',
+        'categories',
+        'transactions',
+        'splits',
+        'recurring_schedules',
+        'recurring_splits',
+        'loan_details',
+    ];
+    for (const table of tables) {
+        const tableInfo: Array<QueryExecResult> = dbInstance.exec(`PRAGMA table_info(${table})`);
+        if (tableInfo[0]?.values) {
+            const cols: Array<Array<SqlValue>> = tableInfo[0].values as Array<Array<SqlValue>>;
+            const hasIsDeleted: boolean = cols.some((v): boolean => v[1] === 'isDeleted');
+            const hasClientId: boolean = cols.some((v): boolean => v[1] === 'clientId');
+            const hasUpdatedAt: boolean = cols.some((v): boolean => v[1] === 'updatedAt');
+
+            if (!hasIsDeleted) {
+                dbInstance.run(
+                    `ALTER TABLE ${table} ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0`,
+                );
+            }
+            if (!hasClientId) {
+                dbInstance.run(`ALTER TABLE ${table} ADD COLUMN clientId TEXT`);
+            }
+            if (!hasUpdatedAt && table !== 'loan_details') {
+                // loan_details has updated_at (snake_case)
+                dbInstance.run(`ALTER TABLE ${table} ADD COLUMN updatedAt TEXT`);
+            }
+        }
+    }
+
     // Migration: Add deletedAt to accounts if missing
     const accountColumns: Array<QueryExecResult> = dbInstance.exec('PRAGMA table_info(accounts)');
-    const accountsResult = accountColumns.at(0);
+    const accountsResult: QueryExecResult | undefined = accountColumns.at(0);
     if (accountsResult && accountsResult.values) {
         const hasDeletedAt: boolean = accountsResult.values.some(
             (v: Array<SqlValue>): boolean => v[1] === 'deletedAt',
@@ -446,7 +539,9 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
                     cat.parentId,
                     cat.name,
                     cat.description,
-                    1,
+                    1, // isActive
+                    0, // isDeleted
+                    getClientId(),
                     now,
                     now,
                 ]);
@@ -460,29 +555,34 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
 }
 
 /**
+ * Internal helper to ensure SQL.js is initialized
+ */
+async function ensureSqlJs(): Promise<SqlJsStatic> {
+    if (SQL) return SQL;
+
+    await loadSqlJsScript();
+    const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (
+        window as ISqlJsWindow
+    ).initSqlJs;
+    if (!initSqlJs) {
+        throw new Error('initSqlJs not found on window');
+    }
+
+    SQL = await initSqlJs({
+        locateFile: (file: string): string => `https://sql.js.org/dist/${file}`,
+    });
+    return SQL;
+}
+
+/**
  * Initialize SQL.js and create/load the database
  */
 export async function initDatabase(): Promise<Database> {
     if (db) return db;
 
-    // Initialize SQL.js WASM
-    if (!SQL) {
-        await loadSqlJsScript();
-
-        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (
-            window as ISqlJsWindow
-        ).initSqlJs;
-        if (!initSqlJs) {
-            throw new Error('initSqlJs not found on window');
-        }
-
-        SQL = await initSqlJs({
-            locateFile: (file: string): string => `https://sql.js.org/dist/${file}`,
-        });
-    }
-
+    const sqlInstance = await ensureSqlJs();
     // Create new database in memory
-    db = new SQL!.Database();
+    db = new sqlInstance.Database();
 
     // Run schema setup and migrations
     await runMaintenance(db);
@@ -494,24 +594,23 @@ export async function initDatabase(): Promise<Database> {
  * Load database from binary data (for decryption)
  */
 export async function loadDatabase(data: Uint8Array): Promise<Database> {
-    if (!SQL) {
-        await loadSqlJsScript();
-
-        const initSqlJs: ((config: Record<string, unknown>) => Promise<SqlJsStatic>) | undefined = (
-            window as ISqlJsWindow
-        ).initSqlJs;
-        if (!initSqlJs) {
-            throw new Error('initSqlJs not found on window');
-        }
-
-        SQL = await initSqlJs({
-            locateFile: (file: string): string => `https://sql.js.org/dist/${file}`,
-        });
-    }
-
-    db = new SQL!.Database(data);
+    const sqlInstance = await ensureSqlJs();
+    db = new sqlInstance.Database(data);
     await runMaintenance(db);
     return db;
+}
+
+/**
+ * Creates a NEW, isolated database instance (used for merging)
+ * This does NOT modify the global active 'db' instance.
+ */
+export async function createIsolatedDatabase(data?: Uint8Array): Promise<Database> {
+    const sqlInstance = await ensureSqlJs();
+    const isolatedDb = new sqlInstance.Database(data);
+    // Note: We don't run runMaintenance here because it's usually used for
+    // merging existing data that already matches the schema or will be
+    // handled by the merge engine.
+    return isolatedDb;
 }
 
 /**
@@ -523,10 +622,17 @@ export function exportDatabase(): Uint8Array {
 }
 
 /**
- * Insert a transaction with its splits
+ * Get internal database instance
  */
+export function getDb(): Database | null {
+    return db;
+}
+
 export function insertTransaction(tx: ITransaction): void {
     if (!db) throw new Error('Database not initialized');
+
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
 
     // Insert transaction
     db.run(SQL_QUERIES.INSERT_TRANSACTION, [
@@ -540,8 +646,10 @@ export function insertTransaction(tx: ITransaction): void {
         tx.status,
         tx.checkNumber || null,
         tx.importHash,
-        tx.createdAt,
-        tx.updatedAt,
+        0, // isDeleted
+        clientId,
+        tx.createdAt || now,
+        tx.updatedAt || now,
     ]);
 
     // Insert splits
@@ -552,6 +660,9 @@ export function insertTransaction(tx: ITransaction): void {
             split.categoryId || null,
             split.memo,
             split.amount,
+            0, // isDeleted
+            clientId,
+            tx.updatedAt || now,
         ]);
     }
 }
@@ -561,6 +672,9 @@ export function insertTransaction(tx: ITransaction): void {
  */
 export function insertTransactions(txs: Array<ITransaction>): void {
     if (!db) throw new Error('Database not initialized');
+
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
 
     db.run('BEGIN TRANSACTION');
     try {
@@ -577,8 +691,10 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                 tx.status,
                 tx.checkNumber || null,
                 tx.importHash,
-                tx.createdAt,
-                tx.updatedAt,
+                0, // isDeleted
+                clientId,
+                tx.createdAt || now,
+                tx.updatedAt || now,
             ]);
 
             // Insert splits
@@ -589,6 +705,9 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                     split.categoryId || null,
                     split.memo,
                     split.amount,
+                    0, // isDeleted
+                    clientId,
+                    tx.updatedAt || now,
                 ]);
             }
         }
@@ -661,6 +780,10 @@ export function getAllTransactions(): Array<ITransaction> {
 export function updateTransaction(tx: ITransaction): void {
     if (!db) throw new Error('Database not initialized');
 
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+    const updatedAt: string = tx.updatedAt || now;
+
     db.run(SQL_QUERIES.UPDATE_TRANSACTION, [
         tx.accountId,
         tx.payeeId,
@@ -671,12 +794,14 @@ export function updateTransaction(tx: ITransaction): void {
         tx.status,
         tx.checkNumber || null,
         tx.importHash,
-        tx.updatedAt,
+        0, // isDeleted
+        clientId,
+        updatedAt,
         tx.id,
     ]);
 
-    // Delete existing splits and re-insert
-    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [tx.id]);
+    // Mark existing splits as deleted and re-insert
+    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [updatedAt, tx.id]);
     for (const split of tx.splits) {
         db.run(SQL_QUERIES.INSERT_SPLIT, [
             split.id,
@@ -684,6 +809,9 @@ export function updateTransaction(tx: ITransaction): void {
             split.categoryId || null,
             split.memo,
             split.amount,
+            0, // isDeleted
+            clientId,
+            updatedAt,
         ]);
     }
 }
@@ -693,8 +821,9 @@ export function updateTransaction(tx: ITransaction): void {
  */
 export function deleteTransaction(txId: string): void {
     if (!db) throw new Error('Database not initialized');
-    db.run(SQL_QUERIES.DELETE_TRANSACTION, [txId]);
-    // Splits are deleted automatically via CASCADE
+    const now: string = new Date().toISOString();
+    db.run(SQL_QUERIES.DELETE_TRANSACTION, [now, txId]);
+    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [now, txId]);
 }
 
 /**
@@ -715,8 +844,8 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
                 institutionName: row[3] as string,
                 isActive: Boolean(row[4]),
                 deletedAt: (row[5] as string) || null,
-                createdAt: row[6] as ISODateString,
-                updatedAt: row[7] as ISODateString,
+                createdAt: row[8] as ISODateString,
+                updatedAt: row[9] as ISODateString,
                 clearedBalance: 0, // Calculated dynamically in store
                 pendingBalance: 0, // Calculated dynamically in store
             };
@@ -739,6 +868,9 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
  */
 export function insertAccount(account: IAccount): void {
     if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+
     db.run(SQL_QUERIES.INSERT_ACCOUNT, [
         account.id,
         account.name,
@@ -746,8 +878,10 @@ export function insertAccount(account: IAccount): void {
         account.institutionName,
         account.isActive ? 1 : 0,
         account.deletedAt || null,
-        account.createdAt,
-        account.updatedAt,
+        0, // isDeleted
+        clientId,
+        account.createdAt || now,
+        account.updatedAt || now,
     ]);
 
     // Insert loan details if present
@@ -761,13 +895,19 @@ export function insertAccount(account: IAccount): void {
  */
 export function updateAccount(account: IAccount): void {
     if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+    const updatedAt: string = account.updatedAt || now;
+
     db.run(SQL_QUERIES.UPDATE_ACCOUNT, [
         account.name,
         account.type,
         account.institutionName,
         account.isActive ? 1 : 0,
         account.deletedAt || null,
-        account.updatedAt,
+        0, // isDeleted
+        clientId,
+        updatedAt,
         account.id,
     ]);
 
@@ -793,7 +933,8 @@ export function softDeleteAccount(id: string): void {
  */
 export function insertLoanDetails(accountId: string, details: ILoanDetails): void {
     if (!db) throw new Error('Database not initialized');
-    const now: ISODateString = new Date().toISOString() as ISODateString;
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
 
     db.run(SQL_QUERIES.INSERT_LOAN_DETAILS, [
         accountId,
@@ -804,6 +945,8 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
         details.paymentDueDay,
         details.startDate,
         details.metadata ? JSON.stringify(details.metadata) : null,
+        0, // isDeleted
+        clientId,
         now,
         now,
     ]);
@@ -867,8 +1010,8 @@ export function getAllPayees(): Array<IPayee> {
             phone: row[9] as string | null,
             notes: row[10] as string | null,
             defaultCategoryId: row[11] as string | null,
-            createdAt: row[12] as ISODateString,
-            updatedAt: row[13] as ISODateString,
+            createdAt: row[14] as ISODateString,
+            updatedAt: row[15] as ISODateString,
         }),
     );
 }
@@ -897,8 +1040,8 @@ export function getPayeeByName(name: string): IPayee | null {
         phone: row[9] as string | null,
         notes: row[10] as string | null,
         defaultCategoryId: row[11] as string | null,
-        createdAt: row[12] as ISODateString,
-        updatedAt: row[13] as ISODateString,
+        createdAt: row[14] as ISODateString,
+        updatedAt: row[15] as ISODateString,
     };
 }
 
@@ -907,6 +1050,9 @@ export function getPayeeByName(name: string): IPayee | null {
  */
 export function insertPayee(payee: IPayee): void {
     if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+
     db.run(SQL_QUERIES.INSERT_PAYEE, [
         payee.id,
         payee.name,
@@ -920,8 +1066,31 @@ export function insertPayee(payee: IPayee): void {
         payee.phone,
         payee.notes,
         payee.defaultCategoryId,
-        payee.createdAt,
-        payee.updatedAt,
+        0, // isDeleted
+        clientId,
+        payee.createdAt || now,
+        payee.updatedAt || now,
+    ]);
+}
+
+/**
+ * Insert a category record
+ */
+export function insertCategory(category: ICategory): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+
+    db.run(SQL_QUERIES.INSERT_CATEGORY, [
+        category.id,
+        category.parentId || null,
+        category.name,
+        category.description || null,
+        category.isActive ? 1 : 0,
+        0, // isDeleted
+        clientId,
+        category.createdAt || now,
+        category.updatedAt || now,
     ]);
 }
 
@@ -941,8 +1110,8 @@ export function getAllCategories(): Array<ICategory> {
             name: row[2] as string,
             description: row[3] as string | null,
             isActive: Boolean(row[4]),
-            createdAt: row[5] as ISODateString,
-            updatedAt: row[6] as ISODateString,
+            createdAt: row[7] as ISODateString,
+            updatedAt: row[8] as ISODateString,
         }),
     );
 }
@@ -968,15 +1137,51 @@ export function setUserSetting(key: string, value: string): void {
 }
 
 /**
+ * Get a sync metadata value by key
+ */
+export function getSyncMetadata(key: string): string | null {
+    if (!db) throw new Error('Database not initialized');
+    const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_SYNC_METADATA, [key]);
+
+    if (result.length === 0 || !result[0] || result[0].values.length === 0) return null;
+    return (result[0].values[0]?.[0] as string) || null;
+}
+
+/**
+ * Set a sync metadata value
+ */
+export function setSyncMetadata(key: string, value: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    db.run(SQL_QUERIES.INSERT_SYNC_METADATA, [key, value, now]);
+}
+
+/**
  * Clear all data (for testing)
  */
 export function clearDatabase(): void {
     if (!db) throw new Error('Database not initialized');
-    db.run(SQL_QUERIES.DELETE_ALL_SPLITS);
-    db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS);
-    db.run('DELETE FROM categories');
-    db.run('DELETE FROM payees');
-    db.run('DELETE FROM accounts');
+
+    db.run('BEGIN TRANSACTION');
+    try {
+        db.run(SQL_QUERIES.DELETE_ALL_SPLITS, [new Date().toISOString()]);
+        db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS, [new Date().toISOString()]);
+        db.run('UPDATE categories SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
+        db.run('UPDATE payees SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
+        db.run('UPDATE accounts SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
+        db.run('UPDATE recurring_schedules SET isDeleted = 1, updatedAt = ?', [
+            new Date().toISOString(),
+        ]);
+        db.run('UPDATE recurring_splits SET isDeleted = 1, updatedAt = ?', [
+            new Date().toISOString(),
+        ]);
+        db.run('UPDATE loan_details SET isDeleted = 1, updated_at = ?', [new Date().toISOString()]);
+        // User settings and Sync metadata are preserved
+        db.run('COMMIT');
+    } catch (e) {
+        db.run('ROLLBACK');
+        throw e;
+    }
 }
 /**
  * Get all recurring schedules
@@ -1030,7 +1235,8 @@ export function getAllRecurringSchedules(): Array<IRecurringSchedule> {
  */
 export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
     if (!db) throw new Error('Database not initialized');
-    const now = new Date().toISOString();
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
 
     db.run(SQL_QUERIES.INSERT_RECURRING_SCHEDULE, [
         schedule.id,
@@ -1047,6 +1253,8 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
         schedule.memo,
         schedule.autoPost ? 1 : 0,
         schedule.isActive ? 1 : 0,
+        0, // isDeleted
+        clientId,
         now,
         now,
     ]);
@@ -1059,6 +1267,9 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
             split.categoryId || null,
             split.memo,
             split.amount,
+            0, // isDeleted
+            clientId,
+            now,
         ]);
     }
 }
@@ -1068,7 +1279,8 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
  */
 export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
     if (!db) throw new Error('Database not initialized');
-    const now = new Date().toISOString();
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
 
     db.run(SQL_QUERIES.UPDATE_RECURRING_SCHEDULE, [
         schedule.accountId,
@@ -1084,12 +1296,14 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
         schedule.memo,
         schedule.autoPost ? 1 : 0,
         schedule.isActive ? 1 : 0,
+        0, // isDeleted
+        clientId,
         now,
         schedule.id,
     ]);
 
     // Update splits (delete and re-insert)
-    db.run(SQL_QUERIES.DELETE_RECURRING_SPLITS_BY_SCHEDULE, [schedule.id]);
+    db.run(SQL_QUERIES.DELETE_RECURRING_SPLITS_BY_SCHEDULE, [now, schedule.id]);
     for (const split of schedule.splits) {
         db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
             split.id,
@@ -1097,6 +1311,9 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
             split.categoryId || null,
             split.memo,
             split.amount,
+            0, // isDeleted
+            clientId,
+            now,
         ]);
     }
 }

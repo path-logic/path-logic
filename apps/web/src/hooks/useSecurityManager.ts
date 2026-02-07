@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useLedgerStore } from '@/store/ledgerStore';
+import type { TimerHandle } from '@path-logic/core';
 
 const IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes to logout
 const WARNING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes to show overlay
@@ -21,8 +22,8 @@ export function useSecurityManager(): {
     const authError = useLedgerStore(state => state.authError);
 
     const [isIdle, setIsIdle] = useState(false);
-    const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const logoutTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const idleTimerRef = useRef<TimerHandle | null>(null);
+    const logoutTimerRef = useRef<TimerHandle | null>(null);
 
     const resetTimers = useCallback((): void => {
         if (idleTimerRef.current) clearTimeout(idleTimerRef.current);

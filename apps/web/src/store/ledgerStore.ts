@@ -20,7 +20,9 @@ import {
     insertRecurringSchedule,
     updateRecurringSchedule,
     deleteRecurringSchedule,
+    getDb,
 } from '@/lib/storage/SQLiteAdapter';
+import { ReconciliationEngine, type IReconciliationMatch } from '@/lib/sync/ReconciliationEngine';
 import type {
     ITransaction,
     IAccount,
@@ -28,6 +30,7 @@ import type {
     ICategory,
     ISODateString,
     IRecurringSchedule,
+    IParsedTransaction,
 } from '@path-logic/core';
 
 interface ILedgerStore {
@@ -40,12 +43,24 @@ interface ILedgerStore {
     isInitialized: boolean;
     authError: boolean;
     isDirty: boolean;
+    syncStatus: 'synced' | 'pending-local' | 'error';
+    hasLocalFallback: boolean;
+    lockStatus: {
+        clientId: string;
+        deviceName: string;
+        issuedAt: string;
+        expiresAt: string;
+        status: 'merging';
+    } | null;
 
     // Actions
     initialize: () => Promise<void>;
     loadFromEncryptedData: (data: Uint8Array) => Promise<void>;
     setAuthError: (error: boolean) => void;
     setDirty: (dirty: boolean) => void;
+    setSyncStatus: (status: 'synced' | 'pending-local' | 'error') => void;
+    setHasLocalFallback: (hasFallback: boolean) => void;
+    setLockStatus: (status: ILedgerStore['lockStatus']) => void;
 
     // Transaction Actions
     addTransaction: (tx: ITransaction) => Promise<void>;
@@ -68,6 +83,10 @@ interface ILedgerStore {
 
     // Sync/Generic
     exportForSync: () => Uint8Array;
+    reconcileTransactions: (
+        parsedTxs: Array<IParsedTransaction>,
+        accountId: string,
+    ) => Promise<Array<IReconciliationMatch>>;
 }
 
 export const useLedgerStore = create<ILedgerStore>(
@@ -81,6 +100,9 @@ export const useLedgerStore = create<ILedgerStore>(
         isInitialized: false,
         authError: false,
         isDirty: false,
+        syncStatus: 'synced',
+        hasLocalFallback: false,
+        lockStatus: null,
 
         initialize: async (): Promise<void> => {
             set({ isLoading: true });
@@ -211,7 +233,7 @@ export const useLedgerStore = create<ILedgerStore>(
 
         getOrCreatePayee: async (name: string): Promise<IPayee> => {
             // First check store cache for speed
-            const existing = get().payees.find(p => p.name === name);
+            const existing: IPayee | undefined = get().payees.find((p): boolean => p.name === name);
             if (existing) return existing;
 
             // Check DB as second source of truth
@@ -286,8 +308,29 @@ export const useLedgerStore = create<ILedgerStore>(
             set({ isDirty: dirty });
         },
 
+        setSyncStatus: (status: 'synced' | 'pending-local' | 'error'): void => {
+            set({ syncStatus: status });
+        },
+
+        setHasLocalFallback: (hasFallback: boolean): void => {
+            set({ hasLocalFallback: hasFallback });
+        },
+
+        setLockStatus: (status: ILedgerStore['lockStatus']): void => {
+            set({ lockStatus: status });
+        },
+
         exportForSync: (): Uint8Array => {
             return exportDatabase();
+        },
+
+        reconcileTransactions: async (
+            parsedTxs: Array<IParsedTransaction>,
+            accountId: string,
+        ): Promise<Array<IReconciliationMatch>> => {
+            const db = getDb();
+            if (!db) throw new Error('Database not initialized');
+            return ReconciliationEngine.reconcile(db, parsedTxs, accountId);
         },
     }),
 );

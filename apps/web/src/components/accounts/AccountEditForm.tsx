@@ -228,7 +228,7 @@ export function AccountEditForm({
                         Account Type
                     </Label>
                     <Select value={type} onValueChange={value => setType(value as AccountType)}>
-                        <SelectTrigger className="bg-muted/10 border-border font-bold text-xs uppercase">
+                        <SelectTrigger className="w-full bg-muted/10 border-border font-bold text-xs uppercase">
                             <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border">
@@ -385,14 +385,14 @@ export function AccountEditForm({
                     type="button"
                     variant="ghost"
                     onClick={onCancel}
-                    className="text-[10px] font-black uppercase tracking-widest hover:bg-muted"
+                    className="text-[10px] font-black uppercase tracking-widest hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 >
                     Cancel
                 </Button>
                 <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-primary text-black hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest px-8"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest px-8 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                 >
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>

@@ -22,7 +22,6 @@ const nextConfig: NextConfig = {
             },
         ],
     },
-    // next.js 16 requires turbopack config if webpack config is present
     turbopack: {},
 };
 

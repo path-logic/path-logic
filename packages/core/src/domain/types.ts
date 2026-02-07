@@ -17,6 +17,11 @@ export type EntityId = string;
 export type ISODateString = string;
 
 /**
+ * Isomorphic timer handle that resolves to the correct type in both Node and Browser.
+ */
+export type TimerHandle = ReturnType<typeof setInterval>;
+
+/**
  * Transaction status in the ledger lifecycle.
  */
 export enum TransactionStatus {

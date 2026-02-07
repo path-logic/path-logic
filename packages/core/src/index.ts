@@ -15,6 +15,7 @@ export type {
     ISODateString,
     ISplit,
     ITransaction,
+    TimerHandle,
 } from './domain/types';
 export {
     AccountType,

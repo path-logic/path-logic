@@ -94,30 +94,48 @@ Hermetic End-to-End testing to ensure ledger integrity.
 - **Mock Auth Strategy**: Use environment-injected session cookies to bypass real SSO during automated runs.
 - **Verification Coverage**: Critical CRUD flows, persistent state across refreshes, and auto-sync triggers.
 
-## **3. 4-Week Project Roadmap**
+## **3. MVP Project Roadmap**
 
-### **Week 1: The Domain Layer (Core Engine)**
+### **Phase 1: Foundation & Specs (Week 0)**
 
-- **Primary Task:** Framework-agnostic TypeScript logic.
-- **Deliverable:** src/core/TransactionEngine.ts and src/core/QIFParser.ts.
-- **Validation:** 100% test coverage on split-validation and projection math.
+- [x] Codify MVP Feature Specs
+- [x] Codify MVP Technical Specs
+- [ ] Define Agent Workflows & GitHub Actions
 
-### **Week 2: The Interface (High-Density Ledger)**
+### **Phase 2: Core Domain & OSS (Week 1)**
 
-- **Primary Task:** Build the "Bloomberg" style UI.
-- **Deliverable:** A virtualized ledger using TanStack Table and shadcn/ui.
-- **UX Goal:** Keyboard-first navigation (Arrow keys for rows, 'Enter' to edit).
+- **@path-logic/core**:
+    - Implement robust TransactionEngine with split logic.
+    - Enhance QIFParser with deduplication and reconciliation support.
+    - Implement System-level QIF Export.
+    - Package for NPM with TSDoc documentation.
+- **Verification**: 100% unit test coverage for core logic.
 
-### **Week 3: Ownership (Storage & Security)**
+### **Phase 3: Multi-Adapter Storage (Week 2)**
 
-- **Primary Task:** Integration of SSO and Storage Providers.
-- **Deliverable:** GoogleDriveProvider.ts and ICloudProvider.ts.
-- **Security:** Implementation of the Master Key derivation from the user's SSO ID to unlock the AES-GCM encrypted SQLite file.
+- **Persistence Layer**:
+    - Implement IndexedDB adapter (Local-first).
+    - Implement GDrive adapter (appDataFolder).
+    - Develop Sync Service for resynchronization after session expiry.
+- **Security**: Client-side AES-GCM encryption for GDrive data.
 
-### **Week 4: Deployment & Polish**
+### **Phase 4: High-Density Ledger & Features (Week 3)**
 
-- **Primary Task:** Vercel deployment and PWA setup.
-- **Deliverable:** A production-ready URL. Setup of a "Demo Mode" with mock data for recruiters.
+- **UI/UX**:
+    - Implement Account Creation for all types (Checking, Savings, Cash, Auto, Credit, Mortgage, Loan).
+    - Build Split Entry form (Paycheck/Mortgage focused).
+    - Implement QIF Import Flows (Account, System Migration, Reconciliation).
+- **Authentication**:
+    - Finalize Google SSO integration and token management.
+
+### **Phase 5: Deployment & Trust (Week 4)**
+
+- **Infrastructure**:
+    - Setup GitHub Actions for Vercel deployment.
+    - Automate NPM publishing for `@path-logic/core`.
+- **Documentation**:
+    - Generate trust-building documentation for Google SSO and GDrive storage.
+    - Public-facing documentation for `@path-logic/core`.
 
 ## **4. Open Source & IP Strategy**
 
