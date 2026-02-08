@@ -90,7 +90,18 @@ export async function loadFromDrive(accessToken: string, userId: string): Promis
         const encryptedData: Uint8Array = await downloadDatabase(accessToken, file.id);
 
         // Decrypt
-        const remoteDecryptedData: Uint8Array = await decryptDatabase(encryptedData, userId);
+        let remoteDecryptedData: Uint8Array;
+        try {
+            remoteDecryptedData = await decryptDatabase(encryptedData, userId);
+        } catch (decryptError) {
+            console.error(
+                '[Sync] Failed to decrypt remote database. Possible key mismatch between environments.',
+                decryptError,
+            );
+            throw new Error(
+                'Encryption key mismatch: The remote file was likely encrypted in a different environment (e.g. Local vs Production).',
+            );
+        }
 
         // If we have local data, merge. Otherwise just load.
         if (store.isInitialized) {
@@ -177,10 +188,23 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                 const existingFile: Awaited<ReturnType<typeof findDatabaseFile>> =
                     await findDatabaseFile(accessToken);
 
+                let remoteDecrypted: Uint8Array = new Uint8Array();
                 if (existingFile) {
                     const remoteEncrypted = await downloadDatabase(accessToken, existingFile.id);
-                    const remoteDecrypted = await decryptDatabase(remoteEncrypted, userId);
+                    try {
+                        remoteDecrypted = await decryptDatabase(remoteEncrypted, userId);
+                    } catch (decryptError) {
+                        console.warn(
+                            '[Sync] Decryption failed for existing file. Proceeding with overwrite.',
+                            decryptError,
+                        );
+                        // Remote exists but cannot be decrypted (key mismatch).
+                        // We'll treat this as "no remote to merge" and upload our local state.
+                    }
+                }
 
+                // Only merge if we actually got remote data
+                if (remoteDecrypted.byteLength > 0) {
                     const remoteDb = await createIsolatedDatabase(remoteDecrypted);
                     const localDb = getDb();
 
@@ -198,8 +222,8 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                 }
 
                 // 3. Export merged local and upload
-                const dbExport: Uint8Array = store.exportForSync();
-                const finalEncrypted: Uint8Array = await encryptDatabase(dbExport, userId);
+                const dbExportFinal: Uint8Array = store.exportForSync();
+                const finalEncrypted: Uint8Array = await encryptDatabase(dbExportFinal, userId);
 
                 await uploadDatabase(accessToken, finalEncrypted, existingFile?.id);
 

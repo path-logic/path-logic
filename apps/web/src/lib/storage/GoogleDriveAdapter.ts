@@ -10,8 +10,18 @@ import { GDriveAuthError, notifyAuthFailure } from './errors';
 
 const DRIVE_API_BASE: string = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API_BASE: string = 'https://www.googleapis.com/upload/drive/v3';
-const DB_FILENAME: string = 'path-logic-ledger.db.enc';
-const LOCK_FILENAME: string = 'sync-lock.json';
+
+/**
+ * Get the environment-specific suffix for filenames
+ */
+function getEnvSuffix(): string {
+    const env = process.env['NEXT_PUBLIC_APP_ENV'] || 'development';
+    if (env === 'production') return '';
+    return `-${env}`;
+}
+
+const DB_FILENAME: string = `path-logic-ledger${getEnvSuffix()}.db.enc`;
+const LOCK_FILENAME: string = `sync-lock${getEnvSuffix()}.json`;
 
 /**
  * Helper to handle GDrive API response errors

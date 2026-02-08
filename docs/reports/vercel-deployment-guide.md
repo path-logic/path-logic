@@ -47,12 +47,13 @@ Follow the prompts. This will create a `.vercel` folder with a `project.json` fi
 
 For the application to function correctly in production (especially Authentication and Google Drive sync), you must configure the following Environment Variables in the Vercel Dashboard (`Settings > Environment Variables`):
 
-| Variable Name                  | Description                              | Source                                  |
-| :----------------------------- | :--------------------------------------- | :-------------------------------------- |
-| `AUTH_SECRET`                  | Secret used to encrypt Auth.js sessions. | Generate with `openssl rand -base64 32` |
-| `GOOGLE_CLIENT_ID`             | Google OAuth Client ID.                  | Google Cloud Console                    |
-| `GOOGLE_CLIENT_SECRET`         | Google OAuth Client Secret.              | Google Cloud Console                    |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Public ID for Google Client.             | Should match `GOOGLE_CLIENT_ID`         |
+| Variable Name                  | Description                                                 | Source                                  |
+| :----------------------------- | :---------------------------------------------------------- | :-------------------------------------- |
+| `AUTH_SECRET`                  | Secret used to encrypt Auth.js sessions.                    | Generate with `openssl rand -base64 32` |
+| `GOOGLE_CLIENT_ID`             | Google OAuth Client ID.                                     | Google Cloud Console                    |
+| `GOOGLE_CLIENT_SECRET`         | Google OAuth Client Secret.                                 | Google Cloud Console                    |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Public ID for Google Client.                                | Should match `GOOGLE_CLIENT_ID`         |
+| `NEXT_PUBLIC_APP_ENV`          | App environment: `production`, `preview`, or `development`. |
 
 > [!IMPORTANT]
 > Ensure these are added for **Production**, **Preview**, and **Development** environments in Vercel to ensure consistent behavior across all stages.
