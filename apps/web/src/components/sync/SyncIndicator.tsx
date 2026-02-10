@@ -9,6 +9,7 @@ import { useLedgerStore } from '@/store/ledgerStore';
 import { Button } from '@/components/ui/button';
 import { LockManager } from './LockManager';
 import type { TimerHandle } from '@path-logic/core';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 /**
  * Global indicator for Google Drive sync status.
@@ -20,6 +21,7 @@ export function SyncIndicator(): React.JSX.Element {
     const hasLocalFallback = useLedgerStore((state): boolean => state.hasLocalFallback);
     const { data: session, update: updateSession } = useSession();
     const [status, setStatus] = useState<ISyncStatus>(getSyncStatus());
+    const isMounted = useIsMounted();
 
     useEffect((): (() => void) => {
         const handleAuthMessage = async (event: MessageEvent): Promise<void> => {
@@ -154,7 +156,7 @@ export function SyncIndicator(): React.JSX.Element {
                 </Button>
             )}
 
-            {status.lastSyncTime > 0 && (
+            {isMounted && status.lastSyncTime > 0 && (
                 <span className="hidden sm:inline border-l border-border pl-4">
                     Last Backup:{' '}
                     {new Date(status.lastSyncTime).toLocaleTimeString('en-US', {

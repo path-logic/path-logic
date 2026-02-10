@@ -13,6 +13,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useIsMounted } from '@/hooks/useIsMounted';
 import { cn } from '@/lib/utils';
 import { useLedgerStore } from '@/store/ledgerStore';
 
@@ -20,6 +21,8 @@ export function Header(): React.JSX.Element {
     const pathname: string | null = usePathname();
     const { transactions } = useLedgerStore();
     const { data: session } = useSession();
+
+    const isMounted = useIsMounted();
 
     const clearedBalance: number = transactions
         .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Cleared)
@@ -91,7 +94,9 @@ export function Header(): React.JSX.Element {
                                     : 'text-emerald-500',
                             )}
                         >
-                            {Money.formatCurrency(clearedBalance + pendingBalance)}
+                            {!isMounted
+                                ? '—'
+                                : Money.formatCurrency(clearedBalance + pendingBalance)}
                         </span>
                     </div>
 

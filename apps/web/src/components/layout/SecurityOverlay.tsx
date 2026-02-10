@@ -4,6 +4,7 @@ import React from 'react';
 import { Lock, ShieldAlert, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 interface ISecurityOverlayProps {
     isVisible: boolean;
@@ -15,7 +16,9 @@ interface ISecurityOverlayProps {
  * Prevents unauthorized viewing of PII (Personally Identifiable Information).
  */
 export function SecurityOverlay({ isVisible, onUnlock }: ISecurityOverlayProps): React.JSX.Element {
-    if (!isVisible) return <></>;
+    const isMounted = useIsMounted();
+
+    if (!isMounted || !isVisible) return <></>;
 
     return (
         <div

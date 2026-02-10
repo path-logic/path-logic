@@ -88,6 +88,42 @@ export default function DevIndexPage(): React.ReactElement {
                         </div>
                     </Card>
                 </Link>
+
+                {/* System Maintenance */}
+                <Link href="/settings/dev/maintenance" className="group">
+                    <Card interactive accentColor="bg-rose-500" className="p-8 h-full">
+                        <div className="flex flex-col h-full space-y-6">
+                            <div className="flex justify-between items-start">
+                                <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center group-hover:bg-rose-500/20 transition-colors">
+                                    <AlertTriangle className="w-6 h-6 text-rose-500" />
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-muted-foreground/20 group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
+                            </div>
+
+                            <div className="space-y-3">
+                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                                    System Maintenance
+                                </h2>
+                                <p className="text-[11px] text-muted-foreground leading-relaxed font-bold opacity-60">
+                                    Environment-level data destruction and low-level entity
+                                    management for state recovery or manual clearing.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-4 border-t border-border/20">
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-rose-500/5 text-rose-500/70 px-2 py-1 rounded">
+                                    Factory Reset
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-indigo-500/5 text-indigo-500/70 px-2 py-1 rounded">
+                                    DB Explorer
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-widest bg-orange-500/5 text-orange-500/70 px-2 py-1 rounded">
+                                    High-Risk
+                                </span>
+                            </div>
+                        </div>
+                    </Card>
+                </Link>
             </div>
 
             <section className="mt-12">

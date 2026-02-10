@@ -30,8 +30,8 @@ export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
     );
 
     // Derive AES-GCM key using PBKDF2
-    // Salt is environment-specific to isolate Local / Staging / Prod keys
-    const appEnv = process.env['NEXT_PUBLIC_APP_ENV'] || 'development';
+    // Incorporate the environment into the salt for strong isolation
+    const appEnv: string = process.env['NEXT_PUBLIC_APP_ENV'] || 'development';
     const salt: Uint8Array = encoder.encode(`path-logic-v1-salt-${appEnv}`);
 
     const key: CryptoKey = await crypto.subtle.deriveKey(

@@ -1,6 +1,7 @@
 import { useLedgerStore } from '@/store/ledgerStore';
 import { encryptDatabase, decryptDatabase } from '@/lib/crypto/encryption';
 import {
+    type IDriveFile,
     findDatabaseFile,
     downloadDatabase,
     uploadDatabase,
@@ -41,103 +42,137 @@ const SYNC_DEBOUNCE_MS = 2000; // 2 seconds
 /**
  * Load encrypted database from Drive and initialize local store
  */
+/**
+ * Pulls the encrypted database from Google Drive, decrypts it, and loads it into the store.
+ * If no cloud file is found, it initializes from the local fallback.
+ */
 export async function loadFromDrive(accessToken: string, userId: string): Promise<void> {
+    const store = useLedgerStore.getState();
+    const appEnv = process.env['NEXT_PUBLIC_APP_ENV'] || 'development';
+
+    console.log('[Sync] Starting loadFromDrive sequence...', {
+        env: appEnv,
+        hasToken: !!accessToken,
+        userId: userId === 'anonymous' ? 'NONE' : userId,
+    });
+
     try {
-        // Find context
-        const store = useLedgerStore.getState();
+        let encryptedData: Uint8Array | null = null;
+        let isFromDrive = false;
 
-        // Check for local fallback first (it might be newer than Drive)
-        const localData = await loadLocalFallback();
-        if (localData) {
-            console.log('[Sync] Found local fallback data, checking for sync opportunity...');
-            try {
-                const decryptedData = await decryptDatabase(localData, userId);
-                await store.loadFromEncryptedData(decryptedData);
-                store.setHasLocalFallback(true);
-                store.setSyncStatus('pending-local');
-                console.log('[Sync] Loaded from local fallback successfully');
-
-                // If we have an access token, try to sync this local data to Drive
-                if (accessToken) {
-                    await saveToDrive(accessToken, userId);
-                    // clearLocalFallback is handled inside saveToDrive on success
-                }
-                return;
-            } catch (error) {
-                console.error('[Sync] Failed to load from local fallback:', error);
-                // Continue to Drive load if local fails
+        // 1. Check Google Drive if authenticated
+        if (accessToken && userId !== 'anonymous') {
+            console.log('[Sync] Attempting to find ledger on Google Drive...');
+            const file: IDriveFile | null = await findDatabaseFile(accessToken);
+            if (file) {
+                console.log('[Sync] Found remote file, downloading...', { fileId: file.id });
+                encryptedData = await downloadDatabase(accessToken, file.id);
+                isFromDrive = true;
+            } else {
+                console.log('[Sync] No remote file found.');
             }
         }
 
-        // Skip Drive load if no access token
-        if (!accessToken) {
-            await store.initialize();
-            return;
+        // 2. Fallback to LocalPersistence if no Drive data found
+        if (!encryptedData) {
+            console.log('[Sync] Checking local browser persistence fallback...');
+            encryptedData = await loadLocalFallback();
+            if (encryptedData) {
+                console.log('[Sync] Found local fallback data.');
+                store.setHasLocalFallback(true);
+            }
         }
 
-        // Find the database file in Drive
-        const file: Awaited<ReturnType<typeof findDatabaseFile>> =
-            await findDatabaseFile(accessToken);
+        // 3. Decrypt and Load
+        if (encryptedData) {
+            console.log('[Sync] Decrypting payload...');
+            let remoteDecryptedData: Uint8Array;
+            try {
+                remoteDecryptedData = await decryptDatabase(encryptedData, userId);
+            } catch (decryptError) {
+                const isOperationError =
+                    decryptError instanceof Error && decryptError.name === 'OperationError';
+                const logMethod = isOperationError ? 'warn' : 'error';
 
-        if (!file) {
-            // No existing database, initialize empty
-            console.log('No existing database found, initializing empty database');
-            await store.initialize();
-            return;
-        }
+                console[logMethod](
+                    `[Sync] ${isOperationError ? 'Handled' : 'Failed'} decryption attempt. Possible key mismatch between environments or corrupted data.`,
+                    decryptError,
+                );
+                // Clear state to avoid infinite loops or corrupted state
+                store.setSyncStatus('error');
+                store.setSyncError(
+                    'Decryption Failed: The database could not be unlocked. This usually happens if the data was created with a different key or is corrupted.',
+                );
 
-        // Download encrypted database
-        const encryptedData: Uint8Array = await downloadDatabase(accessToken, file.id);
-
-        // Decrypt
-        let remoteDecryptedData: Uint8Array;
-        try {
-            remoteDecryptedData = await decryptDatabase(encryptedData, userId);
-        } catch (decryptError) {
-            console.error(
-                '[Sync] Failed to decrypt remote database. Possible key mismatch between environments.',
-                decryptError,
-            );
-            throw new Error(
-                'Encryption key mismatch: The remote file was likely encrypted in a different environment (e.g. Local vs Production).',
-            );
-        }
-
-        // If we have local data, merge. Otherwise just load.
-        if (store.isInitialized) {
-            console.log('[Sync] Database already initialized, merging remote data...');
-            const remoteDb = await createIsolatedDatabase(remoteDecryptedData);
-            const localDb = getDb();
-
-            if (localDb) {
-                const changed = await SQLiteMergeEngine.mergeRemoteIntoLocal(remoteDb, localDb);
-                if (changed) {
-                    console.log('[Sync] Remote data merged into local database');
-                    // Reload store from merged DB
+                // CRITICAL: If we failed to decrypt but aren't initialized, we MUST initialize anyway
+                // to avoid getting stuck in a loading state. The user can then use Maintenance tools.
+                if (!store.isInitialized) {
                     await store.initialize();
                 }
+                return;
+            }
+
+            // If we have local data, merge. Otherwise just load.
+            if (store.isInitialized) {
+                console.log('[Sync] Database already initialized, merging data...');
+                const remoteDb = await createIsolatedDatabase(remoteDecryptedData);
+                const localDb = getDb();
+
+                if (localDb) {
+                    const changed = await SQLiteMergeEngine.mergeRemoteIntoLocal(remoteDb, localDb);
+                    if (changed) {
+                        console.log('[Sync] Data merged into local database');
+                        // Reload store from merged DB
+                        await store.initialize();
+                    }
+                }
+            } else {
+                console.log('[Sync] Loading data into store...');
+                await store.loadFromEncryptedData(remoteDecryptedData);
+            }
+
+            if (isFromDrive) {
+                console.log('[Sync] Cloud data loaded successfully.');
+                lastSyncTime = Date.now();
+                store.setSyncStatus('synced');
+                store.setSyncError(null);
+            } else {
+                console.log('[Sync] Local data loaded, cloud sync pending.');
+                store.setSyncStatus('pending-local');
             }
         } else {
-            // Initial load
-            await store.loadFromEncryptedData(remoteDecryptedData);
+            console.log('[Sync] No persistent data found. Initializing fresh workspace.');
+            await store.initialize();
         }
 
-        // Clear auth error on success
+        // Clear any previous auth errors
         store.setAuthError(false);
-        store.setSyncStatus('synced');
-
-        console.log('Database loaded from Drive successfully');
     } catch (error) {
-        console.error('Failed to load from Drive:', error);
+        const isAuthError =
+            error instanceof GDriveAuthError ||
+            (error instanceof Error && error.name === 'GDriveAuthError');
 
-        if (error instanceof Error && error.name === 'GDriveAuthError') {
-            useLedgerStore.getState().setAuthError(true);
-            useLedgerStore.getState().setSyncStatus('error');
+        if (isAuthError) {
+            console.warn(
+                '[Sync] Load sequence failed (Auth):',
+                error instanceof Error ? error.message : 'Session expired',
+            );
+        } else {
+            console.error('[Sync] Load sequence failed:', error);
+        }
+
+        if (isAuthError) {
+            store.setAuthError(true);
+            store.setSyncStatus('error');
+            store.setSyncError('Google Drive Authentication Failed');
+        } else {
+            store.setSyncStatus('error');
+            store.setSyncError(error instanceof Error ? error.message : 'Unknown Sync Error');
         }
 
         // Fall back to empty database if we haven't loaded anything yet
-        if (!useLedgerStore.getState().isInitialized) {
-            await useLedgerStore.getState().initialize();
+        if (!store.isInitialized) {
+            await store.initialize();
         }
     }
 }
@@ -154,6 +189,8 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
 
     syncInProgress = true;
     lastSyncTime = now;
+
+    console.log('[Sync] Starting saveToDrive sequence...', { hasToken: !!accessToken, userId });
 
     try {
         // Export database
@@ -174,6 +211,7 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                 typeof window !== 'undefined' ? window.navigator.userAgent : 'Unknown Device';
 
             // 1. Acquire Lock
+            console.log('[Sync] Attempting to acquire cloud lock...');
             const hasLock = await acquireLock(accessToken, clientId, deviceName);
             if (!hasLock) {
                 console.warn('[Sync] Failed to acquire lock, another device is merging...');
@@ -185,11 +223,15 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
 
             try {
                 // 2. Download and Merge Remote before uploading
+                console.log('[Sync] Searching for existing remote file...');
                 const existingFile: Awaited<ReturnType<typeof findDatabaseFile>> =
                     await findDatabaseFile(accessToken);
 
                 let remoteDecrypted: Uint8Array = new Uint8Array();
                 if (existingFile) {
+                    console.log('[Sync] Remote file found, checking for merge needs...', {
+                        modifiedTime: existingFile.modifiedTime,
+                    });
                     const remoteEncrypted = await downloadDatabase(accessToken, existingFile.id);
                     try {
                         remoteDecrypted = await decryptDatabase(remoteEncrypted, userId);
@@ -201,6 +243,8 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                         // Remote exists but cannot be decrypted (key mismatch).
                         // We'll treat this as "no remote to merge" and upload our local state.
                     }
+                } else {
+                    console.log('[Sync] No remote file found, will create new.');
                 }
 
                 // Only merge if we actually got remote data
@@ -222,12 +266,17 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                 }
 
                 // 3. Export merged local and upload
+                console.log('[Sync] Exporting and encrypting local database...');
                 const dbExportFinal: Uint8Array = store.exportForSync();
                 const finalEncrypted: Uint8Array = await encryptDatabase(dbExportFinal, userId);
 
+                console.log('[Sync] Uploading to Google Drive...', {
+                    bytes: finalEncrypted.length,
+                });
                 await uploadDatabase(accessToken, finalEncrypted, existingFile?.id);
 
                 // Success! Clear dirty flag and auth error
+                console.log('[Sync] Cloud sync SUCCESSFUL. Clearing dirty state.');
                 store.setDirty(false);
                 store.setAuthError(false);
                 store.setSyncStatus('synced');
@@ -235,10 +284,9 @@ export async function saveToDrive(accessToken: string, userId: string): Promise<
                 // Also clear local fallback if we just successfully synced
                 await clearLocalFallback();
                 store.setHasLocalFallback(false);
-
-                console.log('Database saved to Drive successfully');
             } finally {
                 // 4. Release Lock
+                console.log('[Sync] Releasing cloud lock.');
                 await releaseLock(accessToken);
                 store.setLockStatus(null);
             }
@@ -298,7 +346,14 @@ export async function forceReleaseSyncLock(accessToken: string): Promise<void> {
         await driveForceReleaseLock(accessToken);
         useLedgerStore.getState().setLockStatus(null);
     } catch (error) {
-        console.error('[Sync] Failed to force release lock:', error);
+        if (
+            error instanceof GDriveAuthError ||
+            (error instanceof Error && error.name === 'GDriveAuthError')
+        ) {
+            console.warn('[Sync] Failed to force release lock (Auth):', error.message);
+        } else {
+            console.error('[Sync] Failed to force release lock:', error);
+        }
         throw error;
     }
 }

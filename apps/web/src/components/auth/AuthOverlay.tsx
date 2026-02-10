@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useLedgerStore } from '@/store/ledgerStore';
 import { Button } from '@/components/ui/button';
 import { Cloud, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useIsMounted } from '@/hooks/useIsMounted';
 
 /**
  * Full-page overlay for forced re-authentication.
@@ -15,8 +16,10 @@ export function AuthOverlay(): React.JSX.Element | null {
     const isInitialized: boolean = useLedgerStore((state): boolean => state.isInitialized);
     const hasLocalFallback: boolean = useLedgerStore((state): boolean => state.hasLocalFallback);
 
+    const isMounted = useIsMounted();
+
     // We only show the full-page overlay if we can't initialize at all
-    const showOverlay: boolean = authError && !isInitialized && !hasLocalFallback;
+    const showOverlay: boolean = isMounted && authError && !isInitialized && !hasLocalFallback;
 
     if (!showOverlay) return null;
 
@@ -95,8 +98,11 @@ export function SyncPendingBanner(): React.JSX.Element | null {
     const isDirty: boolean = useLedgerStore((state): boolean => state.isDirty);
     const syncStatus: string = useLedgerStore((state): string => state.syncStatus);
 
+    const isMounted = useIsMounted();
+
     // Show if we have data (isDirty or pending-local) but session is lost
-    const showBanner: boolean = authError && (isDirty || syncStatus === 'pending-local');
+    const showBanner: boolean =
+        isMounted && authError && (isDirty || syncStatus === 'pending-local');
 
     if (!showBanner) return null;
 

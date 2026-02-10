@@ -50,7 +50,7 @@ export interface ILockStatus {
     status: 'merging';
 }
 
-interface IDriveFile {
+export interface IDriveFile {
     id: string;
     name: string;
     modifiedTime: string;
@@ -77,6 +77,39 @@ export async function findDatabaseFile(accessToken: string): Promise<IDriveFile 
         files: Array<IDriveFile>;
     };
     return data.files.length > 0 ? data.files[0]! : null;
+}
+
+/**
+ * Delete both database and lock files from Drive (Factory Reset)
+ */
+export async function factoryResetDrive(accessToken: string): Promise<void> {
+    const filesResponse = await fetch(
+        `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=(name='${DB_FILENAME}' or name='${LOCK_FILENAME}')`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        },
+    );
+
+    if (!filesResponse.ok) {
+        await handleResponseError(filesResponse, 'Failed to list files for reset');
+    }
+
+    const { files } = (await filesResponse.json()) as { files: Array<IDriveFile> };
+
+    for (const file of files) {
+        const deleteResponse = await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        if (!deleteResponse.ok && deleteResponse.status !== 404) {
+            await handleResponseError(deleteResponse, `Failed to delete file: ${file.name}`);
+        }
+    }
 }
 
 /**

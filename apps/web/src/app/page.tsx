@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLedgerStore } from '@/store/ledgerStore';
 import {
@@ -23,13 +23,7 @@ import { cn } from '@/lib/utils';
 
 function DashboardOverview(): React.JSX.Element {
     const { data: session, status } = useSession();
-    const { transactions, accounts, initialize, isInitialized } = useLedgerStore();
-
-    useEffect((): void => {
-        if (session && !isInitialized) {
-            initialize();
-        }
-    }, [session, isInitialized, initialize]);
+    const { transactions, accounts, isInitialized } = useLedgerStore();
 
     // Calculate Net Position
     const { netPosition, clearedBalance, pendingBalance } = useMemo(() => {

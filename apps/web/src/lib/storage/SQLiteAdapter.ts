@@ -245,6 +245,14 @@ export const SQL_QUERIES = {
         SELECT * FROM categories WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
+    DELETE_PAYEE: `
+        UPDATE payees SET isDeleted = 1, updatedAt = ? WHERE id = ?
+    `,
+
+    DELETE_CATEGORY: `
+        UPDATE categories SET isDeleted = 1, updatedAt = ? WHERE id = ?
+    `,
+
     // Split queries
     INSERT_SPLIT: `
         INSERT INTO splits (id, transactionId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
@@ -252,7 +260,7 @@ export const SQL_QUERIES = {
     `,
 
     SELECT_SPLITS_BY_TRANSACTION: `
-        SELECT * FROM splits WHERE transactionId = ? AND isDeleted = 0 ORDER BY id
+SELECT * FROM splits WHERE transactionId = ? AND isDeleted = 0 ORDER BY id
     `,
 
     DELETE_SPLITS_BY_TRANSACTION: `
@@ -265,22 +273,22 @@ export const SQL_QUERIES = {
 
     // Loan Details queries
     INSERT_LOAN_DETAILS: `
-        INSERT INTO loan_details (
-            account_id, original_amount, interest_rate, term_months, 
-            monthly_payment, payment_due_day, start_date, metadata, 
-            isDeleted, clientId, created_at, updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO loan_details(
+        account_id, original_amount, interest_rate, term_months,
+        monthly_payment, payment_due_day, start_date, metadata,
+        isDeleted, clientId, created_at, updated_at
+    )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_LOAN_DETAILS: `
-        SELECT * FROM loan_details WHERE account_id = ? AND isDeleted = 0
+SELECT * FROM loan_details WHERE account_id = ? AND isDeleted = 0
     `,
 
     // User Settings queries
     INSERT_USER_SETTING: `
-        INSERT OR REPLACE INTO user_settings (key, value, updatedAt)
-        VALUES (?, ?, ?)
+        INSERT OR REPLACE INTO user_settings(key, value, updatedAt)
+VALUES(?, ?, ?)
     `,
 
     SELECT_USER_SETTING: `
@@ -289,8 +297,8 @@ export const SQL_QUERIES = {
 
     // Sync Metadata queries
     INSERT_SYNC_METADATA: `
-        INSERT OR REPLACE INTO sync_metadata (key, value, updatedAt)
-        VALUES (?, ?, ?)
+        INSERT OR REPLACE INTO sync_metadata(key, value, updatedAt)
+VALUES(?, ?, ?)
     `,
 
     SELECT_SYNC_METADATA: `
@@ -299,38 +307,38 @@ export const SQL_QUERIES = {
 
     // Recurring Schedule queries
     INSERT_RECURRING_SCHEDULE: `
-        INSERT INTO recurring_schedules (
-            id, accountId, payee, amount, type, frequency, paymentMethod, 
-            startDate, endDate, nextDueDate, lastOccurredDate, 
-            memo, autoPost, isActive, isDeleted, clientId, createdAt, updatedAt
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO recurring_schedules(
+        id, accountId, payee, amount, type, frequency, paymentMethod,
+        startDate, endDate, nextDueDate, lastOccurredDate,
+        memo, autoPost, isActive, isDeleted, clientId, createdAt, updatedAt
+    )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_RECURRING_SCHEDULES: `
-        SELECT * FROM recurring_schedules WHERE isDeleted = 0 ORDER BY nextDueDate ASC
+SELECT * FROM recurring_schedules WHERE isDeleted = 0 ORDER BY nextDueDate ASC
     `,
 
     UPDATE_RECURRING_SCHEDULE: `
         UPDATE recurring_schedules 
-        SET accountId = ?, payee = ?, amount = ?, type = ?, frequency = ?, 
-            paymentMethod = ?, startDate = ?, endDate = ?, 
-            nextDueDate = ?, lastOccurredDate = ?, 
-            memo = ?, autoPost = ?, isActive = ?, isDeleted = ?, clientId = ?, updatedAt = ?
+        SET accountId = ?, payee = ?, amount = ?, type = ?, frequency = ?,
+    paymentMethod = ?, startDate = ?, endDate = ?,
+    nextDueDate = ?, lastOccurredDate = ?,
+    memo = ?, autoPost = ?, isActive = ?, isDeleted = ?, clientId = ?, updatedAt = ?
         WHERE id = ?
-    `,
+            `,
 
     DELETE_RECURRING_SCHEDULE: `
         UPDATE recurring_schedules SET isDeleted = 1, updatedAt = ? WHERE id = ?
     `,
 
     INSERT_RECURRING_SPLIT: `
-        INSERT INTO recurring_splits (id, scheduleId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO recurring_splits(id, scheduleId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_RECURRING_SPLITS_BY_SCHEDULE: `
-        SELECT * FROM recurring_splits WHERE scheduleId = ? AND isDeleted = 0 ORDER BY id
+SELECT * FROM recurring_splits WHERE scheduleId = ? AND isDeleted = 0 ORDER BY id
     `,
 
     DELETE_RECURRING_SPLITS_BY_SCHEDULE: `
@@ -626,6 +634,13 @@ export function exportDatabase(): Uint8Array {
  */
 export function getDb(): Database | null {
     return db;
+}
+
+/**
+ * Resets the in-memory database state
+ */
+export function resetDatabase(): void {
+    db = null;
 }
 
 export function insertTransaction(tx: ITransaction): void {
@@ -1324,4 +1339,15 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
 export function deleteRecurringSchedule(id: string): void {
     if (!db) throw new Error('Database not initialized');
     db.run(SQL_QUERIES.DELETE_RECURRING_SCHEDULE, [id]);
+}
+export function deletePayee(payeeId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    db.run(SQL_QUERIES.DELETE_PAYEE, [now, payeeId]);
+}
+
+export function deleteCategory(categoryId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    db.run(SQL_QUERIES.DELETE_CATEGORY, [now, categoryId]);
 }

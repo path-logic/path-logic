@@ -4,7 +4,8 @@
  * when the Google Drive session is expired or unavailable.
  */
 
-const DB_NAME = 'PathLogicLocalCache';
+const appEnv: string = process.env['NEXT_PUBLIC_APP_ENV'] || 'development';
+const DB_NAME: string = `PathLogicLocalCache-${appEnv}`;
 const STORE_NAME = 'backups';
 const KEY_NAME = 'current_ledger_encrypted';
 const DB_VERSION = 1;

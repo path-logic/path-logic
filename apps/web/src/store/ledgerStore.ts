@@ -21,6 +21,7 @@ import {
     updateRecurringSchedule,
     deleteRecurringSchedule,
     getDb,
+    resetDatabase,
 } from '@/lib/storage/SQLiteAdapter';
 import { ReconciliationEngine, type IReconciliationMatch } from '@/lib/sync/ReconciliationEngine';
 import type {
@@ -44,6 +45,7 @@ interface ILedgerStore {
     authError: boolean;
     isDirty: boolean;
     syncStatus: 'synced' | 'pending-local' | 'error';
+    syncError: string | null;
     hasLocalFallback: boolean;
     lockStatus: {
         clientId: string;
@@ -61,6 +63,7 @@ interface ILedgerStore {
     setSyncStatus: (status: 'synced' | 'pending-local' | 'error') => void;
     setHasLocalFallback: (hasFallback: boolean) => void;
     setLockStatus: (status: ILedgerStore['lockStatus']) => void;
+    setSyncError: (error: string | null) => void;
 
     // Transaction Actions
     addTransaction: (tx: ITransaction) => Promise<void>;
@@ -87,6 +90,7 @@ interface ILedgerStore {
         parsedTxs: Array<IParsedTransaction>,
         accountId: string,
     ) => Promise<Array<IReconciliationMatch>>;
+    reset: () => void;
 }
 
 export const useLedgerStore = create<ILedgerStore>(
@@ -101,6 +105,7 @@ export const useLedgerStore = create<ILedgerStore>(
         authError: false,
         isDirty: false,
         syncStatus: 'synced',
+        syncError: null,
         hasLocalFallback: false,
         lockStatus: null,
 
@@ -320,6 +325,10 @@ export const useLedgerStore = create<ILedgerStore>(
             set({ lockStatus: status });
         },
 
+        setSyncError: (error: string | null): void => {
+            set({ syncError: error });
+        },
+
         exportForSync: (): Uint8Array => {
             return exportDatabase();
         },
@@ -331,6 +340,23 @@ export const useLedgerStore = create<ILedgerStore>(
             const db = getDb();
             if (!db) throw new Error('Database not initialized');
             return ReconciliationEngine.reconcile(db, parsedTxs, accountId);
+        },
+
+        reset: (): void => {
+            resetDatabase();
+            set({
+                transactions: new Array<ITransaction>(),
+                accounts: new Array<IAccount>(),
+                payees: new Array<IPayee>(),
+                categories: new Array<ICategory>(),
+                schedules: new Array<IRecurringSchedule>(),
+                isInitialized: false,
+                isDirty: false,
+                syncStatus: 'synced',
+                syncError: null,
+                authError: false,
+                hasLocalFallback: false,
+            });
         },
     }),
 );
