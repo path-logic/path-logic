@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import { within, expect } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { within, expect } from 'storybook/test';
 import { RecurringSummaryTable } from '../RecurringSummaryTable';
 import {
     Frequency,

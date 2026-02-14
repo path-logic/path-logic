@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import { within, expect } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { within, expect } from 'storybook/test';
 import React, { useEffect } from 'react';
 import { BreadcrumbNav } from '../BreadcrumbNav';
 import { useLedgerStore } from '@/store/ledgerStore';

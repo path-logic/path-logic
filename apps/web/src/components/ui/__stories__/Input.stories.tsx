@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import { userEvent, within, expect } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { userEvent, within, expect } from 'storybook/test';
 import { Input } from '../input';
 
 const meta: Meta<typeof Input> = {

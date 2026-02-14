@@ -1,15 +1,15 @@
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import type { StorybookConfig } from '@storybook/nextjs';
+import type { StorybookConfig } from '@storybook/nextjs-vite';
 
 const config: StorybookConfig = {
     stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
     framework: {
-        name: getAbsolutePath('@storybook/nextjs'),
+        name: getAbsolutePath('@storybook/nextjs-vite'),
         options: {},
     },
     staticDirs: ['../public'],
-    addons: ['@storybook/addon-interactions', '@storybook/addon-a11y', '@storybook/addon-coverage'],
+    addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-coverage")],
     typescript: {
         check: false,
     },
