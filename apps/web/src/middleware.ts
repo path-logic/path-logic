@@ -7,9 +7,11 @@ import type { Session } from 'next-auth';
 /**
  * Next.js Proxy for route protection.
  */
-export const proxy = auth((req: NextRequest & { auth: Session | null }) => {
+export default auth((req: NextRequest & { auth: Session | null }) => {
     const isLoggedIn = !!req.auth;
-    const isPrivatePath = req.nextUrl.pathname.startsWith('/accounts');
+    const { pathname } = req.nextUrl;
+
+    const isPrivatePath = pathname.startsWith('/accounts') || pathname.startsWith('/settings');
 
     if (isPrivatePath && !isLoggedIn) {
         return NextResponse.redirect(new URL('/', req.url));
@@ -20,5 +22,5 @@ export const proxy = auth((req: NextRequest & { auth: Session | null }) => {
 
 // See "Matching Paths" below to learn more
 export const config = {
-    matcher: ['/accounts/:path*'],
+    matcher: ['/accounts/:path*', '/settings/:path*'],
 };

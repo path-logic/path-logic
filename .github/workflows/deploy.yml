@@ -19,7 +19,12 @@ jobs:
               run: npm run build
               env:
                   NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-                  # Add other necessary env vars
+
+            - name: Build Storybook
+              run: npx nx build-storybook web
+              env:
+                  STORYBOOK_USERNAME: ${{ secrets.STORYBOOK_USERNAME }}
+                  STORYBOOK_PASSWORD: ${{ secrets.STORYBOOK_PASSWORD }}
 
             - name: Deploy to Vercel
               uses: amondnet/vercel-action@v20

@@ -87,6 +87,41 @@ export default function SettingsPage(): React.JSX.Element {
                                 </div>
                             </Card>
                         </section>
+
+                        <section className="space-y-6">
+                            <div className="flex items-center gap-2 px-1">
+                                <Zap className="w-4 h-4 text-primary" />
+                                <h2 className="text-[11px] font-black uppercase tracking-widest">
+                                    Developer Tools
+                                </h2>
+                            </div>
+                            <Card className="p-6">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">
+                                                Storybook
+                                            </span>
+                                            <span className="text-[9px] text-muted-foreground/60 uppercase font-bold mt-0.5">
+                                                Component Documentation & Testing
+                                            </span>
+                                        </div>
+                                        <a
+                                            href={
+                                                process.env['NODE_ENV'] === 'development'
+                                                    ? '/storybook'
+                                                    : 'https://storybook.pathlogicfinance.com'
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[11px] font-black uppercase text-primary hover:text-primary/80 transition-colors"
+                                        >
+                                            Open Storybook
+                                        </a>
+                                    </div>
+                                </div>
+                            </Card>
+                        </section>
                     </div>
                 </div>
             </div>

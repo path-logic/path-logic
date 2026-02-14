@@ -15,13 +15,28 @@ export default defineConfig({
     reporter: 'html',
     use: {
         baseURL: 'http://localhost:3000',
-        trace: 'on-first-retry',
+        trace: 'on',
+        screenshot: 'only-on-failure',
     },
 
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: {
+                ...devices['Desktop Chrome'],
+                // channel: 'chrome',
+                launchOptions: {
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--test-type',
+                        '--remote-debugging-port=9222',
+                        '--incognito',
+                        '--ignore-certificate-errors',
+                    ],
+                },
+            },
         },
     ],
 

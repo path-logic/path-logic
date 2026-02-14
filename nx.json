@@ -30,6 +30,9 @@
         },
         "typecheck": {
             "cache": true
+        },
+        "build-storybook": {
+            "cache": true
         }
     },
     "plugins": [
