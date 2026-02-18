@@ -15,7 +15,8 @@
         "format": "prettier --write .",
         "format-check": "prettier --check .",
         "typecheck": "nx run-many --target=typecheck --all",
-        "docs": "nx docs @path-logic/core"
+        "docs": "nx docs @path-logic/core",
+        "build-storybook": "nx build-storybook web"
     },
     "devDependencies": {
         "@nx/js": "22.3.3",

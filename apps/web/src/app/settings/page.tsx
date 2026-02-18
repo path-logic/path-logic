@@ -110,7 +110,10 @@ export default function SettingsPage(): React.JSX.Element {
                                             href={
                                                 process.env['NODE_ENV'] === 'development'
                                                     ? '/storybook'
-                                                    : 'https://storybook.pathlogicfinance.com'
+                                                    : process.env['NEXT_PUBLIC_VERCEL_ENV'] ===
+                                                        'preview'
+                                                      ? 'https://storybook-preview.pathlogicfinance.com'
+                                                      : 'https://storybook.pathlogicfinance.com'
                                             }
                                             target="_blank"
                                             rel="noopener noreferrer"

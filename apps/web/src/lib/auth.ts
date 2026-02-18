@@ -15,7 +15,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 sameSite: 'lax',
                 path: '/',
                 secure: isProduction,
-                ...(isVercelProduction ? { domain: '.pathlogicfinance.com' } : {}),
+                ...(process.env['NEXT_PUBLIC_VERCEL_ENV']
+                    ? { domain: '.pathlogicfinance.com' }
+                    : {}),
             },
         },
     },

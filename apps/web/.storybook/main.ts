@@ -9,7 +9,10 @@ const config: StorybookConfig = {
         options: {},
     },
     staticDirs: ['../public'],
-    addons: [getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-coverage")],
+    addons: [
+        getAbsolutePath('@storybook/addon-a11y'),
+        getAbsolutePath('@storybook/addon-coverage'),
+    ],
     typescript: {
         check: false,
     },
