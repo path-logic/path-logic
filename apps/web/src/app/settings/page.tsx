@@ -111,9 +111,9 @@ export default function SettingsPage(): React.JSX.Element {
                                                 process.env['NODE_ENV'] === 'development'
                                                     ? '/storybook'
                                                     : process.env['NEXT_PUBLIC_VERCEL_ENV'] ===
-                                                        'preview'
-                                                      ? 'https://storybook-preview.pathlogicfinance.com'
-                                                      : 'https://storybook.pathlogicfinance.com'
+                                                        'production'
+                                                      ? 'https://storybook.pathlogicfinance.com'
+                                                      : 'https://storybook-preview.pathlogicfinance.com'
                                             }
                                             target="_blank"
                                             rel="noopener noreferrer"
