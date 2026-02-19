@@ -86,3 +86,6 @@ Ensure the Storybook project uses:
 1. [ ] Deploy `develop` branch -> Check `www-preview.pathlogicfinance.com`.
 2. [ ] Deploy `main` branch -> Check `www.pathlogicfinance.com`.
 3. [ ] Verify `www-preview` can open `storybook-preview` without re-authenticating.
+
+> [!TIP]
+> **GitHub Integration**: Once all projects are linked, you should see **3 distinct Vercel checks** in every GitHub PR or push: `path-logic`, `path-logic-web`, and `path-logic-storybook`. If one is missing, check your Project-to-Git linking in the Vercel Dashboard.
