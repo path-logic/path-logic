@@ -15,7 +15,7 @@
         "test": "playwright test",
         "test:ui": "playwright test --ui",
         "test-storybook": "test-storybook",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc -p tsconfig.prod.json --noEmit",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build -o dist/storybook",
         "postinstall": "playwright install"
