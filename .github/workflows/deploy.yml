@@ -35,7 +35,7 @@ jobs:
         name: Deploy Storybook
         runs-on: ubuntu-latest
         environment:
-            name: preview # Storybook is typically a preview/dev environment
+            name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
         steps:
             - uses: actions/checkout@v4
             - name: Install dependencies
@@ -53,4 +53,4 @@ jobs:
                   vercel-token: ${{ secrets.VERCEL_TOKEN }}
                   vercel-org-id: ${{ secrets.ORG_ID }}
                   vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_STORYBOOK }}
-                  vercel-args: '' 
+                  vercel-args: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && '--prod' || '' }}
