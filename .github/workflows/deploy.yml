@@ -8,11 +8,13 @@ on:
     pull_request:
 
 jobs:
-    deploy:
+    deploy-web:
+        name: Deploy Web App
         runs-on: ubuntu-latest
+        environment:
+            name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
         steps:
             - uses: actions/checkout@v4
-
             - name: Install dependencies
               run: npm ci
 
@@ -20,6 +22,24 @@ jobs:
               run: npm run build
               env:
                   NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+
+            - name: Deploy to Vercel
+              uses: amondnet/vercel-action@v20
+              with:
+                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
+                  vercel-org-id: ${{ secrets.ORG_ID }}
+                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_WEB }}
+                  vercel-args: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && '--prod' || '' }}
+
+    deploy-storybook:
+        name: Deploy Storybook
+        runs-on: ubuntu-latest
+        environment:
+            name: preview # Storybook is typically a preview/dev environment
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: npm ci
 
             - name: Build Storybook
               run: npx nx build-storybook web
@@ -32,5 +52,5 @@ jobs:
               with:
                   vercel-token: ${{ secrets.VERCEL_TOKEN }}
                   vercel-org-id: ${{ secrets.ORG_ID }}
-                  vercel-project-id: ${{ secrets.PROJECT_ID }}
-                  vercel-args: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && '--prod' || '' }}
+                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_STORYBOOK }}
+                  vercel-args: '' 
