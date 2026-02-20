@@ -80,6 +80,7 @@ export const AccountDetail: Story = {
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
+        await expect(canvas.getByRole('link', { name: 'Home' })).toBeVisible();
         await expect(canvas.getByRole('link', { name: 'Accounts' })).toBeVisible();
         await expect(canvas.getByText('Chase Checking')).toBeVisible();
     },

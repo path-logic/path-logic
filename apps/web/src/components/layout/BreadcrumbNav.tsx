@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home } from 'lucide-react';
 import { useLedgerStore } from '@/store/ledgerStore';
 import {
     Breadcrumb,
@@ -58,6 +59,18 @@ export function BreadcrumbNav(): React.JSX.Element | null {
     return (
         <Breadcrumb className="mb-2">
             <BreadcrumbList className="text-[10px] uppercase font-bold tracking-wider">
+                <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                        <Link
+                            href="/"
+                            className="hover:text-primary transition-colors flex items-center gap-1"
+                        >
+                            <Home className="h-3 w-3" />
+                            Home
+                        </Link>
+                    </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
                 {breadcrumbs.map(crumb => (
                     <React.Fragment key={crumb.href}>
                         <BreadcrumbItem>
