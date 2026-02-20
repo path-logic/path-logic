@@ -50,6 +50,7 @@ jobs:
               env:
                   STORYBOOK_USERNAME: ${{ secrets.STORYBOOK_USERNAME }}
                   STORYBOOK_PASSWORD: ${{ secrets.STORYBOOK_PASSWORD }}
+                  STORYBOOK_TSCONFIG: .storybook/tsconfig.json
 
             - name: Deploy to Vercel
               uses: amondnet/vercel-action@v20
