@@ -16,8 +16,8 @@
         "test:ui": "playwright test --ui",
         "test-storybook": "test-storybook",
         "typecheck": "tsc -p tsconfig.prod.json --noEmit",
-        "storybook": "storybook dev -p 6006",
-        "build-storybook": "storybook build -o dist/storybook",
+        "storybook": "storybook dev -p 6006 --tsconfig .storybook/tsconfig.json",
+        "build-storybook": "storybook build -o dist/storybook --tsconfig .storybook/tsconfig.json",
         "postinstall": "playwright install"
     },
     "dependencies": {
