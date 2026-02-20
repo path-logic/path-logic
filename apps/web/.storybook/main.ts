@@ -10,8 +10,13 @@ function getAliasesFromTsConfig(configPath: string) {
     try {
         const absolutePath = resolve(dirname(fileURLToPath(import.meta.url)), '../', configPath);
         const content = readFileSync(absolutePath, 'utf8');
+
         // Remove comments and parse JSON
-        const json = JSON.parse(content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ''));
+        const cleanContent = content
+            .replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '')
+            .replace(/,\s*([\]}])/g, '$1'); // Handle trailing commas
+
+        const json = JSON.parse(cleanContent);
         const baseUrl = json.compilerOptions?.baseUrl || '.';
         const paths = json.compilerOptions?.paths || {};
         const aliases: Record<string, string> = {};
@@ -20,12 +25,16 @@ function getAliasesFromTsConfig(configPath: string) {
             const aliasKey = key.replace('/*', '');
             // Take the first path and resolve it relative to baseUrl
             const targetPath = (value as string[])[0]?.replace('/*', '') || '';
-            aliases[aliasKey] = resolve(dirname(absolutePath), baseUrl, targetPath);
+            // Handle absolute paths vs relative paths
+            const resolvedPath = resolve(dirname(absolutePath), baseUrl, targetPath);
+            aliases[aliasKey] = resolvedPath;
+            console.log(`[Storybook] Map alias: ${aliasKey} -> ${resolvedPath}`);
         }
         return aliases;
     } catch (e) {
         console.warn(
             `[Storybook] Could not parse tsconfig at ${configPath}, falling back to default alias.`,
+            e,
         );
         return { '@': resolve(dirname(fileURLToPath(import.meta.url)), '../src') };
     }
