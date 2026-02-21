@@ -53,7 +53,10 @@ jobs:
                   STORYBOOK_TSCONFIG: .storybook/tsconfig.json
 
             - name: Debug Output
-              run: ls -R apps/web/dist
+              run: |
+                echo "Searching for storybook output..."
+                find . -maxdepth 5 -name "storybook" -type d
+                find . -name "index.html" | grep storybook || echo "No storybook index.html found"
             - name: Deploy to Vercel
               uses: amondnet/vercel-action@v20
               with:
