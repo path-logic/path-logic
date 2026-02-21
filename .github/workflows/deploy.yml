@@ -58,5 +58,4 @@ jobs:
                   vercel-token: ${{ secrets.VERCEL_TOKEN }}
                   vercel-org-id: ${{ secrets.ORG_ID }}
                   vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_STORYBOOK }}
-                  vercel-args: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && '--prod' || '' }}
-                  working-directory: apps/web/dist/storybook
+                  vercel-args: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && '--prod' || '' }} apps/web/dist/storybook
