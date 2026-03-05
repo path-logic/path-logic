@@ -1,0 +1,202 @@
+@if (isOpen()) {
+    <div
+        role="dialog"
+        aria-labelledby="rec-dialog-title"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+    >
+        <div
+            class="w-full max-w-4xl max-h-[90vh] bg-card border border-border rounded-sm shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        >
+            <!-- Header -->
+            <div
+                class="p-6 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-20"
+            >
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2
+                            id="rec-dialog-title"
+                            class="uppercase font-black tracking-widest text-primary flex items-center gap-3 text-xl"
+                        >
+                            <lucide-icon [img]="AlertCircle" class="w-6 h-6" />
+                            Reconciliation Review
+                        </h2>
+                        <p
+                            class="text-[10px] uppercase font-bold text-foreground/90 tracking-widest mt-1"
+                        >
+                            Reviewing {{ matches().length }} bank statement entries against local
+                            ledger
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto bg-muted/10 p-6 space-y-4 ledger-scroll">
+                @for (match of matches(); track $index; let idx = $index) {
+                    @let decision = decisions()[idx];
+                    <div
+                        class="p-4 rounded-sm border-2 transition-all relative overflow-hidden"
+                        [class]="{
+                            'border-primary/30 bg-primary/5': decision === 'import',
+                            'border-amber-800/30 bg-amber-800/5': decision === 'match',
+                            'border-border/50 bg-muted/20 opacity-80': decision === 'ignore',
+                        }"
+                    >
+                        <!-- Status Ribbon -->
+                        <div
+                            class="absolute top-0 right-0 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter"
+                            [class.bg-primary]="decision === 'import'"
+                            [class.text-white]="decision === 'import' || decision === 'match'"
+                            [class.bg-amber-700]="decision === 'match'"
+                            [class.bg-muted]="decision === 'ignore'"
+                            [class.text-muted-foreground]="decision === 'ignore'"
+                        >
+                            {{ decision }}
+                        </div>
+
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="px-2 py-0.5 text-[9px] font-black uppercase rounded-none border"
+                                    [class.bg-secondary]="match.type === 'fuzzy'"
+                                    [class.border-transparent]="match.type === 'fuzzy'"
+                                    [class.border-border]="match.type !== 'fuzzy'"
+                                >
+                                    {{ match.type === 'fuzzy' ? 'Ambiguous' : 'New Transaction' }}
+                                </span>
+                                <span class="text-xs font-mono font-bold text-foreground">
+                                    {{ match.parsedTx.date }}
+                                </span>
+                            </div>
+                            <div class="text-lg font-mono font-black text-emerald-900 tabular-nums">
+                                {{ formatCurrency(match.parsedTx.amount) }}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-6 items-center">
+                            <div class="col-span-5 space-y-1">
+                                <span
+                                    class="text-[8px] font-black text-foreground uppercase tracking-widest block mb-2"
+                                >
+                                    Statement Entry
+                                </span>
+                                <div
+                                    class="text-sm font-black text-foreground uppercase tracking-tight"
+                                >
+                                    {{ match.parsedTx.payee }}
+                                </div>
+                                <div class="text-[10px] text-foreground italic truncate">
+                                    {{ match.parsedTx.memo || 'No memo provided' }}
+                                </div>
+                            </div>
+
+                            <div class="col-span-1 flex justify-center">
+                                <lucide-icon
+                                    [img]="ArrowRight"
+                                    class="w-5 h-5"
+                                    [class.text-amber-800]="match.type === 'fuzzy'"
+                                    [class.text-border]="match.type !== 'fuzzy'"
+                                />
+                            </div>
+
+                            <div class="col-span-6 space-y-1">
+                                <span
+                                    class="text-[8px] font-black text-foreground uppercase tracking-widest block mb-2"
+                                >
+                                    Matched Record
+                                </span>
+                                @if (match.type === 'fuzzy') {
+                                    <div
+                                        class="bg-background/50 border border-amber-800/20 p-2 rounded-sm"
+                                    >
+                                        <div
+                                            class="flex items-center gap-2 text-[10px] font-bold text-amber-800 mb-1"
+                                        >
+                                            <lucide-icon [img]="LinkIcon" class="w-3 h-3" />
+                                            MATCH FOUND ({{ (match.confidence * 100).toFixed(0) }}%)
+                                        </div>
+                                        <div class="text-[9px] text-foreground/80 truncate">
+                                            ID: {{ match.existingTxId }}
+                                        </div>
+                                    </div>
+                                } @else {
+                                    <div
+                                        class="text-[10px] text-foreground/80 italic border border-dashed border-border p-2 rounded-sm"
+                                    >
+                                        No similar transaction found in the current account ledger.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-2 pt-4 border-t border-border/10">
+                            @if (match.type === 'fuzzy') {
+                                <button
+                                    (click)="setDecision(idx, 'match')"
+                                    aria-label="Confirm match"
+                                    class="h-7 px-4 text-[9px] font-black uppercase transition-colors flex items-center gap-1.5"
+                                    [class.bg-primary]="decision === 'match'"
+                                    [class.text-primary-foreground]="decision === 'match'"
+                                    [class.border]="decision !== 'match'"
+                                    [class.border-border]="decision !== 'match'"
+                                    [class.hover:bg-accent]="decision !== 'match'"
+                                >
+                                    <lucide-icon [img]="LinkIcon" class="w-3 h-3" />
+                                    Confirm Match
+                                </button>
+                            }
+                            <button
+                                (click)="setDecision(idx, 'import')"
+                                aria-label="Add as Separate"
+                                class="h-7 px-4 text-[9px] font-black uppercase transition-colors flex items-center gap-1.5"
+                                [class.bg-primary]="decision === 'import'"
+                                [class.text-primary-foreground]="decision === 'import'"
+                                [class.border]="decision !== 'import'"
+                                [class.border-border]="decision !== 'import'"
+                                [class.hover:bg-accent]="decision !== 'import'"
+                            >
+                                <lucide-icon [img]="PlusCircle" class="w-3 h-3" />
+                                {{ match.type === 'fuzzy' ? 'Add as Separate' : 'Add to Ledger' }}
+                            </button>
+                            <button
+                                (click)="setDecision(idx, 'ignore')"
+                                aria-label="Ignore transaction"
+                                class="h-7 px-4 text-[9px] font-black uppercase transition-colors flex items-center gap-1.5"
+                                [class.bg-muted]="decision === 'ignore'"
+                                [class.text-muted-foreground]="decision === 'ignore'"
+                                [class.border]="decision !== 'ignore'"
+                                [class.border-border]="decision !== 'ignore'"
+                                [class.hover:bg-accent]="decision !== 'ignore'"
+                            >
+                                <lucide-icon [img]="X" class="w-3 h-3" />
+                                Ignore
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="p-6 border-t border-border bg-background/80 backdrop-blur-sm sticky bottom-0 z-20 flex justify-end gap-2"
+            >
+                <button
+                    (click)="onClose()"
+                    aria-label="Abandon import"
+                    [disabled]="isProcessing()"
+                    class="text-xs font-bold uppercase h-9 px-6 hover:bg-accent transition-colors disabled:opacity-50"
+                >
+                    Abandon Import
+                </button>
+                <button
+                    (click)="handleApply()"
+                    aria-label="Commit all decisions"
+                    [disabled]="isProcessing()"
+                    class="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-black uppercase px-10 h-9 rounded-sm shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                >
+                    {{ isProcessing() ? 'Synchronizing...' : 'Commit All Decisions' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}

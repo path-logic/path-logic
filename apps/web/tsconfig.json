@@ -1,41 +1,28 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
-        "baseUrl": ".",
-        "target": "es2022",
-        "lib": ["dom", "dom.iterable", "esnext"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "noEmit": true,
-        "esModuleInterop": true,
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
         "isolatedModules": true,
-        "jsx": "react-jsx",
-        "incremental": true,
-        "plugins": [
-            {
-                "name": "next"
-            }
-        ],
-        "paths": {
-            "@/*": ["./src/*"],
-            "@path-logic/core": ["../../packages/core/src/index.ts"],
-            "@path-logic/feature-flags": ["../../packages/feature-flags/src/index.ts"],
-            "@path-logic/feature-flags/client": ["../../packages/feature-flags/src/client.ts"],
-            "@path-logic/feature-flags/components": [
-                "../../packages/feature-flags/src/components/index.ts"
-            ]
-        }
+        "module": "preserve"
     },
-    "include": [
-        "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
-        ".next/types/**/*.ts",
-        "../../packages/core/src/**/*.ts"
-    ],
-    "exclude": ["node_modules"]
+    "angularCompilerOptions": {
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInjectionParameters": true,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": true
+    },
+    "files": [],
+    "include": [],
+    "references": [
+        {
+            "path": "./tsconfig.app.json"
+        },
+        {
+            "path": "./tsconfig.spec.json"
+        },
+        {
+            "path": "./.storybook/tsconfig.json"
+        }
+    ]
 }

@@ -1,0 +1,32 @@
+# Deploy preview to Firebase Hosting on pull requests
+name: Firebase Preview
+
+on: pull_request
+
+jobs:
+    preview:
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci
+
+            # Build production web app
+            - run: npx nx run web:build:production
+
+            # Deploy to preview channel (auto-generates preview URL)
+            - uses: FirebaseExtended/action-hosting-deploy@v0
+              with:
+                  repoToken: ${{ secrets.GITHUB_TOKEN }}
+                  firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+                  projectId: path-logic
+                  target: web
+                  # No channelId = creates a preview channel automatically

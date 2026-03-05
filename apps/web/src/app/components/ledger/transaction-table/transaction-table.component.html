@@ -1,0 +1,216 @@
+<div
+    class="w-full flex flex-col h-full overflow-hidden focus:outline-none"
+    (keydown)="handleKeyDown($event)"
+    tabindex="0"
+>
+    <!-- Toolbar -->
+    <div class="flex items-center py-2 px-1 justify-between flex-none bg-background">
+        <div class="relative max-w-sm">
+            <input
+                type="text"
+                placeholder="Filter ledger..."
+                [ngModel]="table.getState().columnFilters[0]?.value ?? ''"
+                (ngModelChange)="table.getColumn('payee')?.setFilterValue($event)"
+                class="w-full h-7 text-[10px] bg-background border border-border rounded-md px-3 uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+        </div>
+        <div class="text-[9px] font-mono text-muted-foreground uppercase px-2 translate-y-1">
+            Showing {{ table.getRowModel().rows.length }} records • Last {{ monthsToShow() }} months
+        </div>
+    </div>
+
+    <div
+        class="flex-1 border border-border rounded-sm bg-background relative flex flex-col min-h-0 overflow-hidden"
+    >
+        <!-- Header -->
+        <div class="flex-none bg-accent border-b border-border z-20">
+            @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+                <div class="flex h-8 px-1 items-center">
+                    @for (header of headerGroup.headers; track header.id) {
+                        <div
+                            class="px-3 text-muted-foreground font-bold text-[10px] uppercase"
+                            [class.flex-1]="header.id === 'payee'"
+                            [class.min-w-[300px]]="header.id === 'payee'"
+                            [class.w-[100px]]="header.id === 'date'"
+                            [class.w-[140px]]="header.id === 'category'"
+                            [class.w-[120px]]="
+                                header.id === 'status' ||
+                                header.id === 'totalAmount' ||
+                                header.id === 'balance'
+                            "
+                        >
+                            @if (!header.isPlaceholder) {
+                                <ng-container
+                                    *ngTemplateOutlet="
+                                        $any(header.column.columnDef.header);
+                                        context: header.getContext()
+                                    "
+                                ></ng-container>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Body -->
+        <div #parentRef class="flex-1 overflow-auto ledger-scroll" (scroll)="onScroll($event)">
+            @if (
+                windowedData().length < data().length &&
+                table.getRowModel().rows.length > 0 &&
+                isAtTop()
+            ) {
+                <div class="px-3 border-b border-border bg-background sticky top-0 z-10">
+                    <button
+                        (click)="loadMoreHistory()"
+                        class="w-full py-4 text-[9px] font-bold text-primary hover:text-primary hover:bg-primary/5 uppercase tracking-[0.2em] transition-colors"
+                    >
+                        ↑ Load older history (currently showing {{ monthsToShow() }} months) ↑
+                    </button>
+                </div>
+            }
+
+            <div [style.height.px]="virtualizer.getTotalSize()" class="w-full relative">
+                @for (virtualRow of virtualizer.getVirtualItems(); track virtualRow.key) {
+                    @let row = table.getRowModel().rows[virtualRow.index];
+                    @if (row) {
+                        <div
+                            class="flex items-center hover:bg-accent/50 border-none group cursor-pointer h-9 transition-colors absolute w-full"
+                            [class]="{
+                                'bg-accent/80 outline outline-1 outline-primary z-10':
+                                    virtualRow.index === activeIndex(),
+                            }"
+                            [style.top.px]="0"
+                            [style.transform]="'translateY(' + virtualRow.start + 'px)'"
+                            (click)="activeIndex.set(virtualRow.index)"
+                            (keydown.enter)="activeIndex.set(virtualRow.index)"
+                            (keydown.space)="activeIndex.set(virtualRow.index)"
+                            tabindex="0"
+                            role="button"
+                        >
+                            @for (cell of row.getVisibleCells(); track cell.id) {
+                                <div
+                                    class="px-3 h-9 flex items-center overflow-hidden"
+                                    [class.flex-1]="cell.column.id === 'payee'"
+                                    [class.min-w-[300px]]="cell.column.id === 'payee'"
+                                    [class.w-[100px]]="cell.column.id === 'date'"
+                                    [class.w-[140px]]="cell.column.id === 'category'"
+                                    [class.w-[120px]]="
+                                        cell.column.id === 'status' ||
+                                        cell.column.id === 'totalAmount' ||
+                                        cell.column.id === 'balance'
+                                    "
+                                >
+                                    @switch (cell.column.id) {
+                                        @case ('date') {
+                                            <div
+                                                class="font-mono text-[10px] text-muted-foreground text-nowrap"
+                                            >
+                                                {{ cell.getValue() }}
+                                            </div>
+                                        }
+                                        @case ('payee') {
+                                            @let cellValue = $any(cell.getValue());
+                                            <div class="flex flex-col">
+                                                <span
+                                                    class="font-semibold text-primary group-hover:text-foreground text-[11px] truncate max-w-[300px]"
+                                                >
+                                                    {{ cellValue.payee }}
+                                                </span>
+                                                <span
+                                                    class="text-[9px] text-muted-foreground truncate max-w-[300px]"
+                                                >
+                                                    {{ cellValue.memo }}
+                                                </span>
+                                            </div>
+                                        }
+                                        @case ('category') {
+                                            <div class="flex items-center">
+                                                <span
+                                                    [class]="
+                                                        getCategoryClass($any(cell.getValue()))
+                                                    "
+                                                >
+                                                    {{ cell.getValue() }}
+                                                </span>
+                                            </div>
+                                        }
+                                        @case ('status') {
+                                            <div
+                                                class="text-[9px] font-bold uppercase text-nowrap flex items-center gap-1.5"
+                                                [class]="getStatusClass($any(cell.getValue()))"
+                                            >
+                                                <lucide-icon
+                                                    [img]="getStatusIcon($any(cell.getValue()))"
+                                                    class="w-3 h-3"
+                                                />
+                                                {{ cell.getValue() }}
+                                            </div>
+                                        }
+                                        @case ('totalAmount') {
+                                            <div
+                                                class="text-right font-mono font-bold text-[11px] text-nowrap w-full"
+                                                [class.text-destructive]="$any(cell.getValue()) < 0"
+                                                [class.text-emerald-900]="
+                                                    $any(cell.getValue()) >= 0
+                                                "
+                                            >
+                                                {{ formatCurrency($any(cell.getValue())) }}
+                                            </div>
+                                        }
+                                        @case ('balance') {
+                                            <div
+                                                class="text-right font-mono font-bold text-[11px] text-nowrap w-full"
+                                                [class.text-destructive]="$any(cell.getValue()) < 0"
+                                                [class.text-emerald-900]="
+                                                    $any(cell.getValue()) >= 0
+                                                "
+                                            >
+                                                {{ formatCurrency($any(cell.getValue())) }}
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+
+            @if (table.getRowModel().rows.length === 0) {
+                <div
+                    class="flex flex-col items-center justify-center text-muted-foreground text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10"
+                >
+                    @if (data().length === 0) {
+                        <div class="text-primary font-bold">Ledger is empty</div>
+                        <div>Import a QIF file or add a transaction to get started</div>
+                    } @else if (windowedData().length === 0) {
+                        <div>No transactions in the last {{ monthsToShow() }} months</div>
+                        <button
+                            (click)="loadMoreHistory()"
+                            class="text-primary hover:underline font-bold"
+                        >
+                            Check older history?
+                        </button>
+                    } @else {
+                        <div>No transactions match your current filters</div>
+                        <button
+                            (click)="table.getColumn('payee')?.setFilterValue('')"
+                            class="text-primary hover:underline font-bold"
+                        >
+                            Clear all filters
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div
+        class="flex items-center justify-between py-2 px-1 text-[9px] font-mono text-muted-foreground uppercase bg-background flex-none"
+    >
+        <div class="flex-1">
+            Showing {{ windowedData().length }} of {{ data().length }} Transactions
+        </div>
+    </div>
+</div>

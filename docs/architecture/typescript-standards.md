@@ -95,18 +95,18 @@ async function fetchData(): Promise<IData> {
 }
 ```
 
-### 6. React Hooks
+### 6. Angular Signals and Observables
 
-Hook results must be explicitly typed:
+Signal values and Observable emissions must be explicitly typed:
 
 ```typescript
 // ❌ WRONG
-const [count, setCount] = useState(0);
-const router = useRouter();
+const count = signal(0);
+const data$ = this.http.get('/api/data');
 
 // ✅ CORRECT
-const [count, setCount] = useState<number>(0);
-const router: AppRouterInstance = useRouter();
+const count: WritableSignal<number> = signal<number>(0);
+const data$: Observable<IData> = this.http.get<IData>('/api/data');
 ```
 
 ### 7. Error Handling
@@ -194,6 +194,6 @@ The following ESLint rules enforce these standards:
 
 See the following files for reference implementations:
 
-- `apps/web/src/lib/featureFlags/featureFlags.ts`
-- `apps/web/src/lib/featureFlags/useFeatureFlag.ts`
-- `apps/web/src/components/FeatureFlagToggle.tsx`
+- `apps/web/src/app/services/ledger.store.ts`
+- `apps/web/src/app/services/sync.service.ts`
+- `apps/web/src/app/pages/dashboard/dashboard.component.ts`

@@ -1,0 +1,266 @@
+@if (isOpen()) {
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300"
+    >
+        <div
+            class="w-full max-w-[500px] bg-card border border-border shadow-2xl rounded-sm overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200"
+        >
+            <!-- Header -->
+            <div class="p-6 border-b border-border bg-muted/30 relative">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
+                        <span class="text-primary-foreground font-black text-[10px]">P</span>
+                    </div>
+                    <h2 class="text-xs font-black uppercase tracking-[0.2em] text-foreground">
+                        Add <span class="text-primary">New Account</span>
+                    </h2>
+                </div>
+                <p
+                    class="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-70"
+                >
+                    {{
+                        step() === 'select-type'
+                            ? 'Select the account classification'
+                            : 'Configure ' + selectedOption()?.label
+                    }}
+                </p>
+                <button
+                    (click)="handleCancel()"
+                    aria-label="Close dialog"
+                    class="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
+                >
+                    <lucide-icon [img]="X" class="w-4 h-4 text-muted-foreground" />
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto max-h-[70vh]">
+                <div class="p-6">
+                    @if (step() === 'select-type') {
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-3">
+                                @for (option of primaryTypes(); track option.type) {
+                                    <button
+                                        (click)="handleTypeSelect(option.type)"
+                                        class="group flex flex-col items-center p-4 border border-border rounded-sm hover:border-primary/50 hover:bg-primary/5 transition-all text-center"
+                                    >
+                                        <div
+                                            [class]="
+                                                'w-10 h-10 rounded-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ' +
+                                                getTypeTheming(option.type).iconBg
+                                            "
+                                        >
+                                            <lucide-icon
+                                                [img]="option.icon"
+                                                [class]="
+                                                    'w-5 h-5 ' +
+                                                    getTypeTheming(option.type).iconText
+                                                "
+                                            />
+                                        </div>
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-widest mb-1"
+                                        >
+                                            {{ option.label }}
+                                        </span>
+                                        <span
+                                            class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                        >
+                                            {{ option.description }}
+                                        </span>
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="pt-2">
+                                <button
+                                    (click)="showLoans.set(!showLoans())"
+                                    class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-sm transition-colors"
+                                >
+                                    <span>Loan / Liability Types</span>
+                                    <lucide-icon
+                                        [img]="showLoans() ? ChevronUp : ChevronDown"
+                                        class="w-3 h-3"
+                                    />
+                                </button>
+
+                                @if (showLoans()) {
+                                    <div
+                                        class="grid grid-cols-1 gap-2 mt-2 animate-in slide-in-from-top-2"
+                                    >
+                                        @for (option of loanTypes(); track option.type) {
+                                            <button
+                                                (click)="handleTypeSelect(option.type)"
+                                                class="flex items-center gap-4 p-3 border border-border rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
+                                            >
+                                                <div
+                                                    class="w-8 h-8 rounded-sm bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform"
+                                                >
+                                                    <lucide-icon
+                                                        [img]="option.icon"
+                                                        class="w-4 h-4 text-amber-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span
+                                                        class="text-[10px] font-black uppercase tracking-widest block"
+                                                    >
+                                                        {{ option.label }}
+                                                    </span>
+                                                    <span
+                                                        class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60"
+                                                    >
+                                                        {{ option.description }}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (step() === 'enter-details' && selectedType() && !isLoan()) {
+                        <div class="space-y-6">
+                            <div class="flex gap-4 p-4 bg-muted/30 rounded-sm border border-border">
+                                <div
+                                    [class]="
+                                        'w-12 h-12 rounded-sm flex items-center justify-center flex-none ' +
+                                        theming().iconBg
+                                    "
+                                >
+                                    <lucide-icon
+                                        [img]="selectedOption()?.icon || Landmark"
+                                        [class]="'w-6 h-6 ' + theming().iconText"
+                                    />
+                                </div>
+                                <div>
+                                    <h3
+                                        class="text-[11px] font-black uppercase tracking-widest mb-0.5"
+                                    >
+                                        {{ selectedOption()?.label }}
+                                    </h3>
+                                    <p
+                                        class="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                    >
+                                        {{ selectedOption()?.description }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="space-y-1.5">
+                                    <label
+                                        for="new-acc-name"
+                                        class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                    >
+                                        Account Name *
+                                    </label>
+                                    <input
+                                        id="new-acc-name"
+                                        [ngModel]="accountName()"
+                                        (ngModelChange)="accountName.set($event)"
+                                        placeholder="e.g. Chase Checking"
+                                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                    />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label
+                                        for="new-acc-inst"
+                                        class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                    >
+                                        Institution (Optional)
+                                    </label>
+                                    <input
+                                        id="new-acc-inst"
+                                        [ngModel]="institutionName()"
+                                        (ngModelChange)="institutionName.set($event)"
+                                        placeholder="e.g. JPMorgan Chase"
+                                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                    />
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label
+                                        for="new-acc-bal"
+                                        class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                    >
+                                        Starting Balance
+                                    </label>
+                                    <input
+                                        id="new-acc-bal"
+                                        [ngModel]="initialBalance()"
+                                        (ngModelChange)="initialBalance.set($event)"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono font-bold transition-all"
+                                    />
+                                    <p
+                                        class="text-[9px] text-muted-foreground italic font-bold uppercase tracking-tighter opacity-50"
+                                    >
+                                        {{
+                                            selectedType() === 'credit'
+                                                ? 'Enter amount owed'
+                                                : 'Current cleared balance'
+                                        }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if (error()) {
+                                <div
+                                    class="p-3 bg-destructive/10 border border-destructive/20 rounded-sm"
+                                >
+                                    <p
+                                        class="text-[10px] font-black uppercase text-destructive tracking-widest"
+                                    >
+                                        {{ error() }}
+                                    </p>
+                                </div>
+                            }
+
+                            <div class="flex gap-3 pt-4">
+                                <button
+                                    (click)="step.set('select-type')"
+                                    class="flex-1 h-10 border border-border hover:bg-muted text-[10px] font-black uppercase tracking-widest rounded-sm transition-all"
+                                >
+                                    Change Type
+                                </button>
+                                <button
+                                    (click)="handleCreate()"
+                                    class="flex-1 h-10 bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-lg shadow-primary/20 transition-all"
+                                >
+                                    Create Account
+                                </button>
+                            </div>
+                        </div>
+                    }
+
+                    @if (step() === 'enter-details' && selectedType() && isLoan()) {
+                        <div class="animate-in slide-in-from-bottom-4">
+                            <app-loan-details-form
+                                [type]="selectedType()!"
+                                (backClicked)="step.set('select-type')"
+                                (submitted)="accountCreated.emit($event); closed.emit()"
+                            />
+                        </div>
+                    }
+
+                    @if (step() === 'creating') {
+                        <div class="py-12 flex flex-col items-center justify-center gap-4">
+                            <div
+                                class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                            ></div>
+                            <p
+                                class="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse"
+                            >
+                                Initializing Ledger...
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

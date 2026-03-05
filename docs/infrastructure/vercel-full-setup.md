@@ -18,10 +18,10 @@ We use a "Dual-Project Slot" strategy to manage the main application and Storybo
 ### A. Main Application Project
 
 1. **New Project**: Select the `path-logic` repo.
-2. **Framework**: Next.js.
-3. **Root Directory**: `apps/web` (This allows Next.js to handle the app-specific build).
-4. **Build Command**: `npx nx build web` (or leave default if Vercel detects Nx).
-5. **Output Directory**: `.next` (default).
+2. **Framework**: Angular.
+3. **Root Directory**: `apps/web`.
+4. **Build Command**: `npx nx build web`.
+5. **Output Directory**: `dist/apps/web/browser`.
 
 ### B. Storybook Support Project
 
@@ -38,12 +38,10 @@ We use a "Dual-Project Slot" strategy to manage the main application and Storybo
 
 To enable "Session Persistence" (logging in once and having it work on both subdomains), both projects MUST share the same configuration. You should use Vercel's **"Shared Environment Variables"** feature for these and link them to both the `path-logic` and `path-logic-storybook` projects.
 
-| Variable                   | Slot Sensitivity                             | Purpose                      |
-| :------------------------- | :------------------------------------------- | :--------------------------- |
-| **`AUTH_SECRET`**          | Project-specific values for Prod/Preview/Dev | Key for session encryption.  |
-| **`GOOGLE_CLIENT_ID`**     | Project-specific values for Prod/Preview     | OAuth Identity.              |
-| **`GOOGLE_CLIENT_SECRET`** | Project-specific values for Prod/Preview     | OAuth Secret.                |
-| **`NEXT_PUBLIC_APP_ENV`**  | `production`, `preview`, or `development`    | Data/Storage path isolation. |
+| Variable               | Slot Sensitivity                          | Purpose                      |
+| :--------------------- | :---------------------------------------- | :--------------------------- |
+| **`GOOGLE_CLIENT_ID`** | Project-specific values for Prod/Preview  | OAuth Identity.              |
+| **`APP_ENV`**          | `production`, `preview`, or `development` | Data/Storage path isolation. |
 
 ### B. Project-Specific Variables (Local to Storybook)
 

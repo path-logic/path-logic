@@ -1,0 +1,20 @@
+:host {
+    display: contents;
+}
+
+.ledger-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ledger-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ledger-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+}
+
+.ledger-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+}

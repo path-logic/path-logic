@@ -1,0 +1,240 @@
+<div
+    class="flex-1 flex flex-col items-center justify-center p-8 bg-background relative overflow-hidden"
+>
+    @if (step() === 'creating') {
+        <div class="flex flex-col items-center gap-4 animate-in fade-in duration-300">
+            <div
+                class="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin"
+            ></div>
+            <p class="text-sm font-bold text-primary uppercase tracking-[0.2em]">
+                Creating Account...
+            </p>
+        </div>
+    } @else if (step() === 'enter-details' && selectedType() && isLoan()) {
+        <div
+            class="w-full max-w-4xl flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500"
+        >
+            <app-loan-details-form
+                [type]="selectedType()!"
+                (backClicked)="handleBack()"
+                (submitted)="accountCreated.emit($event)"
+            />
+        </div>
+    } @else if (step() === 'enter-details' && selectedType()) {
+        <div class="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div
+                class="bg-card border border-border/50 rounded-lg shadow-2xl overflow-hidden relative p-8"
+            >
+                <!-- Accent Bar -->
+                <div [class]="'absolute top-0 left-0 right-0 h-1 ' + theming().accentBg"></div>
+
+                <div class="flex items-center gap-4 mb-8 pb-4 border-b border-border/30">
+                    <div
+                        [class]="
+                            'w-14 h-14 rounded-lg flex items-center justify-center shadow-inner border ' +
+                            theming().iconBg +
+                            ' ' +
+                            theming().iconBorder
+                        "
+                    >
+                        <lucide-icon
+                            [img]="selectedOption()?.icon || Landmark"
+                            [class]="'w-7 h-7 ' + theming().iconText"
+                        />
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-foreground tracking-tight">
+                            {{ selectedOption()?.label }}
+                        </h2>
+                        <p class="text-sm text-foreground/90">
+                            {{ selectedOption()?.description }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="space-y-6 mb-8">
+                    <div class="space-y-2">
+                        <label
+                            for="wizard-acc-name"
+                            class="text-[10px] font-black uppercase tracking-widest text-foreground block"
+                        >
+                            Account Name *
+                        </label>
+                        <input
+                            id="wizard-acc-name"
+                            [ngModel]="accountName()"
+                            (ngModelChange)="accountName.set($event)"
+                            placeholder="e.g., Main Checking, Emergency Fund"
+                            class="w-full h-11 px-4 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                            autoFocus
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label
+                            for="wizard-acc-bal"
+                            class="text-[10px] font-black uppercase tracking-widest text-foreground block"
+                        >
+                            Initial Balance (Optional)
+                        </label>
+                        <input
+                            id="wizard-acc-bal"
+                            [ngModel]="initialBalance()"
+                            (ngModelChange)="initialBalance.set($event)"
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            class="w-full h-11 px-4 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-base font-mono font-bold transition-all"
+                        />
+                        <p class="text-[10px] text-foreground/90 mt-2 leading-relaxed italic">
+                            {{
+                                selectedType() === 'credit'
+                                    ? 'Enter amount owed (as positive number)'
+                                    : 'Enter current balance'
+                            }}
+                        </p>
+                    </div>
+                </div>
+
+                @if (error()) {
+                    <div
+                        class="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-md animate-in slide-in-from-top-2"
+                    >
+                        <p class="text-xs text-destructive font-bold uppercase tracking-widest">
+                            {{ error() }}
+                        </p>
+                    </div>
+                }
+
+                <div class="flex gap-4">
+                    <button
+                        (click)="handleBack()"
+                        class="flex-1 h-11 text-xs font-bold uppercase tracking-widest hover:bg-muted border border-border rounded-sm transition-all"
+                    >
+                        Back
+                    </button>
+                    <button
+                        (click)="handleStandardAccountCreate()"
+                        class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest bg-primary text-primary-foreground rounded-sm shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
+                    >
+                        Create Account
+                        <lucide-icon [img]="ArrowRight" class="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <!-- Select Type Step -->
+        <div class="w-full max-w-4xl py-12 animate-in fade-in duration-700">
+            <div class="text-center mb-10">
+                <div
+                    class="flex items-center justify-center gap-2 mb-3 group hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                    <lucide-icon [img]="Sparkles" class="w-6 h-6 text-foreground" />
+                    <h1 class="text-2xl font-black uppercase tracking-tight text-foreground">
+                        Welcome to Path Logic
+                    </h1>
+                </div>
+                <p class="text-sm text-foreground/90 max-w-xl mx-auto">
+                    Let's get started by creating your first account. Choose the type that best fits
+                    your needs.
+                </p>
+            </div>
+
+            <!-- Primary Types Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 max-w-[600px] mx-auto">
+                @for (option of primaryTypes(); track option.type) {
+                    <div
+                        (click)="handleTypeSelect(option.type)"
+                        (keydown.enter)="handleTypeSelect(option.type)"
+                        (keydown.space)="handleTypeSelect(option.type)"
+                        tabindex="0"
+                        role="button"
+                        [class]="
+                            'group p-6 bg-card border border-border/50 rounded-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl relative overflow-hidden outline-none focus:ring-2 focus:ring-primary ' +
+                            getTypeTheming(option.type).borderHover
+                        "
+                    >
+                        <!-- Accent Bar -->
+                        <div
+                            [class]="
+                                'absolute top-0 left-0 right-0 h-1 ' +
+                                getTypeTheming(option.type).accentBg
+                            "
+                        ></div>
+
+                        <div class="flex flex-col items-center text-center space-y-4">
+                            <div
+                                class="w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center group-hover:bg-muted transition-colors"
+                            >
+                                <lucide-icon
+                                    [img]="option.icon"
+                                    [class]="'w-7 h-7 ' + getTypeTheming(option.type).iconText"
+                                />
+                            </div>
+                            <h2 class="text-lg font-semibold text-foreground">
+                                {{ option.label }}
+                            </h2>
+                            <p class="text-sm text-foreground/90 leading-relaxed">
+                                {{ option.description }}
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Loan Account Expansion -->
+            <div class="flex flex-col items-center">
+                <button
+                    (click)="showLoans.set(!showLoans())"
+                    class="text-xs text-foreground/90 hover:text-foreground uppercase tracking-widest mb-6 flex items-center gap-2 px-4 py-2 hover:bg-muted rounded-full transition-all"
+                    [attr.aria-expanded]="showLoans()"
+                >
+                    {{ showLoans() ? 'Hide Loan Types' : 'More Account Types' }}
+                    <lucide-icon [img]="showLoans() ? ChevronUp : ChevronDown" class="w-4 h-4" />
+                </button>
+
+                @if (showLoans()) {
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[600px] mx-auto animate-in slide-in-from-top-4 duration-300"
+                    >
+                        @for (option of loanTypes(); track option.type; let idx = $index) {
+                            <div
+                                (click)="handleTypeSelect(option.type)"
+                                (keydown.enter)="handleTypeSelect(option.type)"
+                                (keydown.space)="handleTypeSelect(option.type)"
+                                tabindex="0"
+                                role="button"
+                                [class]="
+                                    'group p-6 bg-card border border-amber-500/30 hover:border-amber-500 rounded-lg cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl relative overflow-hidden outline-none focus:ring-2 focus:ring-primary ' +
+                                    (idx === loanTypes().length - 1 && loanTypes().length % 2 !== 0
+                                        ? 'md:col-span-2 md:w-1/2 md:mx-auto'
+                                        : '')
+                                "
+                            >
+                                <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+
+                                <div class="flex flex-col items-center text-center space-y-4">
+                                    <div
+                                        class="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors"
+                                    >
+                                        <lucide-icon
+                                            [img]="option.icon"
+                                            class="w-7 h-7 text-amber-500"
+                                        />
+                                    </div>
+                                    <h2 class="text-lg font-semibold text-foreground">
+                                        {{ option.label }}
+                                    </h2>
+                                    <p class="text-sm text-muted-foreground leading-relaxed">
+                                        {{ option.description }}
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

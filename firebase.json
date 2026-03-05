@@ -1,0 +1,20 @@
+{
+    "hosting": [
+        {
+            "target": "web",
+            "public": "dist/apps/web/browser",
+            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ]
+        },
+        {
+            "target": "storybook",
+            "public": "dist/apps/web/storybook",
+            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+        }
+    ]
+}

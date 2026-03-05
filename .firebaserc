@@ -1,0 +1,19 @@
+{
+    "projects": {
+        "default": "path-logic",
+        "staging": "path-logic-staging"
+    },
+    "targets": {
+        "path-logic": {
+            "hosting": {
+                "web": ["path-logic"],
+                "storybook": ["pathlogic-storybook"]
+            }
+        },
+        "path-logic-staging": {
+            "hosting": {
+                "web": ["path-logic-staging"]
+            }
+        }
+    }
+}

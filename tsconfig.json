@@ -21,7 +21,6 @@
         "paths": {
             "@/*": ["./src/*"]
         },
-        // === STRICT TYPE SAFETY ===
         "noImplicitAny": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
@@ -30,16 +29,24 @@
         "noImplicitThis": true,
         "useUnknownInCatchVariables": true,
         "alwaysStrict": true,
-        // === NO IMPLICIT ANYTHING ===
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
         "noPropertyAccessFromIndexSignature": true,
-        // === ADDITIONAL SAFETY ===
         "exactOptionalPropertyTypes": true,
         "forceConsistentCasingInFileNames": true
     },
+    "angularCompilerOptions": {
+        "strictInjectionParameters": true,
+        "strictTemplates": true
+    },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules"],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs",
+            "moduleResolution": "node10"
+        }
+    }
 }

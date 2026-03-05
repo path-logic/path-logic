@@ -1,6 +1,6 @@
 # Path Logic - System Architecture
 
-This is a **Principal-level Full-Stack** project using **Next.js 15**, **TypeScript**, and **Zustand**.
+This is a **Principal-level Full-Stack** project using **Angular 21**, **TypeScript**, and **Angular Signals**.
 
 ## Monorepo Strategy
 
@@ -9,7 +9,7 @@ This project uses an **Nx monorepo** with an **Open Core** licensing model:
 | Package            | Visibility       | Purpose                                                  |
 | ------------------ | ---------------- | -------------------------------------------------------- |
 | `@path-logic/core` | **Public (MIT)** | Framework-agnostic engine — your technical business card |
-| `apps/web`         | **Private**      | Next.js 15 app — commercial product with protected IP    |
+| `apps/web`         | **Private**      | Angular 21 app — commercial product with protected IP    |
 
 **Key Principle:** The `core` library has **zero framework dependencies** and can be published to npm independently. The private app imports from core, never the reverse.
 
@@ -112,7 +112,7 @@ const primes: Array<number> = [2, 3, 5, 7, 11];
 - **Grouping**:
     1. Side-effect imports (`import './style.css'`)
     2. Built-in Node.js modules (`node:`)
-    3. External packages (`react`, `next`, etc.)
+    3. External packages (`@angular`, `rxjs`, etc.)
     4. Internal monorepo packages (`@path-logic/core`)
     5. Relative imports (`../`, `./`)
 
@@ -136,21 +136,21 @@ We use **Nx** as the underlying task runner to provide caching, parallelism, and
 
 **Workflow Targets:**
 
-| Target      | Command             | Purpose                                    |
-| ----------- | ------------------- | ------------------------------------------ |
-| `dev`       | `npm run dev`       | Start local development for apps/web       |
-| `build`     | `npm run build`     | Parallel build of all workspace projects   |
-| `lint`      | `npm run lint`      | Run ESLint + Prettier check (All projects) |
-| `typecheck` | `npm run typecheck` | Run TypeScript validation (All projects)   |
-| `test`      | `npm run test`      | Run unit tests (All projects)              |
-| `format`    | `npm run format`    | Reformat seluruh workspace with Prettier   |
-| `docs`      | `npm run docs`      | Generate API documentation for Core        |
+| Target      | Command             | Purpose                                        |
+| ----------- | ------------------- | ---------------------------------------------- |
+| `dev`       | `npm run dev`       | Start local development for apps/web (Angular) |
+| `build`     | `npm run build`     | Parallel build of all workspace projects       |
+| `lint`      | `npm run lint`      | Run ESLint + Prettier check (All projects)     |
+| `typecheck` | `npm run typecheck` | Run TypeScript validation (All projects)       |
+| `test`      | `npm run test`      | Run unit tests (All projects)                  |
+| `format`    | `npm run format`    | Reformat seluruh workspace with Prettier       |
+| `docs`      | `npm run docs`      | Generate API documentation for Core            |
 
 ### Package Responsibility
 
 - `packages/core` must maintain **100% test coverage** and **zero lint errors**.
 - `apps/web` must strictly import from core types to ensure data integrity.
-- Build artifacts (`dist`, `.next`) are **never** committed and are ignored by all tools.
+- Build artifacts (`dist`) are **never** committed and are ignored by all tools.
 
 ## Git Standards
 

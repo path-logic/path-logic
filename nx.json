@@ -10,7 +10,10 @@
             "!{projectRoot}/tsconfig.spec.json",
             "!{projectRoot}/jest.config.[jt]s",
             "!{projectRoot}/.eslintrc.json",
-            "!{projectRoot}/src/test-setup.[jt]s"
+            "!{projectRoot}/src/test-setup.[jt]s",
+            "!{projectRoot}/**/*.stories.@(js|jsx|ts|tsx|mdx)",
+            "!{projectRoot}/.storybook/**/*",
+            "!{projectRoot}/tsconfig.storybook.json"
         ],
         "sharedGlobals": []
     },
@@ -35,6 +38,15 @@
             "dependsOn": ["^build"],
             "outputs": ["{projectRoot}/dist/storybook"],
             "cache": true
+        },
+        "@angular/build:application": {
+            "cache": true,
+            "dependsOn": ["^build"],
+            "inputs": ["production", "^production"]
+        },
+        "@angular/build:unit-test": {
+            "cache": true,
+            "inputs": ["default", "^production"]
         }
     },
     "plugins": [
@@ -43,14 +55,34 @@
             "options": {
                 "targetName": "lint"
             }
+        },
+        {
+            "plugin": "@nx/playwright/plugin",
+            "options": {
+                "targetName": "e2e"
+            }
+        },
+        {
+            "plugin": "@nx/storybook/plugin",
+            "options": {
+                "serveStorybookTargetName": "storybook",
+                "buildStorybookTargetName": "build-storybook",
+                "testStorybookTargetName": "test-storybook",
+                "staticStorybookTargetName": "static-storybook",
+                "buildDepsTargetName": "build-deps",
+                "watchDepsTargetName": "watch-deps"
+            }
         }
     ],
     "generators": {
-        "@nx/next": {
-            "application": {
-                "style": "css",
-                "linter": "eslint"
-            }
+        "@nx/angular:application": {
+            "e2eTestRunner": "playwright",
+            "linter": "eslint",
+            "style": "css",
+            "unitTestRunner": "vitest-angular"
+        },
+        "@nx/angular:component": {
+            "style": "css"
         }
     }
 }

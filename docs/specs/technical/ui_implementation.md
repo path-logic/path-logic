@@ -2,20 +2,20 @@
 
 ## 1. Frontend Framework & Architecture
 
-Path Logic is built as a high-performance Progressive Web App (PWA) using modern React patterns.
+Path Logic is built as a high-performance Progressive Web App (PWA) using modern Angular patterns.
 
-- **Framework**: Next.js 16 (App Router).
+- **Framework**: Angular 21.
 - **Language**: TypeScript with `strict` mode enforced.
 - **Styling**: Tailwind CSS for high-performance, utility-first design.
-- **Component Library**: shadcn/ui for consistent, accessible primitives (Modals, Toasts, Inputs).
+- **Component Library**: Custom tailwind components with Angular CDK for accessible primitives (Modals, Toasts, Inputs).
 
 ## 2. Terminal-Grade Ledger Implementation
 
 The ledger is the primary performance bottleneck and requires specialized handling.
 
-- **Table Logic**: **TanStack Table (v8)**. Used for headless table state management (sorting, filtering, selection).
-- **Virtualization**: **TanStack Virtual**. Essential for domesticating the "terminal" feel with 10k+ rows while keeping 60fps scrolling and a small DOM footprint.
-- **Row Memoization**: Custom `React.memo` wrappers for row components to prevent unnecessary re-renders during filter/search operations.
+- **Table Logic**: **TanStack Table (v8)**. Used for headless table state management.
+- **Virtualization**: **TanStack Virtual**. Essential for the "terminal" feel with 10k+ rows while keeping 60fps scrolling and a small DOM footprint.
+- **Change Detection**: **OnPush** change detection strategy combined with **Angular Signals** to ensure high-performance updates.
 - **Calculated Columns**: Cumulative running balances are computed across the entire sorted dataset (pre-windowing) to ensure accuracy regardless of the months shown.
 
 ## 3. Viewport & Layout Management
@@ -30,14 +30,14 @@ To achieve the "Bloomberg" aesthetic, the layout is strictly constrained to the 
 
 Local-first state management requires intermediate buffering before storage provider sync.
 
-- **Store**: Zustand with `immer` middleware for immutable transaction updates.
-- **Persistence**: Zustand `persist` middleware coupled with a custom SQLite storage engine.
+- **Store**: **Angular Signal Store** or standard Services with Signals.
+- **Persistence**: IndexedDB coupled with a custom SQLite storage engine.
 - **Ledger Updates**:
-    - Optimistic updates for local edits.
+    - Optimistic updates for local edits via Signals.
     - Debounced "Auto-Save" to the Storage Provider (Google Drive/iCloud) to prevent rate limiting.
 
 ## 5. Performance Optimizations
 
 - **Asset Loading**: SVGs for all indicators (no icon fonts).
 - **CSS Strategy**: Zero-runtime CSS via Tailwind to minimize Main Thread blocking.
-- **Hydration Safety**: Use of `useEffect` mounted-state patterns for dynamic time/date strings to prevent SSR mismatches.
+- **Hydration Safety**: Angular's hydration-aware components and manual control over browser-only logic (via `isPlatformBrowser`).
