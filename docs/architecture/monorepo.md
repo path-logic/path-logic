@@ -72,7 +72,7 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 
 **Contents:**
 
-- **Angular 19 UI**
+- **Angular 21 UI**
 - High-Density Professional design system (Bloomberg/Linear aesthetic)
 - iCloud (CloudKit) and Google Drive (appDataFolder) adapters
 - Angular Signals + RXJS / Zustand
@@ -95,7 +95,7 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    apps/web                         │
-│               (Angular 19 Private App)              │
+│               (Angular 21 Private App)              │
 │                                                     │
 │   ┌─────────────┐  ┌─────────────┐  ┌───────────┐  │
 │   │  UI Layer   │  │   Signals   │  │ Adapters  │  │

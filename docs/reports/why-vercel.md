@@ -10,7 +10,7 @@ When I’m deep in a feature—say, refining the split-transaction logic—I don
 
 ## Framework Synergy
 
-Since Path Logic is built on Angular 19 using an Nx-powered monorepo, staying within the Vercel ecosystem feels like path-of-least-resistance. The way they handle deployments from Nx workspaces is seamless. There’s a certain "it just works" factor that’s hard to ignore when you’re trying to move fast.
+Since Path Logic is built on Angular 21 using an Nx-powered monorepo, staying within the Vercel ecosystem feels like path-of-least-resistance. The way they handle deployments from Nx workspaces is seamless. There’s a certain "it just works" factor that’s hard to ignore when you’re trying to move fast.
 
 ## The Cost of Complexity
 

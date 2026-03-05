@@ -20,7 +20,7 @@ The following terminals should be available and running:
 - **Name**: Dev Server
 - **Directory**: Root (`/home/pete/projects/path-logic`)
 - **Command**: `npm run dev`
-- **Purpose**: Main Next.js application development server.
+- **Purpose**: Main Angular 21 application development server.
 
 ### 2. Storybook
 

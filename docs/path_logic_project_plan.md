@@ -6,7 +6,7 @@
 
 ### **1.1 Technical Guardrails**
 
-- **Framework:** Angular 19, TypeScript (Strict), Tailwind CSS.
+- **Framework:** Angular 21, TypeScript (Strict), Tailwind CSS.
 - **State Management:** Zustand with Immer middleware for immutable ledger updates.
 - **Persistence:** Local-first SQLite (via SQL.js/WASM).
 - **Security:** AES-GCM 256-bit client-side encryption via Web Crypto API.

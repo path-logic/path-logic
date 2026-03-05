@@ -47,7 +47,7 @@ export class DashboardComponent {
 }
 ```
 
-**Key Insight**: Angular 19 provides a robust environment for this pattern. We get:
+**Key Insight**: Angular 21 provides a robust environment for this pattern. We get:
 
 - **Optimized Rendering** (Signals-based change detection)
 - **Private data access** (Browser-side SQLite integration)
