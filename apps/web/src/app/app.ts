@@ -13,5 +13,6 @@ import { RouterOutlet } from '@angular/router';
     `,
 })
 export class AppComponent {
+    // CI/CD Trigger: Standardized branch triggers and staging deployment.
     readonly title = 'Path Logic';
 }

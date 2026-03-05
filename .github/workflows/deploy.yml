@@ -1,9 +1,10 @@
-# Deploy to Firebase Hosting on push to main
+# Deploy to Firebase Hosting on push to main or develop
 name: Deploy to Firebase
 
 on:
     push:
-        branches: [main]
+        branches: [main, develop]
+    workflow_dispatch:
 
 jobs:
     deploy:
@@ -32,11 +33,15 @@ jobs:
                   repoToken: ${{ secrets.GITHUB_TOKEN }}
                   firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
                   channelId: live
-                  projectId: path-logic
+                  projectId: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
                   target: web
 
-            # Deploy Storybook to Firebase Hosting
-            - uses: FirebaseExtended/action-hosting-deploy@v0
+            # Deploy Storybook to Firebase Hosting (Production only or different target for staging?)
+            # Note: .firebaserc doesn't have a storybook target for staging yet.
+            # For now, we only deploy Storybook on main to avoid errors if target is missing.
+            - name: Deploy Storybook (Production only)
+              if: github.ref == 'refs/heads/main'
+              uses: FirebaseExtended/action-hosting-deploy@v0
               with:
                   repoToken: ${{ secrets.GITHUB_TOKEN }}
                   firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
