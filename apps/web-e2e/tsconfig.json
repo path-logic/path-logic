@@ -4,12 +4,7 @@
         "allowJs": true,
         "outDir": "../../dist/out-tsc",
         "sourceMap": false,
-        "module": "commonjs",
-        "strict": true,
-        "noImplicitOverride": true,
-        "noPropertyAccessFromIndexSignature": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
+        "module": "ESNext"
     },
     "include": [
         "**/*.ts",
