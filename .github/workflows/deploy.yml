@@ -9,6 +9,9 @@ on:
 jobs:
     deploy:
         runs-on: ubuntu-latest
+        env:
+            NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+            NX_CLOUD_NO_TIMEOUTS: true
         steps:
             - uses: actions/checkout@v4
               with:
@@ -21,8 +24,14 @@ jobs:
 
             - run: npm ci --force
 
-            # Build production web app
-            - run: npx nx run web:build:production
+            # Build web app with environment-specific configuration
+            - name: Build Web App
+              run: |
+                  if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+                    npx nx run web:build:production
+                  else
+                    npx nx run web:build:staging
+                  fi
 
             # Build Storybook static site
             - run: npx nx run web:build-storybook
@@ -36,9 +45,7 @@ jobs:
                   projectId: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
                   target: web
 
-            # Deploy Storybook to Firebase Hosting (Production only or different target for staging?)
-            # Note: .firebaserc doesn't have a storybook target for staging yet.
-            # For now, we only deploy Storybook on main to avoid errors if target is missing.
+            # Deploy Storybook to Firebase Hosting (Production only)
             - name: Deploy Storybook (Production only)
               if: github.ref == 'refs/heads/main'
               uses: FirebaseExtended/action-hosting-deploy@v0
