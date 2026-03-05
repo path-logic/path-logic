@@ -2,7 +2,7 @@
 
 ## 1. Architecture Overview
 
-This feature extends the account domain model to support loan types with specialized tracking. Implementation follows the existing architecture patterns: domain types in `@path-logic/core`, persistence in SQLite, and UI in Next.js components.
+This feature extends the account domain model to support loan types with specialized tracking. Implementation follows the existing architecture patterns: domain types in `@path-logic/core`, persistence in SQLite, and UI in Angular components.
 
 ## 2. Domain Layer (`packages/core`)
 
@@ -334,7 +334,7 @@ export function getAllAccounts(): Array<IAccount> {
 
 Key changes:
 
-- Add state for expansion: `const [showMoreTypes, setShowMoreTypes] = useState<boolean>(false);`
+- Add state for expansion: `readonly showMoreTypes = signal<boolean>(false);`
 - Render primary types in grid
 - Render expansion button
 - Conditionally render loan types when expanded

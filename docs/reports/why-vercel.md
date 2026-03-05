@@ -8,9 +8,9 @@ Every hosting provider claims to be effortless. But "effortless" usually breaks 
 
 When I’m deep in a feature—say, refining the split-transaction logic—I don't want to think about Dockerfiles or Nginx configs. I want to push a branch, see a preview URL, and know that it’s running in an environment identical to production.
 
-## Next.js 15+ Synergy
+## Framework Synergy
 
-Since Path Logic is built on Next.js 15, staying within the Vercel ecosystem feels like path-of-least-resistance. The way they handle server components, streaming, and edge caching is just better when they own the whole stack. There’s a certain "it just works" factor that’s hard to ignore when you’re trying to move fast.
+Since Path Logic is built on Angular 21 using an Nx-powered monorepo, staying within the Vercel ecosystem feels like path-of-least-resistance. The way they handle deployments from Nx workspaces is seamless. There’s a certain "it just works" factor that’s hard to ignore when you’re trying to move fast.
 
 ## The Cost of Complexity
 
@@ -20,7 +20,7 @@ I’ve seen plenty of projects die under the weight of their own infrastructure.
 
 Is Vercel "vendor lock-in"? Sure, to an extent. But at this stage of Path Logic, I care about **shipping**. I care about getting the MVP into users' hands so I can see if the core value proposition—the forward-looking cashflow—actually resonates.
 
-If this blows up and I need to move to a more "neutral" platform later, the code is still standard Next.js. I can take it elsewhere. But for now, I’m choosing focus over flexibility.
+If this blows up and I need to move to a more "neutral" platform later, the code is still standard Angular. I can take it elsewhere. But for now, I’m choosing focus over flexibility.
 
 ## Conclusion
 

@@ -1,0 +1,62 @@
+<div class="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase">
+    <div class="flex items-center gap-1.5">
+        <div class="relative flex items-center justify-center">
+            <!-- Synced / active -->
+            @if (syncStatus() === 'synced' && !authError()) {
+                <div
+                    class="w-1.5 h-1.5 rounded-full"
+                    [class.bg-primary]="isSyncing()"
+                    [class.animate-pulse]="isSyncing()"
+                    [class.bg-emerald-500]="!isSyncing()"
+                ></div>
+                @if (isSyncing()) {
+                    <div
+                        class="absolute w-3 h-3 border border-primary/30 rounded-full animate-ping"
+                    ></div>
+                }
+            }
+            <!-- Pending local or auth error with fallback -->
+            @if (syncStatus() === 'pending-local' || (authError() && hasLocalFallback())) {
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+            }
+            <!-- Error without fallback -->
+            @if (syncStatus() === 'error' && !hasLocalFallback()) {
+                <div class="w-1.5 h-1.5 rounded-full bg-destructive"></div>
+            }
+        </div>
+
+        <span class="flex items-center gap-1">
+            @if (syncStatus() === 'error') {
+                <lucide-icon
+                    [img]="AlertTriangleIcon"
+                    class="w-2.5 h-2.5 text-destructive"
+                ></lucide-icon>
+            } @else if (syncStatus() === 'pending-local') {
+                <lucide-icon
+                    [img]="RefreshCwIcon"
+                    class="w-2.5 h-2.5 text-amber-500 animate-spin"
+                ></lucide-icon>
+            } @else if (isSyncing()) {
+                <lucide-icon [img]="RefreshCwIcon" class="w-2.5 h-2.5 animate-spin"></lucide-icon>
+            } @else {
+                <lucide-icon [img]="CloudIcon" class="w-2.5 h-2.5"></lucide-icon>
+            }
+            Cloud Sync: {{ statusLabel() }}
+        </span>
+    </div>
+
+    @if (authError()) {
+        <button
+            (click)="handleReconnect()"
+            class="h-5 px-2 text-[8px] bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 transition-colors uppercase font-bold rounded"
+        >
+            Reconnect Drive
+        </button>
+    }
+
+    @if (lastSyncFormatted()) {
+        <span class="hidden sm:inline border-l border-border pl-4">
+            Last Backup: {{ lastSyncFormatted() }}
+        </span>
+    }
+</div>

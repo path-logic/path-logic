@@ -42,7 +42,7 @@ The `@path-logic/core` package contains framework-agnostic business logic:
 
 - Trigger: Push to `main` branch.
 - Tool: Vercel GitHub Integration or GHA with Vercel CLI.
-- Environment: Next.js 15, React 19.
+- Environment: Angular 21, TypeScript (Strict).
 
 ### 3.2 NPM Publishing
 
@@ -54,6 +54,6 @@ The `@path-logic/core` package contains framework-agnostic business logic:
 
 ### 4.1 Implementation
 
-- **Library**: `@react-oauth/google` or NextAuth.js with custom GDrive scopes.
-- **Token Management**: Refresh tokens must be handled securely (Secure HttpOnly cookies if SSR, or encrypted local storage if client-side).
+- **Library**: `angular-fire` or native Firebase JS SDK with Google Auth.
+- **Token Management**: JWT tokens handled via Firebase Auth.
 - **Data Protection**: AES-GCM 256-bit encryption for data stored in GDrive, using a key derived from the user's secret/passphrase.

@@ -18,3 +18,5 @@ build/
 # Coverage
 coverage/
 packages/core/coverage/
+
+.angular

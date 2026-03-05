@@ -1,0 +1,463 @@
+<app-shell>
+    <div class="p-8 space-y-12 pb-12">
+        <!-- Header -->
+        <header class="flex justify-between items-end border-b border-border/30 pb-8">
+            <div class="space-y-1">
+                <a
+                    routerLink="/settings/dev"
+                    class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group"
+                >
+                    <lucide-icon
+                        [img]="ArrowLeft"
+                        class="w-3 h-3 group-hover:-translate-x-1 transition-transform"
+                    />
+                    Back to Dev Tools
+                </a>
+                <h1 class="text-xl font-black uppercase tracking-[0.2em] text-primary">
+                    System <span class="text-foreground">Maintenance</span>
+                </h1>
+                <p
+                    class="text-muted-foreground text-[10px] uppercase font-bold tracking-[0.2em] opacity-60"
+                >
+                    Environment-level data destruction and low-level entity management
+                </p>
+            </div>
+
+            <div class="hidden md:block">
+                <div
+                    class="px-4 py-2 rounded-full border border-border/20 bg-muted/5 backdrop-blur-sm flex items-center gap-3"
+                >
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span
+                        class="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60"
+                    >
+                        SYSTEM_OPERATIONAL_MODE: {{ appEnv | uppercase }}
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Factory Reset & Dangers -->
+            <div class="lg:col-span-1 space-y-8">
+                <div
+                    class="bg-card border border-border rounded-sm overflow-hidden relative p-8 shadow-sm"
+                >
+                    <div
+                        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-orange-500 to-red-500"
+                    ></div>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <lucide-icon [img]="ShieldAlert" class="w-5 h-5 text-red-500" />
+                            <h2 class="text-sm font-black uppercase tracking-widest">
+                                Factory Reset
+                            </h2>
+                        </div>
+
+                        <p
+                            class="text-[11px] text-muted-foreground leading-relaxed font-bold opacity-60"
+                        >
+                            This will permanently destroy all data in this environment.
+                        </p>
+
+                        <div class="p-4 rounded-lg bg-red-500/5 border border-red-500/20 space-y-3">
+                            <div class="flex items-start gap-3">
+                                <lucide-icon
+                                    [img]="AlertTriangle"
+                                    class="w-4 h-4 text-red-500 mt-0.5"
+                                />
+                                <div
+                                    class="text-[10px] font-bold uppercase tracking-widest text-red-500/80 leading-relaxed"
+                                >
+                                    Performs a full wipe of:
+                                    <ul
+                                        class="list-disc list-inside mt-2 space-y-1 opacity-70 italic font-medium"
+                                    >
+                                        <li>Google Drive Ledger Files</li>
+                                        <li>Google Drive Lock Files</li>
+                                        <li>Local Browser Cache (IndexedDB)</li>
+                                        <li>In-memory SQLite State</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (resetSuccess() === true) {
+                            <div
+                                [class]="
+                                    'p-3 rounded border flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest ' +
+                                    (wasPartial()
+                                        ? 'bg-amber-500/5 border-amber-500/20 text-amber-500'
+                                        : 'bg-emerald-500/5 border-emerald-500/20 text-emerald-800')
+                                "
+                            >
+                                <div class="flex items-center gap-2">
+                                    <lucide-icon
+                                        [img]="wasPartial() ? AlertTriangle : CheckCircle2"
+                                        class="w-4 h-4"
+                                    />
+                                    {{
+                                        wasPartial()
+                                            ? 'Local wipe complete'
+                                            : 'Environment wiped successfully'
+                                    }}
+                                </div>
+                                @if (wasPartial()) {
+                                    <p class="text-[9px] opacity-70 italic ml-6 font-medium">
+                                        Cloud skip: Auth error or connection lost.
+                                    </p>
+                                }
+                            </div>
+                        }
+
+                        @if (resetSuccess() === false) {
+                            <div
+                                class="p-3 rounded bg-rose-500/5 border border-rose-500/20 flex items-center gap-2 text-rose-500 text-[10px] font-black uppercase tracking-widest"
+                            >
+                                <lucide-icon [img]="XCircle" class="w-4 h-4" />
+                                Reset failed.
+                            </div>
+                        }
+
+                        <button
+                            (click)="handleFactoryReset()"
+                            class="w-full h-12 rounded bg-red-500 text-[10px] font-black uppercase tracking-widest text-white hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50"
+                            [disabled]="isResetting()"
+                        >
+                            @if (isResetting()) {
+                                <lucide-icon [img]="RotateCcw" class="w-4 h-4 animate-spin" />
+                                Wiping...
+                            } @else {
+                                <lucide-icon [img]="Trash2" class="w-4 h-4" />
+                                Initialize Factory Reset
+                            }
+                        </button>
+
+                        <div class="pt-4 border-t border-border/10">
+                            <button
+                                (click)="handleForceWipeLocal()"
+                                class="w-full text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-red-500 transition-colors flex items-center justify-center gap-2"
+                                [disabled]="isResetting()"
+                            >
+                                <lucide-icon [img]="RotateCcw" class="w-3 h-3" />
+                                Force Wipe Local Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-card border border-border rounded-sm p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <lucide-icon [img]="Info" class="w-4 h-4 text-primary opacity-60" />
+                        <h3 class="text-[10px] font-black uppercase tracking-widest">
+                            Environment Manifest
+                        </h3>
+                    </div>
+                    <div
+                        class="grid grid-cols-2 gap-4 text-[10px] font-black uppercase tracking-widest"
+                    >
+                        <div class="space-y-1">
+                            <p class="text-muted-foreground opacity-40">Persistence</p>
+                            <p class="text-foreground/80 font-bold">Google Drive</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-muted-foreground opacity-40">Local Mode</p>
+                            <p class="text-foreground/80 font-bold">IndexedDB</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-muted-foreground opacity-40">Engine</p>
+                            <p class="text-foreground/80 font-bold">SQLite WASM</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-muted-foreground opacity-40">Security</p>
+                            <p class="text-emerald-800 opacity-80 font-bold">AES-GCM-256</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Database Explorer -->
+            <div class="lg:col-span-2">
+                <div
+                    class="bg-card border border-border rounded-sm flex flex-col h-full min-h-[600px] p-8 shadow-sm"
+                >
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-3">
+                            <lucide-icon [img]="Database" class="w-5 h-5 text-primary" />
+                            <h2 class="text-sm font-black uppercase tracking-widest">
+                                Database Explorer
+                            </h2>
+                        </div>
+                        <button
+                            (click)="refreshStore()"
+                            class="h-9 px-4 rounded border border-border/50 bg-muted/5 text-[9px] font-black uppercase tracking-widest hover:bg-muted/10 transition-colors flex items-center gap-2"
+                        >
+                            <lucide-icon [img]="RefreshCw" class="w-3 h-3" />
+                            Refresh State
+                        </button>
+                    </div>
+
+                    <!-- Simplified Tabs using signals -->
+                    <div
+                        class="bg-muted/10 border border-border/20 p-1 mb-6 grid grid-cols-3 h-11 rounded-sm"
+                    >
+                        <button
+                            (click)="activeTab.set('accounts')"
+                            [class]="
+                                'text-[10px] font-black uppercase tracking-widest h-full flex items-center justify-center transition-all ' +
+                                (activeTab() === 'accounts'
+                                    ? 'bg-card shadow-sm text-primary'
+                                    : 'text-muted-foreground opacity-60 hover:opacity-100')
+                            "
+                        >
+                            <lucide-icon [img]="Wallet" class="w-3 h-3 mr-2" />
+                            Accounts ({{ ledgerStore.accounts().length }})
+                        </button>
+                        <button
+                            (click)="activeTab.set('payees')"
+                            [class]="
+                                'text-[10px] font-black uppercase tracking-widest h-full flex items-center justify-center transition-all ' +
+                                (activeTab() === 'payees'
+                                    ? 'bg-card shadow-sm text-primary'
+                                    : 'text-muted-foreground opacity-60 hover:opacity-100')
+                            "
+                        >
+                            <lucide-icon [img]="Users" class="w-3 h-3 mr-2" />
+                            Payees ({{ ledgerStore.payees().length }})
+                        </button>
+                        <button
+                            (click)="activeTab.set('categories')"
+                            [class]="
+                                'text-[10px] font-black uppercase tracking-widest h-full flex items-center justify-center transition-all ' +
+                                (activeTab() === 'categories'
+                                    ? 'bg-card shadow-sm text-primary'
+                                    : 'text-muted-foreground opacity-60 hover:opacity-100')
+                            "
+                        >
+                            <lucide-icon [img]="Tag" class="w-3 h-3 mr-2" />
+                            Categories ({{ ledgerStore.categories().length }})
+                        </button>
+                    </div>
+
+                    <div class="flex-1 rounded border border-border/20 bg-muted/5 overflow-auto">
+                        @if (activeTab() === 'accounts') {
+                            <table class="w-full text-left">
+                                <thead
+                                    class="bg-muted/10 backdrop-blur-sm sticky top-0 border-b border-border/10"
+                                >
+                                    <tr>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Label
+                                        </th>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Type
+                                        </th>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Status
+                                        </th>
+                                        <th
+                                            class="text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            CMD
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (account of ledgerStore.accounts(); track account.id) {
+                                        <tr
+                                            class="border-b border-border/5 hover:bg-primary/5 transition-colors group"
+                                        >
+                                            <td
+                                                class="px-6 py-3 text-[10px] font-bold text-foreground/80"
+                                            >
+                                                {{ account.name }}
+                                            </td>
+                                            <td
+                                                class="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60"
+                                            >
+                                                {{ account.type }}
+                                            </td>
+                                            <td class="px-6 py-3">
+                                                <span
+                                                    [class]="
+                                                        'text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ' +
+                                                        (account.isActive
+                                                            ? 'bg-emerald-500/5 text-emerald-800 border-emerald-500/20'
+                                                            : 'text-muted-foreground/40 border-border/50')
+                                                    "
+                                                >
+                                                    {{ account.isActive ? 'ACTIVE' : 'DELETED' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 text-right">
+                                                <button
+                                                    (click)="handleDeleteAccount(account.id)"
+                                                    class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 p-1"
+                                                >
+                                                    <lucide-icon
+                                                        [img]="Trash2"
+                                                        class="w-3.5 h-3.5"
+                                                    />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td
+                                                colSpan="4"
+                                                class="h-32 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic"
+                                            >
+                                                Null Dataset
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        @if (activeTab() === 'payees') {
+                            <table class="w-full text-left">
+                                <thead
+                                    class="bg-muted/10 backdrop-blur-sm sticky top-0 border-b border-border/10"
+                                >
+                                    <tr>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Entity Name
+                                        </th>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Metadata
+                                        </th>
+                                        <th
+                                            class="text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            CMD
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (payee of ledgerStore.payees(); track payee.id) {
+                                        <tr
+                                            class="border-b border-border/5 hover:bg-primary/5 transition-colors group"
+                                        >
+                                            <td
+                                                class="px-6 py-3 text-[10px] font-bold text-foreground/80"
+                                            >
+                                                {{ payee.name }}
+                                            </td>
+                                            <td
+                                                class="px-6 py-3 text-[9px] font-bold text-muted-foreground opacity-60"
+                                            >
+                                                {{ payee.notes || '-' }}
+                                            </td>
+                                            <td class="px-6 py-3 text-right">
+                                                <button
+                                                    (click)="handleDeletePayee(payee.id)"
+                                                    class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 p-1"
+                                                >
+                                                    <lucide-icon
+                                                        [img]="Trash2"
+                                                        class="w-3.5 h-3.5"
+                                                    />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td
+                                                colSpan="3"
+                                                class="h-32 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic"
+                                            >
+                                                Null Dataset
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        @if (activeTab() === 'categories') {
+                            <table class="w-full text-left">
+                                <thead
+                                    class="bg-muted/10 backdrop-blur-sm sticky top-0 border-b border-border/10"
+                                >
+                                    <tr>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Taxonomy
+                                        </th>
+                                        <th
+                                            class="text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            Descriptor
+                                        </th>
+                                        <th
+                                            class="text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground px-6 h-10"
+                                        >
+                                            CMD
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (category of ledgerStore.categories(); track category.id) {
+                                        <tr
+                                            class="border-b border-border/5 hover:bg-primary/5 transition-colors group"
+                                        >
+                                            <td
+                                                class="px-6 py-3 text-[10px] font-bold text-foreground/80"
+                                            >
+                                                <div class="flex items-center gap-2">
+                                                    @if (category.parentId) {
+                                                        <div
+                                                            class="w-2 h-2 border-l border-b border-border/50 rounded-bl-sm"
+                                                        ></div>
+                                                    }
+                                                    {{ category.name }}
+                                                </div>
+                                            </td>
+                                            <td
+                                                class="px-6 py-3 text-[9px] font-bold text-muted-foreground opacity-60"
+                                            >
+                                                {{ category.description || '-' }}
+                                            </td>
+                                            <td class="px-6 py-3 text-right">
+                                                <button
+                                                    (click)="handleDeleteCategory(category.id)"
+                                                    class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 p-1"
+                                                >
+                                                    <lucide-icon
+                                                        [img]="Trash2"
+                                                        class="w-3.5 h-3.5"
+                                                    />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    } @empty {
+                                        <tr>
+                                            <td
+                                                colSpan="3"
+                                                class="h-32 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic"
+                                            >
+                                                Null Dataset
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-shell>

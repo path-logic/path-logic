@@ -1,0 +1,217 @@
+<app-shell [noPadding]="accounts().length === 0">
+    <div
+        [class]="
+            'w-full mx-auto flex flex-col min-h-full ' +
+            (accounts().length > 0 ? 'space-y-4 pb-12' : 'flex-1')
+        "
+    >
+        @if (accounts().length === 0) {
+            <app-welcome-wizard (accountCreated)="handleAccountCreated($event)" />
+        } @else {
+            <header class="flex justify-between items-center flex-none px-4 pt-4">
+                <div>
+                    <h1 class="text-sm font-black uppercase tracking-widest mb-1 text-primary">
+                        Accounts <span class="text-foreground">Management</span>
+                    </h1>
+                    <p
+                        class="text-muted-foreground text-[10px] uppercase font-bold tracking-widest"
+                    >
+                        Configure institutions and starting balances
+                    </p>
+                </div>
+                <button
+                    (click)="isAddDialogOpen.set(true)"
+                    class="h-8 px-4 flex items-center gap-2 border border-primary/20 text-primary hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                    <lucide-icon [img]="Plus" class="w-3.5 h-3.5" />
+                    Add Account
+                </button>
+            </header>
+
+            <div class="px-4 pb-4">
+                <div class="bg-card border border-border rounded-sm overflow-hidden shadow-sm">
+                    <div class="p-4 space-y-2">
+                        @for (account of accounts(); track account.id) {
+                            <div
+                                [class]="
+                                    'transition-all overflow-hidden border rounded-sm ' +
+                                    (expandedId() === account.id
+                                        ? 'bg-accent/40 border-primary/50 shadow-[0_0_20px_rgba(56,189,248,0.1)]'
+                                        : 'bg-transparent border-border/50 hover:border-primary/30')
+                                "
+                            >
+                                <div
+                                    class="p-3 flex items-center justify-between cursor-pointer select-none h-14"
+                                    (click)="toggleExpand(account.id)"
+                                    (keydown.enter)="toggleExpand(account.id)"
+                                    (keydown.space)="toggleExpand(account.id)"
+                                    tabindex="0"
+                                    role="button"
+                                >
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            [class]="
+                                                'w-8 h-8 rounded-sm flex items-center justify-center transition-colors shadow-inner ' +
+                                                (expandedId() === account.id
+                                                    ? 'bg-primary text-primary-foreground font-black'
+                                                    : 'bg-muted text-muted-foreground')
+                                            "
+                                        >
+                                            <lucide-icon
+                                                [img]="getIcon(account.type)"
+                                                class="w-3.5 h-3.5"
+                                            />
+                                        </div>
+                                        <div>
+                                            <h3
+                                                class="text-[11px] font-black uppercase tracking-tight"
+                                            >
+                                                {{ account.name }}
+                                            </h3>
+                                            <p
+                                                class="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em]"
+                                            >
+                                                {{ account.institutionName }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-8">
+                                        <div class="text-right">
+                                            <p
+                                                class="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5"
+                                            >
+                                                Current Balance
+                                            </p>
+                                            <p
+                                                [class]="
+                                                    'font-mono font-bold text-[12px] ' +
+                                                    (account.clearedBalance +
+                                                        account.pendingBalance >=
+                                                    0
+                                                        ? 'text-emerald-800'
+                                                        : 'text-destructive')
+                                                "
+                                            >
+                                                {{
+                                                    formatCurrency(
+                                                        account.clearedBalance +
+                                                            account.pendingBalance
+                                                    )
+                                                }}
+                                            </p>
+                                        </div>
+                                        @if (expandedId() === account.id) {
+                                            <lucide-icon
+                                                [img]="ChevronDown"
+                                                class="w-4 h-4 text-primary"
+                                            />
+                                        } @else {
+                                            <lucide-icon
+                                                [img]="ChevronRight"
+                                                class="w-4 h-4 text-muted-foreground/50"
+                                            />
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (expandedId() === account.id) {
+                                    <div
+                                        class="px-14 pb-4 pt-0 border-t border-border/50 animate-in slide-in-from-top-1"
+                                    >
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+                                            <div>
+                                                <p
+                                                    class="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest"
+                                                >
+                                                    Metadata
+                                                </p>
+                                                <div class="space-y-1">
+                                                    <p class="text-[10px] font-bold uppercase">
+                                                        <span class="text-muted-foreground/50"
+                                                            >Type:</span
+                                                        >
+                                                        {{ account.type }}
+                                                    </p>
+                                                    <p class="text-[10px] font-bold uppercase">
+                                                        <span class="text-muted-foreground/50"
+                                                            >Status:</span
+                                                        >
+                                                        {{
+                                                            account.isActive ? 'Active' : 'Archived'
+                                                        }}
+                                                    </p>
+                                                    <p
+                                                        class="text-[10px] font-mono text-muted-foreground/70"
+                                                    >
+                                                        <span
+                                                            class="uppercase font-sans font-bold text-[10px] text-muted-foreground/50"
+                                                            >ID:</span
+                                                        >
+                                                        {{ account.id }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p
+                                                    class="text-[9px] text-muted-foreground font-bold uppercase mb-2 tracking-widest"
+                                                >
+                                                    Summary
+                                                </p>
+                                                <div class="space-y-1">
+                                                    <p class="text-[10px] font-bold uppercase">
+                                                        <span class="text-muted-foreground/50"
+                                                            >Cleared:</span
+                                                        >
+                                                        <span class="font-mono text-emerald-800">
+                                                            {{
+                                                                formatCurrency(
+                                                                    account.clearedBalance
+                                                                )
+                                                            }}
+                                                        </span>
+                                                    </p>
+                                                    <p class="text-[10px] font-bold uppercase">
+                                                        <span class="text-muted-foreground/50"
+                                                            >Pending:</span
+                                                        >
+                                                        <span class="font-mono text-amber-500">
+                                                            {{
+                                                                formatCurrency(
+                                                                    account.pendingBalance
+                                                                )
+                                                            }}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col justify-end gap-2">
+                                                <a
+                                                    [routerLink]="['/accounts', account.id, 'info']"
+                                                    class="h-7 px-4 flex items-center justify-center border border-border hover:bg-muted text-[9px] uppercase font-black tracking-widest rounded-sm transition-all text-center"
+                                                >
+                                                    Edit Details
+                                                </a>
+                                                <a
+                                                    [routerLink]="['/accounts', account.id]"
+                                                    class="h-7 px-4 flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary text-[9px] uppercase font-black border border-primary/20 tracking-widest rounded-sm transition-all text-center"
+                                                >
+                                                    View Ledger
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <app-new-account-dialog
+        [isOpen]="isAddDialogOpen()"
+        (closed)="isAddDialogOpen.set(false)"
+        (accountCreated)="handleAccountCreated($event)"
+    />
+</app-shell>

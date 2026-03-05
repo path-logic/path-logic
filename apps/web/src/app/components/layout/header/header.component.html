@@ -1,0 +1,111 @@
+<header class="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <a routerLink="/" class="flex items-center gap-2 group">
+                <div
+                    class="w-6 h-6 bg-primary rounded-sm flex items-center justify-center group-hover:shadow-[0_0_10px_rgba(56,189,248,0.5)] transition-all"
+                >
+                    <span class="text-primary-foreground font-black text-xs">P</span>
+                </div>
+                <span class="font-bold text-sm tracking-tight uppercase"> Path Logic </span>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-1">
+                @for (item of navItems; track item.name) {
+                    <a
+                        [routerLink]="item.href"
+                        routerLinkActive="text-primary bg-primary/10"
+                        [routerLinkActiveOptions]="{ exact: item.href === '/' }"
+                        class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm text-foreground hover:text-foreground hover:bg-accent"
+                    >
+                        {{ item.name }}
+                    </a>
+                }
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] text-foreground font-bold uppercase tracking-tighter">
+                    Net Position
+                </span>
+                <span
+                    class="text-sm font-mono font-bold leading-none"
+                    [class.text-destructive]="netBalance() < 0"
+                    [class.text-emerald-900]="netBalance() >= 0"
+                >
+                    {{ formattedNetBalance() }}
+                </span>
+            </div>
+
+            <!-- User avatar / dropdown -->
+            <div class="relative">
+                <button
+                    (click)="toggleUserMenu()"
+                    aria-label="User menu"
+                    [attr.aria-expanded]="showUserMenu"
+                    class="w-8 h-8 rounded-full overflow-hidden border-2 border-border hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+                >
+                    @if (userPhotoUrl()) {
+                        <img
+                            [src]="userPhotoUrl()"
+                            [alt]="userName()"
+                            class="w-full h-full object-cover"
+                        />
+                    } @else {
+                        <div class="w-full h-full bg-primary flex items-center justify-center">
+                            <span class="text-primary-foreground font-bold text-xs">
+                                {{ userInitial() }}
+                            </span>
+                        </div>
+                    }
+                </button>
+
+                @if (showUserMenu) {
+                    <div
+                        class="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-md shadow-lg z-50"
+                    >
+                        <div class="flex items-center gap-3 px-3 py-2 border-b border-border mb-1">
+                            @if (userPhotoUrl()) {
+                                <img
+                                    [src]="userPhotoUrl()"
+                                    [alt]="userName()"
+                                    class="w-10 h-10 rounded-full object-cover border border-border"
+                                />
+                            } @else {
+                                <div
+                                    class="w-10 h-10 rounded-full bg-primary flex items-center justify-center"
+                                >
+                                    <span class="text-primary-foreground font-bold text-sm">
+                                        {{ userInitial() }}
+                                    </span>
+                                </div>
+                            }
+                            <div class="flex flex-col overflow-hidden">
+                                <span class="text-sm font-bold text-foreground truncate">
+                                    {{ userName() }}
+                                </span>
+                                <span class="text-[10px] text-foreground truncate">
+                                    {{ userEmail() }}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            class="w-full text-left px-3 py-2 text-[10px] uppercase font-bold hover:bg-accent cursor-pointer text-foreground"
+                        >
+                            Profile Settings
+                        </button>
+                        <button
+                            type="button"
+                            (click)="handleSignOut()"
+                            class="w-full text-left px-3 py-2 text-[10px] uppercase font-bold hover:bg-accent cursor-pointer text-destructive"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</header>

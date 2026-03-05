@@ -25,45 +25,32 @@ Nx is the engine behind all workspace commands. You generally interact with it t
 
 ### Deployment on Vercel
 
-We are using **Vercel** because it is the native home for Next.js 15.
+We are using **Vercel** because it provides excellent support for modern frontend frameworks like Angular and handles monorepos efficiently.
 
 - **Docker?** No. Vercel handles the build environment and edge deployment automatically. Docker would only be needed if we were hosting a custom server on AWS/GCP.
 - **Client vs. Server**: Path Logic is a **Hybrid App**.
-    - **Server-Side (Next.js)**: Handles the initial page load, routing, and serving the static assets.
-    - **Client-Side (The Engine)**: The actual financial logic (`@path-logic/core`) and the SQLite (WASM) database run inside the user's browser.
-
-### SSR vs. CSR: The Critical Decision
-
-**Question**: Should this app use Server-Side Rendering?
-
-**Answer**: **Hybrid Strategy** (SSR for shell, CSR for data).
-
-| Component Type                | Rendering                   | Why                              |
-| :---------------------------- | :-------------------------- | :------------------------------- |
-| Layout/Shell                  | **SSR** (Server Components) | Fast First Contentful Paint, SEO |
-| Dashboard/Ledger              | **CSR** (`'use client'`)    | Needs access to browser SQLite   |
-| Static Pages (About, Pricing) | **SSR** or Static           | Performance                      |
+- **Server-Side (Angular)**: Handles the initial page load if using SSR, routing, and serving the static assets.
+- **Client-Side (The Engine)**: The actual financial logic (`@path-logic/core`) and the SQLite (WASM) database run inside the user's browser.
 
 **Implementation Pattern**:
 
-```tsx
-// ✅ Server Component (Default in App Router)
-export default function RootLayout({ children }) {
-    return <html lang="en">...</html>;
-}
-
-// ✅ Client Component (Accesses SQLite)
-('use client');
-export default function Dashboard() {
-    const db = useSQLite(); // Browser-only
-    return <Ledger data={db.getTransactions()} />;
+```typescript
+// ✅ Angular Component with Signals
+@Component({
+    selector: 'app-dashboard',
+    standalone: true,
+    template: `<ledger [data]="transactions()"></ledger>`,
+})
+export class DashboardComponent {
+    private db = inject(SQLiteService);
+    transactions = signal(this.db.getTransactions());
 }
 ```
 
-**Key Insight**: Next.js 15 App Router was designed for this exact pattern. We get the best of both worlds:
+**Key Insight**: Angular 21 provides a robust environment for this pattern. We get:
 
-- **Fast initial load** (SSR shell)
-- **Private data access** (CSR for all ledger/transaction views)
+- **Optimized Rendering** (Signals-based change detection)
+- **Private data access** (Browser-side SQLite integration)
 
 ### Comparison: Is Vercel the "Best" Choice?
 
@@ -76,7 +63,7 @@ export default function Dashboard() {
 
 **Verdict**:
 
-- **Start with Vercel**: The integration with Next.js is seamless. For an MVP, the speed of development and deployment is worth more than a few dollars saved.
+- **Start with Vercel**: The integration with Angular and Nx is seamless. For an MVP, the speed of development and deployment is worth more than a few dollars saved.
 - **Scale with Cloudflare**: If the app grows and you hit Vercel's bandwidth limits, migrating to Cloudflare Pages is trivial since our app is mostly static/client-side.
 
 ### The "No-Backend" Backend (BYOS)
@@ -172,7 +159,7 @@ The `@path-logic/core` library is **framework-agnostic**. This enables a true "W
               │           │           │
     ┌─────────┴────┐  ┌───┴─────┐  ┌─┴──────────┐
     │   Web PWA    │  │   iOS   │  │  Android   │
-    │  (Next.js)   │  │   (RN)  │  │    (RN)    │
+    │  (Angular)   │  │   (RN)  │  │    (RN)    │
     └──────────────┘  └─────────┘  └────────────┘
 ```
 
@@ -189,14 +176,14 @@ The `@path-logic/core` library is **framework-agnostic**. This enables a true "W
 | :---------- | :------------------------------------------- | :---------------------------------------------- |
 | **SQLite**  | `sql.js` (WASM)                              | `expo-sqlite` (native)                          |
 | **Storage** | Google Drive Web API / CloudKit JS (limited) | **CloudKit (iOS)** / Drive Native API (Android) |
-| **UI**      | React + Next.js                              | React Native components                         |
+| **UI**      | Angular                                      | React Native components                         |
 | **Crypto**  | Web Crypto API                               | `react-native-quick-crypto`                     |
 
 **Why Native Apps Matter for iCloud Users**: CloudKit JS (web) has sync limitations compared to native CloudKit. Users who choose Apple ID + iCloud will have a significantly better experience on the native iOS/iPadOS app.
 
 ### Implementation Path:
 
-1. **Phase 1 (Current)**: Prove the core engine and UX with the Web PWA.
+1. **Phase 1 (Current)**: Prove the core engine and UX with the Web PWA using Angular.
 2. **Phase 2**: Create `apps/mobile` with React Native, importing the exact same `@path-logic/core`.
 3. **Phase 3**: Implement platform-specific adapters (storage, SQLite) using the Adapter Pattern.
 

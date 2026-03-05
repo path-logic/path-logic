@@ -1,0 +1,152 @@
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import type {
+    CashflowProjection,
+    IAccount,
+    IRecurringSchedule,
+    ITransaction,
+} from '@path-logic/core';
+import { AccountType, generateProjection, Money, TransactionStatus } from '@path-logic/core';
+import {
+    ChevronRight,
+    Clock,
+    CreditCard,
+    Landmark,
+    LucideAngularModule,
+    Plus,
+    TrendingUp,
+    Wallet,
+} from 'lucide-angular';
+
+import { ProjectionChartComponent } from '../../components/dashboard/projection-chart/projection-chart.component';
+import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
+import { LedgerStore } from '../../services/ledger-store/ledger.store';
+
+/**
+ * Main dashboard view showing financial overview, projections, and recent activity.
+ */
+@Component({
+    selector: 'app-dashboard',
+    standalone: true,
+    imports: [
+        RouterLink,
+        DatePipe,
+        LucideAngularModule,
+        AppShellComponent,
+        ProjectionChartComponent,
+    ],
+    templateUrl: './dashboard.component.html',
+    styleUrl: './dashboard.component.css',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class DashboardComponent {
+    private readonly ledgerStore: LedgerStore = inject(LedgerStore);
+
+    readonly transactions = this.ledgerStore.transactions;
+    readonly accounts = this.ledgerStore.accounts;
+    readonly isInitialized = this.ledgerStore.isInitialized;
+
+    // Icons
+    readonly Plus = Plus;
+    readonly TrendingUp = TrendingUp;
+    readonly Landmark = Landmark;
+    readonly ChevronRight = ChevronRight;
+    readonly Clock = Clock;
+
+    /**
+     * Total net position (cleared + pending).
+     */
+    readonly netPosition = computed((): number => {
+        const txs: Array<ITransaction> = this.transactions();
+        return txs.reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
+    });
+
+    readonly formattedNetPosition = computed((): string =>
+        Money.formatCurrency(this.netPosition()),
+    );
+
+    /**
+     * Sum of all cleared transactions.
+     */
+    readonly clearedBalance = computed((): number => {
+        return this.transactions()
+            .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Cleared)
+            .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
+    });
+
+    readonly formattedClearedBalance = computed((): string =>
+        Money.formatCurrency(this.clearedBalance()),
+    );
+
+    /**
+     * Sum of all pending transactions.
+     */
+    readonly pendingBalance = computed((): number => {
+        return this.transactions()
+            .filter((tx: ITransaction): boolean => tx.status === TransactionStatus.Pending)
+            .reduce((sum: number, tx: ITransaction): number => sum + tx.totalAmount, 0);
+    });
+
+    readonly formattedPendingBalance = computed((): string =>
+        Money.formatCurrency(this.pendingBalance()),
+    );
+
+    /**
+     * Last 5 transactions sorted by date descending.
+     */
+    readonly recentTransactions = computed((): Array<ITransaction> => {
+        return new Array<ITransaction>(...this.transactions())
+            .sort(
+                (a: ITransaction, b: ITransaction): number =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime(),
+            )
+            .slice(0, 5);
+    });
+
+    /**
+     * 90-day cashflow forecast.
+     */
+    readonly projection = computed((): CashflowProjection => {
+        if (!this.isInitialized()) return new Array<CashflowProjection[number]>();
+
+        return generateProjection(new Date().toISOString().split('T')[0] || '', 90, {
+            clearedBalance: this.clearedBalance(),
+            pendingTransactions: this.transactions().filter(
+                (t: ITransaction): boolean => t.status === TransactionStatus.Pending,
+            ),
+            recurringSchedules: new Array<IRecurringSchedule>(), // To be implemented
+        });
+    });
+
+    /**
+     * Formats a raw amount as currency.
+     */
+    formatCurrency(amount: number): string {
+        return Money.formatCurrency(amount);
+    }
+
+    /**
+     * Returns the formatted balance for a specific account.
+     */
+    formattedAccountBalance(account: IAccount): string {
+        return Money.formatCurrency(account.clearedBalance + account.pendingBalance);
+    }
+
+    /**
+     * Returns the appropriate Lucide icon for an account type.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getAccountIcon(type: AccountType): any {
+        switch (type) {
+            case AccountType.Checking:
+                return Landmark;
+            case AccountType.Savings:
+                return TrendingUp;
+            case AccountType.Credit:
+                return CreditCard;
+            default:
+                return Wallet;
+        }
+    }
+}

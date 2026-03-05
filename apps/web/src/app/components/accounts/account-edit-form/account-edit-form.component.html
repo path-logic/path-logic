@@ -1,0 +1,217 @@
+<form [formGroup]="accountForm" (submit)="handleSubmit()" class="space-y-6">
+    @if (error()) {
+        <div
+            class="bg-destructive/10 border border-destructive/20 text-destructive text-[11px] p-3 rounded-sm flex items-start gap-2 uppercase font-bold animate-in fade-in slide-in-from-top-1"
+        >
+            <lucide-icon [img]="AlertCircle" class="w-4 h-4 shrink-0" />
+            <span>{{ error() }}</span>
+        </div>
+    }
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-2 col-span-2">
+            <label
+                for="acc-name"
+                class="text-[10px] font-black uppercase tracking-widest text-muted-foreground block"
+            >
+                Account Name
+            </label>
+            <input
+                id="acc-name"
+                formControlName="name"
+                placeholder="e.g. Main Checking"
+                class="w-full h-9 px-3 bg-muted/10 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary uppercase font-bold text-xs transition-all"
+            />
+        </div>
+
+        <div class="space-y-2">
+            <label
+                for="acc-institution"
+                class="text-[10px] font-black uppercase tracking-widest text-muted-foreground block"
+            >
+                Institution
+            </label>
+            <input
+                id="acc-institution"
+                formControlName="institutionName"
+                placeholder="e.g. Chase"
+                class="w-full h-9 px-3 bg-muted/10 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary uppercase font-bold text-xs transition-all"
+            />
+        </div>
+
+        <div class="space-y-2">
+            <label
+                for="acc-type"
+                class="text-[10px] font-black uppercase tracking-widest text-muted-foreground block"
+            >
+                Account Type
+            </label>
+            <select
+                id="acc-type"
+                formControlName="type"
+                class="w-full h-9 px-3 bg-muted/10 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary uppercase font-bold text-xs appearance-none transition-all"
+            >
+                @for (type of accountTypes(); track type) {
+                    <option [value]="type">{{ type.replace('_', ' ') }}</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if (isLoan()) {
+        <div
+            class="space-y-4 border-t border-border/50 pt-4 animate-in fade-in slide-in-from-top-2"
+        >
+            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                Loan Details
+            </h3>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label
+                        for="loan-principal"
+                        class="text-[10px] font-bold uppercase text-muted-foreground block"
+                    >
+                        Original Principal
+                    </label>
+                    <input
+                        id="loan-principal"
+                        formControlName="originalAmount"
+                        type="number"
+                        step="0.01"
+                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="loan-rate"
+                        class="text-[10px] font-bold uppercase text-muted-foreground block"
+                    >
+                        Interest Rate (APR %)
+                    </label>
+                    <input
+                        id="loan-rate"
+                        formControlName="interestRate"
+                        type="number"
+                        step="0.001"
+                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="loan-term"
+                        class="text-[10px] font-bold uppercase text-muted-foreground block"
+                    >
+                        Term (Months)
+                    </label>
+                    <input
+                        id="loan-term"
+                        formControlName="termMonths"
+                        type="number"
+                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="loan-payment"
+                        class="text-[10px] font-bold uppercase text-muted-foreground block"
+                    >
+                        Monthly Payment
+                    </label>
+                    <input
+                        id="loan-payment"
+                        formControlName="monthlyPayment"
+                        type="number"
+                        step="0.01"
+                        class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                    />
+                </div>
+            </div>
+
+            <!-- Mortgage specific -->
+            @if (accountForm.get('type')?.value === 'mortgage') {
+                <div class="grid grid-cols-2 gap-4 p-3 bg-muted/20 border border-border rounded-sm">
+                    <div class="col-span-2 space-y-2">
+                        <label
+                            for="loan-address"
+                            class="text-[10px] uppercase font-bold text-muted-foreground block"
+                        >
+                            Property Address
+                        </label>
+                        <input
+                            id="loan-address"
+                            formControlName="propertyAddress"
+                            class="w-full h-9 px-3 bg-background border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2 pt-2 col-span-2">
+                        <input
+                            type="checkbox"
+                            id="escrow"
+                            formControlName="escrowIncluded"
+                            class="w-4 h-4 border-border rounded-sm focus:ring-primary"
+                        />
+                        <label
+                            htmlFor="escrow"
+                            class="text-[10px] uppercase font-bold cursor-pointer"
+                        >
+                            Include Escrow
+                        </label>
+                    </div>
+                </div>
+            }
+
+            <!-- Auto specific -->
+            @if (accountForm.get('type')?.value === 'auto_loan') {
+                <div class="grid grid-cols-2 gap-4 p-3 bg-muted/20 border border-border rounded-sm">
+                    <div class="space-y-2">
+                        <label
+                            for="loan-make"
+                            class="text-[10px] uppercase font-bold text-muted-foreground block"
+                        >
+                            Vehicle Make
+                        </label>
+                        <input
+                            id="loan-make"
+                            formControlName="vehicleMake"
+                            class="w-full h-9 px-3 bg-background border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                        />
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-model"
+                            class="text-[10px] uppercase font-bold text-muted-foreground block"
+                        >
+                            Vehicle Model
+                        </label>
+                        <input
+                            id="loan-model"
+                            formControlName="vehicleModel"
+                            class="w-full h-9 px-3 bg-background border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                        />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="flex justify-end gap-3 pt-4 border-t border-border/50">
+        <button
+            type="button"
+            (click)="handleCancel()"
+            class="h-9 px-6 text-[10px] font-black uppercase tracking-widest hover:bg-muted text-muted-foreground hover:text-foreground rounded-sm transition-colors"
+        >
+            Cancel
+        </button>
+        <button
+            type="submit"
+            [disabled]="isSubmitting() || accountForm.invalid"
+            class="h-9 px-10 bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
+        >
+            {{ isSubmitting() ? 'Saving...' : 'Save Changes' }}
+        </button>
+    </div>
+</form>

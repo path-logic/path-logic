@@ -19,12 +19,12 @@ path-logic/
 ├── apps/
 │   └── web/                     # path-logic-app (PRIVATE)
 │       ├── src/
-│       │   ├── app/             # Next.js App Router
-│       │   ├── components/      # UI components (shadcn/ui)
-│       │   ├── store/           # Zustand stores
-│       │   └── adapters/        # Storage providers (Drive/iCloud)
+│       │   ├── app/             # Angular App
+│       │   ├── assets/          # Static assets
+│       │   ├── styles.css       # Global styles
+│       │   └── main.ts          # App bootstrap
 │       ├── package.json
-│       └── next.config.js
+│       └── project.json         # Nx project config
 │
 ├── nx.json                      # Nx workspace config
 ├── package.json                 # Root package.json
@@ -72,10 +72,10 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 
 **Contents:**
 
-- Next.js 15 App Router UI
+- **Angular 21 UI**
 - High-Density Professional design system (Bloomberg/Linear aesthetic)
 - iCloud (CloudKit) and Google Drive (appDataFolder) adapters
-- Zustand + Immer state management
+- Angular Signals + RXJS / Zustand
 - SSO integration (Google, Apple)
 - AES-GCM encryption implementation
 - Branding, assets, API keys
@@ -95,11 +95,11 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    apps/web                         │
-│              (Next.js 15 Private App)               │
+│               (Angular 21 Private App)              │
 │                                                     │
 │   ┌─────────────┐  ┌─────────────┐  ┌───────────┐  │
-│   │  UI Layer   │  │   Stores    │  │ Adapters  │  │
-│   │  (shadcn)   │  │  (Zustand)  │  │ (Storage) │  │
+│   │  UI Layer   │  │   Signals   │  │ Adapters  │  │
+│   │ (Components)│  │ / RxJS      │  │ (Storage) │  │
 │   └──────┬──────┘  └──────┬──────┘  └─────┬─────┘  │
 │          │                │               │         │
 │          └────────────────┴───────────────┘         │
@@ -163,13 +163,13 @@ import { TransactionEngine, QIFParser, generateProjection } from '@path-logic/co
 
 ```bash
 # Development
-npx nx serve web                    # Start Next.js dev server
+npx nx serve web                    # Start Angular dev server
 npx nx test core                    # Run core library tests
 npx nx test web                     # Run app tests
 
 # Building
 npx nx build core                   # Build core for npm publish
-npx nx build web                    # Build Next.js for production
+npx nx build web                    # Build Angular for production
 
 # Linting (use Makefile for consistency)
 make lint                           # Format + typecheck all projects
@@ -226,17 +226,17 @@ npm publish --access public
 }
 ```
 
-### App (`apps/web/tsconfig.json`)
+### App (`apps/web/tsconfig.app.json`)
 
 ```json
 {
-    "extends": "../../tsconfig.base.json",
+    "extends": "./tsconfig.json",
     "compilerOptions": {
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
-        "jsx": "preserve",
-        "plugins": [{ "name": "next" }]
+        "outDir": "../../dist/out-tsc",
+        "types": []
     },
-    "include": ["src/**/*", "next-env.d.ts", ".next/types/**/*.ts"]
+    "files": ["src/main.ts"],
+    "include": ["src/**/*.d.ts"]
 }
 ```
 
@@ -274,7 +274,7 @@ npm publish --access public
 
 ### What's Private (apps/web)
 
-🔒 Next.js UI implementation
+🔒 Angular UI implementation
 🔒 Design system (colors, typography, components)
 🔒 Google Drive appDataFolder adapter
 🔒 iCloud CloudKit adapter

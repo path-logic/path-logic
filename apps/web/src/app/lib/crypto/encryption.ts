@@ -1,0 +1,123 @@
+/**
+ * AES-GCM 256-bit encryption using Web Crypto API
+ *
+ * Security Model:
+ * - Master key is derived from user's Google ID using PBKDF2
+ * - Each encryption uses a random IV (Initialization Vector)
+ * - IV is prepended to ciphertext for decryption
+ * - All operations happen client-side; server never sees keys or plaintext
+ */
+
+import { environment } from '../../../environments/environment';
+
+const PBKDF2_ITERATIONS: number = 100000;
+const KEY_LENGTH: number = 256;
+const IV_LENGTH: number = 12; // 96 bits for GCM
+
+/**
+ * Derive a 256-bit AES key from the user's Google ID
+ */
+export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
+    // Convert user ID to bytes
+    const encoder: TextEncoder = new TextEncoder();
+    const userIdBytes: Uint8Array = encoder.encode(userId);
+
+    // Import as raw key material
+    const keyMaterial: CryptoKey = await crypto.subtle.importKey(
+        'raw',
+        userIdBytes as BufferSource,
+        'PBKDF2',
+        false,
+        ['deriveKey'],
+    );
+
+    // Derive AES-GCM key using PBKDF2
+    // Incorporate the environment into the salt for strong isolation
+    const salt: Uint8Array = encoder.encode(`path-logic-v1-salt-${environment.appEnv}`);
+
+    const key: CryptoKey = await crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: salt as BufferSource,
+            iterations: PBKDF2_ITERATIONS,
+            hash: 'SHA-256',
+        },
+        keyMaterial,
+        {
+            name: 'AES-GCM',
+            length: KEY_LENGTH,
+        },
+        false, // not extractable
+        ['encrypt', 'decrypt'],
+    );
+
+    return key;
+}
+
+/**
+ * Encrypt data using AES-GCM
+ * Returns: IV (12 bytes) + Ciphertext
+ */
+export async function encryptData(data: Uint8Array, key: CryptoKey): Promise<Uint8Array> {
+    // Generate random IV
+    const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+
+    // Encrypt
+    // Type assertion: Uint8Array is BufferSource-compatible despite TypeScript's strict ArrayBufferLike checking
+    const ciphertext: ArrayBuffer = await crypto.subtle.encrypt(
+        {
+            name: 'AES-GCM',
+            iv,
+        },
+        key,
+        data as BufferSource,
+    );
+
+    // Prepend IV to ciphertext
+    const result: Uint8Array = new Uint8Array(IV_LENGTH + ciphertext.byteLength);
+    result.set(iv, 0);
+    result.set(new Uint8Array(ciphertext), IV_LENGTH);
+
+    return result;
+}
+
+/**
+ * Decrypt data using AES-GCM
+ * Expects: IV (12 bytes) + Ciphertext
+ */
+export async function decryptData(encryptedData: Uint8Array, key: CryptoKey): Promise<Uint8Array> {
+    // Extract IV from first 12 bytes
+    const iv = encryptedData.slice(0, IV_LENGTH);
+    const ciphertext = encryptedData.slice(IV_LENGTH);
+
+    // Decrypt
+    const plaintext: ArrayBuffer = await crypto.subtle.decrypt(
+        {
+            name: 'AES-GCM',
+            iv,
+        },
+        key,
+        ciphertext,
+    );
+
+    return new Uint8Array(plaintext);
+}
+
+/**
+ * Encrypt SQLite database export for storage
+ */
+export async function encryptDatabase(dbExport: Uint8Array, userId: string): Promise<Uint8Array> {
+    const key: CryptoKey = await deriveKeyFromUserId(userId);
+    return encryptData(dbExport, key);
+}
+
+/**
+ * Decrypt SQLite database from storage
+ */
+export async function decryptDatabase(
+    encryptedDb: Uint8Array,
+    userId: string,
+): Promise<Uint8Array> {
+    const key: CryptoKey = await deriveKeyFromUserId(userId);
+    return decryptData(encryptedDb, key);
+}

@@ -29,14 +29,19 @@ The system must support the following account types:
     - Gross Pay (Income)
     - Federal Tax (Expense/Tax)
     - State Tax (Expense/Tax)
-    - Social Security / Medicare (Expense/Tax)
+    - Local Tax (Expense/Tax)
+    - Social Security (Expense/Tax)
+    - Medicare (Expense/Tax)
     - Health Insurance (Expense/Insurance)
-    - Vision/Dental Insurance (Expense/Insurance)
-    - 401(k) / HSA Contributions (Transfer/Investment)
+    - Vision (Expense/Insurance)
+    - Dental (Expense/Insurance)
+    - 401(k) (Transfer/Investment)
+    - HSA Contributions (Transfer/Investment)
 - **Granular Mortgage Splits**: Users must be able to enter line items from their mortgage statement:
     - Principal (Transfer/Liability)
     - Interest (Expense/Interest)
-    - Escrow/Property Tax (Expense/Tax)
+    - Escrow (Expense/Tax)
+    - Property Tax (Expense/Tax)
     - Private Mortgage Insurance (PMI) (Expense/Insurance)
 - **Rent/Utility Splits**: Ability to split a single payment into rent, water, electric, or shared expenses.
 - **Invariant**: The sum of all splits must equal the transaction total.

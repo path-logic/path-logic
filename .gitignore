@@ -60,3 +60,7 @@ lint_output.txt
 storybook-static/
 .vercel
 .env*.local
+
+.angular
+
+__screenshots__/

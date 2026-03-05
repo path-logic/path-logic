@@ -1,62 +1,49 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from 'eslint-plugin-storybook';
 
-import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
+import nx from '@nx/eslint-plugin';
+import baseConfig from '../../eslint.config.mjs';
 
-const eslintConfig = defineConfig([
-    ...nextVitals,
-    ...nextTs,
-    // Override default ignores of eslint-config-next.
-    globalIgnores([
-        // Default ignores of eslint-config-next:
-        '.next/**',
-        'out/**',
-        'build/**',
-        'next-env.d.ts',
-    ]),
-    // Enforce strict typing rules (override Next.js defaults)
+export default [
+    ...baseConfig,
+    ...nx.configs['flat/angular'],
+    ...nx.configs['flat/angular-template'],
     {
+        files: ['**/*.ts'],
         rules: {
-            // CRITICAL: Enforce Array<T> syntax instead of T[]
-            '@typescript-eslint/array-type': [
+            '@angular-eslint/directive-selector': [
                 'error',
                 {
-                    default: 'generic',
-                    readonly: 'generic',
+                    type: 'attribute',
+                    prefix: 'app',
+                    style: 'camelCase',
                 },
             ],
-            // CRITICAL: Require explicit return types on functions
-            '@typescript-eslint/explicit-function-return-type': 'error',
-            // CRITICAL: Require explicit types on module boundaries
-            '@typescript-eslint/explicit-module-boundary-types': 'error',
-            // CRITICAL: Ban implicit any
-            '@typescript-eslint/no-explicit-any': 'error',
-            // CRITICAL: Enforce consistent type imports
-            '@typescript-eslint/consistent-type-imports': [
+            '@angular-eslint/component-selector': [
                 'error',
                 {
-                    prefer: 'type-imports',
-                },
-            ],
-            // Allow explicit types even when inferrable (user requirement)
-            '@typescript-eslint/no-inferrable-types': 'off',
-            // Enforce interface naming convention
-            '@typescript-eslint/naming-convention': [
-                'error',
-                {
-                    selector: 'interface',
-                    format: ['PascalCase'],
-                    custom: {
-                        regex: '^I[A-Z]',
-                        match: true,
-                    },
+                    type: 'element',
+                    prefix: 'app',
+                    style: 'kebab-case',
                 },
             ],
         },
     },
+    {
+        files: ['**/*.html'],
+        // Override or add rules here
+        rules: {},
+    },
+    {
+        files: ['**/*.stories.ts', '**/*.stories.tsx', '**/*.spec.ts'],
+        rules: {
+            '@typescript-eslint/explicit-function-return-type': 'off',
+            '@typescript-eslint/no-empty-function': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-extraneous-class': 'off',
+        },
+    },
     ...storybook.configs['flat/recommended'],
-]);
-
-export default eslintConfig;
+];

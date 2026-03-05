@@ -1,0 +1,234 @@
+<div class="flex h-full w-full gap-4 overflow-hidden">
+    <input #fileInput type="file" (change)="onFileSelected($event)" accept=".qif" class="hidden" />
+
+    <!-- Account Sidebar -->
+    <aside class="w-64 flex flex-col gap-4 flex-none overflow-hidden pr-2">
+        <div class="bg-card border border-border rounded-sm h-full flex flex-col overflow-hidden">
+            <div
+                class="px-4 py-3 flex justify-between items-center border-b border-border bg-muted/30"
+            >
+                <h2 class="text-xs text-muted-foreground font-bold uppercase tracking-widest">
+                    Accounts
+                </h2>
+                <a routerLink="/accounts" class="text-primary hover:text-white transition-colors">
+                    <lucide-icon [img]="Plus" class="w-3 h-3" />
+                </a>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                @for (acc of accounts(); track acc.id) {
+                    <div
+                        (click)="activeAccountId.set(acc.id)"
+                        (keydown.enter)="activeAccountId.set(acc.id)"
+                        (keydown.space)="activeAccountId.set(acc.id)"
+                        tabindex="0"
+                        role="button"
+                        class="p-2 rounded-sm cursor-pointer transition-all border outline-none focus:ring-1 focus:ring-primary"
+                        [class]="{
+                            'bg-primary/10 border-primary/30': activeAccountId() === acc.id,
+                            'bg-transparent border-transparent hover:bg-accent/50':
+                                activeAccountId() !== acc.id,
+                        }"
+                    >
+                        <div class="flex justify-between items-start mb-1">
+                            <span
+                                class="text-sm font-bold"
+                                [class.text-primary]="activeAccountId() === acc.id"
+                                [class.text-foreground]="activeAccountId() !== acc.id"
+                            >
+                                {{ acc.name }}
+                            </span>
+                            <span class="text-[10px] text-muted-foreground opacity-50">
+                                <lucide-icon [img]="getAccountIcon(acc.type)" class="w-3.5 h-3.5" />
+                            </span>
+                        </div>
+                        <div class="text-sm font-mono font-bold text-muted-foreground">
+                            {{ formatCurrency(getAccountBalance(acc.id)) }}
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="p-2 border-t border-border bg-muted/20">
+                <a
+                    routerLink="/recurring"
+                    class="flex items-center gap-2 p-2 rounded-sm hover:bg-primary/10 transition-colors group"
+                >
+                    <lucide-icon
+                        [img]="Calendar"
+                        class="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary"
+                    />
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary"
+                    >
+                        Bills & Scheduled
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-card border border-border rounded-sm p-3">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">
+                    Sync Engine
+                </span>
+                <app-sync-indicator />
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <div class="flex justify-between text-sm">
+                    <span class="text-muted-foreground uppercase font-bold tracking-tighter">
+                        Cleared
+                    </span>
+                    <span class="font-mono text-emerald-900 font-bold">
+                        {{ formatCurrency(clearedBalance()) }}
+                    </span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-muted-foreground uppercase font-bold tracking-tighter">
+                        Pending
+                    </span>
+                    <span class="font-mono text-amber-500 font-bold">
+                        {{ formatCurrency(pendingBalance()) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Ledger Area -->
+    <div class="flex-1 flex flex-col gap-4 overflow-hidden">
+        <div class="bg-card border border-border rounded-sm p-3 shadow-lg flex-none relative z-10">
+            <form
+                (submit)="$event.preventDefault(); handleQuickAdd()"
+                class="grid grid-cols-12 gap-3 items-end"
+            >
+                <div class="col-span-2">
+                    <label
+                        for="entry-date"
+                        class="text-[10px] font-bold text-muted-foreground uppercase block mb-1"
+                    >
+                        Date
+                    </label>
+                    <input
+                        id="entry-date"
+                        type="date"
+                        [ngModel]="entryDate()"
+                        (ngModelChange)="entryDate.set($event)"
+                        name="date"
+                        class="w-full h-7 text-xs font-mono uppercase px-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                </div>
+                <div class="col-span-3">
+                    <label
+                        for="entry-payee"
+                        class="text-[10px] font-bold text-muted-foreground uppercase block mb-1"
+                    >
+                        Payee / Recipient
+                    </label>
+                    <div class="relative">
+                        <lucide-icon
+                            [img]="Search"
+                            class="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground"
+                        />
+                        <input
+                            id="entry-payee"
+                            type="text"
+                            placeholder="Who did you pay?"
+                            [ngModel]="entryPayee()"
+                            (ngModelChange)="entryPayee.set($event)"
+                            name="payee"
+                            class="w-full h-7 pl-7 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label
+                        for="entry-amount"
+                        class="text-[10px] font-bold text-muted-foreground uppercase block mb-1"
+                    >
+                        Amount
+                    </label>
+                    <input
+                        id="entry-amount"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        [ngModel]="entryAmount()"
+                        (ngModelChange)="entryAmount.set($event)"
+                        name="amount"
+                        class="w-full h-7 text-sm font-mono text-emerald-900 px-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                </div>
+                <div class="col-span-3">
+                    <label
+                        for="entry-memo"
+                        class="text-[10px] font-bold text-muted-foreground uppercase block mb-1"
+                    >
+                        Memo / Description
+                    </label>
+                    <input
+                        id="entry-memo"
+                        type="text"
+                        placeholder="What was it for?"
+                        [ngModel]="entryMemo()"
+                        (ngModelChange)="entryMemo.set($event)"
+                        name="memo"
+                        class="w-full h-7 text-sm px-2 bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                </div>
+                <div class="col-span-2 flex gap-2">
+                    <button
+                        type="submit"
+                        class="flex-1 text-xs font-black uppercase h-7 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                        Record
+                    </button>
+                    <button
+                        type="button"
+                        class="px-2 text-xs uppercase font-bold h-7 border border-border bg-background rounded-md hover:bg-accent transition-colors"
+                        [class]="{ 'bg-primary/10 border-primary': manualSplits().length > 0 }"
+                    >
+                        {{
+                            manualSplits().length > 0 ? manualSplits().length + ' Splits' : 'Split'
+                        }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex items-center justify-between flex-none px-1">
+            <div class="flex gap-2">
+                <button
+                    (click)="triggerImport()"
+                    [disabled]="isImporting()"
+                    class="h-7 px-3 text-xs font-black uppercase bg-primary/10 border border-primary/20 text-primary rounded-md hover:bg-primary/20 transition-colors"
+                >
+                    {{ isImporting() ? 'Processing QIF...' : 'Import Data' }}
+                </button>
+                <button
+                    class="h-7 px-3 text-xs font-black uppercase border border-border bg-background rounded-md hover:bg-accent transition-colors"
+                >
+                    Reconcile
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="bg-card border border-border rounded-sm flex-1 min-h-0 relative overflow-hidden flex flex-col group"
+        >
+            @if (isImporting()) {
+                <div
+                    class="absolute inset-0 bg-background/80 z-20 flex items-center justify-center backdrop-blur-sm"
+                >
+                    <div class="flex flex-col items-center gap-3">
+                        <div
+                            class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                        ></div>
+                        <p class="text-sm font-bold text-primary uppercase tracking-[0.2em]">
+                            Processing Ledger Data...
+                        </p>
+                    </div>
+                </div>
+            }
+            <app-transaction-table [data]="filteredTransactions()" />
+        </div>
+    </div>
+</div>

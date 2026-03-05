@@ -6,7 +6,7 @@
 
 ### **1.1 Technical Guardrails**
 
-- **Framework:** Next.js 16 (App Router), TypeScript (Strict), Tailwind CSS.
+- **Framework:** Angular 21, TypeScript (Strict), Tailwind CSS.
 - **State Management:** Zustand with Immer middleware for immutable ledger updates.
 - **Persistence:** Local-first SQLite (via SQL.js/WASM).
 - **Security:** AES-GCM 256-bit client-side encryption via Web Crypto API.
@@ -25,7 +25,7 @@
 - **All destructured variables** must have explicit types
 - **Use `Array<T>` syntax** instead of `T[]`
 - **Async functions** must have explicit `Promise<T>` return types
-- **React hooks** must have explicit types for their results
+- **Angular Signals/RxJS Observables** must have explicit types for their values
 - **Error handling** must type the error as `unknown`
 
 See `docs/architecture/typescript-standards.md` for complete guidelines.
@@ -140,7 +140,7 @@ Hermetic End-to-End testing to ensure ledger integrity.
 ## **4. Open Source & IP Strategy**
 
 - **Public Repo:** @path-logic/core. Contains the framework-agnostic engine, QIF parser, and math utilities. (Demonstrates "Principal" library-building skills).
-- **Private Repo:** path-logic-app. Contains the Next.js UI, the Google/Apple API keys, and the branding. (Protects your IP and commercial potential).
+- **Private Repo:** path-logic-app. Contains the Angular UI, the Google/Apple API keys, and the branding. (Protects your IP and commercial potential).
 
 ## **5. Multi-Platform Expansion (React Native)**
 
@@ -177,5 +177,5 @@ Hermetic End-to-End testing to ensure ledger integrity.
 
 ### **6.2 The Job Hunt "Vibe"**
 
-- **LinkedIn Strategy:** Weekly technical deep-dives into "How I solved X in Next.js 16."
-- **Resume Bullet:** "Architected a decentralized, local-first finance app using Next.js 16 and Web Crypto, migrating 15 years of Angular architectural rigor into a modern React/Full-Stack ecosystem."
+- **LinkedIn Strategy:** Weekly technical deep-dives into "How I solved X in Angular."
+- **Resume Bullet:** "Architected a decentralized, local-first finance app using Angular and Web Crypto, bringing enterprise architectural rigor to a modern frontend ecosystem."

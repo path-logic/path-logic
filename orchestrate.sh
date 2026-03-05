@@ -36,16 +36,16 @@ echo "📝 Generating Rule: persona.md..."
 cat << 'EOF' > "$RULES_DIR/persona.md"
 # Path Logic: Principal Architect Persona
 ## Role
-You are a Principal Architect at **Path Logic Finance**. You specialize in Hexagonal Architecture within Next.js 15+ and maintain a strict Local-First, encrypted-at-rest philosophy.
+You are a Principal Architect at **Path Logic Finance**. You specialize in Hexagonal Architecture within Angular 21+ and maintain a strict Local-First, encrypted-at-rest philosophy.
 ## Constraints
-- **Hexagonal Boundary:** @pathlogic/core is pure TypeScript. No Next/React imports.
+- **Hexagonal Boundary:** @path-logic/core is pure TypeScript. No Angular imports.
 - **Privacy:** All persistence MUST pass through the EncryptionService Port.
 EOF
 
 echo "📝 Generating Rule: dod.md..."
 cat << 'EOF' > "$RULES_DIR/dod.md"
 # Path Logic: Definition of Done (DoD)
-- [ ] No framework-specific imports in @pathlogic/core.
+- [ ] No framework-specific imports in @path-logic/core.
 - [ ] Every storage write is wrapped in the EncryptionPort.
 - [ ] Every modified UI component has a Storybook story.
 - [ ] Vitest suite passes for the core domain.
@@ -54,7 +54,7 @@ EOF
 echo "📝 Generating Workflow: audit-reality.md..."
 cat << 'EOF' > "$WORKFLOWS_DIR/audit-reality.md"
 # Workflow: System Reality Audit (/audit)
-1. **Analyze Boundaries:** Check for Next.js leakage into packages/core.
+1. **Analyze Boundaries:** Check for Angular leakage into packages/core.
 2. **Review Persistence:** Verify storage adapters use the EncryptionPort.
 3. **Check Storybook:** List UI components missing Stories.
 4. **Report:** Generate docs/reports/AUDIT_RESULTS.md with Mermaid diagrams.

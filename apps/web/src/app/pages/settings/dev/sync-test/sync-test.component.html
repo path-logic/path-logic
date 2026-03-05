@@ -1,0 +1,63 @@
+<app-shell>
+    <div class="p-8 space-y-12">
+        <header class="flex justify-between items-end border-b border-border/30 pb-8">
+            <div class="space-y-1">
+                <a
+                    routerLink="/settings/dev"
+                    class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group"
+                >
+                    <lucide-icon
+                        [img]="ArrowLeft"
+                        class="w-3 h-3 group-hover:-translate-x-1 transition-transform"
+                    />
+                    Back to Dev Tools
+                </a>
+                <h1 class="text-xl font-black uppercase tracking-[0.2em] mb-2 text-primary">
+                    Sync <span class="text-foreground">Test Suite</span>
+                </h1>
+                <p
+                    class="text-muted-foreground text-[10px] uppercase font-bold tracking-[0.2em] opacity-60"
+                >
+                    Architectural Validation: SQLite → AES-GCM → Google Drive
+                </p>
+            </div>
+        </header>
+
+        <section class="flex flex-col items-center justify-center py-20 text-center space-y-6">
+            <div class="w-16 h-16 rounded-2xl bg-muted/10 flex items-center justify-center">
+                <lucide-icon [img]="Database" class="w-8 h-8 text-muted-foreground/40" />
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-sm font-black uppercase tracking-widest text-foreground">
+                    Module Under Construction
+                </h2>
+                <p
+                    class="text-[11px] text-muted-foreground max-w-md font-bold opacity-60 leading-relaxed"
+                >
+                    The Sync Test Suite is a high-risk diagnostic tool that requires direct access
+                    to the WASM binary and encryption keys. This component is scheduled for
+                    implementation in the "Ownership (Storage & Security)" phase.
+                </p>
+            </div>
+
+            <div
+                class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-sm flex items-start gap-4 text-left max-w-md"
+            >
+                <lucide-icon [img]="AlertTriangle" class="w-5 h-5 text-amber-500 flex-shrink-0" />
+                <p
+                    class="text-[10px] font-bold uppercase tracking-widest text-amber-500/80 leading-relaxed"
+                >
+                    CRITICAL: Do not attempt to manually trigger sync cycles from the console while
+                    this module is disconnected.
+                </p>
+            </div>
+
+            <button
+                routerLink="/settings/dev"
+                class="h-10 px-6 border border-border text-[10px] font-black uppercase tracking-widest rounded-sm hover:bg-muted transition-all"
+            >
+                Return to Dashboard
+            </button>
+        </section>
+    </div>
+</app-shell>

@@ -1,0 +1,166 @@
+<app-shell>
+    <div class="p-8 space-y-12 pb-20">
+        <!-- Header section -->
+        <div class="space-y-2 border-b border-border/50 pb-8">
+            <h1 class="text-4xl font-bold tracking-tight text-foreground">Visual Constitution</h1>
+            <p class="text-lg text-muted-foreground max-w-2xl">
+                Defining the premium high-density interface for Path Logic.
+            </p>
+        </div>
+
+        <!-- Branding Section -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-2">
+                <div class="w-1 h-6 bg-primary rounded-full"></div>
+                <h2 class="text-xl font-bold uppercase tracking-widest text-foreground">
+                    Branding & Identity
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                    class="p-8 flex flex-col items-center justify-center gap-6 border border-primary/20 bg-primary/5 rounded-sm"
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 bg-primary rounded-sm flex items-center justify-center shadow-lg shadow-primary/20"
+                        >
+                            <span class="text-primary-foreground font-black text-xl"> P </span>
+                        </div>
+                        <h1 class="text-3xl font-black uppercase tracking-tighter">
+                            Path <span class="text-primary">Logic</span>
+                        </h1>
+                    </div>
+                    <p
+                        class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60"
+                    >
+                        Primary Wordmark Standard
+                    </p>
+                </div>
+
+                <div class="space-y-4 flex flex-col justify-center">
+                    <div class="space-y-1">
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                        >
+                            Color Split Pattern
+                        </p>
+                        <p class="text-sm text-foreground">
+                            The word <span class="font-bold">Path</span> uses standard foreground,
+                            while <span class="text-primary font-bold">Logic</span> must use the
+                            primary brand color.
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                        >
+                            Typography
+                        </p>
+                        <p class="text-sm text-muted-foreground">
+                            Always <span class="uppercase font-bold">Uppercase</span>. Prefer
+                            <span class="font-bold">tracking-tighter</span> or
+                            <span class="font-bold">tracking-tight</span>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography Section -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-2">
+                <div class="w-1 h-6 bg-primary rounded-full"></div>
+                <h2 class="text-xl font-bold uppercase tracking-widest text-foreground">
+                    Typography
+                </h2>
+            </div>
+
+            <div class="grid gap-8 border border-border/50 rounded-sm p-8 bg-muted/10">
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        H1: Page Title
+                    </p>
+                    <p class="text-4xl font-bold tracking-tight">Financial Intelligence</p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        H2: Section Header
+                    </p>
+                    <p class="text-2xl font-bold">Transaction History</p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        H3: Sub-header
+                    </p>
+                    <p class="text-lg font-semibold">Account Details</p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        Action Label / Small Header
+                    </p>
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        Original Loan Amount
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        Body Text
+                    </p>
+                    <p class="text-sm text-muted-foreground leading-relaxed max-w-md">
+                        Path Logic uses a strictly enforced high-density layout inspired by
+                        terminal-based productivity tools. Every pixel must serve a functional
+                        purpose.
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                        Mono Scale (Data)
+                    </p>
+                    <p class="font-mono text-sm text-foreground">$12,450.00 / 4.25% APR</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status Colors -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-2">
+                <div class="w-1 h-6 bg-blue-500 rounded-full"></div>
+                <h2 class="text-xl font-bold uppercase tracking-widest text-foreground">
+                    Colors & Status
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @for (item of colors; track item.label) {
+                    <div
+                        class="p-6 space-y-3 bg-card border border-border rounded-sm hover:border-primary transition-all relative overflow-hidden group"
+                    >
+                        <div
+                            class="absolute top-0 left-0 w-full h-[2px]"
+                            [class]="item.color"
+                        ></div>
+                        <div class="h-10 rounded" [class]="item.color"></div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">
+                            {{ item.label }}
+                        </p>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+</app-shell>

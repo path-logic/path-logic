@@ -1,0 +1,799 @@
+{
+    "graph": {
+        "nodes": {
+            "@path-logic/feature-flags": {
+                "name": "@path-logic/feature-flags",
+                "type": "lib",
+                "data": {
+                    "root": "packages/feature-flags",
+                    "targets": {
+                        "lint": {
+                            "cache": true,
+                            "options": {
+                                "cwd": "packages/feature-flags",
+                                "command": "eslint ."
+                            },
+                            "inputs": ["default"],
+                            "outputs": ["{options.outputFile}"],
+                            "metadata": {
+                                "technologies": ["eslint"],
+                                "description": "Runs ESLint on project",
+                                "help": {
+                                    "command": "npx eslint --help",
+                                    "example": {
+                                        "options": {
+                                            "max-warnings": 0
+                                        }
+                                    }
+                                }
+                            },
+                            "executor": "nx:run-commands",
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "build": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "build"
+                            },
+                            "metadata": {
+                                "scriptContent": "tsc",
+                                "runCommand": "npm run build"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "dependsOn": ["^build"],
+                            "inputs": ["production", "^production"],
+                            "cache": true
+                        },
+                        "typecheck": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "typecheck"
+                            },
+                            "metadata": {
+                                "scriptContent": "tsc --noEmit",
+                                "runCommand": "npm run typecheck"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "cache": true
+                        },
+                        "clean": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "clean"
+                            },
+                            "metadata": {
+                                "scriptContent": "rm -rf dist",
+                                "runCommand": "npm run clean"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "nx-release-publish": {
+                            "executor": "@nx/js:release-publish",
+                            "dependsOn": ["^nx-release-publish"],
+                            "options": {},
+                            "configurations": {},
+                            "parallelism": true
+                        }
+                    },
+                    "name": "@path-logic/feature-flags",
+                    "tags": [
+                        "npm:public",
+                        "npm:nextjs",
+                        "npm:feature-flags",
+                        "npm:feature-toggles",
+                        "npm:cookies",
+                        "npm:react",
+                        "npm:typescript"
+                    ],
+                    "metadata": {
+                        "targetGroups": {
+                            "NPM Scripts": ["build", "typecheck", "clean"]
+                        },
+                        "description": "Lightweight, cookie-based feature flags for Next.js with route-based toggling",
+                        "js": {
+                            "packageName": "@path-logic/feature-flags",
+                            "packageVersion": "0.1.0",
+                            "packageExports": {
+                                ".": {
+                                    "types": "./dist/index.d.ts",
+                                    "default": "./dist/index.js"
+                                },
+                                "./client": {
+                                    "types": "./dist/client.d.ts",
+                                    "default": "./dist/client.js"
+                                },
+                                "./route": {
+                                    "types": "./dist/route.d.ts",
+                                    "default": "./dist/route.js"
+                                },
+                                "./components": {
+                                    "types": "./dist/components/index.d.ts",
+                                    "default": "./dist/components/index.js"
+                                }
+                            },
+                            "packageMain": "./dist/index.js",
+                            "isInPackageManagerWorkspaces": true
+                        }
+                    },
+                    "implicitDependencies": []
+                }
+            },
+            "@path-logic/core": {
+                "name": "@path-logic/core",
+                "type": "lib",
+                "data": {
+                    "root": "packages/core",
+                    "targets": {
+                        "lint": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "lint"
+                            },
+                            "metadata": {
+                                "technologies": ["eslint"],
+                                "description": "Runs ESLint on project",
+                                "help": {
+                                    "command": "npx eslint --help",
+                                    "example": {
+                                        "options": {
+                                            "max-warnings": 0
+                                        }
+                                    }
+                                },
+                                "scriptContent": "eslint src && prettier --check . --ignore-path ../../.prettierignore --ignore-unknown",
+                                "runCommand": "npm run lint"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "inputs": ["default"],
+                            "cache": true
+                        },
+                        "build": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "build"
+                            },
+                            "metadata": {
+                                "scriptContent": "tsup src/index.ts --format cjs,esm --dts",
+                                "runCommand": "npm run build"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "dependsOn": ["^build"],
+                            "inputs": ["production", "^production"],
+                            "cache": true
+                        },
+                        "test": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "test"
+                            },
+                            "metadata": {
+                                "scriptContent": "vitest run",
+                                "runCommand": "npm run test"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "inputs": ["default", "^production"],
+                            "cache": true
+                        },
+                        "test:watch": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "test:watch"
+                            },
+                            "metadata": {
+                                "scriptContent": "vitest",
+                                "runCommand": "npm run test:watch"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "typecheck": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "typecheck"
+                            },
+                            "metadata": {
+                                "scriptContent": "tsc --noEmit",
+                                "runCommand": "npm run typecheck"
+                            },
+                            "configurations": {},
+                            "parallelism": true,
+                            "cache": true
+                        },
+                        "docs": {
+                            "executor": "nx:run-script",
+                            "options": {
+                                "script": "docs"
+                            },
+                            "metadata": {
+                                "scriptContent": "typedoc --options typedoc.json",
+                                "runCommand": "npm run docs"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "nx-release-publish": {
+                            "executor": "@nx/js:release-publish",
+                            "dependsOn": ["^nx-release-publish"],
+                            "options": {},
+                            "configurations": {},
+                            "parallelism": true
+                        }
+                    },
+                    "name": "@path-logic/core",
+                    "tags": ["npm:public"],
+                    "metadata": {
+                        "targetGroups": {
+                            "NPM Scripts": [
+                                "build",
+                                "test",
+                                "test:watch",
+                                "typecheck",
+                                "lint",
+                                "docs"
+                            ]
+                        },
+                        "js": {
+                            "packageName": "@path-logic/core",
+                            "packageVersion": "0.1.0",
+                            "packageExports": {
+                                ".": {
+                                    "types": "./dist/index.d.ts",
+                                    "import": "./dist/index.mjs",
+                                    "require": "./dist/index.js"
+                                }
+                            },
+                            "packageMain": "./dist/index.js",
+                            "isInPackageManagerWorkspaces": true
+                        }
+                    },
+                    "implicitDependencies": []
+                }
+            },
+            "web-e2e": {
+                "name": "web-e2e",
+                "type": "e2e",
+                "data": {
+                    "root": "apps/web-e2e",
+                    "targets": {
+                        "lint": {
+                            "cache": true,
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "command": "eslint ."
+                            },
+                            "inputs": ["default"],
+                            "outputs": ["{options.outputFile}"],
+                            "metadata": {
+                                "technologies": ["eslint"],
+                                "description": "Runs ESLint on project",
+                                "help": {
+                                    "command": "npx eslint --help",
+                                    "example": {
+                                        "options": {
+                                            "max-warnings": 0
+                                        }
+                                    }
+                                }
+                            },
+                            "executor": "nx:run-commands",
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "e2e": {
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report"
+                            ],
+                            "executor": "nx:run-commands",
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "command": "playwright test"
+                            },
+                            "configurations": {}
+                        },
+                        "e2e-ci--src/attribute-bindings.spec.ts": {
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "env": {
+                                    "PLAYWRIGHT_HTML_OUTPUT_DIR": "../../dist/.playwright/apps/web-e2e/playwright-report/src-attribute-bindings-spec-ts",
+                                    "PLAYWRIGHT_HTML_REPORT": "../../dist/.playwright/apps/web-e2e/playwright-report/src-attribute-bindings-spec-ts"
+                                },
+                                "command": "playwright test src/attribute-bindings.spec.ts --output=../../dist/.playwright/apps/web-e2e/test-output/src-attribute-bindings-spec-ts"
+                            },
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests in src/attribute-bindings.spec.ts in CI",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output/src-attribute-bindings-spec-ts",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report/src-attribute-bindings-spec-ts"
+                            ],
+                            "executor": "nx:run-commands",
+                            "configurations": {}
+                        },
+                        "e2e-ci--src/onpush-integrity.spec.ts": {
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "env": {
+                                    "PLAYWRIGHT_HTML_OUTPUT_DIR": "../../dist/.playwright/apps/web-e2e/playwright-report/src-onpush-integrity-spec-ts",
+                                    "PLAYWRIGHT_HTML_REPORT": "../../dist/.playwright/apps/web-e2e/playwright-report/src-onpush-integrity-spec-ts"
+                                },
+                                "command": "playwright test src/onpush-integrity.spec.ts --output=../../dist/.playwright/apps/web-e2e/test-output/src-onpush-integrity-spec-ts"
+                            },
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests in src/onpush-integrity.spec.ts in CI",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output/src-onpush-integrity-spec-ts",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report/src-onpush-integrity-spec-ts"
+                            ],
+                            "executor": "nx:run-commands",
+                            "configurations": {}
+                        },
+                        "e2e-ci--src/overlay-behavior.spec.ts": {
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "env": {
+                                    "PLAYWRIGHT_HTML_OUTPUT_DIR": "../../dist/.playwright/apps/web-e2e/playwright-report/src-overlay-behavior-spec-ts",
+                                    "PLAYWRIGHT_HTML_REPORT": "../../dist/.playwright/apps/web-e2e/playwright-report/src-overlay-behavior-spec-ts"
+                                },
+                                "command": "playwright test src/overlay-behavior.spec.ts --output=../../dist/.playwright/apps/web-e2e/test-output/src-overlay-behavior-spec-ts"
+                            },
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests in src/overlay-behavior.spec.ts in CI",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output/src-overlay-behavior-spec-ts",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report/src-overlay-behavior-spec-ts"
+                            ],
+                            "executor": "nx:run-commands",
+                            "configurations": {}
+                        },
+                        "e2e-ci--src/resolver-inputs.spec.ts": {
+                            "options": {
+                                "cwd": "apps/web-e2e",
+                                "env": {
+                                    "PLAYWRIGHT_HTML_OUTPUT_DIR": "../../dist/.playwright/apps/web-e2e/playwright-report/src-resolver-inputs-spec-ts",
+                                    "PLAYWRIGHT_HTML_REPORT": "../../dist/.playwright/apps/web-e2e/playwright-report/src-resolver-inputs-spec-ts"
+                                },
+                                "command": "playwright test src/resolver-inputs.spec.ts --output=../../dist/.playwright/apps/web-e2e/test-output/src-resolver-inputs-spec-ts"
+                            },
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests in src/resolver-inputs.spec.ts in CI",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output/src-resolver-inputs-spec-ts",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report/src-resolver-inputs-spec-ts"
+                            ],
+                            "executor": "nx:run-commands",
+                            "configurations": {}
+                        },
+                        "e2e-ci": {
+                            "executor": "nx:noop",
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/test-output",
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report"
+                            ],
+                            "dependsOn": [
+                                {
+                                    "target": "e2e-ci--src/attribute-bindings.spec.ts",
+                                    "projects": "self",
+                                    "params": "forward",
+                                    "options": "forward"
+                                },
+                                {
+                                    "target": "e2e-ci--src/onpush-integrity.spec.ts",
+                                    "projects": "self",
+                                    "params": "forward",
+                                    "options": "forward"
+                                },
+                                {
+                                    "target": "e2e-ci--src/overlay-behavior.spec.ts",
+                                    "projects": "self",
+                                    "params": "forward",
+                                    "options": "forward"
+                                },
+                                {
+                                    "target": "e2e-ci--src/resolver-inputs.spec.ts",
+                                    "projects": "self",
+                                    "params": "forward",
+                                    "options": "forward"
+                                }
+                            ],
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Runs Playwright Tests in CI",
+                                "nonAtomizedTarget": "e2e",
+                                "help": {
+                                    "command": "npx playwright test --help",
+                                    "example": {
+                                        "options": {
+                                            "workers": 1
+                                        }
+                                    }
+                                }
+                            },
+                            "parallelism": false,
+                            "configurations": {},
+                            "options": {}
+                        },
+                        "e2e-ci--merge-reports": {
+                            "executor": "@nx/playwright:merge-reports",
+                            "cache": true,
+                            "inputs": [
+                                "default",
+                                "^production",
+                                {
+                                    "externalDependencies": ["@playwright/test"]
+                                }
+                            ],
+                            "outputs": [
+                                "{workspaceRoot}/dist/.playwright/apps/web-e2e/playwright-report"
+                            ],
+                            "options": {
+                                "config": "playwright.config.ts",
+                                "expectedSuites": 4
+                            },
+                            "metadata": {
+                                "technologies": ["playwright"],
+                                "description": "Merges Playwright blob reports from atomized tasks to produce unified reports for the configured reporters."
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        }
+                    },
+                    "metadata": {
+                        "targetGroups": {
+                            "E2E (CI)": [
+                                "e2e-ci--src/attribute-bindings.spec.ts",
+                                "e2e-ci--src/onpush-integrity.spec.ts",
+                                "e2e-ci--src/overlay-behavior.spec.ts",
+                                "e2e-ci--src/resolver-inputs.spec.ts",
+                                "e2e-ci",
+                                "e2e-ci--merge-reports"
+                            ]
+                        }
+                    },
+                    "name": "web-e2e",
+                    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+                    "projectType": "application",
+                    "sourceRoot": "apps/web-e2e/src",
+                    "implicitDependencies": ["web"],
+                    "tags": []
+                }
+            },
+            "web": {
+                "name": "web",
+                "type": "app",
+                "data": {
+                    "root": "apps/web",
+                    "targets": {
+                        "lint": {
+                            "executor": "@nx/eslint:lint",
+                            "options": {},
+                            "configurations": {},
+                            "parallelism": true,
+                            "inputs": ["default"],
+                            "cache": true
+                        },
+                        "build-storybook": {
+                            "executor": "@storybook/angular:build-storybook",
+                            "outputs": ["{projectRoot}/storybook-static"],
+                            "options": {
+                                "configDir": "apps/web/.storybook",
+                                "browserTarget": "web:build:development",
+                                "compodoc": true,
+                                "compodocArgs": ["-e", "json", "-d", "apps/web"],
+                                "outputDir": "apps/web/storybook-static"
+                            },
+                            "cache": true,
+                            "configurations": {},
+                            "parallelism": true,
+                            "dependsOn": ["^build"]
+                        },
+                        "storybook": {
+                            "executor": "@storybook/angular:start-storybook",
+                            "options": {
+                                "port": 6006,
+                                "configDir": "apps/web/.storybook",
+                                "browserTarget": "web:build:development",
+                                "compodoc": true,
+                                "compodocArgs": ["-e", "json", "-d", "apps/web"],
+                                "experimentalZoneless": true
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "test-storybook": {
+                            "executor": "nx:run-commands",
+                            "options": {
+                                "command": "test-storybook -c apps/web/.storybook --url http://localhost:6006"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "static-storybook": {
+                            "dependsOn": ["build-storybook"],
+                            "continuous": true,
+                            "executor": "@nx/web:file-server",
+                            "options": {
+                                "buildTarget": "build-storybook",
+                                "staticFilePath": "apps/web/storybook-static"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "build-deps": {
+                            "dependsOn": ["^build"],
+                            "configurations": {},
+                            "options": {},
+                            "parallelism": true,
+                            "executor": "nx:noop"
+                        },
+                        "watch-deps": {
+                            "continuous": true,
+                            "dependsOn": ["build-deps"],
+                            "executor": "nx:run-commands",
+                            "options": {
+                                "command": "npx nx watch --projects web --includeDependentProjects -- npx nx build-deps web"
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        },
+                        "build": {
+                            "executor": "@angular/build:application",
+                            "outputs": ["{options.outputPath}"],
+                            "options": {
+                                "outputPath": "dist/apps/web",
+                                "browser": "apps/web/src/main.ts",
+                                "tsConfig": "apps/web/tsconfig.app.json",
+                                "assets": [
+                                    {
+                                        "glob": "**/*",
+                                        "input": "apps/web/public"
+                                    }
+                                ],
+                                "styles": ["apps/web/src/styles.css"]
+                            },
+                            "configurations": {
+                                "production": {
+                                    "budgets": [
+                                        {
+                                            "type": "initial",
+                                            "maximumWarning": "500kb",
+                                            "maximumError": "1mb"
+                                        },
+                                        {
+                                            "type": "anyComponentStyle",
+                                            "maximumWarning": "4kb",
+                                            "maximumError": "8kb"
+                                        }
+                                    ],
+                                    "outputHashing": "all",
+                                    "fileReplacements": [
+                                        {
+                                            "replace": "apps/web/src/environments/environment.ts",
+                                            "with": "apps/web/src/environments/environment.prod.ts"
+                                        }
+                                    ]
+                                },
+                                "staging": {
+                                    "budgets": [
+                                        {
+                                            "type": "initial",
+                                            "maximumWarning": "500kb",
+                                            "maximumError": "1mb"
+                                        },
+                                        {
+                                            "type": "anyComponentStyle",
+                                            "maximumWarning": "4kb",
+                                            "maximumError": "8kb"
+                                        }
+                                    ],
+                                    "outputHashing": "all",
+                                    "fileReplacements": [
+                                        {
+                                            "replace": "apps/web/src/environments/environment.ts",
+                                            "with": "apps/web/src/environments/environment.staging.ts"
+                                        }
+                                    ]
+                                },
+                                "development": {
+                                    "optimization": false,
+                                    "extractLicenses": false,
+                                    "sourceMap": true
+                                },
+                                "e2e": {
+                                    "optimization": false,
+                                    "extractLicenses": false,
+                                    "sourceMap": true,
+                                    "fileReplacements": [
+                                        {
+                                            "replace": "apps/web/src/environments/environment.ts",
+                                            "with": "apps/web/src/environments/environment.e2e.ts"
+                                        }
+                                    ]
+                                }
+                            },
+                            "defaultConfiguration": "production",
+                            "parallelism": true,
+                            "cache": true,
+                            "dependsOn": ["^build"],
+                            "inputs": ["production", "^production"]
+                        },
+                        "serve": {
+                            "continuous": true,
+                            "executor": "@angular/build:dev-server",
+                            "configurations": {
+                                "production": {
+                                    "buildTarget": "web:build:production"
+                                },
+                                "development": {
+                                    "buildTarget": "web:build:development"
+                                },
+                                "e2e": {
+                                    "buildTarget": "web:build:e2e"
+                                }
+                            },
+                            "defaultConfiguration": "development",
+                            "options": {},
+                            "parallelism": true
+                        },
+                        "test": {
+                            "executor": "@angular/build:unit-test",
+                            "options": {},
+                            "configurations": {},
+                            "parallelism": true,
+                            "cache": true,
+                            "inputs": ["default", "^production"]
+                        },
+                        "serve-static": {
+                            "continuous": true,
+                            "executor": "@nx/web:file-server",
+                            "options": {
+                                "buildTarget": "web:build",
+                                "port": 4200,
+                                "staticFilePath": "dist/apps/web/browser",
+                                "spa": true
+                            },
+                            "configurations": {},
+                            "parallelism": true
+                        }
+                    },
+                    "name": "web",
+                    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+                    "projectType": "application",
+                    "prefix": "app",
+                    "sourceRoot": "apps/web/src",
+                    "tags": [],
+                    "implicitDependencies": []
+                }
+            }
+        },
+        "dependencies": {
+            "@path-logic/feature-flags": [],
+            "@path-logic/core": [],
+            "web-e2e": [
+                {
+                    "source": "web-e2e",
+                    "target": "web",
+                    "type": "implicit"
+                }
+            ],
+            "web": [
+                {
+                    "source": "web",
+                    "target": "@path-logic/core",
+                    "type": "static"
+                }
+            ]
+        }
+    }
+}
