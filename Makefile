@@ -23,7 +23,7 @@ help:
 # === DEPENDENCIES ===
 
 install:
-	npm ci
+	npm ci --force
 
 # === CODE QUALITY ===
 
