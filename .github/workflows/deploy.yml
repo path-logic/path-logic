@@ -40,8 +40,10 @@ jobs:
             - run: npx nx run web:build-storybook
 
             - name: Authenticate to Google Cloud
+              id: auth
               uses: google-github-actions/auth@v2
               with:
+                  token_format: 'access_token'
                   workload_identity_provider: projects/48071364929/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
                   service_account: firebase-adminsdk-fbsvc@path-logic-staging.iam.gserviceaccount.com
 
@@ -50,9 +52,9 @@ jobs:
 
             # Deploy Web App
             - name: Deploy Web App
-              run: firebase deploy --only hosting:web --project ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
+              run: firebase deploy --only hosting:web --project ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }} --token ${{ steps.auth.outputs.access_token }}
 
             # Deploy Storybook (Production only)
             - name: Deploy Storybook (Production only)
               if: github.ref == 'refs/heads/main'
-              run: firebase deploy --only hosting:storybook --project path-logic
+              run: firebase deploy --only hosting:storybook --project path-logic --token ${{ steps.auth.outputs.access_token }}
