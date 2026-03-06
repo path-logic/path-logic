@@ -39,24 +39,17 @@ jobs:
             # Build Storybook static site
             - run: npx nx run web:build-storybook
 
-            # Deploy web app to Firebase Hosting
-            - uses: FirebaseExtended/action-hosting-deploy@v0
+            - name: Authenticate to Google Cloud
+              uses: google-github-actions/auth@v2
               with:
-                  repoToken: ${{ secrets.GITHUB_TOKEN }}
-                  workloadIdentityProvider: projects/48071364929/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
-                  serviceAccount: firebase-adminsdk-fbsvc@path-logic-staging.iam.gserviceaccount.com
-                  channelId: live
-                  projectId: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
-                  target: web
+                  workload_identity_provider: projects/48071364929/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+                  service_account: firebase-adminsdk-fbsvc@path-logic-staging.iam.gserviceaccount.com
 
-            # Deploy Storybook to Firebase Hosting (Production only)
+            # Deploy Web App
+            - name: Deploy Web App
+              run: npx firebase deploy --only hosting:web --project ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
+
+            # Deploy Storybook (Production only)
             - name: Deploy Storybook (Production only)
               if: github.ref == 'refs/heads/main'
-              uses: FirebaseExtended/action-hosting-deploy@v0
-              with:
-                  repoToken: ${{ secrets.GITHUB_TOKEN }}
-                  workloadIdentityProvider: projects/48071364929/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
-                  serviceAccount: firebase-adminsdk-fbsvc@path-logic-staging.iam.gserviceaccount.com
-                  channelId: live
-                  projectId: path-logic
-                  target: storybook
+              run: npx firebase deploy --only hosting:storybook --project path-logic
