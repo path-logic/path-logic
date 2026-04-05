@@ -1,0 +1,263 @@
+<p-dialog
+    [visible]="isOpen()"
+    (onHide)="closed.emit()"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="true"
+    [style]="{ width: '500px' }"
+    header="Add New Account"
+    styleClass="path-logic-dialog"
+>
+    <ng-template #header>
+        <div class="flex items-center gap-2">
+            <div class="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
+                <span class="text-primary-foreground font-black text-[10px]">P</span>
+            </div>
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-foreground">
+                Add <span class="text-primary">New Account</span>
+            </h2>
+        </div>
+    </ng-template>
+
+    <div class="mt-4">
+        <p-stepper [value]="stepValue()">
+            <p-step-list class="mb-6">
+                <p-step [value]="1">Type</p-step>
+                <p-step [value]="2">Details</p-step>
+            </p-step-list>
+
+            <p-step-panels>
+                <!-- Step 1: Select Type -->
+                <p-step-panel [value]="1">
+                    <ng-template #content let-activateCallback="activateCallback">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-3">
+                                @for (option of primaryTypes(); track option.type) {
+                                    <button
+                                        (click)="handleTypeSelect(option.type)"
+                                        class="group flex flex-col items-center p-4 border border-border rounded-sm hover:border-primary/50 hover:bg-primary/5 transition-all text-center outline-none focus:ring-1 focus:ring-primary"
+                                    >
+                                        <div
+                                            [class]="
+                                                'w-10 h-10 rounded-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform ' +
+                                                getTypeTheming(option.type).iconBg
+                                            "
+                                        >
+                                            <lucide-icon
+                                                [img]="option.icon"
+                                                [class]="
+                                                    'w-5 h-5 ' +
+                                                    getTypeTheming(option.type).iconText
+                                                "
+                                            />
+                                        </div>
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-widest mb-1"
+                                            >{{ option.label }}</span
+                                        >
+                                        <span
+                                            class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                        >
+                                            {{ option.description }}
+                                        </span>
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="pt-2">
+                                <p-button
+                                    (click)="showLoans.set(!showLoans())"
+                                    [label]="'Loan / Liability Types'"
+                                    [text]="true"
+                                    [icon]="showLoans() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                                    iconPos="right"
+                                    severity="secondary"
+                                    styleClass="w-full text-[10px] font-bold uppercase tracking-widest justify-content-between"
+                                ></p-button>
+
+                                @if (showLoans()) {
+                                    <div
+                                        class="grid grid-cols-1 gap-2 mt-2 animate-in slide-in-from-top-2"
+                                    >
+                                        @for (option of loanTypes(); track option.type) {
+                                            <button
+                                                (click)="handleTypeSelect(option.type)"
+                                                class="flex items-center gap-4 p-3 border border-border rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
+                                            >
+                                                <div
+                                                    class="w-8 h-8 rounded-sm bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform"
+                                                >
+                                                    <lucide-icon
+                                                        [img]="option.icon"
+                                                        class="w-4 h-4 text-amber-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span
+                                                        class="text-[10px] font-black uppercase tracking-widest block"
+                                                        >{{ option.label }}</span
+                                                    >
+                                                    <span
+                                                        class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60"
+                                                        >{{ option.description }}</span
+                                                    >
+                                                </div>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-step-panel>
+
+                <!-- Step 2: Enter Details -->
+                <p-step-panel [value]="2">
+                    <ng-template #content let-activateCallback="activateCallback">
+                        <div class="min-h-[300px] flex flex-col">
+                            @if (step() === 'creating') {
+                                <div
+                                    class="py-12 flex flex-col items-center justify-center gap-4 flex-1"
+                                >
+                                    <div
+                                        class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                                    ></div>
+                                    <p
+                                        class="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse"
+                                    >
+                                        Initializing Ledger...
+                                    </p>
+                                </div>
+                            } @else if (selectedType() && isLoan()) {
+                                <div class="animate-in slide-in-from-bottom-4">
+                                    <app-loan-details-form
+                                        [type]="selectedType()!"
+                                        (backClicked)="step.set('select-type')"
+                                        (submitted)="accountCreated.emit($event); closed.emit()"
+                                    />
+                                </div>
+                            } @else if (selectedType()) {
+                                <div class="space-y-6">
+                                    <div
+                                        class="flex gap-4 p-4 bg-muted/30 rounded-sm border border-border"
+                                    >
+                                        <div
+                                            [class]="
+                                                'w-12 h-12 rounded-sm flex items-center justify-center flex-none ' +
+                                                theming().iconBg
+                                            "
+                                        >
+                                            <lucide-icon
+                                                [img]="selectedOption()?.icon || Landmark"
+                                                [class]="'w-6 h-6 ' + theming().iconText"
+                                            />
+                                        </div>
+                                        <div>
+                                            <h3
+                                                class="text-[11px] font-black uppercase tracking-widest mb-0.5"
+                                            >
+                                                {{ selectedOption()?.label }}
+                                            </h3>
+                                            <p
+                                                class="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                            >
+                                                {{ selectedOption()?.description }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <div class="space-y-1.5">
+                                            <label
+                                                for="account-name-input"
+                                                class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                                >Account Name *</label
+                                            >
+                                            <input
+                                                id="account-name-input"
+                                                [ngModel]="accountName()"
+                                                (ngModelChange)="accountName.set($event)"
+                                                placeholder="e.g. Chase Checking"
+                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                            />
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label
+                                                for="institution-name-input"
+                                                class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                                >Institution (Optional)</label
+                                            >
+                                            <input
+                                                id="institution-name-input"
+                                                [ngModel]="institutionName()"
+                                                (ngModelChange)="institutionName.set($event)"
+                                                placeholder="e.g. JPMorgan Chase"
+                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                            />
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label
+                                                for="starting-balance-input"
+                                                class="text-[10px] font-black uppercase tracking-widest opacity-70"
+                                                >Starting Balance</label
+                                            >
+                                            <input
+                                                id="starting-balance-input"
+                                                [ngModel]="initialBalance()"
+                                                (ngModelChange)="initialBalance.set($event)"
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono font-bold transition-all"
+                                            />
+                                            <p
+                                                class="text-[9px] text-muted-foreground italic font-bold uppercase tracking-tighter opacity-50"
+                                            >
+                                                {{
+                                                    selectedType() === 'credit'
+                                                        ? 'Enter amount owed'
+                                                        : 'Current cleared balance'
+                                                }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    @if (error()) {
+                                        <div
+                                            class="p-3 bg-destructive/10 border border-destructive/20 rounded-sm"
+                                        >
+                                            <p
+                                                class="text-[10px] font-black uppercase text-destructive tracking-widest"
+                                            >
+                                                {{ error() }}
+                                            </p>
+                                        </div>
+                                    }
+
+                                    <div class="flex gap-3 pt-4">
+                                        <p-button
+                                            (click)="step.set('select-type')"
+                                            label="Change Type"
+                                            [text]="true"
+                                            severity="secondary"
+                                            class="flex-1"
+                                            styleClass="w-full h-10 text-[10px] font-black uppercase tracking-widest"
+                                        ></p-button>
+                                        <p-button
+                                            (click)="handleCreate()"
+                                            label="Create Account"
+                                            severity="primary"
+                                            class="flex-1"
+                                            styleClass="w-full h-10 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                                        ></p-button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </ng-template>
+                </p-step-panel>
+            </p-step-panels>
+        </p-stepper>
+    </div>
+</p-dialog>

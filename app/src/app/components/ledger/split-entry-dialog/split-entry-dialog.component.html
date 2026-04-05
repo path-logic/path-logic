@@ -1,0 +1,153 @@
+<p-dialog
+    [(visible)]="isOpen"
+    header="Split Transaction Detail"
+    [modal]="true"
+    [closable]="true"
+    [style]="{ width: '40rem' }"
+    styleClass="penny-dialog"
+>
+    <div class="space-y-4">
+        <!-- Summary Header -->
+        <div
+            class="flex justify-between items-center bg-accent/30 p-4 rounded-sm border border-border"
+        >
+            <div>
+                <p
+                    class="text-[9px] text-foreground/90 font-bold uppercase tracking-tighter mb-0.5"
+                >
+                    Target Total
+                </p>
+                <p class="font-mono font-bold text-lg text-primary">
+                    {{ formatCurrency(totalAmount()) }}
+                </p>
+            </div>
+            <div class="text-right">
+                <p
+                    class="text-[9px] text-foreground/90 font-bold uppercase tracking-tighter mb-0.5"
+                >
+                    Remaining
+                </p>
+                <p
+                    class="font-mono font-bold text-lg"
+                    [class.text-emerald-900]="isBalanced()"
+                    [class.text-destructive]="!isBalanced()"
+                    [class.animate-pulse]="!isBalanced()"
+                >
+                    {{ formatCurrency(difference()) }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Split Table -->
+        <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2 ledger-scroll">
+            @for (split of splits(); track split.id; let i = $index) {
+                <div
+                    class="flex gap-3 items-center group animate-in slide-in-from-left-2"
+                    [style.animation-delay]="i * 50 + 'ms'"
+                >
+                    <div class="w-[180px]">
+                        <p-select
+                            [options]="categories()"
+                            optionLabel="name"
+                            optionValue="id"
+                            [ngModel]="split.categoryId ?? 'uncategorized'"
+                            (ngModelChange)="handleUpdateSplit(split.id, { categoryId: $event })"
+                            styleClass="text-[10px] uppercase font-bold w-full"
+                        ></p-select>
+                    </div>
+                    <div class="flex-1">
+                        <input
+                            type="text"
+                            placeholder="Split Memo"
+                            [attr.aria-label]="'Split memo ' + (i + 1)"
+                            [ngModel]="split.memo"
+                            (ngModelChange)="handleUpdateSplit(split.id, { memo: $event })"
+                            class="w-full h-8 px-2 bg-background border border-border rounded-md text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </div>
+                    <div class="w-[120px]">
+                        <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            [attr.aria-label]="'Split amount ' + (i + 1)"
+                            [ngModel]="centsToDollars(split.amount)"
+                            (ngModelChange)="
+                                handleUpdateSplit(split.id, {
+                                    amount: dollarsToCents($event),
+                                })
+                            "
+                            class="w-full h-8 px-2 bg-background border border-border rounded-md text-[10px] font-mono text-right focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </div>
+                    <p-button
+                        (click)="handleRemoveSplit(split.id)"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        size="small"
+                        aria-label="Remove split line"
+                    ></p-button>
+                </div>
+            }
+        </div>
+
+        <p-button
+            (click)="handleAddSplit()"
+            icon="pi pi-plus"
+            label="Add Split Line"
+            [outlined]="true"
+            severity="secondary"
+            class="w-full"
+            styleClass="w-full border-dashed text-[10px] font-bold uppercase"
+        ></p-button>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div
+            class="flex justify-between items-center w-full gap-2 pt-2 border-t border-border mt-2"
+        >
+            @if (!isBalanced()) {
+                <div class="flex gap-2">
+                    <p-button
+                        (click)="handleAdjustTotal()"
+                        icon="pi pi-balance-scale"
+                        [label]="'Adjust Total to ' + formatCurrency(sumSplits())"
+                        [outlined]="true"
+                        size="small"
+                        styleClass="text-[9px] font-black uppercase"
+                    ></p-button>
+                    <p-button
+                        (click)="handleQuickBalance()"
+                        icon="pi pi-calculator"
+                        label="Quick Balance"
+                        [outlined]="true"
+                        severity="success"
+                        size="small"
+                        styleClass="text-[9px] font-black uppercase"
+                    ></p-button>
+                </div>
+            } @else {
+                <div></div>
+            }
+
+            <div class="flex gap-2">
+                <p-button
+                    (click)="onClose()"
+                    label="Cancel"
+                    [text]="true"
+                    severity="secondary"
+                    size="small"
+                    styleClass="text-[10px] font-bold uppercase"
+                ></p-button>
+                <p-button
+                    (click)="handleSave()"
+                    label="Confirm Splits"
+                    [disabled]="!isBalanced()"
+                    size="small"
+                    styleClass="text-[10px] font-black uppercase"
+                ></p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>

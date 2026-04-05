@@ -4,10 +4,11 @@
     "private": true,
     "workspaces": [
         "packages/*",
-        "apps/*"
+        "app",
+        "e2e"
     ],
     "scripts": {
-        "dev": "nx dev web",
+        "dev": "nx serve web",
         "build": "nx run-many --target=build --all",
         "build:core": "nx build @path-logic/core",
         "test": "nx run-many --target=test --all",
@@ -16,15 +17,18 @@
         "format-check": "prettier --check .",
         "typecheck": "nx run-many --target=typecheck --all",
         "docs": "nx docs @path-logic/core",
-        "build-storybook": "nx build-storybook web"
+        "build-storybook": "nx build-storybook web",
+        "prepare": "husky"
     },
     "devDependencies": {
+        "@angular-devkit/build-angular": "~21.0.0",
         "@angular-devkit/core": "~21.0.0",
         "@angular-devkit/schematics": "~21.0.0",
         "@angular/build": "~21.0.0",
         "@angular/cli": "~21.0.0",
         "@angular/compiler-cli": "~21.0.0",
         "@angular/language-service": "~21.0.0",
+        "@compodoc/compodoc": "^1.1.26",
         "@nx/angular": "22.5.4",
         "@nx/devkit": "22.5.4",
         "@nx/eslint-plugin": "22.5.4",
@@ -36,15 +40,15 @@
         "@playwright/test": "^1.36.0",
         "@schematics/angular": "~21.0.0",
         "@storybook/addon-a11y": "^10.2.15",
+        "@storybook/addon-docs": "^10.2.15",
         "@storybook/angular": "^10.2.15",
         "@storybook/blocks": "^8.6.14",
         "@storybook/test": "^8.6.15",
         "@storybook/test-runner": "^0.24.2",
-        "@compodoc/compodoc": "^1.1.26",
-        "@angular-devkit/build-angular": "~21.0.0",
         "@swc-node/register": "~1.11.1",
         "@swc/core": "~1.15.5",
         "@swc/helpers": "~0.5.18",
+        "@types/mathjs": "^9.4.1",
         "@types/sql.js": "^1.4.9",
         "@typescript-eslint/eslint-plugin": "^8.0.0",
         "@typescript-eslint/parser": "^8.0.0",
@@ -56,24 +60,27 @@
         "eslint-config-prettier": "^10.0.0",
         "eslint-plugin-playwright": "^1.6.2",
         "eslint-plugin-simple-import-sort": "^12.1.1",
+        "eslint-plugin-storybook": "10.2.15",
+        "husky": "^9.1.7",
         "jsdom": "^27.1.0",
+        "lint-staged": "^16.4.0",
         "nx": "22.5.4",
         "postcss": "^8.4.5",
         "prettier": "~3.6.2",
         "storybook": "^10.2.15",
         "tailwindcss": "^3.0.2",
+        "tailwindcss-primeui": "^0.6.1",
         "ts-node": "10.9.1",
         "tsup": "^8.0.0",
         "typedoc": "^0.28.17",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.56.1",
         "vite": "^7.3.1",
-        "vitest": "^4.0.18",
-        "eslint-plugin-storybook": "10.2.15",
-        "@storybook/addon-docs": "^10.2.15"
+        "vitest": "^4.0.18"
     },
     "dependencies": {
         "@angular/animations": "~21.0.0",
+        "@angular/cdk": "~21.0.0",
         "@angular/common": "~21.0.0",
         "@angular/compiler": "~21.0.0",
         "@angular/core": "~21.0.0",
@@ -81,14 +88,27 @@
         "@angular/platform-browser": "~21.0.0",
         "@angular/platform-browser-dynamic": "~21.0.0",
         "@angular/router": "~21.0.0",
+        "@primeuix/themes": "^2.0.3",
         "@tanstack/angular-query-experimental": "^5.90.25",
         "@tanstack/angular-table": "^8.21.3",
         "@tanstack/angular-virtual": "^4.0.7",
+        "chart.js": "^4.5.1",
         "firebase": "^12.10.0",
         "lucide-angular": "^0.576.0",
+        "mathjs": "^15.1.1",
+        "primeicons": "^7.0.0",
+        "primeng": "21.0.4",
         "rxjs": "~7.8.0",
         "sql.js": "^1.14.1",
         "tslib": "^2.3.0"
+    },
+    "lint-staged": {
+        "*.{js,ts,html,css,json,md}": [
+            "prettier --write"
+        ],
+        "*.{js,ts,html}": [
+            "eslint --fix"
+        ]
     },
     "overrides": {
         "webpack": "5.105.4"

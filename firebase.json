@@ -2,7 +2,7 @@
     "hosting": [
         {
             "target": "web",
-            "public": "dist/apps/web/browser",
+            "public": "dist/app/browser",
             "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
             "rewrites": [
                 {
@@ -13,7 +13,7 @@
         },
         {
             "target": "storybook",
-            "public": "dist/apps/web/storybook",
+            "public": "dist/app/storybook",
             "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
         }
     ]

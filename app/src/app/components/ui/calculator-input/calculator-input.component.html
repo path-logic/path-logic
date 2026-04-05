@@ -1,0 +1,47 @@
+<p-inputGroup>
+    @if (prefix) {
+        <p-inputGroupAddon>
+            {{ prefix }}
+        </p-inputGroupAddon>
+    }
+    <input
+        pInputText
+        type="text"
+        [placeholder]="placeholder"
+        [disabled]="disabled"
+        [readonly]="readonly"
+        [ngModel]="displayValue()"
+        (ngModelChange)="displayValue.set($event)"
+        (focus)="handleFocus()"
+        (blur)="handleBlur()"
+        (keydown)="handleKeydown($event)"
+        class="w-full text-right font-mono"
+    />
+    <p-inputGroupAddon (click)="op.toggle($event)" class="cursor-pointer hover:bg-surface-100">
+        <i class="pi pi-calculator text-surface-500"></i>
+    </p-inputGroupAddon>
+</p-inputGroup>
+
+<p-popover #op>
+    <div class="flex flex-col w-[250px] min-h-[150px] font-mono text-sm">
+        <div class="flex-grow p-2 overflow-y-auto border-b border-surface-200">
+            @if (history().length === 0) {
+                <div class="text-surface-400 italic text-center mt-8">No history</div>
+            }
+            @for (item of history(); track $index) {
+                <div class="text-right py-1 text-surface-600">
+                    {{ item }}
+                </div>
+            }
+        </div>
+        <div class="p-2 bg-surface-50 flex justify-between items-center">
+            <span class="text-xs text-surface-500">Math inline (e.g., 2000 * .85)</span>
+            <p-button
+                icon="pi pi-check"
+                size="small"
+                [text]="true"
+                (onClick)="op.hide()"
+            ></p-button>
+        </div>
+    </div>
+</p-popover>

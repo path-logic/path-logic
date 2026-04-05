@@ -1,0 +1,153 @@
+<div
+    class="max-w-4xl mx-auto bg-surface-0 border border-surface-200 shadow-sm rounded-lg overflow-hidden"
+>
+    <!-- Header: Type Toggle -->
+    <div class="bg-surface-50 border-b border-surface-200 p-4 flex justify-center">
+        <p-selectbutton
+            [options]="scheduleTypeOptions"
+            [ngModel]="schedule.type"
+            (ngModelChange)="onTypeChange($event)"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full max-w-lg shadow-sm"
+        >
+        </p-selectbutton>
+    </div>
+
+    <div class="p-6">
+        <!-- Main Form Grid: 2 Columns for pixel-perfect alignment -->
+        <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-8">
+            <!-- Left Column: Amount & Payee/Memo -->
+            <div class="flex flex-col gap-6">
+                <!-- Amount -->
+                <div class="flex flex-col gap-2">
+                    <label for="recurring-amount" class="text-sm font-semibold text-surface-700"
+                        >Amount</label
+                    >
+                    <app-calculator-input
+                        id="recurring-amount"
+                        [ngModel]="schedule.amount"
+                        (ngModelChange)="schedule.amount = $event"
+                        class="w-full"
+                    >
+                    </app-calculator-input>
+                </div>
+
+                <!-- Payee -->
+                <div class="flex flex-col gap-2">
+                    <label for="recurring-payee" class="text-sm font-semibold text-surface-700"
+                        >Payee / Description</label
+                    >
+                    <input
+                        id="recurring-payee"
+                        pInputText
+                        type="text"
+                        [(ngModel)]="schedule.payee"
+                        placeholder="e.g. Acme Corp"
+                        class="w-full"
+                    />
+                </div>
+            </div>
+
+            <!-- Right Column: Account & Frequency -->
+            <div class="flex flex-col gap-6">
+                <!-- Account -->
+                <div class="flex flex-col gap-2">
+                    <label for="recurring-account" class="text-sm font-semibold text-surface-700"
+                        >Post to Account</label
+                    >
+                    <p-select
+                        inputId="recurring-account"
+                        [options]="accounts"
+                        [(ngModel)]="schedule.accountId"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Select an Account"
+                        styleClass="w-full"
+                    >
+                    </p-select>
+                </div>
+
+                <!-- Schedule Block: Grid within Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <label
+                            for="recurring-frequency"
+                            class="text-sm font-semibold text-surface-700"
+                            >Frequency</label
+                        >
+                        <p-select
+                            inputId="recurring-frequency"
+                            [options]="frequencyOptions"
+                            [(ngModel)]="schedule.frequency"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="w-full"
+                            appendTo="body"
+                        >
+                        </p-select>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label
+                            for="recurring-next-date"
+                            class="text-sm font-semibold text-surface-700"
+                            >Next Occurrence</label
+                        >
+                        <p-datepicker
+                            inputId="recurring-next-date"
+                            [(ngModel)]="schedule.nextDueDate"
+                            [showIcon]="true"
+                            dateFormat="MM dd, yy"
+                            styleClass="w-full"
+                            appendTo="body"
+                        >
+                        </p-datepicker>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p-divider></p-divider>
+
+        <!-- Split Editor -->
+        <div class="my-6">
+            <h3 class="text-lg font-medium text-surface-800 mb-4">Transaction Details</h3>
+            <app-recurring-split-editor
+                [scheduleType]="schedule.type!"
+                [amount]="schedule.amount!"
+                [splits]="schedule.splits!"
+                (splitsChange)="onSplitsChange($event)"
+            >
+            </app-recurring-split-editor>
+        </div>
+
+        <p-divider></p-divider>
+
+        <!-- Footer / Automation Options -->
+        <div class="flex items-center justify-between mt-6">
+            <div class="flex items-center gap-3">
+                <p-toggleswitch [(ngModel)]="schedule.autoPost"></p-toggleswitch>
+                <div class="flex flex-col">
+                    <span class="text-sm font-medium text-surface-800">Automatic Entry</span>
+                    <span class="text-xs text-surface-500"
+                        >Post to ledger automatically on due date</span
+                    >
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <p-button
+                    label="Cancel"
+                    [outlined]="true"
+                    severity="secondary"
+                    (onClick)="handleCancel()"
+                ></p-button>
+                <p-button
+                    label="Save Schedule"
+                    icon="pi pi-check"
+                    (onClick)="handleSave()"
+                ></p-button>
+            </div>
+        </div>
+    </div>
+</div>

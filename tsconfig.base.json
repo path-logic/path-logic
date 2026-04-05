@@ -24,7 +24,8 @@
         "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@path-logic/core": ["packages/core/src/index.ts"]
+            "@path-logic/core": ["packages/core/src/index.ts"],
+            "@path-logic/feature-flags": ["packages/feature-flags/src/index.ts"]
         }
     },
     "exclude": ["node_modules", "tmp"]

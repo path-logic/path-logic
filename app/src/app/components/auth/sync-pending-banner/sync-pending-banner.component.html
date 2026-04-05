@@ -1,0 +1,15 @@
+@if (showBanner()) {
+    <p-message severity="warn" class="w-full">
+        <ng-template pTemplate="content">
+            <div class="flex items-center justify-between w-full px-2">
+                <div class="flex items-center gap-2">
+                    <i class="pi pi-exclamation-triangle text-amber-700"></i>
+                    <span class="text-[9px] font-bold text-amber-900 uppercase tracking-wider">
+                        Cloud Connection Lost • Changes saved to browser cache only
+                    </span>
+                </div>
+                <p class="text-[8px] text-amber-900 font-mono uppercase">Offline Mode Enabled</p>
+            </div>
+        </ng-template>
+    </p-message>
+}
