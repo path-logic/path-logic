@@ -40,8 +40,16 @@ jobs:
             - name: Run all linters
               run: make lint
 
-            - name: Run all tests
-              run: make test
+            - name: Run all tests with coverage
+              run: npm run test -- --coverage
+
+            - name: Report Coverage to DeepSource
+              if: always()
+              uses: deepsourcelabs/test-coverage-action@master
+              with:
+                  key: javascript
+                  coverage-file: coverage/app/clover.xml
+                  dsn: ${{ secrets.DEEPSOURCE_DSN }}
 
             - name: Check formatting
               run: make format-check
