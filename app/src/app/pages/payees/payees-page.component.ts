@@ -11,7 +11,7 @@ import {
     Phone,
     Plus,
     Search,
-    User,
+    User
 } from 'lucide-angular';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -22,12 +22,12 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
  * Provides search, filtering, and detailed views for each payee.
  */
 @Component({
-    selector: 'app-payees-page',
+    selector: 'payees-page',
     standalone: true,
     imports: [CommonModule, FormsModule, LucideAngularModule, AppShellComponent],
     templateUrl: './payees-page.component.html',
     styleUrls: ['./payees-page.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PayeesPageComponent {
     private readonly ledgerStore = inject(LedgerStore);
@@ -50,7 +50,7 @@ export class PayeesPageComponent {
             p =>
                 p.name.toLowerCase().includes(query) ||
                 (p.city && p.city.toLowerCase().includes(query)) ||
-                (p.notes && p.notes.toLowerCase().includes(query)),
+                (p.notes && p.notes.toLowerCase().includes(query))
         );
     });
 

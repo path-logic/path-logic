@@ -7,12 +7,12 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
  * Mid-session warning banner for when sync is purely local due to authentication issues.
  */
 @Component({
-    selector: 'app-sync-pending-banner',
+    selector: 'sync-pending-banner',
     standalone: true,
     imports: [Message],
     templateUrl: './sync-pending-banner.component.html',
     styleUrl: './sync-pending-banner.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SyncPendingBannerComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);

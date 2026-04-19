@@ -5,11 +5,11 @@ import {
     effect,
     input,
     output,
-    signal,
+    signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { IAccount, ISODateString } from '@path-logic/core';
-import { AccountType, TypeGuards } from '@path-logic/core';
+import type { IAccount, ISODateString } from '@core';
+import { AccountType, TypeGuards } from '@core';
 import {
     Banknote,
     Car,
@@ -21,7 +21,7 @@ import {
     LucideAngularModule,
     Receipt,
     Wallet,
-    X,
+    X
 } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -50,26 +50,26 @@ const PRIMARY_TYPES: Array<IAccountTypeOption> = [
         type: AccountType.Checking,
         icon: Landmark,
         label: 'Checking',
-        description: 'Daily spending & income',
+        description: 'Daily spending & income'
     },
     {
         type: AccountType.Savings,
         icon: Banknote,
         label: 'Savings',
-        description: 'Long-term goals',
+        description: 'Long-term goals'
     },
     {
         type: AccountType.Credit,
         icon: CreditCard,
         label: 'Credit Card',
-        description: 'Track spending & debt',
+        description: 'Track spending & debt'
     },
     {
         type: AccountType.Cash,
         icon: Wallet,
         label: 'Cash',
-        description: 'Physical currency',
-    },
+        description: 'Physical currency'
+    }
 ];
 
 const LOAN_TYPES: Array<IAccountTypeOption> = [
@@ -77,20 +77,20 @@ const LOAN_TYPES: Array<IAccountTypeOption> = [
         type: AccountType.Mortgage,
         icon: Home,
         label: 'Mortgage',
-        description: 'Home loan & equity',
+        description: 'Home loan & equity'
     },
     {
         type: AccountType.AutoLoan,
         icon: Car,
         label: 'Auto Loan',
-        description: 'Vehicle financing',
+        description: 'Vehicle financing'
     },
     {
         type: AccountType.PersonalLoan,
         icon: Receipt,
         label: 'Personal Loan',
-        description: 'Unsecured debt',
-    },
+        description: 'Unsecured debt'
+    }
 ];
 
 /**
@@ -100,38 +100,38 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
     [AccountType.Checking]: {
         accentBg: 'bg-teal-500',
         iconText: 'text-teal-500',
-        iconBg: 'bg-teal-500/10',
+        iconBg: 'bg-teal-500/10'
     },
     [AccountType.Savings]: {
         accentBg: 'bg-blue-500',
         iconText: 'text-blue-500',
-        iconBg: 'bg-blue-500/10',
+        iconBg: 'bg-blue-500/10'
     },
     [AccountType.Credit]: {
         accentBg: 'bg-purple-500',
         iconText: 'text-purple-500',
-        iconBg: 'bg-purple-500/10',
+        iconBg: 'bg-purple-500/10'
     },
     [AccountType.Cash]: {
         accentBg: 'bg-green-500',
         iconText: 'text-green-500',
-        iconBg: 'bg-green-500/10',
+        iconBg: 'bg-green-500/10'
     },
     [AccountType.Mortgage]: {
         accentBg: 'bg-amber-500',
         iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10',
+        iconBg: 'bg-amber-500/10'
     },
     [AccountType.AutoLoan]: {
         accentBg: 'bg-amber-500',
         iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10',
+        iconBg: 'bg-amber-500/10'
     },
     [AccountType.PersonalLoan]: {
         accentBg: 'bg-amber-500',
         iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10',
-    },
+        iconBg: 'bg-amber-500/10'
+    }
 };
 
 /**
@@ -139,7 +139,7 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
  * Guides the user through type selection and basic configuration.
  */
 @Component({
-    selector: 'app-new-account-dialog',
+    selector: 'new-account-dialog',
     standalone: true,
     imports: [
         FormsModule,
@@ -151,11 +151,11 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
         Step,
         StepPanel,
         Button,
-        Dialog,
+        Dialog
     ],
     templateUrl: './new-account-dialog.component.html',
     styleUrls: ['./new-account-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewAccountDialogComponent {
     // Inputs
@@ -236,7 +236,7 @@ export class NewAccountDialogComponent {
             [AccountType.Checking]: 'Main Checking',
             [AccountType.Savings]: 'Savings',
             [AccountType.Credit]: 'Credit Card',
-            [AccountType.Cash]: 'Cash',
+            [AccountType.Cash]: 'Cash'
         };
         const defaultName = defaultNames[type];
         if (defaultName) {
@@ -281,7 +281,7 @@ export class NewAccountDialogComponent {
                 isActive: true,
                 deletedAt: null,
                 createdAt: now,
-                updatedAt: now,
+                updatedAt: now
             };
 
             this.accountCreated.emit(newAccount);
@@ -301,7 +301,7 @@ export class NewAccountDialogComponent {
             TYPE_THEMING[type] || {
                 accentBg: 'bg-primary',
                 iconText: 'text-primary',
-                iconBg: 'bg-primary/10',
+                iconBg: 'bg-primary/10'
             }
         );
     }

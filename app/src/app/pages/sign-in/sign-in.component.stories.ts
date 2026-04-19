@@ -45,13 +45,13 @@ const meta: Meta<SignInComponent> = {
             providers: [
                 provideRouter([]),
                 // Provide a dummy FirebaseService just in case
-                { provide: FirebaseService, useValue: {} },
-            ],
-        }),
+                { provide: FirebaseService, useValue: {} }
+            ]
+        })
     ],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -63,9 +63,9 @@ type Story = StoryObj<SignInComponent>;
 export const Default: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: AuthService, useClass: MockAuthService }],
-        }),
-    ],
+            providers: [{ provide: AuthService, useClass: MockAuthService }]
+        })
+    ]
 };
 
 /**
@@ -74,8 +74,8 @@ export const Default: Story = {
 export const InteractiveLogin: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: AuthService, useClass: MockAuthService }],
-        }),
+            providers: [{ provide: AuthService, useClass: MockAuthService }]
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -85,7 +85,7 @@ export const InteractiveLogin: Story = {
         await expect(canvas.getByText(/authenticating/i)).toBeInTheDocument();
         // Wait for it to finish (MockAuthService takes 800ms)
         await new Promise(resolve => setTimeout(resolve, 1000));
-    },
+    }
 };
 
 /**
@@ -94,8 +94,8 @@ export const InteractiveLogin: Story = {
 export const PopupClosedError: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: AuthService, useClass: MockAuthServiceError }],
-        }),
+            providers: [{ provide: AuthService, useClass: MockAuthServiceError }]
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -103,7 +103,7 @@ export const PopupClosedError: Story = {
         // Wait for error to appear
         await new Promise(resolve => setTimeout(resolve, 1000));
         await expect(canvas.getByText(/sign-in cancelled/i)).toBeInTheDocument();
-    },
+    }
 };
 
 /**
@@ -112,13 +112,13 @@ export const PopupClosedError: Story = {
 export const NetworkError: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: AuthService, useClass: MockAuthServiceNetworkError }],
-        }),
+            providers: [{ provide: AuthService, useClass: MockAuthServiceNetworkError }]
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await userEvent.click(canvas.getByRole('button'));
         await new Promise(resolve => setTimeout(resolve, 1000));
         await expect(canvas.getByText(/network error/i)).toBeInTheDocument();
-    },
+    }
 };

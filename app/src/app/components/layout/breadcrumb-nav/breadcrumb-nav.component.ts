@@ -16,19 +16,19 @@ const routeLabels: Record<string, string> = {
     dev: 'Developer Tools',
     'sync-test': 'Sync Test',
     auth: 'Authentication',
-    info: 'Information',
+    info: 'Information'
 };
 
 /**
  * Breadcrumb navigation component that dynamically resolves labels based on the current URL.
  */
 @Component({
-    selector: 'app-breadcrumb-nav',
+    selector: 'breadcrumb-nav',
     standalone: true,
     imports: [Breadcrumb],
     templateUrl: './breadcrumb-nav.component.html',
     styleUrl: './breadcrumb-nav.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BreadcrumbNavComponent {
     private readonly router: Router = inject(Router);

@@ -8,8 +8,8 @@ const meta: Meta<SecurityOverlayComponent> = {
     component: SecurityOverlayComponent,
     tags: ['autodocs'],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -21,7 +21,7 @@ type Story = StoryObj<SecurityOverlayComponent>;
  */
 export const Visible: Story = {
     args: {
-        isVisible: true,
+        isVisible: true
     },
     play: async ({ canvasElement, args }) => {
         const canvas = within(canvasElement);
@@ -31,7 +31,7 @@ export const Visible: Story = {
         // Angular output binding (unlocked) is difficult to assert directly in play function without an argTypes mock,
         // but finding and clicking the button proves the a11y/interaction works.
         await expect(resumeBtn).toBeInTheDocument();
-    },
+    }
 };
 
 /**
@@ -39,6 +39,6 @@ export const Visible: Story = {
  */
 export const Hidden: Story = {
     args: {
-        isVisible: false,
-    },
+        isVisible: false
+    }
 };

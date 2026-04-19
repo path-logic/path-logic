@@ -1,31 +1,33 @@
-<app-shell>
+<shell>
     @if (account(); as acc) {
         <div class="max-w-4xl mx-auto space-y-6">
             <div class="flex items-center gap-4">
                 <button
                     (click)="handleCancel()"
-                    class="p-0 h-8 w-8 flex items-center justify-center hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-all"
+                    class="p-0 h-8 w-8 flex items-center justify-center hover:bg-surface-100 rounded-full text-surface-500 hover:text-surface-800 transition-all"
                 >
                     <lucide-icon [img]="ChevronLeft" class="w-5 h-5" />
                 </button>
                 <div>
                     <div class="flex items-center gap-2 mb-0.5">
                         <lucide-icon [img]="Info" class="w-3.5 h-3.5 text-primary" />
-                        <h1 class="text-lg font-black uppercase tracking-tight text-foreground">
+                        <h1 class="text-lg font-black uppercase tracking-tight text-surface-800">
                             Account <span class="text-primary">Details</span>
                         </h1>
                     </div>
                     <p
-                        class="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60"
+                        class="text-[10px] text-surface-500 font-bold uppercase tracking-widest opacity-60"
                     >
                         Configure metadata and historical balance adjustments for {{ acc.name }}
                     </p>
                 </div>
             </div>
 
-            <div class="bg-card border border-border rounded-sm overflow-hidden shadow-xl">
+            <div
+                class="bg-surface-0 border border-surface-200 rounded-sm overflow-hidden shadow-xl"
+            >
                 <div class="p-8">
-                    <app-account-edit-form
+                    <account-edit-form
                         [accountData]="acc"
                         (cancelled)="handleCancel()"
                         (submitted)="handleSubmit($event)"
@@ -40,4 +42,4 @@
             ></div>
         </div>
     }
-</app-shell>
+</shell>

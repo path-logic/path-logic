@@ -9,7 +9,7 @@ test.describe('First-Run Flow', () => {
         await expect(page).toHaveTitle(/Path Logic/i);
         // Dashboard should be visible
         await expect(page.locator('app-dashboard, [data-testid="dashboard"]').first()).toBeVisible({
-            timeout: 10_000,
+            timeout: 10_000
         });
     });
 

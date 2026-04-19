@@ -26,7 +26,7 @@ test.describe('Edge Cases', () => {
 
         // Enter splits that don't add up to 100
         const splitInputs = page.locator(
-            'p-dialog input[type="number"], p-dialog p-inputnumber input',
+            'p-dialog input[type="number"], p-dialog p-inputnumber input'
         );
         if ((await splitInputs.count()) >= 2) {
             await splitInputs.nth(0).fill('60');
@@ -60,12 +60,12 @@ test.describe('Edge Cases', () => {
         await expect(page.locator('app-header')).toBeVisible();
         // The accounts container should be in the DOM
         await expect(page.locator('app-accounts-page, main').first()).toBeVisible({
-            timeout: 5_000,
+            timeout: 5_000
         });
     });
 
     test('duplicate QIF import: same file imported twice shows dedup behavior', async ({
-        page,
+        page
     }) => {
         await createCheckingAccount(page, 'Dedup Edge Account', '0');
         await page.getByText('Dedup Edge Account').click();

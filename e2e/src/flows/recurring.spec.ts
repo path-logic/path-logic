@@ -57,7 +57,7 @@ test.describe('Recurring Schedules & Projection', () => {
         await navigateTo(page, '/');
         await waitForAppShell(page);
         await expect(page.locator('app-projection-chart, canvas').first()).toBeVisible({
-            timeout: 10_000,
+            timeout: 10_000
         });
     });
 });

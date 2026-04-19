@@ -127,13 +127,13 @@ export class LedgerStore {
 
     // === Computed Values ===
     readonly netPosition = computed(() =>
-        this.transactions().reduce((sum, tx) => sum + tx.totalAmount, 0),
+        this.transactions().reduce((sum, tx) => sum + tx.totalAmount, 0)
     );
 
     readonly clearedBalance = computed(() =>
         this.transactions()
             .filter(tx => tx.status === TransactionStatus.Cleared)
-            .reduce((sum, tx) => sum + tx.totalAmount, 0),
+            .reduce((sum, tx) => sum + tx.totalAmount, 0)
     );
 
     // === Actions ===
@@ -196,35 +196,35 @@ export const routes: Routes = [
             { path: '', loadComponent: () => import('./pages/dashboard/dashboard.component') },
             {
                 path: 'accounts',
-                loadComponent: () => import('./pages/accounts/accounts.component'),
+                loadComponent: () => import('./pages/accounts/accounts.component')
             },
             {
                 path: 'accounts/:accountId',
-                loadComponent: () => import('./pages/account-detail/account-detail.component'),
+                loadComponent: () => import('./pages/account-detail/account-detail.component')
             },
             { path: 'payees', loadComponent: () => import('./pages/payees/payees.component') },
             {
                 path: 'settings',
-                loadComponent: () => import('./pages/settings/settings.component'),
+                loadComponent: () => import('./pages/settings/settings.component')
             },
             {
                 path: 'settings/dev/auth',
-                loadComponent: () => import('./pages/settings/dev-auth/dev-auth.component'),
+                loadComponent: () => import('./pages/settings/dev-auth/dev-auth.component')
             },
             {
                 path: 'settings/dev/maintenance',
                 loadComponent: () =>
-                    import('./pages/settings/dev-maintenance/dev-maintenance.component'),
+                    import('./pages/settings/dev-maintenance/dev-maintenance.component')
             },
             {
                 path: 'settings/ff',
                 loadComponent: () =>
-                    import('./pages/settings/feature-flags/feature-flags.component'),
-            },
-        ],
+                    import('./pages/settings/feature-flags/feature-flags.component')
+            }
+        ]
     },
 
-    { path: '**', redirectTo: '' },
+    { path: '**', redirectTo: '' }
 ];
 ```
 
@@ -347,8 +347,8 @@ export const environment: IEnvironment = {
         projectId: 'path-logic-dev',
         storageBucket: 'path-logic-dev.appspot.com',
         messagingSenderId: '...',
-        appId: '...',
-    },
+        appId: '...'
+    }
 };
 
 // environments/environment.staging.ts
@@ -361,8 +361,8 @@ export const environment: IEnvironment = {
         projectId: 'path-logic-staging',
         storageBucket: 'path-logic-staging.appspot.com',
         messagingSenderId: '...',
-        appId: '...',
-    },
+        appId: '...'
+    }
 };
 
 // environments/environment.prod.ts
@@ -375,8 +375,8 @@ export const environment: IEnvironment = {
         projectId: 'path-logic-prod',
         storageBucket: 'path-logic-prod.appspot.com',
         messagingSenderId: '...',
-        appId: '...',
-    },
+        appId: '...'
+    }
 };
 ```
 

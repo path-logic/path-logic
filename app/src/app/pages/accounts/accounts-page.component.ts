@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AccountType, type IAccount, Money } from '@path-logic/core';
+import { AccountType, type IAccount, Money } from '@core';
 import {
     Banknote,
     ChevronDown,
@@ -10,7 +10,7 @@ import {
     Landmark,
     LucideAngularModule,
     Plus,
-    Wallet,
+    Wallet
 } from 'lucide-angular';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -24,7 +24,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
  * if no accounts exist.
  */
 @Component({
-    selector: 'app-accounts-page',
+    selector: 'accounts-page',
     standalone: true,
     imports: [
         CommonModule,
@@ -32,11 +32,11 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
         LucideAngularModule,
         WelcomeWizardComponent,
         NewAccountDialogComponent,
-        AppShellComponent,
+        AppShellComponent
     ],
     templateUrl: './accounts-page.component.html',
     styleUrls: ['./accounts-page.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountsPageComponent {
     private readonly ledgerStore = inject(LedgerStore);

@@ -8,8 +8,8 @@ const config: StorybookConfig = {
     addons: [getAbsolutePath('@storybook/addon-a11y'), getAbsolutePath('@storybook/addon-docs')],
     framework: {
         name: getAbsolutePath('@storybook/angular'),
-        options: {},
-    },
+        options: {}
+    }
 };
 
 export default config;

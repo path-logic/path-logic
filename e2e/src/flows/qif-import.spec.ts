@@ -21,12 +21,12 @@ test.describe('QIF Import & Reconciliation', () => {
 
         // Wait for reconciliation dialog to appear
         await expect(page.locator('app-reconciliation-dialog, p-dialog')).toBeVisible({
-            timeout: 15_000,
+            timeout: 15_000
         });
     });
 
     test('QIF import deduplication: re-importing same file shows no new records', async ({
-        page,
+        page
     }) => {
         await createCheckingAccount(page, 'Dedup Account', '0');
         await page.getByText('Dedup Account').click();

@@ -6,11 +6,11 @@ import {
     forwardRef,
     Input,
     Output,
-    signal,
+    signal
 } from '@angular/core';
 import type { ControlValueAccessor } from '@angular/forms';
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { formatCurrency } from '@path-logic/core';
+import { formatCurrency } from '@core';
 import { evaluate } from 'mathjs';
 import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
@@ -19,7 +19,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
 
 @Component({
-    selector: 'app-calculator-input',
+    selector: 'calculator-input',
     standalone: true,
     imports: [
         CommonModule,
@@ -28,17 +28,17 @@ import { PopoverModule } from 'primeng/popover';
         InputGroupModule,
         InputGroupAddonModule,
         PopoverModule,
-        ButtonModule,
+        ButtonModule
     ],
     templateUrl: './calculator-input.component.html',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => CalculatorInputComponent),
-            multi: true,
-        },
+            multi: true
+        }
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CalculatorInputComponent implements ControlValueAccessor {
     @Input() placeholder = '$0.00';

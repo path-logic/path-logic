@@ -1,7 +1,8 @@
 {
     "projects": {
         "default": "path-logic",
-        "staging": "path-logic-staging"
+        "staging": "path-logic-staging",
+        "dev": "path-logic-dev-93185"
     },
     "targets": {
         "path-logic": {

@@ -61,7 +61,7 @@ export class SQLiteMergeEngine {
      */
     public static async mergeRemoteIntoLocal(
         remoteDb: Database,
-        localDb: Database,
+        localDb: Database
     ): Promise<boolean> {
         let hasChanges = false;
 
@@ -88,7 +88,7 @@ export class SQLiteMergeEngine {
         remoteDb: Database,
         localDb: Database,
         tableName: string,
-        mapper: (row: Array<SqlValue>) => T,
+        mapper: (row: Array<SqlValue>) => T
     ): boolean {
         let hasChanges = false;
 
@@ -102,7 +102,7 @@ export class SQLiteMergeEngine {
 
             // 2. Check for local item
             const localResult = localDb.exec(`SELECT * FROM ${tableName} WHERE id = ? `, [
-                remoteItem.id,
+                remoteItem.id
             ]);
 
             if (localResult.length === 0 || !localResult[0] || localResult[0].values.length === 0) {
@@ -140,7 +140,7 @@ export class SQLiteMergeEngine {
 
             const localResult = localDb.exec(
                 `SELECT updatedAt, isDeleted FROM transactions WHERE id = ? `,
-                [remoteTx.id],
+                [remoteTx.id]
             );
             const existsLocally =
                 localResult.length > 0 &&
@@ -168,7 +168,7 @@ export class SQLiteMergeEngine {
                 // Fetch remote splits
                 const remoteSplitsResult = remoteDb.exec(
                     `SELECT * FROM splits WHERE transaction_id = ? `,
-                    [remoteTx.id],
+                    [remoteTx.id]
                 );
                 const remoteSplits = (remoteSplitsResult[0]?.values || [])
                     .filter((r): r is Array<SqlValue> => r !== null)
@@ -191,8 +191,8 @@ export class SQLiteMergeEngine {
                         remoteTx.isDeleted,
                         remoteTx.clientId,
                         remoteTx.createdAt ?? null,
-                        remoteTx.updatedAt,
-                    ],
+                        remoteTx.updatedAt
+                    ]
                 );
 
                 // Update splits
@@ -206,7 +206,7 @@ export class SQLiteMergeEngine {
                         split.amount as SqlValue,
                         split.isDeleted,
                         split.clientId,
-                        split.updatedAt,
+                        split.updatedAt
                     ]);
                 }
             }
@@ -228,7 +228,7 @@ export class SQLiteMergeEngine {
 
             const localResult = localDb.exec(
                 `SELECT updatedAt, isDeleted FROM recurring_schedules WHERE id = ? `,
-                [remoteSchedule.id],
+                [remoteSchedule.id]
             );
             const existsLocally =
                 localResult.length > 0 &&
@@ -256,7 +256,7 @@ export class SQLiteMergeEngine {
                 // Fetch remote splits
                 const remoteSplitsResult = remoteDb.exec(
                     `SELECT * FROM recurring_splits WHERE schedule_id = ? `,
-                    [remoteSchedule.id],
+                    [remoteSchedule.id]
                 );
                 const remoteSplits = (remoteSplitsResult[0]?.values || [])
                     .filter((r): r is Array<SqlValue> => r !== null)
@@ -266,7 +266,7 @@ export class SQLiteMergeEngine {
                 localDb.run(
                     SQL_QUERIES.INSERT_RECURRING_SCHEDULE.replace(
                         'INSERT INTO',
-                        'INSERT OR REPLACE INTO',
+                        'INSERT OR REPLACE INTO'
                     ),
                     [
                         remoteSchedule.id,
@@ -286,13 +286,13 @@ export class SQLiteMergeEngine {
                         remoteSchedule.isDeleted,
                         remoteSchedule.clientId,
                         remoteSchedule.createdAt ?? null,
-                        remoteSchedule.updatedAt,
-                    ],
+                        remoteSchedule.updatedAt
+                    ]
                 );
 
                 // Update splits
                 localDb.run('DELETE FROM recurring_splits WHERE schedule_id = ?', [
-                    remoteSchedule.id,
+                    remoteSchedule.id
                 ]);
                 for (const split of remoteSplits) {
                     localDb.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
@@ -303,7 +303,7 @@ export class SQLiteMergeEngine {
                         split.amount as SqlValue,
                         split.isDeleted,
                         split.clientId,
-                        split.updatedAt,
+                        split.updatedAt
                     ]);
                 }
             }
@@ -329,7 +329,7 @@ export class SQLiteMergeEngine {
             isDeleted: row[10] as number,
             clientId: row[11] as string,
             createdAt: row[12] as string,
-            updatedAt: row[13] as string,
+            updatedAt: row[13] as string
         };
     }
 
@@ -342,7 +342,7 @@ export class SQLiteMergeEngine {
             amount: row[4] as number,
             isDeleted: row[5] as number,
             clientId: row[6] as string,
-            updatedAt: row[7] as string,
+            updatedAt: row[7] as string
         };
     }
 
@@ -357,7 +357,7 @@ export class SQLiteMergeEngine {
             isDeleted: row[6] as number,
             clientId: row[7] as string,
             createdAt: row[8] as string,
-            updatedAt: row[9] as string,
+            updatedAt: row[9] as string
         };
     }
 
@@ -378,7 +378,7 @@ export class SQLiteMergeEngine {
             isDeleted: row[12] as number,
             clientId: row[13] as string,
             createdAt: row[14] as string,
-            updatedAt: row[15] as string,
+            updatedAt: row[15] as string
         };
     }
 
@@ -392,7 +392,7 @@ export class SQLiteMergeEngine {
             isDeleted: row[5] as number,
             clientId: row[6] as string,
             createdAt: row[7] as string,
-            updatedAt: row[8] as string,
+            updatedAt: row[8] as string
         };
     }
 
@@ -415,7 +415,7 @@ export class SQLiteMergeEngine {
             isDeleted: row[14] as number,
             clientId: row[15] as string,
             createdAt: row[16] as string,
-            updatedAt: row[17] as string,
+            updatedAt: row[17] as string
         };
     }
 
@@ -428,7 +428,7 @@ export class SQLiteMergeEngine {
             amount: row[4] as number,
             isDeleted: row[5] as number,
             clientId: row[6] as string,
-            updatedAt: row[7] as string,
+            updatedAt: row[7] as string
         };
     }
 
@@ -445,7 +445,7 @@ export class SQLiteMergeEngine {
     private static updateItem(db: Database, table: string, item: IMergeable): void {
         const itemObj = item as unknown as Record<string, unknown>;
         const columns = Object.keys(itemObj).filter(
-            k => k !== 'id' && typeof itemObj[k] !== 'undefined',
+            k => k !== 'id' && typeof itemObj[k] !== 'undefined'
         );
         const setClause = columns.map(c => `${c} = ?`).join(', ');
         const values = columns.map(c => itemObj[c]) as Array<SqlValue>;

@@ -6,8 +6,8 @@ import {
     type IRecurringSchedule,
     type ISplit,
     PaymentMethod,
-    ScheduleType,
-} from '@path-logic/core';
+    ScheduleType
+} from '@core';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DividerModule } from 'primeng/divider';
@@ -20,7 +20,7 @@ import { CalculatorInputComponent } from '../../ui/calculator-input/calculator-i
 import { RecurringSplitEditorComponent } from '../split-editor/split-editor.component';
 
 @Component({
-    selector: 'app-recurring-payment-form',
+    selector: 'recurring-payment-form',
     standalone: true,
     imports: [
         CommonModule,
@@ -33,10 +33,10 @@ import { RecurringSplitEditorComponent } from '../split-editor/split-editor.comp
         ButtonModule,
         DividerModule,
         CalculatorInputComponent,
-        RecurringSplitEditorComponent,
+        RecurringSplitEditorComponent
     ],
     templateUrl: './recurring-form.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RecurringPaymentFormComponent {
     @Input() schedule: Partial<IRecurringSchedule> = {
@@ -45,7 +45,7 @@ export class RecurringPaymentFormComponent {
         paymentMethod: PaymentMethod.ElectronicTransfer,
         autoPost: false,
         amount: 0,
-        splits: [],
+        splits: []
     };
     @Output() saved = new EventEmitter<Partial<IRecurringSchedule>>();
     @Output() cancelled = new EventEmitter<void>();
@@ -55,12 +55,12 @@ export class RecurringPaymentFormComponent {
     scheduleTypeOptions = [
         { label: 'Debit', value: ScheduleType.Debit },
         { label: 'Deposit', value: ScheduleType.Deposit },
-        { label: 'Paycheck', value: ScheduleType.Paycheck },
+        { label: 'Paycheck', value: ScheduleType.Paycheck }
     ];
 
     frequencyOptions = Object.values(Frequency).map(f => ({
         label: f.replace(/_/g, ' '),
-        value: f,
+        value: f
     }));
 
     handleSave(): void {

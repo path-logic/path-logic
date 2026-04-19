@@ -1,7 +1,13 @@
 @if (breadcrumbs().length > 0) {
-    <p-breadcrumb
-        [model]="breadcrumbs()"
-        [home]="home"
-        styleClass="text-[10px] uppercase font-bold tracking-wider"
-    ></p-breadcrumb>
+    <div
+        class="flex-none w-full border-b border-surface-200/50 bg-surface-0/50 backdrop-blur-sm px-4"
+    >
+        <div class="max-w-7xl mx-auto py-2">
+            <p-breadcrumb
+                [model]="breadcrumbs()"
+                [home]="home"
+                styleClass="text-[10px] uppercase font-bold tracking-wider"
+            ></p-breadcrumb>
+        </div>
+    </div>
 }

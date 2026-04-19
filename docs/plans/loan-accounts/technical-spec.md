@@ -18,7 +18,7 @@ export enum AccountType {
     Cash = 'CASH',
     Mortgage = 'MORTGAGE',
     AutoLoan = 'AUTO_LOAN',
-    PersonalLoan = 'PERSONAL_LOAN',
+    PersonalLoan = 'PERSONAL_LOAN'
 }
 
 export interface IAccount {
@@ -83,7 +83,7 @@ export interface IPersonalLoanMetadata {
 export function calculateMonthlyPayment(
     principal: Cents,
     annualRate: number,
-    termMonths: number,
+    termMonths: number
 ): Cents {
     if (annualRate === 0) {
         return Math.round(principal / termMonths);
@@ -103,7 +103,7 @@ export function calculateMonthlyPayment(
 export function calculateTotalInterest(
     monthlyPayment: Cents,
     termMonths: number,
-    principal: Cents,
+    principal: Cents
 ): Cents {
     const totalPaid: Cents = monthlyPayment * termMonths;
     return totalPaid - principal;
@@ -116,13 +116,13 @@ export function calculatePayoffDate(
     currentBalance: Cents,
     monthlyPayment: Cents,
     interestRate: number,
-    startDate: ISODateString,
+    startDate: ISODateString
 ): ISODateString {
     // Simplified calculation - actual implementation would use amortization schedule
     const monthlyRate: number = interestRate / 12;
     const monthsRemaining: number = Math.ceil(
         Math.log(monthlyPayment / (monthlyPayment - Math.abs(currentBalance / 100) * monthlyRate)) /
-            Math.log(1 + monthlyRate),
+            Math.log(1 + monthlyRate)
     );
 
     const payoffDate: Date = new Date(startDate);
@@ -154,11 +154,11 @@ export function validateLoanDetails(details: ILoanDetails, currentBalance: Cents
     }
 
     const minPayment: Cents = Math.round(
-        (details.originalAmount / 100) * (details.interestRate / 12) * 100,
+        (details.originalAmount / 100) * (details.interestRate / 12) * 100
     );
     if (details.monthlyPayment < minPayment) {
         errors.push(
-            `Monthly payment must be at least $${(minPayment / 100).toFixed(2)} (interest-only)`,
+            `Monthly payment must be at least $${(minPayment / 100).toFixed(2)} (interest-only)`
         );
     }
 
@@ -237,8 +237,8 @@ export function insertAccount(account: IAccount): void {
             account.pendingBalance,
             account.isActive ? 1 : 0,
             account.createdAt,
-            account.updatedAt,
-        ],
+            account.updatedAt
+        ]
     );
 
     // Insert loan details if present
@@ -264,8 +264,8 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
             details.startDate,
             details.metadata ? JSON.stringify(details.metadata) : null,
             now,
-            now,
-        ],
+            now
+        ]
     );
 }
 
@@ -283,7 +283,7 @@ export function getLoanDetails(accountId: string): ILoanDetails | null {
         monthlyPayment,
         paymentDueDay,
         startDate,
-        metadataJson,
+        metadataJson
     ] = row.values[0];
 
     return {
@@ -293,7 +293,7 @@ export function getLoanDetails(accountId: string): ILoanDetails | null {
         monthlyPayment: monthlyPayment as Cents,
         paymentDueDay: paymentDueDay as number,
         startDate: startDate as ISODateString,
-        metadata: metadataJson ? JSON.parse(metadataJson as string) : undefined,
+        metadata: metadataJson ? JSON.parse(metadataJson as string) : undefined
     };
 }
 
@@ -313,7 +313,7 @@ export function getAllAccounts(): Array<IAccount> {
             pendingBalance: row[5] as Cents,
             isActive: Boolean(row[6]),
             createdAt: row[7] as ISODateString,
-            updatedAt: row[8] as ISODateString,
+            updatedAt: row[8] as ISODateString
         };
 
         // Load loan details if this is a loan account
@@ -383,7 +383,7 @@ export function migrateToLoanSupport(): void {
 
     // Check if migration needed
     const tables = db.exec(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='loan_details'",
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='loan_details'"
     );
     if (tables && tables[0] && tables[0].values.length > 0) {
         return; // Already migrated

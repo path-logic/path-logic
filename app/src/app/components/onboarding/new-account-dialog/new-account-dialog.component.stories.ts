@@ -7,7 +7,7 @@ import { NewAccountDialogComponent } from './new-account-dialog.component';
 
 const mockSettingsStore = {
     getSetting: () => 'false',
-    updateSetting: () => {},
+    updateSetting: () => {}
 };
 
 const meta: Meta<NewAccountDialogComponent> = {
@@ -16,12 +16,12 @@ const meta: Meta<NewAccountDialogComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }],
-        }),
+            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
+        })
     ],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -29,19 +29,19 @@ type Story = StoryObj<NewAccountDialogComponent>;
 
 export const Open: Story = {
     args: {
-        isOpen: true,
-    },
+        isOpen: true
+    }
 };
 
 export const Closed: Story = {
     args: {
-        isOpen: false,
-    },
+        isOpen: false
+    }
 };
 
 export const InteractiveStandardAccountFlow: Story = {
     args: {
-        isOpen: true,
+        isOpen: true
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -60,5 +60,5 @@ export const InteractiveStandardAccountFlow: Story = {
         const createBtn = canvas.getByRole('button', { name: /create account/i });
         await expect(createBtn).not.toBeDisabled();
         // userEvent.click(createBtn); // Would fire angular output
-    },
+    }
 };

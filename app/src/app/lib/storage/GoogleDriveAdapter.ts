@@ -64,9 +64,9 @@ export async function findDatabaseFile(accessToken: string): Promise<IDriveFile 
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${DB_FILENAME}'`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!response.ok) {
@@ -88,9 +88,9 @@ export async function factoryResetDrive(accessToken: string): Promise<void> {
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=(name='${DB_FILENAME}' or name='${LOCK_FILENAME}')`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!filesResponse.ok) {
@@ -103,8 +103,8 @@ export async function factoryResetDrive(accessToken: string): Promise<void> {
         const deleteResponse = await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
             method: 'DELETE',
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
+                Authorization: `Bearer ${accessToken}`
+            }
         });
 
         if (!deleteResponse.ok && deleteResponse.status !== 404) {
@@ -119,8 +119,8 @@ export async function factoryResetDrive(accessToken: string): Promise<void> {
 export async function downloadDatabase(accessToken: string, fileId: string): Promise<Uint8Array> {
     const response: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+            Authorization: `Bearer ${accessToken}`
+        }
     });
 
     if (!response.ok) {
@@ -137,10 +137,10 @@ export async function downloadDatabase(accessToken: string, fileId: string): Pro
 export async function uploadDatabase(
     accessToken: string,
     encryptedData: Uint8Array,
-    existingFileId?: string,
+    existingFileId?: string
 ): Promise<string> {
     const metadata: { name: string; parents?: Array<string> } = {
-        name: DB_FILENAME,
+        name: DB_FILENAME
     };
 
     if (!existingFileId) {
@@ -160,9 +160,9 @@ export async function uploadDatabase(
     const response: Response = await fetch(url, {
         method,
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`
         },
-        body: form,
+        body: form
     });
 
     if (!response.ok) {
@@ -181,9 +181,9 @@ export async function getLockStatus(accessToken: string): Promise<ILockStatus | 
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'&fields=files(id,name,modifiedTime)`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!response.ok) {
@@ -201,8 +201,8 @@ export async function getLockStatus(accessToken: string): Promise<ILockStatus | 
     const fileId: string = firstFile.id;
     const fileResponse: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+            Authorization: `Bearer ${accessToken}`
+        }
     });
 
     if (!fileResponse.ok) {
@@ -222,7 +222,7 @@ export async function getLockStatus(accessToken: string): Promise<ILockStatus | 
 export async function acquireLock(
     accessToken: string,
     clientId: string,
-    deviceName: string,
+    deviceName: string
 ): Promise<boolean> {
     // 1. Check for existing lock
     const existingLock = await getLockStatus(accessToken);
@@ -245,21 +245,21 @@ export async function acquireLock(
         deviceName,
         issuedAt: now.toISOString(),
         expiresAt: expiresAt.toISOString(),
-        status: 'merging',
+        status: 'merging'
     };
 
     const metadata = {
         name: LOCK_FILENAME,
-        parents: ['appDataFolder'],
+        parents: ['appDataFolder']
     };
 
     const searchResponse: Response = await fetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!searchResponse.ok) {
@@ -271,7 +271,7 @@ export async function acquireLock(
         for (const file of searchData.files) {
             await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
-                headers: { Authorization: `Bearer ${accessToken}` },
+                headers: { Authorization: `Bearer ${accessToken}` }
             });
         }
     }
@@ -283,9 +283,9 @@ export async function acquireLock(
     const response: Response = await fetch(`${UPLOAD_API_BASE}/files?uploadType=multipart`, {
         method: 'POST',
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`
         },
-        body: form,
+        body: form
     });
 
     if (!response.ok) {
@@ -307,9 +307,9 @@ export async function releaseLock(accessToken: string): Promise<void> {
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!response.ok) {
@@ -325,8 +325,8 @@ export async function releaseLock(accessToken: string): Promise<void> {
             await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
+                    Authorization: `Bearer ${accessToken}`
+                }
             });
         }
     }
@@ -340,9 +340,9 @@ export async function forceReleaseLock(accessToken: string): Promise<void> {
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        },
+                Authorization: `Bearer ${accessToken}`
+            }
+        }
     );
 
     if (!response.ok) {
@@ -356,8 +356,8 @@ export async function forceReleaseLock(accessToken: string): Promise<void> {
             await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
+                    Authorization: `Bearer ${accessToken}`
+                }
             });
         }
     }

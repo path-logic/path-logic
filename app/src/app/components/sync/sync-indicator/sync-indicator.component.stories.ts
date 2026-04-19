@@ -14,7 +14,7 @@ const createMockState = (
     syncStatus: string,
     authError: boolean,
     isSyncing: boolean,
-    lastSyncTime: number,
+    lastSyncTime: number
 ) => {
     return [
         {
@@ -22,29 +22,29 @@ const createMockState = (
             useValue: {
                 syncStatus: signal(syncStatus),
                 authError: signal(authError),
-                hasLocalFallback: signal(true),
-            },
+                hasLocalFallback: signal(true)
+            }
         },
         {
             provide: SyncService,
             useValue: {
                 isSyncing: signal(isSyncing),
-                getSyncStatus: () => ({ lastSyncTime }),
-            },
+                getSyncStatus: () => ({ lastSyncTime })
+            }
         },
         {
             provide: AuthService,
             useValue: {
-                signInWithGoogle: async () => console.log('Mock signInWithGoogle called'),
-            },
-        },
+                signInWithGoogle: async () => console.log('Mock signInWithGoogle called')
+            }
+        }
     ];
 };
 
 const meta: Meta<SyncIndicatorComponent> = {
     title: 'Layout/SyncIndicatorComponent',
     component: SyncIndicatorComponent,
-    tags: ['autodocs'],
+    tags: ['autodocs']
 };
 
 export default meta;
@@ -56,9 +56,9 @@ type Story = StoryObj<SyncIndicatorComponent>;
 export const IdleSynced: Story = {
     decorators: [
         applicationConfig({
-            providers: createMockState('idle', false, false, Date.now() - 120000), // 2 mins ago
-        }),
-    ],
+            providers: createMockState('idle', false, false, Date.now() - 120000) // 2 mins ago
+        })
+    ]
 };
 
 /**
@@ -67,13 +67,13 @@ export const IdleSynced: Story = {
 export const ActiveSyncing: Story = {
     decorators: [
         applicationConfig({
-            providers: createMockState('idle', false, true, Date.now() - 5000), // 5 seconds ago
-        }),
+            providers: createMockState('idle', false, true, Date.now() - 5000) // 5 seconds ago
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await expect(canvas.getByText(/active/i)).toBeInTheDocument();
-    },
+    }
 };
 
 /**
@@ -83,15 +83,15 @@ export const ActiveSyncing: Story = {
 export const AuthError: Story = {
     decorators: [
         applicationConfig({
-            providers: createMockState('error', true, false, Date.now() - 3600000), // 1 hour ago
-        }),
+            providers: createMockState('error', true, false, Date.now() - 3600000) // 1 hour ago
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await expect(canvas.getByText(/sync error/i)).toBeInTheDocument();
         const button = canvas.getByRole('button');
         await userEvent.click(button); // Should trigger signInWithGoogle (mocked)
-    },
+    }
 };
 
 /**
@@ -101,11 +101,11 @@ export const AuthError: Story = {
 export const LocalOnly: Story = {
     decorators: [
         applicationConfig({
-            providers: createMockState('pending-local', true, false, Date.now() - 3600000), // 1 hour ago
-        }),
+            providers: createMockState('pending-local', true, false, Date.now() - 3600000) // 1 hour ago
+        })
     ],
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await expect(canvas.getByText(/local only/i)).toBeInTheDocument();
-    },
+    }
 };

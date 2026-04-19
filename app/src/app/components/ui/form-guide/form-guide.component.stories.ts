@@ -21,7 +21,7 @@ const mockSettingsStore = {
         if (key.endsWith('_disabled')) {
             showGuides = value === 'false';
         }
-    },
+    }
 };
 
 const meta: Meta<FormGuideComponent> = {
@@ -30,9 +30,9 @@ const meta: Meta<FormGuideComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }],
-        }),
-    ],
+            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
+        })
+    ]
 };
 
 export default meta;
@@ -46,16 +46,16 @@ export const Default: Story = {
             interestRate: {
                 title: 'Interest Rate',
                 description:
-                    'Enter the annual percentage rate (APR) provided by your lender. Usually between 3% and 8% for a mortgage.',
-            },
-        },
+                    'Enter the annual percentage rate (APR) provided by your lender. Usually between 3% and 8% for a mortgage.'
+            }
+        }
     },
     // Reset global state for this story
     parameters: {
         beforeEach: () => {
             showGuides = true;
-        },
-    },
+        }
+    }
 };
 
 export const InactiveBackground: Story = {
@@ -65,15 +65,15 @@ export const InactiveBackground: Story = {
         content: {
             interestRate: {
                 title: 'Interest Rate',
-                description: 'This guide belongs to a field that is NOT currently focused.',
-            },
-        },
+                description: 'This guide belongs to a field that is NOT currently focused.'
+            }
+        }
     },
     parameters: {
         beforeEach: () => {
             showGuides = true;
-        },
-    },
+        }
+    }
 };
 
 export const InteractiveDismiss: Story = {
@@ -83,14 +83,14 @@ export const InteractiveDismiss: Story = {
         content: {
             testField: {
                 title: 'Dismissible Guide',
-                description: 'You can test dismissing this guide forever.',
-            },
-        },
+                description: 'You can test dismissing this guide forever.'
+            }
+        }
     },
     parameters: {
         beforeEach: () => {
             showGuides = true;
-        },
+        }
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -110,5 +110,5 @@ export const InteractiveDismiss: Story = {
         // Wait for change detection hook
         await new Promise(resolve => setTimeout(resolve, 100));
         await expect(canvas.queryByText(/dismissible guide/i)).not.toBeInTheDocument();
-    },
+    }
 };

@@ -11,12 +11,12 @@ import { AppShellComponent } from '../../../../components/layout/app-shell/app-s
  * will be ported in a future phase.
  */
 @Component({
-    selector: 'app-sync-test',
+    selector: 'sync-test',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
     templateUrl: './sync-test.component.html',
     styleUrls: ['./sync-test.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SyncTestComponent {
     // Lucide Icons

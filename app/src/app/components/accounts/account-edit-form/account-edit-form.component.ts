@@ -7,7 +7,7 @@ import {
     inject,
     input,
     output,
-    signal,
+    signal
 } from '@angular/core';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,9 +16,9 @@ import type {
     IAutoLoanMetadata,
     ILoanDetails,
     IMortgageMetadata,
-    ISODateString,
-} from '@path-logic/core';
-import { AccountType, LoanCalculations, TypeGuards } from '@path-logic/core';
+    ISODateString
+} from '@core';
+import { AccountType, LoanCalculations, TypeGuards } from '@core';
 import { AlertCircle, LucideAngularModule } from 'lucide-angular';
 
 /**
@@ -26,12 +26,12 @@ import { AlertCircle, LucideAngularModule } from 'lucide-angular';
  * Handles validation and complex loan-specific metadata.
  */
 @Component({
-    selector: 'app-account-edit-form',
+    selector: 'account-edit-form',
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
     templateUrl: './account-edit-form.component.html',
     styleUrls: ['./account-edit-form.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountEditFormComponent implements OnInit {
     private readonly fb = inject(FormBuilder);
@@ -82,7 +82,7 @@ export class AccountEditFormComponent implements OnInit {
             propertyAddress: [mortgage?.propertyAddress || ''],
             escrowIncluded: [mortgage?.escrowIncluded || false],
             vehicleMake: [auto?.vehicleMake || ''],
-            vehicleModel: [auto?.vehicleModel || ''],
+            vehicleModel: [auto?.vehicleModel || '']
         });
     }
 
@@ -111,25 +111,25 @@ export class AccountEditFormComponent implements OnInit {
                     termMonths: parseInt(formValues.termMonths, 10),
                     monthlyPayment: paymentCents,
                     paymentDueDay: parseInt(formValues.paymentDueDay, 10),
-                    startDate: new Date(formValues.startDate).toISOString() as ISODateString,
+                    startDate: new Date(formValues.startDate).toISOString() as ISODateString
                 };
 
                 if (formValues.type === AccountType.Mortgage) {
                     loanDetails.metadata = {
                         propertyAddress: formValues.propertyAddress,
-                        escrowIncluded: formValues.escrowIncluded,
+                        escrowIncluded: formValues.escrowIncluded
                     } as IMortgageMetadata;
                 } else if (formValues.type === AccountType.AutoLoan) {
                     loanDetails.metadata = {
                         vehicleMake: formValues.vehicleMake,
-                        vehicleModel: formValues.vehicleModel,
+                        vehicleModel: formValues.vehicleModel
                     } as IAutoLoanMetadata;
                 }
 
                 // Add validation from Core
                 const validationErrors = LoanCalculations.validateLoanDetails(
                     loanDetails,
-                    this.accountData().clearedBalance,
+                    this.accountData().clearedBalance
                 );
                 if (validationErrors.length > 0) {
                     this.error.set(validationErrors[0] ?? 'Invalid loan details');
@@ -145,7 +145,7 @@ export class AccountEditFormComponent implements OnInit {
                 type: formValues.type,
                 isActive: formValues.isActive,
                 updatedAt: now,
-                ...(loanDetails ? { loanDetails } : {}),
+                ...(loanDetails ? { loanDetails } : {})
             };
 
             this.submitted.emit(updatedAccount);

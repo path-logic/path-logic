@@ -32,7 +32,7 @@ test.describe('Persistence & Navigation', () => {
 
         // Ledger should render
         await expect(
-            page.locator('app-account-ledger, [data-testid="ledger"]').first(),
+            page.locator('app-account-ledger, [data-testid="ledger"]').first()
         ).toBeVisible({ timeout: 10_000 });
     });
 
@@ -41,7 +41,7 @@ test.describe('Persistence & Navigation', () => {
             { path: '/', label: 'Overview' },
             { path: '/accounts', label: 'Accounts' },
             { path: '/payees', label: 'Payees' },
-            { path: '/recurring', label: 'Recurring' },
+            { path: '/recurring', label: 'Recurring' }
         ];
 
         for (const route of routes) {

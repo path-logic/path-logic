@@ -6,12 +6,12 @@ import { ArrowRight, Lock, LucideAngularModule, ShieldAlert } from 'lucide-angul
  * Prevents unauthorized viewing of PII (Personally Identifiable Information).
  */
 @Component({
-    selector: 'app-security-overlay',
+    selector: 'security-overlay',
     standalone: true,
     imports: [LucideAngularModule],
     templateUrl: './security-overlay.component.html',
     styleUrl: './security-overlay.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SecurityOverlayComponent {
     /**

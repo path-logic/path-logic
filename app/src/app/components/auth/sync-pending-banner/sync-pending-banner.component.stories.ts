@@ -12,14 +12,14 @@ const createMockStore = (authError: boolean, isDirty: boolean, syncStatus: strin
     return {
         authError: signal(authError),
         isDirty: signal(isDirty),
-        syncStatus: signal(syncStatus),
+        syncStatus: signal(syncStatus)
     };
 };
 
 const meta: Meta<SyncPendingBannerComponent> = {
     title: 'Auth/SyncPendingBannerComponent',
     component: SyncPendingBannerComponent,
-    tags: ['autodocs'],
+    tags: ['autodocs']
 };
 
 export default meta;
@@ -31,9 +31,9 @@ type Story = StoryObj<SyncPendingBannerComponent>;
 export const Hidden: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: createMockStore(false, false, 'idle') }],
-        }),
-    ],
+            providers: [{ provide: LedgerStore, useValue: createMockStore(false, false, 'idle') }]
+        })
+    ]
 };
 
 /**
@@ -43,10 +43,10 @@ export const VisibleUnsyncedData: Story = {
     decorators: [
         applicationConfig({
             providers: [
-                { provide: LedgerStore, useValue: createMockStore(true, true, 'pending-local') },
-            ],
-        }),
-    ],
+                { provide: LedgerStore, useValue: createMockStore(true, true, 'pending-local') }
+            ]
+        })
+    ]
 };
 
 /**
@@ -57,8 +57,8 @@ export const VisiblePendingUpload: Story = {
     decorators: [
         applicationConfig({
             providers: [
-                { provide: LedgerStore, useValue: createMockStore(true, false, 'pending-local') },
-            ],
-        }),
-    ],
+                { provide: LedgerStore, useValue: createMockStore(true, false, 'pending-local') }
+            ]
+        })
+    ]
 };

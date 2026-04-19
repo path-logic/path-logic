@@ -10,18 +10,18 @@ import {
     model,
     output,
     signal,
-    viewChild,
+    viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { ITransaction } from '@path-logic/core';
-import { KnownCategory, Money, TransactionStatus } from '@path-logic/core';
+import type { ITransaction } from '@core';
+import { KnownCategory, Money, TransactionStatus } from '@core';
 import type { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/angular-table';
 import {
     createAngularTable,
     createColumnHelper,
     getCoreRowModel,
     getFilteredRowModel,
-    getSortedRowModel,
+    getSortedRowModel
 } from '@tanstack/angular-table';
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 import { CheckCircle2, Clock, LucideAngularModule } from 'lucide-angular';
@@ -32,13 +32,13 @@ import { CheckCircle2, Clock, LucideAngularModule } from 'lucide-angular';
  * Features keyboard navigation and context menu integration.
  */
 @Component({
-    selector: 'app-transaction-table',
+    selector: 'transaction-table',
     standalone: true,
     imports: [CommonModule, FormsModule, LucideAngularModule],
     templateUrl: './transaction-table.component.html',
     styleUrls: ['./transaction-table.component.css'],
     providers: [DecimalPipe, DatePipe],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TransactionTableComponent implements OnInit {
     private readonly decimalPipe = inject(DecimalPipe);
@@ -71,7 +71,7 @@ export class TransactionTableComponent implements OnInit {
     readonly columns: Array<ColumnDef<ITransaction, any>> = new Array<ColumnDef<ITransaction, any>>(
         this.columnHelper.accessor('date', {
             header: () => 'Date',
-            cell: info => info.getValue(),
+            cell: info => info.getValue()
         }),
         this.columnHelper.accessor('payee', {
             header: () => 'Payee / Memo',
@@ -82,9 +82,9 @@ export class TransactionTableComponent implements OnInit {
                     memo:
                         tx.splits.length > 1
                             ? `${tx.splits.length} Splits: ${tx.splits[0]?.memo || ''}`
-                            : tx.memo,
+                            : tx.memo
                 };
-            },
+            }
         }),
         this.columnHelper.accessor(row => row, {
             id: 'category',
@@ -94,24 +94,24 @@ export class TransactionTableComponent implements OnInit {
                 return tx.splits.length > 1
                     ? 'SPLIT'
                     : (tx.splits[0]?.categoryId ?? KnownCategory.Uncategorized);
-            },
+            }
         }),
         this.columnHelper.accessor('status', {
             header: () => 'Status',
-            cell: info => info.getValue(),
+            cell: info => info.getValue()
         }),
         this.columnHelper.accessor('totalAmount', {
             header: () => 'Amount',
-            cell: info => info.getValue(),
+            cell: info => info.getValue()
         }),
         this.columnHelper.accessor(
             row => (row as ITransaction & { runningBalance?: number }).runningBalance ?? 0,
             {
                 id: 'balance',
                 header: () => 'Balance',
-                cell: info => info.getValue(),
-            },
-        ),
+                cell: info => info.getValue()
+            }
+        )
     );
 
     // Computed: Sorted and Balanced Data
@@ -160,7 +160,7 @@ export class TransactionTableComponent implements OnInit {
         columns: this.columns,
         state: {
             sorting: this.sorting(),
-            columnFilters: this.columnFilters(),
+            columnFilters: this.columnFilters()
         },
         onSortingChange: (updaterOrValue): void => {
             if (typeof updaterOrValue === 'function') {
@@ -178,7 +178,7 @@ export class TransactionTableComponent implements OnInit {
         },
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
+        getFilteredRowModel: getFilteredRowModel()
     }));
 
     // Virtualization
@@ -186,7 +186,7 @@ export class TransactionTableComponent implements OnInit {
         count: this.table.getRowModel().rows.length,
         scrollElement: this.parentRef()?.nativeElement ?? undefined,
         estimateSize: (): number => 36, // h-9
-        overscan: 20,
+        overscan: 20
     }));
 
     ngOnInit(): void {
@@ -234,7 +234,7 @@ export class TransactionTableComponent implements OnInit {
     }
 
     getCategoryClass(_category: string): string {
-        return 'text-[9px] bg-accent px-1.5 py-0.5 rounded-sm border border-border text-muted-foreground whitespace-nowrap uppercase tracking-tighter font-bold';
+        return 'text-[9px] bg-surface-100 px-1.5 py-0.5 rounded-sm border border-surface-200 text-surface-500 whitespace-nowrap uppercase tracking-tighter font-bold';
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

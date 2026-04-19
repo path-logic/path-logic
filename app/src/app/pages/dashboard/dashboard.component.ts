@@ -1,13 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type {
-    CashflowProjection,
-    IAccount,
-    IRecurringSchedule,
-    ITransaction,
-} from '@path-logic/core';
-import { AccountType, generateProjection, Money, TransactionStatus } from '@path-logic/core';
+import type { CashflowProjection, IAccount, IRecurringSchedule, ITransaction } from '@core';
+import { AccountType, generateProjection, Money, TransactionStatus } from '@core';
 import {
     ChevronRight,
     Clock,
@@ -16,7 +11,7 @@ import {
     LucideAngularModule,
     Plus,
     TrendingUp,
-    Wallet,
+    Wallet
 } from 'lucide-angular';
 
 import { ProjectionChartComponent } from '../../components/dashboard/projection-chart/projection-chart.component';
@@ -27,18 +22,18 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
  * Main dashboard view showing financial overview, projections, and recent activity.
  */
 @Component({
-    selector: 'app-dashboard',
+    selector: 'dashboard',
     standalone: true,
     imports: [
         RouterLink,
         DatePipe,
         LucideAngularModule,
         AppShellComponent,
-        ProjectionChartComponent,
+        ProjectionChartComponent
     ],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
@@ -63,7 +58,7 @@ export class DashboardComponent {
     });
 
     readonly formattedNetPosition = computed((): string =>
-        Money.formatCurrency(this.netPosition()),
+        Money.formatCurrency(this.netPosition())
     );
 
     /**
@@ -76,7 +71,7 @@ export class DashboardComponent {
     });
 
     readonly formattedClearedBalance = computed((): string =>
-        Money.formatCurrency(this.clearedBalance()),
+        Money.formatCurrency(this.clearedBalance())
     );
 
     /**
@@ -89,7 +84,7 @@ export class DashboardComponent {
     });
 
     readonly formattedPendingBalance = computed((): string =>
-        Money.formatCurrency(this.pendingBalance()),
+        Money.formatCurrency(this.pendingBalance())
     );
 
     /**
@@ -99,7 +94,7 @@ export class DashboardComponent {
         return new Array<ITransaction>(...this.transactions())
             .sort(
                 (a: ITransaction, b: ITransaction): number =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime(),
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
             )
             .slice(0, 5);
     });
@@ -113,9 +108,9 @@ export class DashboardComponent {
         return generateProjection(new Date().toISOString().split('T')[0] || '', 90, {
             clearedBalance: this.clearedBalance(),
             pendingTransactions: this.transactions().filter(
-                (t: ITransaction): boolean => t.status === TransactionStatus.Pending,
+                (t: ITransaction): boolean => t.status === TransactionStatus.Pending
             ),
-            recurringSchedules: new Array<IRecurringSchedule>(), // To be implemented
+            recurringSchedules: new Array<IRecurringSchedule>() // To be implemented
         });
     });
 

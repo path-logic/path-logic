@@ -33,7 +33,7 @@
         storageBucket: 'path-logic.firebasestorage.app',
         messagingSenderId: '109799402431',
         appId: '1:109799402431:web:da6e14d71d9fa07988cf0a',
-        measurementId: 'G-8NN4NVKDNX',
+        measurementId: 'G-8NN4NVKDNX'
     };
     // Staging
     const firebaseConfig = {
@@ -43,7 +43,7 @@
         storageBucket: 'path-logic-staging.firebasestorage.app',
         messagingSenderId: '48071364929',
         appId: '1:48071364929:web:bf92a9abd93bfb14f8d1c0',
-        measurementId: 'G-K51TGEKYWV',
+        measurementId: 'G-K51TGEKYWV'
     };
     ```
 6. Click **Continue to console**
@@ -303,8 +303,8 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideFirebaseApp(() => initializeApp(firebaseConfig)),
         provideAuth(() => getAuth()),
-        provideRouter(routes),
-    ],
+        provideRouter(routes)
+    ]
 };
 ```
 

@@ -37,11 +37,11 @@
                             />
                         </td>
                         <td>
-                            <app-calculator-input
+                            <calculator-input
                                 [ngModel]="split.amount"
                                 (ngModelChange)="updateSplit(i, 'amount', $event)"
                                 [placeholder]="'$0.00'"
-                            ></app-calculator-input>
+                            ></calculator-input>
                         </td>
                         <td>
                             <p-button
@@ -80,10 +80,10 @@
                 <div class="flex items-center justify-between py-2">
                     <label for="grossPay" class="w-1/3 text-sm">Gross Pay</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.grossPay"
                             (ngModelChange)="updatePaycheckField('grossPay', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
             </div>
@@ -98,37 +98,37 @@
                 <div class="flex items-center justify-between py-2">
                     <label for="federalTax" class="w-1/3 text-sm">Federal Tax</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.federalTax"
                             (ngModelChange)="updatePaycheckField('federalTax', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <label for="stateTax" class="w-1/3 text-sm">State Tax</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.stateTax"
                             (ngModelChange)="updatePaycheckField('stateTax', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <label for="socialSecurity" class="w-1/3 text-sm">Social Security</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.socialSecurity"
                             (ngModelChange)="updatePaycheckField('socialSecurity', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <label for="medicare" class="w-1/3 text-sm">Medicare</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.medicare"
                             (ngModelChange)="updatePaycheckField('medicare', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
             </div>
@@ -143,19 +143,19 @@
                 <div class="flex items-center justify-between py-2">
                     <label for="fourOhOneK" class="w-1/3 text-sm">401k / Retirement</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.fourOhOneK"
                             (ngModelChange)="updatePaycheckField('fourOhOneK', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <label for="healthInsurance" class="w-1/3 text-sm">Health Insurance</label>
                     <div class="w-2/3">
-                        <app-calculator-input
+                        <calculator-input
                             [ngModel]="paycheckState.healthInsurance"
                             (ngModelChange)="updatePaycheckField('healthInsurance', $event)"
-                        ></app-calculator-input>
+                        ></calculator-input>
                     </div>
                 </div>
             </div>

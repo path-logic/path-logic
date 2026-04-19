@@ -10,14 +10,14 @@ import { HeaderComponent } from '../layout/header/header.component';
 import { SecurityOverlayComponent } from '../layout/security-overlay/security-overlay.component';
 
 @Component({
-    selector: 'app-combo-security-session',
+    selector: 'combo-security-session',
     standalone: true,
     imports: [HeaderComponent, FooterComponent, SecurityOverlayComponent],
     template: `
         <div class="h-screen bg-black text-white flex flex-col font-sans overflow-hidden relative">
-            <app-header
+            <header
                 class="border-b border-white/10 bg-black/50 backdrop-blur-xl shrink-0 z-40"
-            ></app-header>
+            ></header>
 
             <main class="flex-1 p-8">
                 <!-- Mock sensitive data that should be blurred -->
@@ -38,13 +38,13 @@ import { SecurityOverlayComponent } from '../layout/security-overlay/security-ov
                 </div>
             </main>
 
-            <app-footer class="border-t border-white/10 bg-black/80 shrink-0"></app-footer>
+            <footer class="border-t border-white/10 bg-black/80 shrink-0"></footer>
 
             <!-- The blur overlay applied when session goes idle -->
-            <app-security-overlay
+            <security-overlay
                 [isVisible]="isIdle()"
                 (unlocked)="isIdle.set(false)"
-            ></app-security-overlay>
+            ></security-overlay>
 
             @if (!isIdle()) {
                 <button
@@ -55,7 +55,7 @@ import { SecurityOverlayComponent } from '../layout/security-overlay/security-ov
                 </button>
             }
         </div>
-    `,
+    `
 })
 export class ComboSecuritySessionComponent {
     isIdle = signal(true);
@@ -67,21 +67,21 @@ const mockLedgerStore = {
     accounts: signal([]),
     syncStatus: signal('idle'),
     authError: signal(false),
-    hasLocalFallback: signal(true),
+    hasLocalFallback: signal(true)
 };
 const mockAuthService = {
-    currentUser: signal({ displayName: 'Protected User', email: 'secure@example.com' }),
+    currentUser: signal({ displayName: 'Protected User', email: 'secure@example.com' })
 };
 const mockSyncService = {
     isSyncing: signal(false),
-    getSyncStatus: () => ({ lastSyncTime: Date.now() }),
+    getSyncStatus: () => ({ lastSyncTime: Date.now() })
 };
 
 const meta: Meta<ComboSecuritySessionComponent> = {
     title: 'Combo Compositions/7. Security Session',
     component: ComboSecuritySessionComponent,
     parameters: {
-        layout: 'fullscreen',
+        layout: 'fullscreen'
     },
     decorators: [
         applicationConfig({
@@ -89,10 +89,10 @@ const meta: Meta<ComboSecuritySessionComponent> = {
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
-                { provide: SyncService, useValue: mockSyncService },
-            ],
-        }),
-    ],
+                { provide: SyncService, useValue: mockSyncService }
+            ]
+        })
+    ]
 };
 
 export default meta;

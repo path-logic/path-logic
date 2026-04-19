@@ -13,7 +13,7 @@ const createMockStore = (authError: boolean, isInitialized: boolean, hasLocalFal
     return {
         authError: signal(authError),
         isInitialized: signal(isInitialized),
-        hasLocalFallback: signal(hasLocalFallback),
+        hasLocalFallback: signal(hasLocalFallback)
     };
 };
 
@@ -22,8 +22,8 @@ const meta: Meta<AuthOverlayComponent> = {
     component: AuthOverlayComponent,
     tags: ['autodocs'],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -37,10 +37,10 @@ export const Hidden: Story = {
         applicationConfig({
             providers: [
                 { provide: LedgerStore, useValue: createMockStore(false, true, true) },
-                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } },
-            ],
-        }),
-    ],
+                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } }
+            ]
+        })
+    ]
 };
 
 /**
@@ -52,8 +52,8 @@ export const VisibleSessionExpired: Story = {
         applicationConfig({
             providers: [
                 { provide: LedgerStore, useValue: createMockStore(true, false, false) },
-                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } },
-            ],
-        }),
-    ],
+                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } }
+            ]
+        })
+    ]
 };

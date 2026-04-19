@@ -7,7 +7,7 @@ import type { IFlagConfig } from '../models/feature-flag.model';
 export enum FlagKey {
     DEV_TOOLS = 'dev',
     BETA_FEATURES = 'beta',
-    STYLE_GUIDE = 'style_guide',
+    STYLE_GUIDE = 'style_guide'
 }
 
 /**
@@ -19,17 +19,17 @@ export const FLAG_CONFIGS: Record<FlagKey, IFlagConfig> = {
         key: FlagKey.DEV_TOOLS,
         name: 'Developer Tools',
         description: 'Access sync test suite and debugging tools',
-        route: '/settings/dev',
+        route: '/settings/dev'
     },
     [FlagKey.BETA_FEATURES]: {
         key: FlagKey.BETA_FEATURES,
         name: 'Beta Features',
-        description: "Try out experimental features before they're released",
+        description: "Try out experimental features before they're released"
     },
     [FlagKey.STYLE_GUIDE]: {
         key: FlagKey.STYLE_GUIDE,
         name: 'Style Guide',
         description: 'Living design system and component showcase',
-        route: '/settings/style-guide',
-    },
+        route: '/settings/style-guide'
+    }
 };

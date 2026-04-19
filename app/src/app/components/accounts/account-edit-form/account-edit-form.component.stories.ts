@@ -1,5 +1,5 @@
-import { AccountType, type IAccount } from '@path-logic/core';
-import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import { AccountType, type IAccount } from '@core';
+import { type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
 
 import { AccountEditFormComponent } from './account-edit-form.component';
@@ -14,7 +14,7 @@ const MOCK_CHECKING_ACCOUNT: IAccount = {
     isActive: true,
     deletedAt: null,
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
 };
 
 const MOCK_AUTO_LOAN: IAccount = {
@@ -37,15 +37,15 @@ const MOCK_AUTO_LOAN: IAccount = {
         startDate: '2024-01-01T00:00:00Z',
         metadata: {
             vehicleMake: 'Honda',
-            vehicleModel: 'Civic',
-        },
-    },
+            vehicleModel: 'Civic'
+        }
+    }
 };
 
 const meta: Meta<AccountEditFormComponent> = {
     title: 'Accounts/AccountEditFormComponent',
     component: AccountEditFormComponent,
-    tags: ['autodocs'],
+    tags: ['autodocs']
 };
 
 export default meta;
@@ -53,19 +53,19 @@ type Story = StoryObj<AccountEditFormComponent>;
 
 export const CheckingAccountEdit: Story = {
     args: {
-        accountData: MOCK_CHECKING_ACCOUNT,
-    },
+        accountData: MOCK_CHECKING_ACCOUNT
+    }
 };
 
 export const AutoLoanEdit: Story = {
     args: {
-        accountData: MOCK_AUTO_LOAN,
-    },
+        accountData: MOCK_AUTO_LOAN
+    }
 };
 
 export const InteractiveValidation: Story = {
     args: {
-        accountData: MOCK_CHECKING_ACCOUNT,
+        accountData: MOCK_CHECKING_ACCOUNT
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -82,5 +82,5 @@ export const InteractiveValidation: Story = {
         // Angular reactive forms don't always show a text message unless programmed to,
         // but we can assert the input has the ng-invalid class.
         await expect(nameInput).toHaveClass('ng-invalid');
-    },
+    }
 };

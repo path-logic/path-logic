@@ -7,12 +7,12 @@ import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator
  * Global application footer component showing sync status and environment info.
  */
 @Component({
-    selector: 'app-footer',
+    selector: 'footer',
     standalone: true,
     imports: [SyncIndicatorComponent],
     templateUrl: './footer.component.html',
     styleUrl: './footer.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FooterComponent {
     /**

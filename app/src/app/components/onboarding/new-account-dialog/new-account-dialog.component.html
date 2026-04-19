@@ -12,9 +12,9 @@
     <ng-template #header>
         <div class="flex items-center gap-2">
             <div class="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
-                <span class="text-primary-foreground font-black text-[10px]">P</span>
+                <span class="text-white font-black text-[10px]">P</span>
             </div>
-            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-foreground">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-surface-800">
                 Add <span class="text-primary">New Account</span>
             </h2>
         </div>
@@ -36,7 +36,7 @@
                                 @for (option of primaryTypes(); track option.type) {
                                     <button
                                         (click)="handleTypeSelect(option.type)"
-                                        class="group flex flex-col items-center p-4 border border-border rounded-sm hover:border-primary/50 hover:bg-primary/5 transition-all text-center outline-none focus:ring-1 focus:ring-primary"
+                                        class="group flex flex-col items-center p-4 border border-surface-200 rounded-sm hover:border-primary/50 hover:bg-primary/5 transition-all text-center outline-none focus:ring-1 focus:ring-primary"
                                     >
                                         <div
                                             [class]="
@@ -57,7 +57,7 @@
                                             >{{ option.label }}</span
                                         >
                                         <span
-                                            class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                            class="text-[9px] text-surface-500 font-bold uppercase tracking-tighter opacity-60 leading-tight"
                                         >
                                             {{ option.description }}
                                         </span>
@@ -83,7 +83,7 @@
                                         @for (option of loanTypes(); track option.type) {
                                             <button
                                                 (click)="handleTypeSelect(option.type)"
-                                                class="flex items-center gap-4 p-3 border border-border rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
+                                                class="flex items-center gap-4 p-3 border border-surface-200 rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
                                             >
                                                 <div
                                                     class="w-8 h-8 rounded-sm bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform"
@@ -99,7 +99,7 @@
                                                         >{{ option.label }}</span
                                                     >
                                                     <span
-                                                        class="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60"
+                                                        class="text-[9px] text-surface-500 font-bold uppercase tracking-tighter opacity-60"
                                                         >{{ option.description }}</span
                                                     >
                                                 </div>
@@ -131,7 +131,7 @@
                                 </div>
                             } @else if (selectedType() && isLoan()) {
                                 <div class="animate-in slide-in-from-bottom-4">
-                                    <app-loan-details-form
+                                    <loan-details-form
                                         [type]="selectedType()!"
                                         (backClicked)="step.set('select-type')"
                                         (submitted)="accountCreated.emit($event); closed.emit()"
@@ -140,7 +140,7 @@
                             } @else if (selectedType()) {
                                 <div class="space-y-6">
                                     <div
-                                        class="flex gap-4 p-4 bg-muted/30 rounded-sm border border-border"
+                                        class="flex gap-4 p-4 bg-surface-100/30 rounded-sm border border-surface-200"
                                     >
                                         <div
                                             [class]="
@@ -160,7 +160,7 @@
                                                 {{ selectedOption()?.label }}
                                             </h3>
                                             <p
-                                                class="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                                class="text-[10px] text-surface-500 font-bold uppercase tracking-tighter opacity-60 leading-tight"
                                             >
                                                 {{ selectedOption()?.description }}
                                             </p>
@@ -179,7 +179,7 @@
                                                 [ngModel]="accountName()"
                                                 (ngModelChange)="accountName.set($event)"
                                                 placeholder="e.g. Chase Checking"
-                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                                             />
                                         </div>
                                         <div class="space-y-1.5">
@@ -193,7 +193,7 @@
                                                 [ngModel]="institutionName()"
                                                 (ngModelChange)="institutionName.set($event)"
                                                 placeholder="e.g. JPMorgan Chase"
-                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                                             />
                                         </div>
                                         <div class="space-y-1.5">
@@ -209,10 +209,10 @@
                                                 type="number"
                                                 step="0.01"
                                                 placeholder="0.00"
-                                                class="w-full h-9 px-3 bg-muted/5 border border-border rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono font-bold transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-mono font-bold transition-all"
                                             />
                                             <p
-                                                class="text-[9px] text-muted-foreground italic font-bold uppercase tracking-tighter opacity-50"
+                                                class="text-[9px] text-surface-500 italic font-bold uppercase tracking-tighter opacity-50"
                                             >
                                                 {{
                                                     selectedType() === 'credit'
@@ -225,10 +225,10 @@
 
                                     @if (error()) {
                                         <div
-                                            class="p-3 bg-destructive/10 border border-destructive/20 rounded-sm"
+                                            class="p-3 bg-red-500/10 border border-destructive/20 rounded-sm"
                                         >
                                             <p
-                                                class="text-[10px] font-black uppercase text-destructive tracking-widest"
+                                                class="text-[10px] font-black uppercase text-red-500 tracking-widest"
                                             >
                                                 {{ error() }}
                                             </p>

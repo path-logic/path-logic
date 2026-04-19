@@ -1,7 +1,6 @@
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
     {
@@ -14,37 +13,20 @@ export default tseslint.config(
             '**/*.config.js',
             '**/*.config.ts',
             '**/storybook-static/**',
-            '**/documentation.json',
-        ],
+            '**/documentation.json'
+        ]
     },
     eslint.configs.recommended,
     {
         files: ['**/*.ts'],
         extends: [...tseslint.configs.strict, ...tseslint.configs.stylistic],
-        plugins: {
-            'simple-import-sort': simpleImportSort,
-        },
         languageOptions: {
             parserOptions: {
                 projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-            },
+                tsconfigRootDir: import.meta.dirname
+            }
         },
         rules: {
-            // Import sorting
-            'simple-import-sort/imports': 'error',
-            'simple-import-sort/exports': 'error',
-            'sort-imports': [
-                'error',
-                {
-                    ignoreCase: false,
-                    ignoreDeclarationSort: true, // Handled by simple-import-sort
-                    ignoreMemberSort: true, // Handled by simple-import-sort
-                    memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
-                    allowSeparatedGroups: false,
-                },
-            ],
-
             // Enforcement of strict project standards
             '@typescript-eslint/naming-convention': [
                 'error',
@@ -53,23 +35,23 @@ export default tseslint.config(
                     format: ['PascalCase'],
                     custom: {
                         regex: '^I[A-Z]',
-                        match: true,
-                    },
-                },
+                        match: true
+                    }
+                }
             ],
             '@typescript-eslint/array-type': [
                 'error',
                 {
-                    default: 'generic',
-                },
+                    default: 'generic'
+                }
             ],
             '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/consistent-type-imports': [
                 'error',
                 {
-                    prefer: 'type-imports',
-                },
+                    prefer: 'type-imports'
+                }
             ],
             // Allow number array literals as per architecture exception
             '@typescript-eslint/no-array-constructor': 'off',
@@ -79,10 +61,10 @@ export default tseslint.config(
                 'error',
                 {
                     argsIgnorePattern: '^_',
-                    varsIgnorePattern: '^_',
-                },
-            ],
-        },
+                    varsIgnorePattern: '^_'
+                }
+            ]
+        }
     },
-    prettier,
+    prettier
 );

@@ -9,12 +9,12 @@ import { AuthService } from '../../services/auth/auth.service';
  * Full-page dark layout with animated logo, trust signals, and error handling.
  */
 @Component({
-    selector: 'app-sign-in',
+    selector: 'sign-in',
     standalone: true,
     imports: [LucideAngularModule],
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SignInComponent {
     private readonly authService: AuthService = inject(AuthService);
@@ -41,7 +41,7 @@ export class SignInComponent {
 
         try {
             await this.authService.signInWithGoogle();
-            await this.router.navigate(['/']);
+            // The page will redirect to Google for authentication.
         } catch (error: unknown) {
             const message: string =
                 error instanceof Error ? error.message : 'An unexpected error occurred.';
@@ -51,7 +51,7 @@ export class SignInComponent {
                 this.signInError.set('Sign-in cancelled. Please try again.');
             } else if (message.includes('popup-blocked')) {
                 this.signInError.set(
-                    'Pop-up was blocked by your browser. Please allow pop-ups for this site.',
+                    'Pop-up was blocked by your browser. Please allow pop-ups for this site.'
                 );
             } else if (message.includes('network-request-failed')) {
                 this.signInError.set('Network error. Please check your connection and try again.');

@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
-import { signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { applicationConfig, type Meta, moduleMetadata, type StoryObj } from '@storybook/angular';
+import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
 import { AuthService } from '../../services/auth/auth.service';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
@@ -15,7 +14,7 @@ import { HeaderComponent } from '../layout/header/header.component';
  * appear in the real application layout.
  */
 @Component({
-    selector: 'app-combo-shell',
+    selector: 'combo-shell',
     standalone: true,
     imports: [HeaderComponent, FooterComponent, BreadcrumbNavComponent],
     template: `
@@ -23,12 +22,12 @@ import { HeaderComponent } from '../layout/header/header.component';
             class="h-screen bg-black text-white flex flex-col font-sans overflow-hidden antialiased selection:bg-primary/30"
         >
             <!-- Header -->
-            <app-header
+            <header
                 class="border-b border-white/10 bg-black/50 backdrop-blur-xl shrink-0 z-40"
-            ></app-header>
+            ></header>
 
             <!-- Breadcrumb Navigation -->
-            <app-breadcrumb-nav class="shrink-0"></app-breadcrumb-nav>
+            <breadcrumb-nav class="shrink-0"></breadcrumb-nav>
 
             <!-- Main Content Area -->
             <main class="flex-1 overflow-auto relative">
@@ -49,9 +48,9 @@ import { HeaderComponent } from '../layout/header/header.component';
             </main>
 
             <!-- Footer -->
-            <app-footer class="border-t border-white/10 bg-black/80 shrink-0"></app-footer>
+            <footer class="border-t border-white/10 bg-black/80 shrink-0"></footer>
         </div>
-    `,
+    `
 })
 export class ComboShellComponent {}
 
@@ -61,23 +60,23 @@ const mockLedgerStore = {
     accounts: signal([]),
     syncStatus: signal('idle'),
     authError: signal(false),
-    hasLocalFallback: signal(true),
+    hasLocalFallback: signal(true)
 };
 
 const mockAuthService = {
-    currentUser: signal({ displayName: 'Demo User', email: 'demo@example.com' }),
+    currentUser: signal({ displayName: 'Demo User', email: 'demo@example.com' })
 };
 
 const mockSyncService = {
     isSyncing: signal(false),
-    getSyncStatus: () => ({ lastSyncTime: Date.now() }),
+    getSyncStatus: () => ({ lastSyncTime: Date.now() })
 };
 
 const meta: Meta<ComboShellComponent> = {
     title: 'Combo Compositions/1. Full App Shell',
     component: ComboShellComponent,
     parameters: {
-        layout: 'fullscreen',
+        layout: 'fullscreen'
     },
     decorators: [
         applicationConfig({
@@ -85,10 +84,10 @@ const meta: Meta<ComboShellComponent> = {
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
-                { provide: SyncService, useValue: mockSyncService },
-            ],
-        }),
-    ],
+                { provide: SyncService, useValue: mockSyncService }
+            ]
+        })
+    ]
 };
 
 export default meta;

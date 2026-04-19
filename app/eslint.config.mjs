@@ -15,24 +15,24 @@ export default [
                 'error',
                 {
                     type: 'attribute',
-                    prefix: 'app',
-                    style: 'camelCase',
-                },
+                    prefix: '',
+                    style: 'camelCase'
+                }
             ],
             '@angular-eslint/component-selector': [
                 'error',
                 {
                     type: 'element',
-                    prefix: 'app',
-                    style: 'kebab-case',
-                },
-            ],
-        },
+                    prefix: '',
+                    style: 'kebab-case'
+                }
+            ]
+        }
     },
     {
         files: ['**/*.html'],
         // Override or add rules here
-        rules: {},
+        rules: {}
     },
     {
         files: ['**/*.stories.ts', '**/*.stories.tsx', '**/*.spec.ts'],
@@ -42,8 +42,8 @@ export default [
             '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-extraneous-class': 'off',
-        },
+            '@typescript-eslint/no-extraneous-class': 'off'
+        }
     },
-    ...storybook.configs['flat/recommended'],
+    ...storybook.configs['flat/recommended']
 ];

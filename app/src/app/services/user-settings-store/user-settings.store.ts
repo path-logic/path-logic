@@ -25,8 +25,8 @@ export class UserSettingsStore {
                 this.settings.update(
                     (s: Record<string, string>): Record<string, string> => ({
                         ...s,
-                        [key]: value,
-                    }),
+                        [key]: value
+                    })
                 );
                 return value;
             }
@@ -43,8 +43,8 @@ export class UserSettingsStore {
             this.settings.update(
                 (s: Record<string, string>): Record<string, string> => ({
                     ...s,
-                    [key]: value,
-                }),
+                    [key]: value
+                })
             );
         } catch (e: unknown) {
             console.error('Failed to update setting in DB:', e);

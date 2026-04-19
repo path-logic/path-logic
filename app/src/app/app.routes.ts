@@ -13,7 +13,7 @@ export const appRoutes: Routes = [
     {
         path: 'sign-in',
         loadComponent: () =>
-            import('./pages/sign-in/sign-in.component').then(m => m.SignInComponent),
+            import('./pages/sign-in/sign-in.component').then(m => m.SignInComponent)
     },
 
     // Protected routes — authGuard applied ONCE at this parent level
@@ -24,33 +24,33 @@ export const appRoutes: Routes = [
             {
                 path: '',
                 loadComponent: () =>
-                    import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+                    import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
             },
             {
                 path: 'accounts',
                 loadComponent: () =>
                     import('./pages/accounts/accounts-page.component').then(
-                        m => m.AccountsPageComponent,
-                    ),
+                        m => m.AccountsPageComponent
+                    )
             },
             {
                 path: 'accounts/:accountId',
                 loadComponent: () =>
                     import('./pages/account-detail/account-detail.component').then(
-                        m => m.AccountDetailComponent,
-                    ),
+                        m => m.AccountDetailComponent
+                    )
             },
             {
                 path: 'accounts/:accountId/info',
                 loadComponent: () =>
                     import('./pages/account-detail/info/account-info.component').then(
-                        m => m.AccountInfoComponent,
-                    ),
+                        m => m.AccountInfoComponent
+                    )
             },
             {
                 path: 'payees',
                 loadComponent: () =>
-                    import('./pages/payees/payees-page.component').then(m => m.PayeesPageComponent),
+                    import('./pages/payees/payees-page.component').then(m => m.PayeesPageComponent)
             },
             {
                 path: 'settings',
@@ -59,8 +59,8 @@ export const appRoutes: Routes = [
                         path: '',
                         loadComponent: () =>
                             import('./pages/settings/settings-page.component').then(
-                                m => m.SettingsPageComponent,
-                            ),
+                                m => m.SettingsPageComponent
+                            )
                     },
                     {
                         path: 'dev',
@@ -69,52 +69,52 @@ export const appRoutes: Routes = [
                                 path: '',
                                 loadComponent: () =>
                                     import('./pages/settings/dev/dev-index.component').then(
-                                        m => m.DevIndexComponent,
-                                    ),
+                                        m => m.DevIndexComponent
+                                    )
                             },
                             {
                                 path: 'auth',
                                 loadComponent: () =>
                                     import('./pages/settings/dev/auth/dev-auth.component').then(
-                                        m => m.DevAuthComponent,
-                                    ),
+                                        m => m.DevAuthComponent
+                                    )
                             },
                             {
                                 path: 'maintenance',
                                 loadComponent: () =>
                                     import(
                                         './pages/settings/dev/maintenance/dev-maintenance.component'
-                                    ).then(m => m.DevMaintenanceComponent),
+                                    ).then(m => m.DevMaintenanceComponent)
                             },
                             {
                                 path: 'sync-test',
                                 loadComponent: () =>
                                     import(
                                         './pages/settings/dev/sync-test/sync-test.component'
-                                    ).then(m => m.SyncTestComponent),
-                            },
-                        ],
+                                    ).then(m => m.SyncTestComponent)
+                            }
+                        ]
                     },
                     {
                         path: 'style-guide',
                         loadComponent: () =>
                             import('./pages/settings/style-guide/style-guide.component').then(
-                                m => m.StyleGuideComponent,
-                            ),
-                    },
-                ],
+                                m => m.StyleGuideComponent
+                            )
+                    }
+                ]
             },
             {
                 path: 'recurring',
                 loadComponent: () =>
                     import('./pages/recurring/recurring-dashboard.component').then(
-                        m => m.RecurringDashboardComponent,
-                    ),
-            },
+                        m => m.RecurringDashboardComponent
+                    )
+            }
             // Additional routes will be added during component porting:
-        ],
+        ]
     },
 
     // Wildcard redirect
-    { path: '**', redirectTo: '' },
+    { path: '**', redirectTo: '' }
 ];

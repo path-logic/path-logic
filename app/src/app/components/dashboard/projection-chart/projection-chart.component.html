@@ -1,17 +1,17 @@
 <div [class]="'relative group ' + className()">
     @if (data().length === 0) {
         <div
-            class="flex items-center justify-center bg-muted/10 rounded-sm border border-dashed border-border"
+            class="flex items-center justify-center bg-surface-100/10 rounded-sm border border-dashed border-surface-200"
             [style.height.px]="height()"
         >
-            <p class="text-[10px] font-bold uppercase text-foreground">
+            <p class="text-[10px] font-bold uppercase text-surface-800">
                 No projection data available
             </p>
         </div>
     } @else {
         <div class="flex justify-between items-end mb-4 px-1">
             <div>
-                <h3 class="text-[10px] font-bold text-foreground uppercase tracking-widest mb-1">
+                <h3 class="text-[10px] font-bold text-surface-800 uppercase tracking-widest mb-1">
                     90-Day Forecast
                 </h3>
                 <div class="flex items-baseline gap-2">
@@ -22,7 +22,7 @@
                         class="text-[10px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-tighter"
                         [class]="{
                             'bg-emerald-500/10 text-emerald-900': isUp(),
-                            'bg-destructive/10 text-destructive': !isUp(),
+                            'bg-red-500/10 text-red-500': !isUp()
                         }"
                     >
                         {{ isUp() ? '↑' : '↓' }}
@@ -31,10 +31,10 @@
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-[8px] font-bold text-foreground uppercase tracking-tighter">
+                <p class="text-[8px] font-bold text-surface-800 uppercase tracking-tighter">
                     Projected Change
                 </p>
-                <p class="text-[10px] font-mono font-bold text-foreground/90 italic">
+                <p class="text-[10px] font-mono font-bold text-surface-800/90 italic">
                     By {{ formattedEndDate() }}
                 </p>
             </div>
@@ -52,10 +52,10 @@
             <div
                 class="absolute top-0 left-0 w-full h-full pointer-events-none font-bold uppercase"
             >
-                <div class="absolute top-0 left-0 text-[8px] text-foreground tracking-tighter">
+                <div class="absolute top-0 left-0 text-[8px] text-surface-800 tracking-tighter">
                     Forecast
                 </div>
-                <div class="absolute bottom-0 left-0 text-[8px] text-foreground tracking-tighter">
+                <div class="absolute bottom-0 left-0 text-[8px] text-surface-800 tracking-tighter">
                     Current
                 </div>
             </div>
@@ -63,10 +63,10 @@
 
         <!-- Timeline ticks -->
         <div class="flex justify-between mt-2 px-1">
-            <span class="text-[8px] font-bold text-foreground/80 uppercase"> Today </span>
-            <span class="text-[8px] font-bold text-foreground/80 uppercase">30d</span>
-            <span class="text-[8px] font-bold text-foreground/80 uppercase">60d</span>
-            <span class="text-[8px] font-bold text-foreground/80 uppercase">90d</span>
+            <span class="text-[8px] font-bold text-surface-800/80 uppercase"> Today </span>
+            <span class="text-[8px] font-bold text-surface-800/80 uppercase">30d</span>
+            <span class="text-[8px] font-bold text-surface-800/80 uppercase">60d</span>
+            <span class="text-[8px] font-bold text-surface-800/80 uppercase">90d</span>
         </div>
     }
 </div>

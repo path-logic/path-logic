@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { TransactionStatus } from '@path-logic/core';
+import { TransactionStatus } from '@core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
 import { AuthService } from '../../../services/auth/auth.service';
@@ -12,8 +12,8 @@ const createMockLedgerStore = (clearedTotal: number, pendingTotal: number) => {
     return {
         transactions: signal([
             { status: TransactionStatus.Cleared, totalAmount: clearedTotal },
-            { status: TransactionStatus.Pending, totalAmount: pendingTotal },
-        ]),
+            { status: TransactionStatus.Pending, totalAmount: pendingTotal }
+        ])
     };
 };
 
@@ -23,9 +23,9 @@ const createMockAuthService = (displayName: string | null, email: string) => {
         currentUser: signal({
             displayName,
             email,
-            photoURL: null,
+            photoURL: null
         }),
-        signOut: async () => {},
+        signOut: async () => {}
     };
 };
 
@@ -35,12 +35,12 @@ const meta: Meta<HeaderComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [provideRouter([{ path: 'iframe.html', redirectTo: '' }])],
-        }),
+            providers: [provideRouter([{ path: 'iframe.html', redirectTo: '' }])]
+        })
     ],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -56,11 +56,11 @@ export const Default: Story = {
                 { provide: LedgerStore, useValue: createMockLedgerStore(1500000, -50000) }, // $14,500
                 {
                     provide: AuthService,
-                    useValue: createMockAuthService('Jane Doe', 'jane@example.com'),
-                },
-            ],
-        }),
-    ],
+                    useValue: createMockAuthService('Jane Doe', 'jane@example.com')
+                }
+            ]
+        })
+    ]
 };
 
 /**
@@ -73,11 +73,11 @@ export const NegativeBalance: Story = {
                 { provide: LedgerStore, useValue: createMockLedgerStore(-50000, -20000) }, // -$700
                 {
                     provide: AuthService,
-                    useValue: createMockAuthService('John Smith', 'john@example.com'),
-                },
-            ],
-        }),
-    ],
+                    useValue: createMockAuthService('John Smith', 'john@example.com')
+                }
+            ]
+        })
+    ]
 };
 
 /**
@@ -90,9 +90,9 @@ export const NoDisplayName: Story = {
                 { provide: LedgerStore, useValue: createMockLedgerStore(0, 0) },
                 {
                     provide: AuthService,
-                    useValue: createMockAuthService(null, 'anonymous@example.com'),
-                },
-            ],
-        }),
-    ],
+                    useValue: createMockAuthService(null, 'anonymous@example.com')
+                }
+            ]
+        })
+    ]
 };

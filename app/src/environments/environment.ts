@@ -1,15 +1,19 @@
+import type { FirebaseOptions } from '@firebase/app';
+
 import type { IEnvironment } from '../app/models/environment.model';
 
 export const environment: IEnvironment = {
     production: false,
     appEnv: 'development',
+    sentryDsn:
+        'https://0a015d5726fa347de981f189f161fb9e@o4511216118857728.ingest.us.sentry.io/4511216120168448',
     firebase: {
-        apiKey: 'AIzaSyDZelxoNPzvublNKskndunUrSKW67OXlwE',
-        authDomain: 'path-logic.firebaseapp.com',
-        projectId: 'path-logic',
-        storageBucket: 'path-logic.firebasestorage.app',
-        messagingSenderId: '109799402431',
-        appId: '1:109799402431:web:da6e14d71d9fa07988cf0a',
-        measurementId: 'G-8NN4NVKDNX',
-    },
+        apiKey: 'AIzaSyCstrz1oBCHsXtT8RvaVqIX1nw-uwCu1sU',
+        authDomain: 'path-logic-dev-93185.firebaseapp.com',
+        projectId: 'path-logic-dev-93185',
+        storageBucket: 'path-logic-dev-93185.firebasestorage.app',
+        messagingSenderId: '97070614210',
+        appId: '1:97070614210:web:9c4d573e4edf2b01789d5b',
+        measurementId: 'G-X44QWVEY5G'
+    } satisfies FirebaseOptions
 };

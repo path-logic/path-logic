@@ -312,15 +312,15 @@ const nextConfig = {
     experimental: {
         turbopack: {
             /* options */
-        },
-    },
+        }
+    }
 };
 
 // AFTER (Next.js 16)
 const nextConfig = {
     turbopack: {
         /* options */
-    },
+    }
 };
 ```
 
@@ -425,10 +425,10 @@ module.exports = {
         localPatterns: [
             {
                 pathname: '/assets/**',
-                search: '?v=1',
-            },
-        ],
-    },
+                search: '?v=1'
+            }
+        ]
+    }
 };
 ```
 
@@ -452,8 +452,8 @@ module.exports = {
         dangerouslyAllowLocalIP: true, // only for private networks
 
         // Maximum redirects changed from unlimited to 3
-        maximumRedirects: 5,
-    },
+        maximumRedirects: 5
+    }
 };
 ```
 
@@ -463,8 +463,8 @@ module.exports = {
 // BEFORE - Remove this
 module.exports = {
     images: {
-        domains: ['example.com'],
-    },
+        domains: ['example.com']
+    }
 };
 
 // AFTER - Use remotePatterns instead
@@ -473,10 +473,10 @@ module.exports = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'example.com',
-            },
-        ],
-    },
+                hostname: 'example.com'
+            }
+        ]
+    }
 };
 ```
 
@@ -547,7 +547,7 @@ React Compiler is now stable and supported:
 ```ts
 // next.config.ts
 const nextConfig = {
-    reactCompiler: true,
+    reactCompiler: true
 };
 
 export default nextConfig;
@@ -618,7 +618,7 @@ Remove from `next.config.js`:
 // BEFORE - Remove these
 module.exports = {
     serverRuntimeConfig: { dbUrl: process.env.DATABASE_URL },
-    publicRuntimeConfig: { apiUrl: '/api' },
+    publicRuntimeConfig: { apiUrl: '/api' }
 };
 ```
 

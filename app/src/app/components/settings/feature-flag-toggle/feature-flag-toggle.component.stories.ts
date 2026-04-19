@@ -13,7 +13,7 @@ import { FeatureFlagToggleComponent } from './feature-flag-toggle.component';
  */
 class MockFeatureFlagService {
     private flags = signal<Record<string, boolean>>({
-        enable_multi_user: false,
+        enable_multi_user: false
     });
 
     isEnabled(flag: string): Signal<boolean> {
@@ -28,7 +28,7 @@ class MockFeatureFlagService {
 const mockSettingsStore = {
     updateSetting: async (key: string, value: string) => {
         console.log(`Mock user setting updated: ${key} = ${value}`);
-    },
+    }
 };
 
 const meta: Meta<FeatureFlagToggleComponent> = {
@@ -39,10 +39,10 @@ const meta: Meta<FeatureFlagToggleComponent> = {
         applicationConfig({
             providers: [
                 { provide: FeatureFlagService, useClass: MockFeatureFlagService },
-                { provide: UserSettingsStore, useValue: mockSettingsStore },
-            ],
-        }),
-    ],
+                { provide: UserSettingsStore, useValue: mockSettingsStore }
+            ]
+        })
+    ]
 };
 
 export default meta;
@@ -52,22 +52,22 @@ export const Default: Story = {
     args: {
         flag: 'enable_multi_user',
         label: 'Enable Multi-User Mode',
-        description: 'Allows sharing ledgers with family members.',
-    },
+        description: 'Allows sharing ledgers with family members.'
+    }
 };
 
 export const WithoutDescription: Story = {
     args: {
         flag: 'enable_multi_user',
-        label: 'Enable Multi-User Mode',
-    },
+        label: 'Enable Multi-User Mode'
+    }
 };
 
 export const InteractiveToggle: Story = {
     args: {
         flag: 'enable_multi_user',
         label: 'Interactive Flag',
-        description: 'Click me to test the interactive toggle state.',
+        description: 'Click me to test the interactive toggle state.'
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -82,5 +82,5 @@ export const InteractiveToggle: Story = {
 
         // Verify state changed
         await expect(toggleBtn).toHaveAttribute('aria-checked', 'true');
-    },
+    }
 };

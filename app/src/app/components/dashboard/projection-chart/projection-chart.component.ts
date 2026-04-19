@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { type IProjectionDataPoint, Money } from '@path-logic/core';
+import { type IProjectionDataPoint, Money } from '@core';
 import { UIChart } from 'primeng/chart';
 
 /**
@@ -7,12 +7,12 @@ import { UIChart } from 'primeng/chart';
  * Migrated to PrimeNG Chart (Chart.js).
  */
 @Component({
-    selector: 'app-projection-chart',
+    selector: 'projection-chart',
     standalone: true,
     imports: [UIChart],
     templateUrl: './projection-chart.component.html',
     styleUrl: './projection-chart.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectionChartComponent {
     /**
@@ -61,9 +61,9 @@ export class ProjectionChartComponent {
                     backgroundColor: `${color}20`,
                     tension: 0.4,
                     pointRadius: 0,
-                    borderWidth: 2,
-                },
-            ],
+                    borderWidth: 2
+                }
+            ]
         };
     });
 
@@ -76,7 +76,7 @@ export class ProjectionChartComponent {
             aspectRatio: 0.6,
             plugins: {
                 legend: {
-                    display: false,
+                    display: false
                 },
                 tooltip: {
                     mode: 'index',
@@ -87,18 +87,18 @@ export class ProjectionChartComponent {
                     callbacks: {
                         label: (context: { raw: number }): string => {
                             return ` Balance: ${Money.formatCurrency(Money.dollarsToCents(context.raw))}`;
-                        },
-                    },
-                },
+                        }
+                    }
+                }
             },
             scales: {
                 x: {
-                    display: false,
+                    display: false
                 },
                 y: {
-                    display: false,
-                },
-            },
+                    display: false
+                }
+            }
         };
     });
 
@@ -133,7 +133,7 @@ export class ProjectionChartComponent {
         if (!end) return '';
         return new Date(end.date).toLocaleDateString(undefined, {
             month: 'short',
-            day: 'numeric',
+            day: 'numeric'
         });
     });
 }

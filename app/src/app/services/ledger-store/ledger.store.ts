@@ -7,8 +7,8 @@ import type {
     IPayee,
     IRecurringSchedule,
     ISODateString,
-    ITransaction,
-} from '@path-logic/core';
+    ITransaction
+} from '@core';
 
 import type { ILockStatus } from '../../lib/storage/GoogleDriveAdapter';
 import {
@@ -33,11 +33,11 @@ import {
     softDeleteAccount,
     updateAccount,
     updateRecurringSchedule,
-    updateTransaction,
+    updateTransaction
 } from '../../lib/storage/SQLiteAdapter';
 import {
     type IReconciliationMatch,
-    ReconciliationEngine,
+    ReconciliationEngine
 } from '../../lib/sync/ReconciliationEngine';
 
 /**
@@ -147,7 +147,7 @@ export class LedgerStore {
     async getOrCreatePayee(name: string): Promise<IPayee> {
         // Check signal cache first
         const existing: IPayee | undefined = this.payees().find(
-            (p: IPayee): boolean => p.name === name,
+            (p: IPayee): boolean => p.name === name
         );
         if (existing) return existing;
 
@@ -174,7 +174,7 @@ export class LedgerStore {
             notes: null,
             defaultCategoryId: null,
             createdAt: now,
-            updatedAt: now,
+            updatedAt: now
         };
 
         insertPayee(newPayee);
@@ -211,7 +211,7 @@ export class LedgerStore {
 
     async reconcileTransactions(
         parsedTxs: Array<IParsedTransaction>,
-        accountId: string,
+        accountId: string
     ): Promise<Array<IReconciliationMatch>> {
         const db = getDb();
         if (!db) throw new Error('Database not initialized');

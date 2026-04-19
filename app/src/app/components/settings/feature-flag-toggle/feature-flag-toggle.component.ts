@@ -11,12 +11,12 @@ import { FeatureFlagService } from '../../../services/feature-flag/feature-flag.
  * Provides a UI for enabling/disabling a feature and jumping to its associated route.
  */
 @Component({
-    selector: 'app-feature-flag-toggle',
+    selector: 'feature-flag-toggle',
     standalone: true,
     imports: [RouterLink, ToggleSwitch, FormsModule],
     templateUrl: './feature-flag-toggle.component.html',
     styleUrls: ['./feature-flag-toggle.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FeatureFlagToggleComponent {
     private readonly featureFlags = inject(FeatureFlagService);

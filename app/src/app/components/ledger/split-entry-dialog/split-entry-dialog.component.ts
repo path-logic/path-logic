@@ -8,11 +8,11 @@ import {
     model,
     output,
     signal,
-    untracked,
+    untracked
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { ISplit } from '@path-logic/core';
-import { KnownCategory, Money } from '@path-logic/core';
+import type { ISplit } from '@core';
+import { KnownCategory, Money } from '@core';
 import { Calculator, LucideAngularModule, Plus, Scale, Trash2, X } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -25,12 +25,12 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
  * Ensures penny-perfect balancing of splits against a total amount.
  */
 @Component({
-    selector: 'app-split-entry-dialog',
+    selector: 'split-entry-dialog',
     standalone: true,
     imports: [FormsModule, LucideAngularModule, Dialog, Button, Select],
     templateUrl: './split-entry-dialog.component.html',
     styleUrls: ['./split-entry-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SplitEntryDialogComponent {
     private readonly ledgerStore = inject(LedgerStore);
@@ -77,8 +77,8 @@ export class SplitEntryDialogComponent {
                             id: `split-${Date.now()}`,
                             amount: total,
                             memo: '',
-                            categoryId: KnownCategory.Uncategorized,
-                        },
+                            categoryId: KnownCategory.Uncategorized
+                        }
                     ]);
                 }
             });
@@ -95,8 +95,8 @@ export class SplitEntryDialogComponent {
                     id: `split-${Date.now()}`,
                     amount: this.totalAmount(),
                     memo: '',
-                    categoryId: KnownCategory.Uncategorized,
-                }),
+                    categoryId: KnownCategory.Uncategorized
+                })
             );
         }
     }
@@ -108,8 +108,8 @@ export class SplitEntryDialogComponent {
                 id: `split-${Date.now()}`,
                 amount: 0,
                 memo: '',
-                categoryId: KnownCategory.Uncategorized,
-            },
+                categoryId: KnownCategory.Uncategorized
+            }
         ]);
     }
 
@@ -128,7 +128,7 @@ export class SplitEntryDialogComponent {
         const lastSplit = currentSplits[currentSplits.length - 1];
         if (!lastSplit) return;
         this.handleUpdateSplit(lastSplit.id, {
-            amount: lastSplit.amount + this.difference(),
+            amount: lastSplit.amount + this.difference()
         });
     }
 

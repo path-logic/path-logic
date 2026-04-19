@@ -9,12 +9,12 @@ import { AppShellComponent } from '../../../components/layout/app-shell/app-shel
  * Displays the application's design system, typography, and UI patterns.
  */
 @Component({
-    selector: 'app-style-guide',
+    selector: 'style-guide',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, AppShellComponent],
     templateUrl: './style-guide.component.html',
     styleUrls: ['./style-guide.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StyleGuideComponent {
     // Lucide Icons
@@ -24,6 +24,6 @@ export class StyleGuideComponent {
         { label: 'Primary', color: 'bg-primary' },
         { label: 'Success', color: 'bg-teal-500' },
         { label: 'Warning', color: 'bg-amber-500' },
-        { label: 'Destructive', color: 'bg-destructive' },
+        { label: 'Destructive', color: 'bg-red-500' }
     ];
 }

@@ -39,7 +39,7 @@ We are using **Vercel** because it provides excellent support for modern fronten
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    template: `<ledger [data]="transactions()"></ledger>`,
+    template: `<ledger [data]="transactions()"></ledger>`
 })
 export class DashboardComponent {
     private db = inject(SQLiteService);

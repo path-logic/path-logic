@@ -10,17 +10,17 @@ import { FooterComponent } from '../layout/footer/footer.component';
 import { HeaderComponent } from '../layout/header/header.component';
 
 @Component({
-    selector: 'app-combo-sync-warning',
+    selector: 'combo-sync-warning',
     standalone: true,
     imports: [HeaderComponent, FooterComponent, SyncPendingBannerComponent],
     template: `
         <div class="h-screen bg-black text-white flex flex-col font-sans overflow-hidden">
             <!-- App Banner injected at the very top (similar to root layout) -->
-            <app-sync-pending-banner></app-sync-pending-banner>
+            <sync-pending-banner></sync-pending-banner>
 
-            <app-header
+            <header
                 class="border-b border-white/10 bg-black/50 backdrop-blur-xl shrink-0 z-40"
-            ></app-header>
+            ></header>
 
             <main class="flex-1 p-8 relative">
                 <div class="max-w-3xl mx-auto text-center mt-20">
@@ -44,9 +44,9 @@ import { HeaderComponent } from '../layout/header/header.component';
             </main>
 
             <!-- Expected to show the Sync Error status -->
-            <app-footer class="border-t border-white/10 bg-black/80 shrink-0"></app-footer>
+            <footer class="border-t border-white/10 bg-black/80 shrink-0"></footer>
         </div>
-    `,
+    `
 })
 export class ComboSyncWarningComponent {}
 
@@ -57,24 +57,24 @@ const mockLedgerStore = {
     syncStatus: signal('pending-local'),
     authError: signal(true),
     isDirty: signal(true),
-    hasLocalFallback: signal(true),
+    hasLocalFallback: signal(true)
 };
 
 const mockAuthService = {
     currentUser: signal({ displayName: 'Disconnected User', email: 'user@example.com' }),
-    signInWithGoogle: async () => console.log('Mock sign in'),
+    signInWithGoogle: async () => console.log('Mock sign in')
 };
 
 const mockSyncService = {
     isSyncing: signal(false),
-    getSyncStatus: () => ({ lastSyncTime: Date.now() - 86400000 }), // Yesterday
+    getSyncStatus: () => ({ lastSyncTime: Date.now() - 86400000 }) // Yesterday
 };
 
 const meta: Meta<ComboSyncWarningComponent> = {
     title: 'Combo Compositions/6. Sync Warning State',
     component: ComboSyncWarningComponent,
     parameters: {
-        layout: 'fullscreen',
+        layout: 'fullscreen'
     },
     decorators: [
         applicationConfig({
@@ -82,10 +82,10 @@ const meta: Meta<ComboSyncWarningComponent> = {
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
-                { provide: SyncService, useValue: mockSyncService },
-            ],
-        }),
-    ],
+                { provide: SyncService, useValue: mockSyncService }
+            ]
+        })
+    ]
 };
 
 export default meta;

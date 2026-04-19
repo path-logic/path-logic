@@ -50,7 +50,7 @@ export async function openNewAccountDialog(page: Page): Promise<void> {
 export async function createCheckingAccount(
     page: Page,
     name: string,
-    balance: string = '1000',
+    balance: string = '1000'
 ): Promise<void> {
     await openNewAccountDialog(page);
     // Step 1: select account type

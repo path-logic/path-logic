@@ -24,8 +24,10 @@
         "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
-            "@path-logic/core": ["packages/core/src/index.ts"],
-            "@path-logic/feature-flags": ["packages/feature-flags/src/index.ts"]
+            "@core": ["app/src/app/core/index.ts"],
+            "@core/*": ["app/src/app/core/*"],
+            "@feature-flags": ["app/src/app/feature-flags/index.ts"],
+            "@feature-flags/*": ["app/src/app/feature-flags/*"]
         }
     },
     "exclude": ["node_modules", "tmp"]

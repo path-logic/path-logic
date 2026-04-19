@@ -12,7 +12,7 @@ import {
     getLockStatus,
     type IDriveFile,
     releaseLock,
-    uploadDatabase,
+    uploadDatabase
 } from '../../lib/storage/GoogleDriveAdapter';
 import { loadLocalFallback, saveLocalFallback } from '../../lib/storage/LocalPersistenceAdapter';
 import { getDb } from '../../lib/storage/SQLiteAdapter';
@@ -103,7 +103,7 @@ export class SyncService {
                 console.error('[Sync] Failed to load from Drive:', error);
                 this.ledgerStore.syncStatus.set('error');
                 this.ledgerStore.syncError.set(
-                    error instanceof Error ? error.message : 'Unknown error',
+                    error instanceof Error ? error.message : 'Unknown error'
                 );
             }
         } finally {
@@ -135,7 +135,7 @@ export class SyncService {
             const lockAcquired: boolean = await acquireLock(
                 accessToken,
                 clientId,
-                navigator.userAgent,
+                navigator.userAgent
             );
             if (!lockAcquired) {
                 console.warn('[Sync] Could not acquire lock — another device is syncing');
@@ -150,11 +150,11 @@ export class SyncService {
                 if (driveFile) {
                     const remoteEncrypted: Uint8Array = await downloadDatabase(
                         accessToken,
-                        driveFile.id,
+                        driveFile.id
                     );
                     const remoteDecrypted: Uint8Array = await decryptDatabase(
                         remoteEncrypted,
-                        userId,
+                        userId
                     );
 
                     // Load remote DB into temp instance and merge
@@ -198,7 +198,7 @@ export class SyncService {
                 console.error('[Sync] Failed to save to Drive:', error);
                 this.ledgerStore.syncStatus.set('error');
                 this.ledgerStore.syncError.set(
-                    error instanceof Error ? error.message : 'Unknown error',
+                    error instanceof Error ? error.message : 'Unknown error'
                 );
             }
         } finally {
@@ -244,7 +244,7 @@ export class SyncService {
     getSyncStatus(): ISyncStatus {
         return {
             inProgress: this.syncInProgress,
-            lastSyncTime: this.lastSyncTime,
+            lastSyncTime: this.lastSyncTime
         };
     }
 

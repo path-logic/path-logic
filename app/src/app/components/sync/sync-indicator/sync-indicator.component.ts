@@ -1,6 +1,6 @@
 import type { OnDestroy, OnInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import type { TimerHandle } from '@path-logic/core';
+import type { TimerHandle } from '@core';
 import { AlertTriangle, Cloud, LucideAngularModule, RefreshCw } from 'lucide-angular';
 
 import { AuthService } from '../../../services/auth/auth.service';
@@ -12,12 +12,12 @@ import { SyncService } from '../../../services/sync/sync.service';
  * Visualizes when the app is in-progress, idle, or has encountered an error.
  */
 @Component({
-    selector: 'app-sync-indicator',
+    selector: 'sync-indicator',
     standalone: true,
     imports: [LucideAngularModule],
     templateUrl: './sync-indicator.component.html',
     styleUrl: './sync-indicator.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SyncIndicatorComponent implements OnInit, OnDestroy {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
@@ -51,7 +51,7 @@ export class SyncIndicatorComponent implements OnInit, OnDestroy {
             hour12: false,
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit',
+            second: '2-digit'
         });
     });
 

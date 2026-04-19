@@ -15,22 +15,22 @@ const mockStores = [
         useValue: {
             syncStatus: signal('idle'),
             authError: signal(false),
-            hasLocalFallback: signal(true),
-        },
+            hasLocalFallback: signal(true)
+        }
     },
     {
         provide: SyncService,
         useValue: {
             isSyncing: signal(false),
-            getSyncStatus: () => ({ lastSyncTime: Date.now() - 60000 }),
-        },
+            getSyncStatus: () => ({ lastSyncTime: Date.now() - 60000 })
+        }
     },
     {
         provide: AuthService,
         useValue: {
-            signInWithGoogle: async () => {},
-        },
-    },
+            signInWithGoogle: async () => {}
+        }
+    }
 ];
 
 const meta: Meta<FooterComponent> = {
@@ -39,9 +39,9 @@ const meta: Meta<FooterComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: mockStores,
-        }),
-    ],
+            providers: mockStores
+        })
+    ]
 };
 
 export default meta;

@@ -1,24 +1,18 @@
 <div
-    class="h-screen bg-background text-foreground font-sans selection:bg-primary/30 overflow-hidden flex flex-col relative"
+    class="h-screen bg-surface-50 text-surface-900 font-sans selection:bg-primary/30 overflow-hidden flex flex-col relative"
 >
     <!-- Security & Auth Guardrails -->
-    <app-security-overlay [isVisible]="isIdle()" (onUnlock)="resetTimers()" />
-    <app-auth-overlay />
-    <app-sync-pending-banner />
+    <security-overlay [isVisible]="isIdle()" (unlocked)="resetTimers()" />
+    <auth-overlay />
+    <sync-pending-banner />
 
-    <app-header />
+    <header></header>
 
     <main
         class="flex-1 w-full flex flex-col min-h-0 relative"
         [class.overflow-hidden]="!scrollable()"
     >
-        <div
-            class="flex-none w-full border-b border-border/50 bg-background/50 backdrop-blur-sm px-4"
-        >
-            <div class="max-w-7xl mx-auto py-2">
-                <app-breadcrumb-nav />
-            </div>
-        </div>
+        <breadcrumb-nav />
 
         <div
             class="flex-1 w-full flex flex-col"
@@ -38,5 +32,5 @@
         </div>
     </main>
 
-    <app-footer />
+    <footer></footer>
 </div>

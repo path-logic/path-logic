@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { type ICategory } from '@path-logic/core';
+import { type ICategory } from '@core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
 
@@ -18,7 +18,7 @@ const mockLedgerStore = {
             isActive: true,
             description: '',
             createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
+            updatedAt: '2024-01-01'
         },
         {
             id: 'cat-2',
@@ -27,7 +27,7 @@ const mockLedgerStore = {
             isActive: true,
             description: '',
             createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
+            updatedAt: '2024-01-01'
         },
         {
             id: 'cat-3',
@@ -36,9 +36,9 @@ const mockLedgerStore = {
             isActive: true,
             description: '',
             createdAt: '2024-01-01',
-            updatedAt: '2024-01-01',
-        },
-    ] as any),
+            updatedAt: '2024-01-01'
+        }
+    ] as any)
 };
 
 const meta: Meta<SplitEntryDialogComponent> = {
@@ -47,12 +47,12 @@ const meta: Meta<SplitEntryDialogComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }],
-        }),
+            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
+        })
     ],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -65,8 +65,8 @@ export const OpenUnbalanced: Story = {
     args: {
         isOpen: true,
         totalAmount: 15000, // $150.00
-        initialSplits: [],
-    },
+        initialSplits: []
+    }
 };
 
 /**
@@ -78,8 +78,8 @@ export const OpenBalanced: Story = {
         totalAmount: 15000,
         initialSplits: [
             { id: 's1', amount: 10000, categoryId: 'cat-1', memo: 'Target Run' },
-            { id: 's2', amount: 5000, categoryId: 'cat-2', memo: 'Starbucks inside Target' },
-        ],
+            { id: 's2', amount: 5000, categoryId: 'cat-2', memo: 'Starbucks inside Target' }
+        ]
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -92,7 +92,7 @@ export const OpenBalanced: Story = {
         // Verify save button is enabled
         const saveBtn = canvas.getByRole('button', { name: /confirm splits/i });
         await expect(saveBtn).not.toBeDisabled();
-    },
+    }
 };
 
 /**
@@ -102,7 +102,7 @@ export const InteractiveAddAndBalance: Story = {
     args: {
         isOpen: true,
         totalAmount: 20000,
-        initialSplits: [{ id: 's1', amount: 10000, categoryId: 'cat-1', memo: 'Partial' }],
+        initialSplits: [{ id: 's1', amount: 10000, categoryId: 'cat-1', memo: 'Partial' }]
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -114,11 +114,11 @@ export const InteractiveAddAndBalance: Story = {
 
         // Click quick balance on the new split (it should appear after Add Split)
         const quickBalanceBtn = canvas.getByRole('button', {
-            name: /quick balance/i,
+            name: /quick balance/i
         });
         await userEvent.click(quickBalanceBtn);
 
         // Expect difference to be 0
         await expect(canvas.getByText(/\$0\.00/)).toBeInTheDocument();
-    },
+    }
 };

@@ -6,7 +6,7 @@ import {
     effect,
     inject,
     input,
-    signal,
+    signal
 } from '@angular/core';
 import { ChevronRight, EyeOff, HelpCircle, LucideAngularModule, X } from 'lucide-angular';
 
@@ -16,12 +16,12 @@ import { UserSettingsStore } from '../../../services/user-settings-store/user-se
  * A floating guide that provides contextual information based on the currently focused field.
  */
 @Component({
-    selector: 'app-form-guide',
+    selector: 'form-guide',
     standalone: true,
     imports: [CommonModule, LucideAngularModule],
     templateUrl: './form-guide.component.html',
     styleUrls: ['./form-guide.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormGuideComponent {
     private readonly settingsStore = inject(UserSettingsStore);

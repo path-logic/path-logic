@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
-import { type IAccount } from '@path-logic/core';
+import { type IAccount } from '@core';
 import { ChevronLeft, Info, LucideAngularModule } from 'lucide-angular';
 
 import { AccountEditFormComponent } from '../../../components/accounts/account-edit-form/account-edit-form.component';
@@ -13,12 +13,12 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
  * Uses component input binding for accountId.
  */
 @Component({
-    selector: 'app-account-info',
+    selector: 'account-info',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, AccountEditFormComponent, AppShellComponent],
     templateUrl: './account-info.component.html',
     styleUrls: ['./account-info.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountInfoComponent {
     private readonly ledgerStore = inject(LedgerStore);

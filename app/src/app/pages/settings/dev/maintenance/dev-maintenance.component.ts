@@ -15,7 +15,7 @@ import {
     Trash2,
     Users,
     Wallet,
-    XCircle,
+    XCircle
 } from 'lucide-angular';
 
 import { environment } from '../../../../../environments/environment';
@@ -25,7 +25,7 @@ import { clearLocalFallback } from '../../../../lib/storage/LocalPersistenceAdap
 import {
     deleteCategory,
     deletePayee,
-    softDeleteAccount,
+    softDeleteAccount
 } from '../../../../lib/storage/SQLiteAdapter';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
@@ -35,12 +35,12 @@ import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
  * Provides a "Nuclear Option" to wipe all data and a "Database Explorer" for inspection.
  */
 @Component({
-    selector: 'app-dev-maintenance',
+    selector: 'dev-maintenance',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
     templateUrl: './dev-maintenance.component.html',
     styleUrls: ['./dev-maintenance.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevMaintenanceComponent {
     private readonly authService = inject(AuthService);
@@ -66,7 +66,7 @@ export class DevMaintenanceComponent {
     async handleFactoryReset(): Promise<void> {
         if (
             !confirm(
-                'NUCLEAR OPTION: Are you absolutely sure? This will PERMANENTLY destroy all data in this environment (Google Drive & Local). This cannot be undone.',
+                'NUCLEAR OPTION: Are you absolutely sure? This will PERMANENTLY destroy all data in this environment (Google Drive & Local). This cannot be undone.'
             )
         ) {
             return;
@@ -85,7 +85,7 @@ export class DevMaintenanceComponent {
                 } catch (cloudError) {
                     console.warn(
                         '[Maintenance] Cloud wipe failed, proceeding with local wipe:',
-                        cloudError,
+                        cloudError
                     );
                     cloudWipeFailed = true;
                 }
@@ -113,7 +113,7 @@ export class DevMaintenanceComponent {
     async handleForceWipeLocal(): Promise<void> {
         if (
             !confirm(
-                'EMERGENCY: Force wipe local data? This skips Google Drive and only clears this device.',
+                'EMERGENCY: Force wipe local data? This skips Google Drive and only clears this device.'
             )
         ) {
             return;

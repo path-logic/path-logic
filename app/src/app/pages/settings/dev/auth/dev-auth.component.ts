@@ -12,12 +12,12 @@ import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
  * Displays session metadata and allows simulating auth states.
  */
 @Component({
-    selector: 'app-dev-auth',
+    selector: 'dev-auth',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
     templateUrl: './dev-auth.component.html',
     styleUrls: ['./dev-auth.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevAuthComponent {
     private readonly authService = inject(AuthService);
@@ -42,10 +42,10 @@ export class DevAuthComponent {
                 isAnonymous: u.isAnonymous,
                 metadata: u.metadata,
                 providerData: u.providerData,
-                accessToken: this.accessToken() ? '***' + this.accessToken()?.slice(-8) : 'MISSING',
+                accessToken: this.accessToken() ? '***' + this.accessToken()?.slice(-8) : 'MISSING'
             },
             null,
-            2,
+            2
         );
     });
 

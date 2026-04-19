@@ -137,7 +137,7 @@ Complex object literals should use interfaces:
 // ❌ WRONG
 const config = {
     timeout: 5000,
-    retries: 3,
+    retries: 3
 };
 
 // ✅ CORRECT
@@ -148,7 +148,7 @@ interface IConfig {
 
 const config: IConfig = {
     timeout: 5000,
-    retries: 3,
+    retries: 3
 };
 ```
 

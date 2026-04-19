@@ -1,5 +1,4 @@
-import { signal } from '@angular/core';
-import { AccountType } from '@path-logic/core';
+import { AccountType } from '@core';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -12,7 +11,7 @@ import { LoanDetailsFormComponent } from './loan-details-form.component';
  */
 const mockSettingsStore = {
     getSetting: () => 'false',
-    updateSetting: () => {},
+    updateSetting: () => {}
 };
 
 const meta: Meta<LoanDetailsFormComponent> = {
@@ -21,9 +20,9 @@ const meta: Meta<LoanDetailsFormComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }],
-        }),
-    ],
+            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
+        })
+    ]
 };
 
 export default meta;
@@ -31,19 +30,19 @@ type Story = StoryObj<LoanDetailsFormComponent>;
 
 export const Mortgage: Story = {
     args: {
-        type: AccountType.Mortgage,
-    },
+        type: AccountType.Mortgage
+    }
 };
 
 export const AutoLoan: Story = {
     args: {
-        type: AccountType.AutoLoan,
-    },
+        type: AccountType.AutoLoan
+    }
 };
 
 export const InteractiveValidation: Story = {
     args: {
-        type: AccountType.AutoLoan,
+        type: AccountType.AutoLoan
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -65,11 +64,11 @@ export const InteractiveValidation: Story = {
         await userEvent.type(accountNameInput, 'Honda Civic');
         await userEvent.type(
             canvas.getByRole('spinbutton', { name: /original loan amount/i }),
-            '25000',
+            '25000'
         );
         await userEvent.type(canvas.getByRole('spinbutton', { name: /interest rate/i }), '4.5');
 
         // Note: We don't click submit again because the output event would fire and we
         // just want to verify the error state clearing and inputs accepting data.
-    },
+    }
 };

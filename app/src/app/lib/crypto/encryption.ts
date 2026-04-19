@@ -28,7 +28,7 @@ export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
         userIdBytes as BufferSource,
         'PBKDF2',
         false,
-        ['deriveKey'],
+        ['deriveKey']
     );
 
     // Derive AES-GCM key using PBKDF2
@@ -40,15 +40,15 @@ export async function deriveKeyFromUserId(userId: string): Promise<CryptoKey> {
             name: 'PBKDF2',
             salt: salt as BufferSource,
             iterations: PBKDF2_ITERATIONS,
-            hash: 'SHA-256',
+            hash: 'SHA-256'
         },
         keyMaterial,
         {
             name: 'AES-GCM',
-            length: KEY_LENGTH,
+            length: KEY_LENGTH
         },
         false, // not extractable
-        ['encrypt', 'decrypt'],
+        ['encrypt', 'decrypt']
     );
 
     return key;
@@ -67,10 +67,10 @@ export async function encryptData(data: Uint8Array, key: CryptoKey): Promise<Uin
     const ciphertext: ArrayBuffer = await crypto.subtle.encrypt(
         {
             name: 'AES-GCM',
-            iv,
+            iv
         },
         key,
-        data as BufferSource,
+        data as BufferSource
     );
 
     // Prepend IV to ciphertext
@@ -94,10 +94,10 @@ export async function decryptData(encryptedData: Uint8Array, key: CryptoKey): Pr
     const plaintext: ArrayBuffer = await crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
-            iv,
+            iv
         },
         key,
-        ciphertext,
+        ciphertext
     );
 
     return new Uint8Array(plaintext);
@@ -116,7 +116,7 @@ export async function encryptDatabase(dbExport: Uint8Array, userId: string): Pro
  */
 export async function decryptDatabase(
     encryptedDb: Uint8Array,
-    userId: string,
+    userId: string
 ): Promise<Uint8Array> {
     const key: CryptoKey = await deriveKeyFromUserId(userId);
     return decryptData(encryptedDb, key);

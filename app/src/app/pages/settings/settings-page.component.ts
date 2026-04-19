@@ -12,12 +12,12 @@ import { FLAG_CONFIGS } from '../../constants/feature-flags';
  * Provides toggles for feature flags and links to developer tools.
  */
 @Component({
-    selector: 'app-settings-page',
+    selector: 'settings-page',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, AppShellComponent, FeatureFlagToggleComponent],
     templateUrl: './settings-page.component.html',
     styleUrls: ['./settings-page.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsPageComponent {
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);

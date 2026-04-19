@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { IAccount, ISODateString } from '@path-logic/core';
-import { AccountType, TypeGuards } from '@path-logic/core';
+import type { IAccount, ISODateString } from '@core';
+import { AccountType, TypeGuards } from '@core';
 import {
     ArrowRight,
     Banknote,
@@ -14,7 +14,7 @@ import {
     LucideAngularModule,
     Receipt,
     Sparkles,
-    Wallet,
+    Wallet
 } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
@@ -42,26 +42,26 @@ const PRIMARY_TYPES: Array<IAccountTypeOption> = [
         type: AccountType.Checking,
         icon: Landmark,
         label: 'Checking Account',
-        description: 'Track daily spending, bills, and income',
+        description: 'Track daily spending, bills, and income'
     },
     {
         type: AccountType.Savings,
         icon: Banknote,
         label: 'Savings Account',
-        description: 'Monitor long-term savings goals',
+        description: 'Monitor long-term savings goals'
     },
     {
         type: AccountType.Credit,
         icon: CreditCard,
         label: 'Credit Card',
-        description: 'Track credit card spending and payments',
+        description: 'Track credit card spending and payments'
     },
     {
         type: AccountType.Cash,
         icon: Wallet,
         label: 'Cash',
-        description: 'Monitor physical cash transactions',
-    },
+        description: 'Monitor physical cash transactions'
+    }
 ];
 
 const LOAN_TYPES: Array<IAccountTypeOption> = [
@@ -69,20 +69,20 @@ const LOAN_TYPES: Array<IAccountTypeOption> = [
         type: AccountType.Mortgage,
         icon: Home,
         label: 'Mortgage',
-        description: 'Track home loan, escrow, and equity',
+        description: 'Track home loan, escrow, and equity'
     },
     {
         type: AccountType.AutoLoan,
         icon: Car,
         label: 'Auto Loan',
-        description: 'Track vehicle financing and payoff',
+        description: 'Track vehicle financing and payoff'
     },
     {
         type: AccountType.PersonalLoan,
         icon: Receipt,
         label: 'Personal Loan',
-        description: 'Track unsecured debts and consolidation',
-    },
+        description: 'Track unsecured debts and consolidation'
+    }
 ];
 
 /**
@@ -97,50 +97,50 @@ const TYPE_THEMING: Record<
         borderHover: 'border-teal-500/30 hover:border-teal-500',
         iconText: 'text-teal-500',
         iconBg: 'bg-teal-500/10',
-        iconBorder: 'border-teal-500/20',
+        iconBorder: 'border-teal-500/20'
     },
     [AccountType.Savings]: {
         accentBg: 'bg-blue-500',
         borderHover: 'border-blue-500/30 hover:border-blue-500',
         iconText: 'text-blue-500',
         iconBg: 'bg-blue-500/10',
-        iconBorder: 'border-blue-500/20',
+        iconBorder: 'border-blue-500/20'
     },
     [AccountType.Credit]: {
         accentBg: 'bg-purple-500',
         borderHover: 'border-purple-500/30 hover:border-purple-500',
         iconText: 'text-purple-500',
         iconBg: 'bg-purple-500/10',
-        iconBorder: 'border-purple-500/20',
+        iconBorder: 'border-purple-500/20'
     },
     [AccountType.Cash]: {
         accentBg: 'bg-green-500',
         borderHover: 'border-green-500/30 hover:border-green-500',
         iconText: 'text-green-500',
         iconBg: 'bg-green-500/10',
-        iconBorder: 'border-green-500/20',
+        iconBorder: 'border-green-500/20'
     },
     [AccountType.Mortgage]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
         iconText: 'text-amber-500',
         iconBg: 'bg-amber-500/10',
-        iconBorder: 'border-amber-500/20',
+        iconBorder: 'border-amber-500/20'
     },
     [AccountType.AutoLoan]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
         iconText: 'text-amber-500',
         iconBg: 'bg-amber-500/10',
-        iconBorder: 'border-amber-500/20',
+        iconBorder: 'border-amber-500/20'
     },
     [AccountType.PersonalLoan]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
         iconText: 'text-amber-500',
         iconBg: 'bg-amber-500/10',
-        iconBorder: 'border-amber-500/20',
-    },
+        iconBorder: 'border-amber-500/20'
+    }
 };
 
 /**
@@ -148,7 +148,7 @@ const TYPE_THEMING: Record<
  * Guides the user through creating their very first account.
  */
 @Component({
-    selector: 'app-welcome-wizard',
+    selector: 'welcome-wizard',
     standalone: true,
     imports: [
         FormsModule,
@@ -159,11 +159,11 @@ const TYPE_THEMING: Record<
         StepPanels,
         Step,
         StepPanel,
-        Button,
+        Button
     ],
     templateUrl: './welcome-wizard.component.html',
     styleUrls: ['./welcome-wizard.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WelcomeWizardComponent {
     // Outputs
@@ -211,7 +211,7 @@ export class WelcomeWizardComponent {
                 borderHover: 'border-primary/30',
                 iconText: 'text-primary',
                 iconBg: 'bg-primary/10',
-                iconBorder: 'border-primary/20',
+                iconBorder: 'border-primary/20'
             };
         }
         return TYPE_THEMING[type];
@@ -231,7 +231,7 @@ export class WelcomeWizardComponent {
             [AccountType.Checking]: 'Main Checking',
             [AccountType.Savings]: 'Savings',
             [AccountType.Credit]: 'Credit Card',
-            [AccountType.Cash]: 'Cash',
+            [AccountType.Cash]: 'Cash'
         };
         const defaultName = defaultNames[type];
         if (defaultName) {
@@ -277,7 +277,7 @@ export class WelcomeWizardComponent {
                 isActive: true,
                 deletedAt: null,
                 createdAt: now,
-                updatedAt: now,
+                updatedAt: now
             };
 
             this.accountCreated.emit(newAccount);
@@ -305,7 +305,7 @@ export class WelcomeWizardComponent {
                 borderHover: 'border-primary/30',
                 iconText: 'text-primary',
                 iconBg: 'bg-primary/10',
-                iconBorder: 'border-primary/20',
+                iconBorder: 'border-primary/20'
             }
         );
     }

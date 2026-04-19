@@ -1,6 +1,6 @@
 import type { WritableSignal } from '@angular/core';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import type { TimerHandle } from '@path-logic/core';
+import type { TimerHandle } from '@core';
 
 import { AuthService } from '../auth/auth.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
@@ -80,7 +80,7 @@ export class SecurityManagerService {
 
         this.destroyRef.onDestroy((): void => {
             events.forEach((event: string): void =>
-                window.removeEventListener(event, handleActivity),
+                window.removeEventListener(event, handleActivity)
             );
         });
     }

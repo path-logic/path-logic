@@ -1,15 +1,13 @@
-<app-shell>
+<shell>
     <div class="flex-1 flex flex-col overflow-hidden h-full">
         <div class="flex-1 overflow-auto p-8">
             <div class="w-full mx-auto space-y-8">
                 <header class="flex justify-between items-center flex-none">
                     <div>
                         <h1 class="text-sm font-black uppercase tracking-widest mb-1 text-primary">
-                            System <span class="text-foreground">Settings</span>
+                            System <span class="text-surface-800">Settings</span>
                         </h1>
-                        <p
-                            class="text-muted-foreground text-[10px] uppercase font-bold tracking-widest"
-                        >
+                        <p class="text-surface-500 text-[10px] uppercase font-bold tracking-widest">
                             Configure your Path Logic experience and experiment with features
                         </p>
                     </div>
@@ -25,9 +23,9 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @for (config of FLAG_CONFIGS; track config.key) {
                             <div
-                                class="bg-card border border-border/40 rounded-sm overflow-hidden shadow-sm"
+                                class="bg-surface-0 border border-surface-200/40 rounded-sm overflow-hidden shadow-sm"
                             >
-                                <app-feature-flag-toggle
+                                <feature-flag-toggle
                                     [flag]="config.key"
                                     [label]="config.name"
                                     [description]="config.description"
@@ -44,25 +42,25 @@
                             Application Info
                         </h2>
                     </div>
-                    <div class="bg-card border border-border rounded-sm p-6 shadow-sm">
+                    <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
                         <div class="space-y-4">
                             <div
-                                class="flex justify-between items-center py-2 border-b border-border/30 last:border-0"
+                                class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
                             >
                                 <span
-                                    class="text-[10px] font-bold uppercase text-muted-foreground tracking-widest"
+                                    class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
                                 >
                                     Version
                                 </span>
-                                <span class="text-[11px] font-black uppercase text-foreground">
+                                <span class="text-[11px] font-black uppercase text-surface-800">
                                     4.2-Alpha (Angular)
                                 </span>
                             </div>
                             <div
-                                class="flex justify-between items-center py-2 border-b border-border/30 last:border-0"
+                                class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
                             >
                                 <span
-                                    class="text-[10px] font-bold uppercase text-muted-foreground tracking-widest"
+                                    class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
                                 >
                                     Engine
                                 </span>
@@ -71,10 +69,10 @@
                                 </span>
                             </div>
                             <div
-                                class="flex justify-between items-center py-2 border-b border-border/30 last:border-0"
+                                class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
                             >
                                 <span
-                                    class="text-[10px] font-bold uppercase text-muted-foreground tracking-widest"
+                                    class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
                                 >
                                     Encryption
                                 </span>
@@ -93,19 +91,19 @@
                             Developer Tools
                         </h2>
                     </div>
-                    <div class="bg-card border border-border rounded-sm p-6 shadow-sm">
+                    <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
                         <div class="space-y-4">
                             <div
-                                class="flex justify-between items-center py-2 border-b border-border/30 last:border-0"
+                                class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
                             >
                                 <div class="flex flex-col">
                                     <span
-                                        class="text-[10px] font-bold uppercase text-muted-foreground tracking-widest"
+                                        class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
                                     >
                                         Storybook
                                     </span>
                                     <span
-                                        class="text-[9px] text-muted-foreground/60 uppercase font-bold mt-0.5"
+                                        class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5"
                                     >
                                         Component Documentation & Testing
                                     </span>
@@ -125,4 +123,4 @@
             </div>
         </div>
     </div>
-</app-shell>
+</shell>

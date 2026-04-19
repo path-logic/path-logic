@@ -74,7 +74,7 @@ export async function loadLocalFallback(): Promise<Uint8Array | null> {
                     }
                 };
                 request.onerror = (): void => reject(request.error as Error);
-            },
+            }
         );
     } catch (error) {
         console.error('[LocalPersistence] Failed to load local fallback:', error);

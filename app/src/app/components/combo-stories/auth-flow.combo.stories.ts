@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
@@ -10,19 +9,19 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 import { AuthOverlayComponent } from '../auth/auth-overlay/auth-overlay.component';
 
 @Component({
-    selector: 'app-combo-auth-flow',
+    selector: 'combo-auth-flow',
     standalone: true,
     imports: [SignInComponent, AuthOverlayComponent],
     template: `
         <!-- Main background representing the app router outlet -->
         <div class="h-screen bg-black w-full relative p-8">
             <h1 class="text-white text-2xl font-bold mb-8">Authentication Flow Simulator</h1>
-            <app-sign-in></app-sign-in>
+            <sign-in></sign-in>
 
             <!-- The overlay sits at the root level in the real app -->
-            <app-auth-overlay></app-auth-overlay>
+            <auth-overlay></auth-overlay>
         </div>
-    `,
+    `
 })
 export class ComboAuthFlowComponent {}
 
@@ -42,14 +41,14 @@ class MockAuthService {
 const mockLedgerStore = {
     authError: signal(true),
     isInitialized: signal(false),
-    hasLocalFallback: signal(false),
+    hasLocalFallback: signal(false)
 };
 
 const meta: Meta<ComboAuthFlowComponent> = {
     title: 'Combo Compositions/2. Auth Flow',
     component: ComboAuthFlowComponent,
     parameters: {
-        layout: 'fullscreen',
+        layout: 'fullscreen'
     },
     decorators: [
         applicationConfig({
@@ -57,10 +56,10 @@ const meta: Meta<ComboAuthFlowComponent> = {
                 provideRouter([]),
                 { provide: AuthService, useClass: MockAuthService },
                 { provide: LedgerStore, useValue: mockLedgerStore },
-                { provide: FirebaseService, useValue: {} },
-            ],
-        }),
-    ],
+                { provide: FirebaseService, useValue: {} }
+            ]
+        })
+    ]
 };
 
 export default meta;

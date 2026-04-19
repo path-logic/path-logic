@@ -8,9 +8,9 @@ import type {
     ISODateString,
     ISplit,
     ITransaction,
-    TransactionStatus,
-} from '@path-logic/core';
-import { TypeGuards } from '@path-logic/core';
+    TransactionStatus
+} from '@core';
+import { TypeGuards } from '@core';
 import type { Database, QueryExecResult, SqlJsStatic } from 'sql.js';
 
 // ============================================================================
@@ -343,7 +343,7 @@ SELECT * FROM recurring_splits WHERE scheduleId = ? AND isDeleted = 0 ORDER BY i
 
     DELETE_RECURRING_SPLITS_BY_SCHEDULE: `
         UPDATE recurring_splits SET isDeleted = 1, updatedAt = ? WHERE scheduleId = ?
-    `,
+    `
 } as const;
 
 // ============================================================================
@@ -368,7 +368,7 @@ export const TRANSACTION_COLUMNS = {
     IS_DELETED: 10,
     CLIENT_ID: 11,
     CREATED_AT: 12,
-    UPDATED_AT: 13,
+    UPDATED_AT: 13
 } as const;
 
 /**
@@ -383,7 +383,7 @@ export const SPLIT_COLUMNS = {
     AMOUNT: 4,
     IS_DELETED: 5,
     CLIENT_ID: 6,
-    UPDATED_AT: 7,
+    UPDATED_AT: 7
 } as const;
 
 // ============================================================================
@@ -438,7 +438,7 @@ async function loadSqlJsScript(): Promise<void> {
     });
 }
 
-import { DEFAULT_CATEGORIES } from '@path-logic/core';
+import { DEFAULT_CATEGORIES } from '@core';
 
 /**
  * Ensures the database schema is up to date and seeded
@@ -452,7 +452,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
     const firstResult: QueryExecResult | undefined = columns.at(0);
     if (firstResult && firstResult.values) {
         const hasPayeeId: boolean = firstResult.values.some(
-            (v: Array<SqlValue>): boolean => v[1] === 'payeeId',
+            (v: Array<SqlValue>): boolean => v[1] === 'payeeId'
         );
         if (!hasPayeeId) {
             // Add column allowing NULL initially for migration
@@ -478,7 +478,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
                 0, // isDeleted
                 getClientId(),
                 now,
-                now,
+                now
             ]);
 
             dbInstance.run('UPDATE transactions SET payeeId = ?', [legacyPayeeId]);
@@ -494,7 +494,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
         'splits',
         'recurring_schedules',
         'recurring_splits',
-        'loan_details',
+        'loan_details'
     ];
     for (const table of tables) {
         const tableInfo: Array<QueryExecResult> = dbInstance.exec(`PRAGMA table_info(${table})`);
@@ -506,7 +506,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
 
             if (!hasIsDeleted) {
                 dbInstance.run(
-                    `ALTER TABLE ${table} ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0`,
+                    `ALTER TABLE ${table} ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0`
                 );
             }
             if (!hasClientId) {
@@ -524,7 +524,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
     const accountsResult: QueryExecResult | undefined = accountColumns.at(0);
     if (accountsResult && accountsResult.values) {
         const hasDeletedAt: boolean = accountsResult.values.some(
-            (v: Array<SqlValue>): boolean => v[1] === 'deletedAt',
+            (v: Array<SqlValue>): boolean => v[1] === 'deletedAt'
         );
         if (!hasDeletedAt) {
             dbInstance.run('ALTER TABLE accounts ADD COLUMN deletedAt TEXT');
@@ -533,7 +533,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
 
     // 3. Seeding: Default Categories
     const catCountResult: Array<QueryExecResult> = dbInstance.exec(
-        'SELECT COUNT(*) FROM categories',
+        'SELECT COUNT(*) FROM categories'
     );
     const count: number = (catCountResult[0]?.values[0]?.[0] as number) || 0;
 
@@ -551,7 +551,7 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
                     0, // isDeleted
                     getClientId(),
                     now,
-                    now,
+                    now
                 ]);
             }
             dbInstance.run('COMMIT');
@@ -577,7 +577,7 @@ async function ensureSqlJs(): Promise<SqlJsStatic> {
     }
 
     SQL = await initSqlJs({
-        locateFile: (file: string): string => `https://sql.js.org/dist/${file}`,
+        locateFile: (file: string): string => `https://sql.js.org/dist/${file}`
     });
     return SQL;
 }
@@ -664,7 +664,7 @@ export function insertTransaction(tx: ITransaction): void {
         0, // isDeleted
         clientId,
         tx.createdAt || now,
-        tx.updatedAt || now,
+        tx.updatedAt || now
     ]);
 
     // Insert splits
@@ -677,7 +677,7 @@ export function insertTransaction(tx: ITransaction): void {
             split.amount,
             0, // isDeleted
             clientId,
-            tx.updatedAt || now,
+            tx.updatedAt || now
         ]);
     }
 }
@@ -709,7 +709,7 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                 0, // isDeleted
                 clientId,
                 tx.createdAt || now,
-                tx.updatedAt || now,
+                tx.updatedAt || now
             ]);
 
             // Insert splits
@@ -722,7 +722,7 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                     split.amount,
                     0, // isDeleted
                     clientId,
-                    tx.updatedAt || now,
+                    tx.updatedAt || now
                 ]);
             }
         }
@@ -754,7 +754,7 @@ export function getAllTransactions(): Array<ITransaction> {
         // Get splits for this transaction
         const splitRows: Array<QueryExecResult> = db.exec(
             SQL_QUERIES.SELECT_SPLITS_BY_TRANSACTION,
-            [txId],
+            [txId]
         );
 
         const splits: Array<ISplit> = new Array<ISplit>();
@@ -764,7 +764,7 @@ export function getAllTransactions(): Array<ITransaction> {
                     id: splitRow[SPLIT_COLUMNS.ID] as string,
                     amount: splitRow[SPLIT_COLUMNS.AMOUNT] as number,
                     memo: (splitRow[SPLIT_COLUMNS.MEMO] as string) || '',
-                    categoryId: (splitRow[SPLIT_COLUMNS.CATEGORY_ID] as string) || null,
+                    categoryId: (splitRow[SPLIT_COLUMNS.CATEGORY_ID] as string) || null
                 } satisfies ISplit);
             }
         }
@@ -782,7 +782,7 @@ export function getAllTransactions(): Array<ITransaction> {
             importHash: row[TRANSACTION_COLUMNS.IMPORT_HASH] as string,
             createdAt: row[TRANSACTION_COLUMNS.CREATED_AT] as ISODateString,
             updatedAt: row[TRANSACTION_COLUMNS.UPDATED_AT] as ISODateString,
-            splits,
+            splits
         } satisfies ITransaction);
     }
 
@@ -812,7 +812,7 @@ export function updateTransaction(tx: ITransaction): void {
         0, // isDeleted
         clientId,
         updatedAt,
-        tx.id,
+        tx.id
     ]);
 
     // Mark existing splits as deleted and re-insert
@@ -826,7 +826,7 @@ export function updateTransaction(tx: ITransaction): void {
             split.amount,
             0, // isDeleted
             clientId,
-            updatedAt,
+            updatedAt
         ]);
     }
 }
@@ -862,7 +862,7 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
                 createdAt: row[8] as ISODateString,
                 updatedAt: row[9] as ISODateString,
                 clearedBalance: 0, // Calculated dynamically in store
-                pendingBalance: 0, // Calculated dynamically in store
+                pendingBalance: 0 // Calculated dynamically in store
             };
 
             // Load loan details if applicable
@@ -896,7 +896,7 @@ export function insertAccount(account: IAccount): void {
         0, // isDeleted
         clientId,
         account.createdAt || now,
-        account.updatedAt || now,
+        account.updatedAt || now
     ]);
 
     // Insert loan details if present
@@ -923,7 +923,7 @@ export function updateAccount(account: IAccount): void {
         0, // isDeleted
         clientId,
         updatedAt,
-        account.id,
+        account.id
     ]);
 
     // Update loan details if present
@@ -963,7 +963,7 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
         0, // isDeleted
         clientId,
         now,
-        now,
+        now
     ]);
 }
 
@@ -998,7 +998,7 @@ export function getLoanDetails(accountId: string): ILoanDetails | undefined {
         monthlyPayment: row[4] as Cents,
         paymentDueDay: row[5] as number,
         startDate: row[6] as ISODateString,
-        metadata: metadataJson ? JSON.parse(metadataJson) : undefined,
+        metadata: metadataJson ? JSON.parse(metadataJson) : undefined
     };
 }
 
@@ -1026,8 +1026,8 @@ export function getAllPayees(): Array<IPayee> {
             notes: row[10] as string | null,
             defaultCategoryId: row[11] as string | null,
             createdAt: row[14] as ISODateString,
-            updatedAt: row[15] as ISODateString,
-        }),
+            updatedAt: row[15] as ISODateString
+        })
     );
 }
 
@@ -1056,7 +1056,7 @@ export function getPayeeByName(name: string): IPayee | null {
         notes: row[10] as string | null,
         defaultCategoryId: row[11] as string | null,
         createdAt: row[14] as ISODateString,
-        updatedAt: row[15] as ISODateString,
+        updatedAt: row[15] as ISODateString
     };
 }
 
@@ -1084,7 +1084,7 @@ export function insertPayee(payee: IPayee): void {
         0, // isDeleted
         clientId,
         payee.createdAt || now,
-        payee.updatedAt || now,
+        payee.updatedAt || now
     ]);
 }
 
@@ -1105,7 +1105,7 @@ export function insertCategory(category: ICategory): void {
         0, // isDeleted
         clientId,
         category.createdAt || now,
-        category.updatedAt || now,
+        category.updatedAt || now
     ]);
 }
 
@@ -1126,8 +1126,8 @@ export function getAllCategories(): Array<ICategory> {
             description: row[3] as string | null,
             isActive: Boolean(row[4]),
             createdAt: row[7] as ISODateString,
-            updatedAt: row[8] as ISODateString,
-        }),
+            updatedAt: row[8] as ISODateString
+        })
     );
 }
 
@@ -1185,10 +1185,10 @@ export function clearDatabase(): void {
         db.run('UPDATE payees SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE accounts SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE recurring_schedules SET isDeleted = 1, updatedAt = ?', [
-            new Date().toISOString(),
+            new Date().toISOString()
         ]);
         db.run('UPDATE recurring_splits SET isDeleted = 1, updatedAt = ?', [
-            new Date().toISOString(),
+            new Date().toISOString()
         ]);
         db.run('UPDATE loan_details SET isDeleted = 1, updated_at = ?', [new Date().toISOString()]);
         // User settings and Sync metadata are preserved
@@ -1220,7 +1220,7 @@ export function getAllRecurringSchedules(): Array<IRecurringSchedule> {
                     id: splitRow[0] as string,
                     amount: splitRow[4] as number,
                     memo: (splitRow[3] as string) || '',
-                    categoryId: (splitRow[2] as string) || null,
+                    categoryId: (splitRow[2] as string) || null
                 });
             }
         }
@@ -1240,7 +1240,7 @@ export function getAllRecurringSchedules(): Array<IRecurringSchedule> {
             memo: row[11] as string,
             autoPost: Boolean(row[12]),
             isActive: Boolean(row[13]),
-            splits,
+            splits
         };
     }) as Array<IRecurringSchedule>;
 }
@@ -1271,7 +1271,7 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
         0, // isDeleted
         clientId,
         now,
-        now,
+        now
     ]);
 
     // Insert splits
@@ -1284,7 +1284,7 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
             split.amount,
             0, // isDeleted
             clientId,
-            now,
+            now
         ]);
     }
 }
@@ -1314,7 +1314,7 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
         0, // isDeleted
         clientId,
         now,
-        schedule.id,
+        schedule.id
     ]);
 
     // Update splits (delete and re-insert)
@@ -1328,7 +1328,7 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
             split.amount,
             0, // isDeleted
             clientId,
-            now,
+            now
         ]);
     }
 }

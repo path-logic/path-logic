@@ -7,12 +7,12 @@ import {
     inject,
     input,
     signal,
-    viewChild,
+    viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import type { ISODateString, ISplit, ITransaction } from '@path-logic/core';
-import { AccountType, KnownCategory, Money, TransactionStatus } from '@path-logic/core';
+import type { ISODateString, ISplit, ITransaction } from '@core';
+import { AccountType, KnownCategory, Money, TransactionStatus } from '@core';
 import {
     Banknote,
     Calendar,
@@ -21,7 +21,7 @@ import {
     LucideAngularModule,
     Plus,
     Search,
-    Wallet,
+    Wallet
 } from 'lucide-angular';
 
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -29,7 +29,7 @@ import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator
 import { TransactionTableComponent } from '../transaction-table/transaction-table.component';
 
 @Component({
-    selector: 'app-account-ledger',
+    selector: 'account-ledger',
     standalone: true,
     imports: [
         CommonModule,
@@ -37,11 +37,11 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         RouterLink,
         LucideAngularModule,
         TransactionTableComponent,
-        SyncIndicatorComponent,
+        SyncIndicatorComponent
     ],
     templateUrl: './account-ledger.component.html',
     styleUrls: ['./account-ledger.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountLedgerComponent implements OnInit {
     private readonly ledgerStore = inject(LedgerStore);
@@ -119,10 +119,10 @@ export class AccountLedgerComponent implements OnInit {
                           id: `split-${Date.now()}`,
                           amount: amountCents,
                           memo: this.entryMemo(),
-                          categoryId: KnownCategory.Uncategorized,
+                          categoryId: KnownCategory.Uncategorized
                       }),
             createdAt: now as ISODateString,
-            updatedAt: now as ISODateString,
+            updatedAt: now as ISODateString
         };
 
         await this.ledgerStore.addTransaction(tx);

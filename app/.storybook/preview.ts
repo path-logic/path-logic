@@ -9,16 +9,16 @@ setCompodocJson(docJson);
 const preview: Preview = {
     decorators: [
         applicationConfig({
-            providers: [provideRouter([{ path: 'iframe.html', redirectTo: '' }])],
-        }),
+            providers: [provideRouter([{ path: 'iframe.html', redirectTo: '' }])]
+        })
     ],
     parameters: {
         actions: { argTypesRegex: '^on[A-Z].*' },
         controls: {
             matchers: {
                 color: /(background|color)$/i,
-                date: /Date$/,
-            },
+                date: /Date$/
+            }
         },
         // We use tailwind, so applying padding to the body helps give components breathing room
         layout: 'padded',
@@ -31,12 +31,12 @@ const preview: Preview = {
                         // Default to forgiving color contrast for un-themed components during porting,
                         // but generally we want strict compliance.
                         id: 'color-contrast',
-                        enabled: true,
-                    },
-                ],
-            },
-        },
-    },
+                        enabled: true
+                    }
+                ]
+            }
+        }
+    }
 };
 
 export default preview;

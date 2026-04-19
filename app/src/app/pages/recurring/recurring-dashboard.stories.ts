@@ -17,18 +17,18 @@ const meta: Meta<RecurringDashboardComponent> = {
                     theme: {
                         preset: Lara,
                         options: {
-                            darkModeSelector: '.dark',
-                        },
-                    },
-                }),
-            ],
-        }),
-    ],
+                            darkModeSelector: '.dark'
+                        }
+                    }
+                })
+            ]
+        })
+    ]
 };
 
 export default meta;
 type Story = StoryObj<RecurringDashboardComponent>;
 
 export const Default: Story = {
-    args: {},
+    args: {}
 };

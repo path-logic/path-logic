@@ -10,12 +10,12 @@ import { AppShellComponent } from '../../../components/layout/app-shell/app-shel
  * Provides entry points to various system diagnostics and maintenance tools.
  */
 @Component({
-    selector: 'app-dev-index',
+    selector: 'dev-index',
     standalone: true,
     imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
     templateUrl: './dev-index.component.html',
     styleUrls: ['./dev-index.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevIndexComponent {
     // Lucide Icons

@@ -1,5 +1,5 @@
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { Frequency, PaymentMethod, ScheduleType } from '@path-logic/core';
+import { Frequency, PaymentMethod, ScheduleType } from '@core';
 import Lara from '@primeuix/themes/lara';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
@@ -18,13 +18,13 @@ const meta: Meta<RecurringPaymentFormComponent> = {
                     theme: {
                         preset: Lara,
                         options: {
-                            darkModeSelector: '.dark',
-                        },
-                    },
-                }),
-            ],
-        }),
-    ],
+                            darkModeSelector: '.dark'
+                        }
+                    }
+                })
+            ]
+        })
+    ]
 };
 
 export default meta;
@@ -39,13 +39,13 @@ export const Default: Story = {
             autoPost: true,
             amount: 5000,
             payee: 'Internet Bill',
-            splits: [],
+            splits: []
         },
         accounts: [
             { id: '1', name: 'Main Checking' },
-            { id: '2', name: 'Savings' },
-        ],
-    },
+            { id: '2', name: 'Savings' }
+        ]
+    }
 };
 
 export const PaycheckMode: Story = {
@@ -61,9 +61,9 @@ export const PaycheckMode: Story = {
                 { id: 's1', categoryId: 'cat-gross-pay', amount: 600000, memo: 'Gross Pay' },
                 { id: 's2', categoryId: 'cat-federal-tax', amount: -65000, memo: 'Federal Tax' },
                 { id: 's3', categoryId: 'cat-state-tax', amount: -25000, memo: 'State Tax' },
-                { id: 's4', categoryId: 'cat-social-security', amount: -10000, memo: 'SS' },
-            ],
+                { id: 's4', categoryId: 'cat-social-security', amount: -10000, memo: 'SS' }
+            ]
         },
-        accounts: [{ id: '1', name: 'Main Checking' }],
-    },
+        accounts: [{ id: '1', name: 'Main Checking' }]
+    }
 };

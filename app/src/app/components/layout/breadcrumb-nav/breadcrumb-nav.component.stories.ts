@@ -12,8 +12,8 @@ import { BreadcrumbNavComponent } from './breadcrumb-nav.component';
 const mockLedgerStore = {
     accounts: signal([
         { id: 'acc-123', name: 'Chase Checking' },
-        { id: 'acc-456', name: 'Amex Gold' },
-    ]),
+        { id: 'acc-456', name: 'Amex Gold' }
+    ])
 };
 
 const meta: Meta<BreadcrumbNavComponent> = {
@@ -22,9 +22,9 @@ const meta: Meta<BreadcrumbNavComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [provideRouter([]), { provide: LedgerStore, useValue: mockLedgerStore }],
-        }),
-    ],
+            providers: [provideRouter([]), { provide: LedgerStore, useValue: mockLedgerStore }]
+        })
+    ]
 };
 
 export default meta;
@@ -47,10 +47,10 @@ const withMockUrl = (url: string) => {
                     initialNavigation: () => {},
                     navigate: async () => true,
                     navigateByUrl: async () => true,
-                    resetRootComponentType: () => {},
-                },
-            },
-        ],
+                    resetRootComponentType: () => {}
+                }
+            }
+        ]
     });
 };
 
@@ -58,26 +58,26 @@ const withMockUrl = (url: string) => {
  * At the root of the application.
  */
 export const Root: Story = {
-    decorators: [withMockUrl('/')],
+    decorators: [withMockUrl('/')]
 };
 
 /**
  * Deep navigation path without dynamic IDs.
  */
 export const SettingsStyleGuide: Story = {
-    decorators: [withMockUrl('/settings/style-guide')],
+    decorators: [withMockUrl('/settings/style-guide')]
 };
 
 /**
  * Deep navigation path with a dynamic account ID that needs resolution.
  */
 export const AccountDetail: Story = {
-    decorators: [withMockUrl('/accounts/acc-123/info')],
+    decorators: [withMockUrl('/accounts/acc-123/info')]
 };
 
 /**
  * Fallback behavior when an account ID cannot be found.
  */
 export const UnknownAccountDetail: Story = {
-    decorators: [withMockUrl('/accounts/unknown-999/info')],
+    decorators: [withMockUrl('/accounts/unknown-999/info')]
 };

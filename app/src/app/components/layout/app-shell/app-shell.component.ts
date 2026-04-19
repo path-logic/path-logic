@@ -13,7 +13,7 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
  * Bloomberg-style background, and overflow management.
  */
 @Component({
-    selector: 'app-shell',
+    selector: 'shell',
     standalone: true,
     imports: [
         HeaderComponent,
@@ -21,11 +21,11 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
         BreadcrumbNavComponent,
         SecurityOverlayComponent,
         AuthOverlayComponent,
-        SyncPendingBannerComponent,
+        SyncPendingBannerComponent
     ],
     templateUrl: './app-shell.component.html',
     styleUrl: './app-shell.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppShellComponent {
     private readonly securityManager: SecurityManagerService = inject(SecurityManagerService);

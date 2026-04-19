@@ -5,17 +5,17 @@ import {
     input,
     model,
     output,
-    signal,
+    signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Money } from '@path-logic/core';
+import { Money } from '@core';
 import {
     AlertCircle,
     ArrowRight,
     Link as LinkIcon,
     LucideAngularModule,
     PlusCircle,
-    X,
+    X
 } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -27,12 +27,12 @@ import type { IReconciliationMatch } from '../../../lib/sync/ReconciliationEngin
  * matches/conflicts during QIF bank statement imports.
  */
 @Component({
-    selector: 'app-reconciliation-dialog',
+    selector: 'reconciliation-dialog',
     standalone: true,
     imports: [FormsModule, LucideAngularModule, Dialog, Button],
     templateUrl: './reconciliation-dialog.component.html',
     styleUrls: ['./reconciliation-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReconciliationDialogComponent {
     // Inputs

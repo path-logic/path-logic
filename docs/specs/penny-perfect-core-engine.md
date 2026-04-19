@@ -52,7 +52,7 @@ type ISODateString = string;
 enum TransactionStatus {
     Pending = 'pending', // Imported but not reconciled
     Cleared = 'cleared', // Matched with bank statement
-    Reconciled = 'reconciled', // User-verified and locked
+    Reconciled = 'reconciled' // User-verified and locked
 }
 
 /**
@@ -62,7 +62,7 @@ enum AccountType {
     Checking = 'checking',
     Savings = 'savings',
     Credit = 'credit',
-    Cash = 'cash',
+    Cash = 'cash'
 }
 ```
 
@@ -122,7 +122,7 @@ enum Frequency {
     Biweekly = 'biweekly',
     Monthly = 'monthly',
     Quarterly = 'quarterly',
-    Yearly = 'yearly',
+    Yearly = 'yearly'
 }
 
 interface IRecurringSchedule {
@@ -170,7 +170,7 @@ function validateSplitSum(transaction: ITransaction): IValidationResult {
         return {
             valid: false,
             error: `Split sum (${splitSum}) !== Total (${transaction.totalAmount})`,
-            discrepancy: transaction.totalAmount - splitSum,
+            discrepancy: transaction.totalAmount - splitSum
         };
     }
 
@@ -222,7 +222,7 @@ interface ITransactionEngine {
     updateSplit(
         transactionId: EntityId,
         splitId: EntityId,
-        input: Partial<ISplit>,
+        input: Partial<ISplit>
     ): Result<ITransaction>;
     removeSplit(transactionId: EntityId, splitId: EntityId): Result<ITransaction>;
     autoBalanceSplits(transactionId: EntityId): Result<ITransaction>;
@@ -257,7 +257,7 @@ enum ErrorCode {
     TransactionNotFound = 'TRANSACTION_NOT_FOUND',
     InvalidAmount = 'INVALID_AMOUNT',
     DuplicateImport = 'DUPLICATE_IMPORT',
-    ReconciledImmutable = 'RECONCILED_IMMUTABLE',
+    ReconciledImmutable = 'RECONCILED_IMMUTABLE'
 }
 ```
 
@@ -283,9 +283,9 @@ function autoBalanceSplits(transaction: ITransaction): ITransaction {
                     id: generateUUID(),
                     categoryId: null,
                     memo: 'Auto-balanced',
-                    amount: discrepancy,
-                },
-            ],
+                    amount: discrepancy
+                }
+            ]
         };
     }
 
@@ -293,7 +293,7 @@ function autoBalanceSplits(transaction: ITransaction): ITransaction {
     const updatedSplits: Array<ISplit> = [...transaction.splits];
     updatedSplits[lastIndex] = {
         ...updatedSplits[lastIndex],
-        amount: updatedSplits[lastIndex].amount + discrepancy,
+        amount: updatedSplits[lastIndex].amount + discrepancy
     };
 
     return { ...transaction, splits: updatedSplits };
@@ -319,7 +319,7 @@ The 90-Day Cashflow Projection Engine generates a forward-looking balance foreca
 ```typescript
 enum ProjectedItemType {
     Pending = 'pending',
-    Recurring = 'recurring',
+    Recurring = 'recurring'
 }
 
 interface IProjectionDataPoint {
@@ -347,7 +347,7 @@ type CashflowProjection = Array<IProjectionDataPoint>;
 function generateProjection(
     startDate: ISODateString,
     days: number,
-    inputs: IProjectionInputs,
+    inputs: IProjectionInputs
 ): CashflowProjection {
     const { clearedBalance, pendingTransactions, recurringSchedules } = inputs;
 
@@ -367,7 +367,7 @@ function generateProjection(
                     type: ProjectedItemType.Pending,
                     description: tx.payee,
                     amount: tx.totalAmount,
-                    sourceId: tx.id,
+                    sourceId: tx.id
                 });
             }
         }
@@ -380,7 +380,7 @@ function generateProjection(
                     type: ProjectedItemType.Recurring,
                     description: schedule.payee,
                     amount: schedule.amount,
-                    sourceId: schedule.id,
+                    sourceId: schedule.id
                 });
             }
         }
@@ -391,7 +391,7 @@ function generateProjection(
             date: currentDate,
             projectedBalance: runningBalance,
             delta: dailyDelta,
-            items,
+            items
         });
     }
 
@@ -457,7 +457,7 @@ The parser handles legacy Quicken Interchange Format with defensive parsing:
 enum QIFAccountType {
     Bank = 'Bank',
     CCard = 'CCard',
-    Cash = 'Cash',
+    Cash = 'Cash'
 }
 
 interface IParsedTransaction {
@@ -495,7 +495,7 @@ const DATE_PATTERNS = [
     /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // M/D/YYYY
     /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/, // M/D/YY
     /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // M-D-YYYY
-    /^(\d{4})-(\d{2})-(\d{2})$/, // YYYY-MM-DD (ISO)
+    /^(\d{4})-(\d{2})-(\d{2})$/ // YYYY-MM-DD (ISO)
 ];
 
 function normalizeDate(raw: string): ISODateString {
@@ -567,7 +567,7 @@ export function centsToDollars(cents: Cents): number {
 export function formatCurrency(cents: Cents, locale = 'en-US'): string {
     return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: 'USD',
+        currency: 'USD'
     }).format(cents / 100);
 }
 
@@ -605,9 +605,9 @@ describe('TransactionEngine', () => {
             totalAmount: 10000, // $100.00
             splits: [
                 { amount: 6000, categoryId: 'cat-1' },
-                { amount: 3000, categoryId: 'cat-2' },
+                { amount: 3000, categoryId: 'cat-2' }
                 // Missing $10.00!
-            ],
+            ]
         });
 
         expect(result.success).toBe(false);
@@ -621,8 +621,8 @@ describe('TransactionEngine', () => {
                 { amount: 280000, categoryId: 'income' }, // Gross
                 { amount: -40000, categoryId: 'fed-tax' }, // Federal tax
                 { amount: -20000, categoryId: 'state-tax' }, // State tax
-                { amount: -20000, categoryId: 'insurance' }, // Insurance
-            ],
+                { amount: -20000, categoryId: 'insurance' } // Insurance
+            ]
         });
 
         expect(result.success).toBe(true);

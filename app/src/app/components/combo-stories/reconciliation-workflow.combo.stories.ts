@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
-import type { ITransaction } from '@path-logic/core';
-import { TransactionStatus } from '@path-logic/core';
+import type { ITransaction } from '@core';
+import { TransactionStatus } from '@core';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -10,7 +10,7 @@ import { ReconciliationDialogComponent } from '../ledger/reconciliation-dialog/r
 import { SplitEntryDialogComponent } from '../ledger/split-entry-dialog/split-entry-dialog.component';
 
 @Component({
-    selector: 'app-combo-reconciliation',
+    selector: 'combo-reconciliation',
     standalone: true,
     imports: [ReconciliationDialogComponent, SplitEntryDialogComponent],
     template: `
@@ -37,19 +37,16 @@ import { SplitEntryDialogComponent } from '../ledger/split-entry-dialog/split-en
             </button>
 
             <!-- Base Dialog -->
-            <app-reconciliation-dialog
+            <reconciliation-dialog
                 [isOpen]="reconOpen()"
                 [matches]="mockImports"
                 (closed)="reconOpen.set(false)"
-            ></app-reconciliation-dialog>
+            ></reconciliation-dialog>
 
             <!-- Stacked Dialog -->
-            <app-split-entry-dialog
-                [(isOpen)]="splitOpen"
-                [totalAmount]="15000"
-            ></app-split-entry-dialog>
+            <split-entry-dialog [(isOpen)]="splitOpen" [totalAmount]="15000"></split-entry-dialog>
         </div>
-    `,
+    `
 })
 export class ComboReconciliationComponent {
     reconOpen = signal(false);
@@ -60,13 +57,13 @@ export class ComboReconciliationComponent {
             type: 'fuzzy',
             parsedTx: { date: '2024-03-01', amount: -15000, payee: 'Target' },
             confidence: 0.9,
-            existingTxId: 'tx-1',
+            existingTxId: 'tx-1'
         },
         {
             type: 'none',
             parsedTx: { date: '2024-03-02', amount: -450, payee: 'Starbucks' },
-            confidence: 0,
-        },
+            confidence: 0
+        }
     ] as any;
 }
 
@@ -82,36 +79,36 @@ const mockLedgerStore = {
             status: TransactionStatus.Pending,
             splits: [],
             createdAt: '2024-03-01T00:00:00Z',
-            updatedAt: '2024-03-01T00:00:00Z',
-        },
+            updatedAt: '2024-03-01T00:00:00Z'
+        }
     ] as any),
     categories: signal([
         {
             id: 'cat-1',
             name: 'Groceries',
             parentId: null,
-            isActive: true,
+            isActive: true
         },
         {
             id: 'cat-2',
             name: 'Household',
             parentId: null,
-            isActive: true,
-        },
-    ] as any),
+            isActive: true
+        }
+    ] as any)
 };
 
 const meta: Meta<ComboReconciliationComponent> = {
     title: 'Combo Compositions/5. Reconciliation Workflow',
     component: ComboReconciliationComponent,
     parameters: {
-        layout: 'fullscreen',
+        layout: 'fullscreen'
     },
     decorators: [
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }],
-        }),
-    ],
+            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
+        })
+    ]
 };
 
 export default meta;
@@ -127,7 +124,7 @@ export const StackedDialogFlow: Story = {
         // Using body scope because dialogs are rendered in portals/overlays outside the canvas root sometimes
         const bodyContext = within(document.body);
         await expect(
-            await bodyContext.findByText(/reviewing 2 bank statement entries/i),
+            await bodyContext.findByText(/reviewing 2 bank statement entries/i)
         ).toBeInTheDocument();
 
         // 2. Open Split Dialog
@@ -137,5 +134,5 @@ export const StackedDialogFlow: Story = {
         // Both dialogs should be technically in the DOM, but split dialog is focused/on top
         // Use a more specific selector to avoid ambiguity with the background total
         await expect(bodyContext.getAllByText(/\$150\.00/)[0]).toBeInTheDocument();
-    },
+    }
 };

@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
-import type { ITransaction } from '@path-logic/core';
-import { TransactionStatus } from '@path-logic/core';
+import type { ITransaction } from '@core';
+import { TransactionStatus } from '@core';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -18,7 +18,7 @@ const MOCK_TRANSACTIONS: Array<ITransaction> = [
         status: TransactionStatus.Pending,
         splits: [],
         createdAt: '2024-03-01T00:00:00Z',
-        updatedAt: '2024-03-01T00:00:00Z',
+        updatedAt: '2024-03-01T00:00:00Z'
     },
     {
         id: 'tx-2',
@@ -29,14 +29,14 @@ const MOCK_TRANSACTIONS: Array<ITransaction> = [
         status: TransactionStatus.Pending,
         splits: [],
         createdAt: '2024-03-02T00:00:00Z',
-        updatedAt: '2024-03-02T00:00:00Z',
-    },
+        updatedAt: '2024-03-02T00:00:00Z'
+    }
 ] as any;
 
 const mockLedgerStore = {
     transactions: signal(MOCK_TRANSACTIONS),
     addTransactions: async () => {},
-    updateTransactions: async () => {},
+    updateTransactions: async () => {}
 };
 
 const meta: Meta<ReconciliationDialogComponent> = {
@@ -45,12 +45,12 @@ const meta: Meta<ReconciliationDialogComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }],
-        }),
+            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
+        })
     ],
     parameters: {
-        layout: 'fullscreen',
-    },
+        layout: 'fullscreen'
+    }
 };
 
 export default meta;
@@ -66,10 +66,10 @@ export const OpenWithMatches: Story = {
                 parsedTx: {
                     date: '2024-03-01',
                     amount: -4500,
-                    payee: 'Chevron',
+                    payee: 'Chevron'
                 },
                 confidence: 1,
-                existingTxId: 'tx-1',
+                existingTxId: 'tx-1'
             },
             // New transaction
             {
@@ -77,19 +77,19 @@ export const OpenWithMatches: Story = {
                 parsedTx: {
                     date: '2024-03-05',
                     amount: -1200,
-                    payee: 'Netflix',
+                    payee: 'Netflix'
                 },
-                confidence: 0,
-            },
-        ] as any,
-    },
+                confidence: 0
+            }
+        ] as any
+    }
 };
 
 export const OpenEmpty: Story = {
     args: {
         isOpen: true,
-        matches: [],
-    },
+        matches: []
+    }
 };
 
 export const InteractiveReconciliation: Story = {
@@ -101,12 +101,12 @@ export const InteractiveReconciliation: Story = {
                 parsedTx: {
                     date: '2024-03-01',
                     amount: -4500,
-                    payee: 'Chevron',
+                    payee: 'Chevron'
                 },
                 confidence: 0.8,
-                existingTxId: 'tx-1',
-            },
-        ] as any,
+                existingTxId: 'tx-1'
+            }
+        ] as any
     },
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
@@ -127,5 +127,5 @@ export const InteractiveReconciliation: Story = {
         // Verify submit button is enabled
         const submitBtn = canvas.getByRole('button', { name: /commit all decisions/i });
         await expect(submitBtn).not.toBeDisabled();
-    },
+    }
 };

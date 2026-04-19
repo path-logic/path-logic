@@ -1,5 +1,5 @@
-import type { IParsedTransaction, IReconciliationMatch } from '@path-logic/core';
-import { ReconciliationEngine as CoreEngine } from '@path-logic/core';
+import type { IParsedTransaction, IReconciliationMatch } from '@core';
+import { ReconciliationEngine as CoreEngine } from '@core';
 import type { Database } from 'sql.js';
 
 export type { IReconciliationMatch };
@@ -18,7 +18,7 @@ export class ReconciliationEngine {
     public static async reconcile(
         db: Database,
         parsedTransactions: Array<IParsedTransaction>,
-        accountId: string,
+        accountId: string
     ): Promise<Array<IReconciliationMatch>> {
         // 1. Get all existing transactions for this account
         const existingTxsResult = db.exec(
@@ -27,14 +27,14 @@ export class ReconciliationEngine {
             FROM transactions 
             WHERE accountId = ? AND isDeleted = 0
         `,
-            [accountId],
+            [accountId]
         );
 
         const existingTxs = (existingTxsResult[0]?.values || []).map(row => ({
             id: row[0] as string,
             date: row[1] as string,
             totalAmount: row[2] as number,
-            importHash: row[3] as string,
+            importHash: row[3] as string
         }));
 
         // 2. Delegate matching to core engine

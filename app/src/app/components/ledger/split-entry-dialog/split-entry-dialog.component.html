@@ -9,11 +9,11 @@
     <div class="space-y-4">
         <!-- Summary Header -->
         <div
-            class="flex justify-between items-center bg-accent/30 p-4 rounded-sm border border-border"
+            class="flex justify-between items-center bg-surface-100/30 p-4 rounded-sm border border-surface-200"
         >
             <div>
                 <p
-                    class="text-[9px] text-foreground/90 font-bold uppercase tracking-tighter mb-0.5"
+                    class="text-[9px] text-surface-800/90 font-bold uppercase tracking-tighter mb-0.5"
                 >
                     Target Total
                 </p>
@@ -23,14 +23,14 @@
             </div>
             <div class="text-right">
                 <p
-                    class="text-[9px] text-foreground/90 font-bold uppercase tracking-tighter mb-0.5"
+                    class="text-[9px] text-surface-800/90 font-bold uppercase tracking-tighter mb-0.5"
                 >
                     Remaining
                 </p>
                 <p
                     class="font-mono font-bold text-lg"
                     [class.text-emerald-900]="isBalanced()"
-                    [class.text-destructive]="!isBalanced()"
+                    [class.text-red-500]="!isBalanced()"
                     [class.animate-pulse]="!isBalanced()"
                 >
                     {{ formatCurrency(difference()) }}
@@ -62,7 +62,7 @@
                             [attr.aria-label]="'Split memo ' + (i + 1)"
                             [ngModel]="split.memo"
                             (ngModelChange)="handleUpdateSplit(split.id, { memo: $event })"
-                            class="w-full h-8 px-2 bg-background border border-border rounded-md text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
+                            class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                     </div>
                     <div class="w-[120px]">
@@ -74,10 +74,10 @@
                             [ngModel]="centsToDollars(split.amount)"
                             (ngModelChange)="
                                 handleUpdateSplit(split.id, {
-                                    amount: dollarsToCents($event),
+                                    amount: dollarsToCents($event)
                                 })
                             "
-                            class="w-full h-8 px-2 bg-background border border-border rounded-md text-[10px] font-mono text-right focus:outline-none focus:ring-1 focus:ring-primary"
+                            class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] font-mono text-right focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                     </div>
                     <p-button
@@ -105,7 +105,7 @@
 
     <ng-template pTemplate="footer">
         <div
-            class="flex justify-between items-center w-full gap-2 pt-2 border-t border-border mt-2"
+            class="flex justify-between items-center w-full gap-2 pt-2 border-t border-surface-200 mt-2"
         >
             @if (!isBalanced()) {
                 <div class="flex gap-2">

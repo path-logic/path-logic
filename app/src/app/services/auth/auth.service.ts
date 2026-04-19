@@ -1,6 +1,6 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import type { User, UserCredential } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 
 import { environment } from '../../../environments/environment';
@@ -47,28 +47,56 @@ export class AuthService {
         }
 
         // Listen for auth state changes (fires immediately with cached state)
-        onAuthStateChanged(this.firebase.auth, (user: User | null): void => {
-            this._user.set(user);
-            this.isInitializing.set(false);
-        });
+        console.log('[AuthService] Attaching onAuthStateChanged listener...');
+        onAuthStateChanged(
+            this.firebase.auth,
+            (user: User | null): void => {
+                console.log('[AuthService] Auth state changed. User exists:', !!user);
+                this._user.set(user);
+                this.isInitializing.set(false);
+            },
+            error => {
+                console.error(
+                    '[AuthService] Fatal error inside onAuthStateChanged listener:',
+                    error
+                );
+            }
+        );
 
-        // Redirect to sign-in when auth resolves with no session
+        // Redirect to sign-in when auth resolves with no session or valid session
         effect((): void => {
             const user: User | null | undefined = this.currentUser();
             if (user === undefined) return; // still loading
             if (!user) {
                 void this.router.navigate(['/sign-in']);
+            } else if (this.router.url === '/sign-in') {
+                void this.router.navigate(['/']);
             }
         });
     }
 
-    async signInWithGoogle(): Promise<UserCredential> {
+    async signInWithGoogle(): Promise<void> {
         const provider: GoogleAuthProvider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/drive.appdata');
-        const result: UserCredential = await signInWithPopup(this.firebase.auth, provider);
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        this.accessToken.set(credential?.accessToken ?? null);
-        return result;
+
+        try {
+            console.log('[AuthService] Initiating signInWithPopup...');
+            const result = await signInWithPopup(this.firebase.auth, provider);
+            console.log('[AuthService] signInWithPopup returned:', !!result);
+
+            if (result) {
+                const credential = GoogleAuthProvider.credentialFromResult(result);
+                if (credential?.accessToken) {
+                    console.log(
+                        '[AuthService] Successfully extracted Google Drive token from popup.'
+                    );
+                    this.accessToken.set(credential.accessToken);
+                }
+            }
+        } catch (error) {
+            console.error('[AuthService] Error during signInWithPopup:', error);
+            throw error;
+        }
     }
 
     async signOut(): Promise<void> {

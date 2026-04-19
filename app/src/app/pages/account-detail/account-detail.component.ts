@@ -9,12 +9,12 @@ import { AccountLedgerComponent } from '../../components/ledger/account-ledger/a
  * Uses component input binding to receive the accountId from the route.
  */
 @Component({
-    selector: 'app-account-detail',
+    selector: 'account-detail',
     standalone: true,
     imports: [CommonModule, AccountLedgerComponent, AppShellComponent],
     templateUrl: './account-detail.component.html',
     styleUrls: ['./account-detail.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccountDetailComponent {
     /**

@@ -42,7 +42,7 @@ test.describe('Transaction Management', () => {
         const splitBtn = page.getByRole('button', { name: /Split|Splits/i }).first();
         await splitBtn.click();
         await expect(page.locator('app-split-entry-dialog, p-dialog')).toBeVisible({
-            timeout: 5_000,
+            timeout: 5_000
         });
 
         // Verify split entry dialog is open

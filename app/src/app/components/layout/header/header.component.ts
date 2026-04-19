@@ -1,6 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { type ITransaction, Money, TransactionStatus } from '@path-logic/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    ElementRef,
+    HostListener,
+    inject,
+    signal
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { type ITransaction, Money, TransactionStatus } from '@core';
 import {
     BarChart3,
     Calendar,
@@ -8,8 +18,9 @@ import {
     Home,
     LucideAngularModule,
     Settings,
-    Users,
+    Users
 } from 'lucide-angular';
+import { filter } from 'rxjs';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -27,18 +38,39 @@ export interface INavItem {
  * Main application header component with navigation and user profile.
  */
 @Component({
-    selector: 'app-header',
+    selector: 'header',
     standalone: true,
     imports: [RouterLink, RouterLinkActive, LucideAngularModule],
     templateUrl: './header.component.html',
     styleUrl: './header.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly authService: AuthService = inject(AuthService);
+    private readonly elementRef: ElementRef = inject(ElementRef);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
+    private readonly router: Router = inject(Router);
 
-    showUserMenu: boolean = false;
+    readonly showUserMenu = signal<boolean>(false);
+
+    constructor() {
+        // Close menu on any navigation
+        this.router.events
+            .pipe(
+                filter(e => e instanceof NavigationEnd),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(() => this.showUserMenu.set(false));
+    }
+
+    /** Close the menu when clicking outside the host element. */
+    @HostListener('document:click', ['$event?.target'])
+    onDocumentClick(target: EventTarget | null | undefined): void {
+        if (this.showUserMenu() && !this.elementRef.nativeElement.contains(target)) {
+            this.showUserMenu.set(false);
+        }
+    }
 
     /**
      * List of navigation links shown in the header.
@@ -49,7 +81,7 @@ export class HeaderComponent {
         { name: 'Payees', href: '/payees', icon: Users } satisfies INavItem,
         { name: 'Recurring', href: '/recurring', icon: Calendar } satisfies INavItem,
         { name: 'Reports', href: '#', icon: BarChart3 } satisfies INavItem,
-        { name: 'Settings', href: '/settings', icon: Settings } satisfies INavItem,
+        { name: 'Settings', href: '/settings', icon: Settings } satisfies INavItem
     );
 
     readonly netBalance = computed((): number => {
@@ -66,13 +98,13 @@ export class HeaderComponent {
     readonly formattedNetBalance = computed((): string => Money.formatCurrency(this.netBalance()));
 
     readonly userName = computed(
-        (): string => this.authService.currentUser()?.displayName ?? 'User',
+        (): string => this.authService.currentUser()?.displayName ?? 'User'
     );
 
     readonly userEmail = computed((): string => this.authService.currentUser()?.email ?? '');
 
     readonly userPhotoUrl = computed(
-        (): string | null => this.authService.currentUser()?.photoURL ?? null,
+        (): string | null => this.authService.currentUser()?.photoURL ?? null
     );
 
     readonly userInitial = computed((): string => this.userName().charAt(0).toUpperCase());
@@ -81,14 +113,14 @@ export class HeaderComponent {
      * Toggles the visibility of the user profile dropdown menu.
      */
     toggleUserMenu(): void {
-        this.showUserMenu = !this.showUserMenu;
+        this.showUserMenu.update(v => !v);
     }
 
     /**
      * Initiates the sign-out flow and closes the menu.
      */
     handleSignOut(): void {
-        this.showUserMenu = false;
+        this.showUserMenu.set(false);
         void this.authService.signOut();
     }
 }

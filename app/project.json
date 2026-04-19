@@ -1,8 +1,8 @@
 {
-    "name": "web",
+    "name": "app",
     "$schema": "../node_modules/nx/schemas/project-schema.json",
     "projectType": "application",
-    "prefix": "app",
+    "prefix": "",
     "sourceRoot": "app/src",
     "tags": [],
     "targets": {
@@ -86,15 +86,21 @@
         "serve": {
             "continuous": true,
             "executor": "@angular/build:dev-server",
+            "options": {
+                "headers": {
+                    "Cross-Origin-Opener-Policy": "unsafe-none",
+                    "Cross-Origin-Embedder-Policy": "unsafe-none"
+                }
+            },
             "configurations": {
                 "production": {
-                    "buildTarget": "web:build:production"
+                    "buildTarget": "app:build:production"
                 },
                 "development": {
-                    "buildTarget": "web:build:development"
+                    "buildTarget": "app:build:development"
                 },
                 "e2e": {
-                    "buildTarget": "web:build:e2e"
+                    "buildTarget": "app:build:e2e"
                 }
             },
             "defaultConfiguration": "development"
@@ -110,7 +116,7 @@
             "continuous": true,
             "executor": "@nx/web:file-server",
             "options": {
-                "buildTarget": "web:build",
+                "buildTarget": "app:build",
                 "port": 4200,
                 "staticFilePath": "dist/app/browser",
                 "spa": true
@@ -121,7 +127,7 @@
             "outputs": ["dist/app/storybook"],
             "options": {
                 "configDir": "app/.storybook",
-                "browserTarget": "web:build:development",
+                "browserTarget": "app:build:development",
                 "compodoc": true,
                 "compodocArgs": ["-e", "json", "-d", "app"],
                 "outputDir": "dist/app/storybook"
@@ -133,7 +139,7 @@
             "options": {
                 "port": 6006,
                 "configDir": "app/.storybook",
-                "browserTarget": "web:build:development",
+                "browserTarget": "app:build:development",
                 "compodoc": true,
                 "compodocArgs": ["-e", "json", "-d", "app", "-p", "app/tsconfig.app.json"],
                 "experimentalZoneless": true

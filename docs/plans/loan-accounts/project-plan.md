@@ -82,7 +82,7 @@ export enum AccountType {
     Cash = 'CASH',
     Mortgage = 'MORTGAGE',
     AutoLoan = 'AUTO_LOAN',
-    PersonalLoan = 'PERSONAL_LOAN',
+    PersonalLoan = 'PERSONAL_LOAN'
 }
 ```
 

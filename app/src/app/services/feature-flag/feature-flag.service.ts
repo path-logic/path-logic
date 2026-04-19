@@ -3,7 +3,7 @@ import { computed, Injectable, signal } from '@angular/core';
 
 /**
  * Cookie prefix for feature flags.
- * Must match the prefix used by the legacy @path-logic/feature-flags package.
+ * Must match the prefix used by the legacy @feature-flags package.
  */
 const COOKIE_PREFIX: string = 'ff_';
 
@@ -48,7 +48,7 @@ function deleteCookie(name: string): void {
  * Angular signal-based feature flag service.
  *
  * Replaces the React hooks (`useFeatureFlag`, `useAllFlags`) from
- * `@path-logic/feature-flags/client` with Angular signals.
+ * `@feature-flags/client` with Angular signals.
  *
  * Cookie persistence uses the same `ff_` prefix for backward compatibility.
  * Listens for cookie changes via CookieStore API (Chrome) or custom events (fallback).
@@ -61,7 +61,7 @@ function deleteCookie(name: string): void {
  *
  * // In template
  * @if (devEnabled()) {
- *   <app-dev-tools />
+ *   <dev-tools />
  * }
  * ```
  */
@@ -108,8 +108,8 @@ export class FeatureFlagService {
         this._flags.update(
             (current: Record<string, boolean>): Record<string, boolean> => ({
                 ...current,
-                [flag]: enabled,
-            }),
+                [flag]: enabled
+            })
         );
 
         // Emit custom event for cross-component sync (fallback for non-CookieStore browsers)
@@ -117,8 +117,8 @@ export class FeatureFlagService {
             const event: CustomEvent<IFlagChangeDetail> = new CustomEvent<IFlagChangeDetail>(
                 FLAG_CHANGE_EVENT,
                 {
-                    detail: { flag, enabled },
-                },
+                    detail: { flag, enabled }
+                }
             );
             window.dispatchEvent(event);
         }
@@ -181,8 +181,8 @@ export class FeatureFlagService {
                 this._flags.update(
                     (current: Record<string, boolean>): Record<string, boolean> => ({
                         ...current,
-                        [customEvent.detail.flag]: customEvent.detail.enabled,
-                    }),
+                        [customEvent.detail.flag]: customEvent.detail.enabled
+                    })
                 );
             });
         }

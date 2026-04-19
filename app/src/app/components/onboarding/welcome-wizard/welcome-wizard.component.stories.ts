@@ -7,7 +7,7 @@ import { WelcomeWizardComponent } from './welcome-wizard.component';
 
 const mockSettingsStore = {
     getSetting: () => 'false',
-    updateSetting: () => {},
+    updateSetting: () => {}
 };
 
 const meta: Meta<WelcomeWizardComponent> = {
@@ -16,9 +16,9 @@ const meta: Meta<WelcomeWizardComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }],
-        }),
-    ],
+            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
+        })
+    ]
 };
 
 export default meta;
@@ -41,5 +41,5 @@ export const InteractiveLoanFlow: Story = {
 
         // 3. Verify the LoanDetailsForm is shown
         await expect(canvas.getByText(/Create Mortgage/i)).toBeInTheDocument();
-    },
+    }
 };

@@ -1,17 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { type IRecurringSchedule, Money, ScheduleType } from '@path-logic/core';
+import { type IRecurringSchedule, Money, ScheduleType } from '@core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { RecurringPaymentFormComponent } from '../../components/recurring/recurring-form/recurring-form.component';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
 @Component({
-    selector: 'app-recurring-dashboard',
+    selector: 'recurring-dashboard',
     standalone: true,
     imports: [
         CommonModule,
@@ -21,9 +22,10 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
         TagModule,
         DialogModule,
         RecurringPaymentFormComponent,
+        AppShellComponent
     ],
     templateUrl: './recurring-dashboard.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RecurringDashboardComponent {
     private ledgerStore = inject(LedgerStore);
@@ -78,7 +80,7 @@ export class RecurringDashboardComponent {
     openNew(): void {
         this.selectedSchedule.set({
             type: ScheduleType.Debit,
-            splits: [],
+            splits: []
         });
         this.isDialogVisible.set(true);
     }

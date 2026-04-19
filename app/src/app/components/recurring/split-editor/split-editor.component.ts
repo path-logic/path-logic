@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import type { OnChanges, SimpleChanges } from '@angular/core';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { type ISplit, KnownCategory, ScheduleType } from '@path-logic/core';
+import { type ISplit, KnownCategory, ScheduleType } from '@core';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -26,7 +26,7 @@ export interface IPaycheckFormState {
 }
 
 @Component({
-    selector: 'app-recurring-split-editor',
+    selector: 'recurring-split-editor',
     standalone: true,
     imports: [
         CommonModule,
@@ -35,10 +35,10 @@ export interface IPaycheckFormState {
         ButtonModule,
         InputTextModule,
         SelectModule,
-        CalculatorInputComponent,
+        CalculatorInputComponent
     ],
     templateUrl: './split-editor.component.html',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RecurringSplitEditorComponent implements OnChanges {
     @Input() scheduleType: ScheduleType = ScheduleType.Debit;
@@ -66,7 +66,7 @@ export class RecurringSplitEditorComponent implements OnChanges {
     addSplit(): void {
         this.editingSplits = [
             ...this.editingSplits,
-            { id: `split-${Date.now()}`, categoryId: null, memo: '', amount: 0 },
+            { id: `split-${Date.now()}`, categoryId: null, memo: '', amount: 0 }
         ];
         this.emitUpdates();
     }
@@ -102,7 +102,7 @@ export class RecurringSplitEditorComponent implements OnChanges {
                 id: 'split-gross-pay',
                 categoryId: KnownCategory.GrossPay,
                 memo: 'Gross Pay',
-                amount: this.paycheckState.grossPay,
+                amount: this.paycheckState.grossPay
             });
         }
 
@@ -113,7 +113,7 @@ export class RecurringSplitEditorComponent implements OnChanges {
                     id: `split-${cat}`,
                     categoryId: cat,
                     memo,
-                    amount: deductionAmount,
+                    amount: deductionAmount
                 });
                 _netAmount += deductionAmount;
             }
@@ -124,14 +124,14 @@ export class RecurringSplitEditorComponent implements OnChanges {
         addDeduction(
             this.paycheckState.socialSecurity,
             KnownCategory.SocialSecurity,
-            'Social Security',
+            'Social Security'
         );
         addDeduction(this.paycheckState.medicare, KnownCategory.Medicare, 'Medicare');
         addDeduction(this.paycheckState.fourOhOneK, KnownCategory.FourOhOneK, '401k');
         addDeduction(
             this.paycheckState.healthInsurance,
             KnownCategory.HealthInsurance,
-            'Health Insurance',
+            'Health Insurance'
         );
 
         // Other deductions would loop here

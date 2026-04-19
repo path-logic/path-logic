@@ -9,12 +9,12 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
  * Used when the session is expired and there is no local fallback to work with.
  */
 @Component({
-    selector: 'app-auth-overlay',
+    selector: 'auth-overlay',
     standalone: true,
     imports: [LucideAngularModule],
     templateUrl: './auth-overlay.component.html',
     styleUrl: './auth-overlay.component.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthOverlayComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);

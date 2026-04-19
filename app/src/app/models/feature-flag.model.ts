@@ -1,6 +1,6 @@
 /**
  * Shared TypeScript interfaces for feature flags.
- * Framework-agnostic types kept from @path-logic/feature-flags.
+ * Framework-agnostic types kept from @feature-flags.
  */
 
 /**
