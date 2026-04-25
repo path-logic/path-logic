@@ -44,14 +44,24 @@ export class AppComponent {
             });
         }
 
-        // ── Load database once the user is authenticated ──────────────────────
+        // ── Load database once the user is authenticated ────────────────────────
+        //
+        // This effect is reactive to both isLoggedIn() AND accessToken() so
+        // it fires in two distinct scenarios:
+        //   1. Page refresh: isLoggedIn becomes true, accessToken stays null.
+        //      SyncService falls back to local IndexedDB data.
+        //   2. Re-authentication via sync banner: accessToken becomes non-null.
+        //      SyncService performs a full Drive load and clears authError.
         effect(() => {
             console.log('[AppComponent] Effect triggered checking auth state for DB init...');
             try {
                 const isLoggedIn = this.authService.isLoggedIn();
+                const accessToken = this.authService.accessToken(); // reactive dep for re-auth
                 const initialized = this.ledgerStore.isInitialized();
 
-                console.log(`[AppComponent] Auth: ${isLoggedIn}, DB Init: ${initialized}`);
+                console.log(
+                    `[AppComponent] Auth: ${isLoggedIn}, hasToken: ${!!accessToken}, DB Init: ${initialized}`
+                );
 
                 if (isLoggedIn && !initialized) {
                     console.log(
