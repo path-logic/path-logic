@@ -74,7 +74,8 @@ export class AccountsPageComponent {
 
     handleAccountCreated(account: IAccount): void {
         this.ledgerStore.addAccount(account);
-        this.isAddDialogOpen.set(false);
+        // Do not close the dialog here — the wizard proceeds to the import step
+        // (step 3) and will emit (closed) when the user finishes or skips.
     }
 
     // Lucide Icons

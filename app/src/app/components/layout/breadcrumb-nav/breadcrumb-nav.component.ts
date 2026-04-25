@@ -34,26 +34,42 @@ export class BreadcrumbNavComponent {
     private readonly router: Router = inject(Router);
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
 
-    readonly home: MenuItem = { icon: 'pi pi-home', routerLink: '/' };
+    /**
+     * The "home" slot holds the first route segment so PrimeNG never
+     * renders a separator before it. Subsequent segments go into `model`.
+     */
+    readonly home = computed((): MenuItem => {
+        const url: string = this.router.url.split('?')[0] ?? '';
+        const segments: Array<string> = url.split('/').filter(Boolean);
+        const first = segments[0];
+        if (!first) return { icon: 'pi pi-home', routerLink: '/' };
+
+        const label = routeLabels[first] ?? first.charAt(0).toUpperCase() + first.slice(1);
+        return { label, routerLink: `/${first}` };
+    });
 
     /**
      * Computed signal that builds the breadcrumb list from the current URL.
+     * Only segments after the first are included — the first is in `home`.
      */
     readonly breadcrumbs = computed((): Array<MenuItem> => {
         const url: string = this.router.url.split('?')[0] ?? '';
         const segments: Array<string> = url.split('/').filter(Boolean);
 
+        // Need at least 2 segments to show breadcrumbs beyond the home item
         if (segments.length < 2) {
             return new Array<MenuItem>();
         }
 
-        return segments.map((segment: string, index: number): MenuItem => {
-            const routerLink: string = `/${segments.slice(0, index + 1).join('/')}`;
+        // Skip index 0 — that's handled by the home slot above
+        return segments.slice(1).map((segment: string, index: number): MenuItem => {
+            const absoluteIndex = index + 1; // index relative to full segments array
+            const routerLink: string = `/${segments.slice(0, absoluteIndex + 1).join('/')}`;
 
             let label: string = routeLabels[segment] ?? segment;
 
             // Resolve account ID to name if in accounts path
-            if (segments[index - 1] === 'accounts') {
+            if (segments[absoluteIndex - 1] === 'accounts') {
                 const account = this.ledgerStore.accounts().find(a => a.id === segment);
                 if (account) {
                     label = account.name;

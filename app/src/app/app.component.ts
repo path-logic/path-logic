@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Component, DestroyRef, effect, inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { environment } from '../environments/environment';
@@ -7,6 +7,9 @@ import { AuthService } from './services/auth/auth.service';
 import { LedgerStore } from './services/ledger-store/ledger.store';
 import { PostHogService } from './services/posthog/posthog.service';
 import { SyncService } from './services/sync/sync.service';
+
+/** How long to wait after the last mutation before pushing to Drive. */
+const AUTO_SAVE_DEBOUNCE_MS = 3_000;
 
 @Component({
     imports: [RouterOutlet],
@@ -28,6 +31,9 @@ export class AppComponent {
     private readonly ledgerStore = inject(LedgerStore);
     private readonly posthogService = inject(PostHogService);
     private readonly platformId = inject(PLATFORM_ID);
+    private readonly destroyRef = inject(DestroyRef);
+
+    private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor() {
         if (isPlatformBrowser(this.platformId) && environment.posthogKey) {
@@ -38,7 +44,7 @@ export class AppComponent {
             });
         }
 
-        // Automatically load database once user is logged in
+        // ── Load database once the user is authenticated ──────────────────────
         effect(() => {
             console.log('[AppComponent] Effect triggered checking auth state for DB init...');
             try {
@@ -57,7 +63,7 @@ export class AppComponent {
                         );
                         this.ledgerStore
                             .initialize()
-                            .catch(e =>
+                            .catch((e: unknown) =>
                                 console.error(
                                     '[AppComponent] Fatal error initializing ledger store in E2E:',
                                     e
@@ -74,7 +80,7 @@ export class AppComponent {
                                     '[AppComponent] Successfully ran loadFromDrive pipeline.'
                                 );
                             })
-                            .catch(e => {
+                            .catch((e: unknown) => {
                                 console.error(
                                     '[AppComponent] Fatal error running SyncService.loadFromDrive:',
                                     e
@@ -84,6 +90,38 @@ export class AppComponent {
                 }
             } catch (error) {
                 console.error('[AppComponent] Fatal synchronous error in root effect:', error);
+            }
+        });
+
+        // ── Auto-save to Drive whenever the ledger becomes dirty ──────────────
+        //
+        // Debounced so that rapid consecutive mutations (e.g. bulk QIF import)
+        // produce a single upload rather than hammering the Drive API.
+        // The SyncService itself also has a debounce, but this outer debounce
+        // collapses the signal reactions before we even call into the service.
+        effect(() => {
+            const isDirty = this.ledgerStore.isDirty();
+            const isLoggedIn = this.authService.isLoggedIn();
+
+            // Skip: no changes, not authenticated, or running in E2E mode
+            if (!isDirty || !isLoggedIn || environment.e2e) return;
+
+            if (this.autoSaveTimer !== null) {
+                clearTimeout(this.autoSaveTimer);
+            }
+
+            this.autoSaveTimer = setTimeout(() => {
+                this.autoSaveTimer = null;
+                this.syncService.saveToDrive().catch((e: unknown) => {
+                    console.error('[AppComponent] Auto-save to Drive failed:', e);
+                });
+            }, AUTO_SAVE_DEBOUNCE_MS);
+        });
+
+        // Clean up the pending timer when the component is torn down
+        this.destroyRef.onDestroy(() => {
+            if (this.autoSaveTimer !== null) {
+                clearTimeout(this.autoSaveTimer);
             }
         });
     }
