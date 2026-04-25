@@ -5,9 +5,8 @@ import {
     provideZonelessChangeDetection
 } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideRouter, Router, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Lara from '@primeuix/themes/lara';
-import * as Sentry from '@sentry/angular';
 import { providePrimeNG } from 'primeng/config';
 
 import { appRoutes } from './app.routes';
@@ -82,17 +81,7 @@ const PremiumPreset = definePreset(Lara, {
 
 export const appConfig: ApplicationConfig = {
     providers: [
-        {
-            provide: ErrorHandler,
-            useValue: Sentry.createErrorHandler({
-                showDialog: false,
-                logErrors: true // Force Sentry to also dump to console so we never lose silent errors!
-            })
-        },
-        {
-            provide: Sentry.TraceService,
-            deps: [Router]
-        },
+        { provide: ErrorHandler, useValue: { handleError: console.error } },
         provideBrowserGlobalErrorListeners(),
         provideZonelessChangeDetection(),
         provideRouter(appRoutes, withComponentInputBinding()),

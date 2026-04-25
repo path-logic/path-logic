@@ -47,6 +47,7 @@ export class AccountsPageComponent {
 
     // Store Signals
     readonly accounts = this.ledgerStore.accounts;
+    readonly isDbReady = this.ledgerStore.isInitialized;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getIcon(type: AccountType): any {

@@ -1,5 +1,13 @@
 <shell [noPadding]="accounts().length === 0">
-    @if (accounts().length === 0) {
+    @if (!isDbReady()) {
+        <!-- DB is still initializing (loading from Drive) — show a loading state -->
+        <div class="w-full min-h-full flex flex-col items-center justify-center gap-4 pt-24">
+            <div class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">
+                Loading your data...
+            </p>
+        </div>
+    } @else if (accounts().length === 0) {
         <div class="w-full min-h-full flex flex-col items-center justify-start pt-12 px-4">
             <welcome-wizard (accountCreated)="handleAccountCreated($event)" />
         </div>
