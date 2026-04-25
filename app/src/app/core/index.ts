@@ -55,6 +55,7 @@ export { QIFAccountType, QIFParser } from './parsers/QIFParser';
 export type { IParseError, IParseWarning, IQIFParseResult } from './parsers/QIFParser';
 
 // === Utils ===
+export { cleanExpression, evalArithmetic, tokenize, tryEvalArithmetic } from './utils/arithmetic';
 export { formatLocaleDate } from './utils/dateUtils';
 export * as LoanCalculations from './utils/loanCalculations';
 export * as TypeGuards from './utils/typeGuards';
