@@ -32,7 +32,7 @@ import { LoanDetailsFormComponent } from '../loan-details-form/loan-details-form
 /**
  * Wizard step types.
  */
-type WizardStep = 'select-type' | 'enter-details' | 'creating';
+type WizardStep = 'select-type' | 'enter-details';
 
 /**
  * Account type option for the wizard.
@@ -197,8 +197,6 @@ export class WelcomeWizardComponent {
                 return 1;
             case 'enter-details':
                 return 2;
-            case 'creating':
-                return 2; // Keep on details step while creating
             default:
                 return 1;
         }
@@ -250,7 +248,7 @@ export class WelcomeWizardComponent {
         }
     }
 
-    async handleStandardAccountCreate(): Promise<void> {
+    handleStandardAccountCreate(): void {
         if (!this.accountName().trim()) {
             this.error.set('Account name is required');
             return;
@@ -263,7 +261,6 @@ export class WelcomeWizardComponent {
         }
 
         this.error.set(null);
-        this.step.set('creating');
 
         try {
             const now = new Date().toISOString() as ISODateString;
@@ -290,6 +287,9 @@ export class WelcomeWizardComponent {
                 updatedAt: now
             };
 
+            // Emit to parent — the parent calls ledgerStore.addAccount() which
+            // updates accounts(). Once accounts().length > 0, the accounts page
+            // replaces this wizard with the account list view.
             this.accountCreated.emit(newAccount);
             this.posthogService.posthog.capture('onboarding_account_created', {
                 account_type: type,
