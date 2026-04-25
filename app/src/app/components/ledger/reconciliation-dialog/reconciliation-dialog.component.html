@@ -2,158 +2,512 @@
     [(visible)]="isOpen"
     [modal]="true"
     [closable]="!isProcessing()"
-    [style]="{ width: '60rem', 'max-height': '90vh' }"
+    [style]="
+        isLargeDataset()
+            ? { width: '72rem', 'max-height': '92vh' }
+            : { width: '60rem', 'max-height': '90vh' }
+    "
     styleClass="penny-dialog"
 >
+    <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════ -->
     <ng-template pTemplate="header">
         <div class="flex items-center gap-3">
             <lucide-icon [img]="AlertCircle" class="w-6 h-6 text-primary" />
             <div>
                 <h2 class="uppercase font-black tracking-widest text-primary text-xl m-0">
-                    Reconciliation Review
+                    Import Review
                 </h2>
                 <p
                     class="text-[10px] uppercase font-bold text-surface-800/90 tracking-widest mt-1 m-0"
                 >
-                    Reviewing {{ matches().length }} bank statement entries against local ledger
+                    {{ matches().length | number }} transactions from bank statement
                 </p>
             </div>
+            @if (importStats()) {
+                <div class="ml-6 flex items-center gap-3">
+                    <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-primary/10 border border-primary/20 text-[9px] font-black uppercase tracking-widest text-primary"
+                    >
+                        <lucide-icon [img]="PlusCircle" class="w-2.5 h-2.5" />
+                        {{ importStats()!.newCount | number }} New
+                    </span>
+                    @if (importStats()!.fuzzyCount > 0) {
+                        <span
+                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest text-amber-700"
+                        >
+                            <lucide-icon [img]="HelpCircle" class="w-2.5 h-2.5" />
+                            {{ importStats()!.fuzzyCount | number }} Review
+                        </span>
+                    }
+                    <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-surface-100 border border-surface-200 text-[9px] font-black uppercase tracking-widest text-surface-500"
+                    >
+                        <lucide-icon [img]="X" class="w-2.5 h-2.5" />
+                        {{ importStats()!.exactCount | number }} Duplicates
+                    </span>
+                </div>
+            }
         </div>
     </ng-template>
 
-    <!-- Body -->
-    <div class="flex-1 bg-surface-100/10 p-2 space-y-4">
-        @for (match of matches(); track $index; let idx = $index) {
-            @let decision = decisions()[idx];
+    <!-- ════════════════════════ EXPRESS MODE (zero fuzzy) ════════════════════════ -->
+    @if (isLargeDataset() && isZeroFuzzy()) {
+        <div class="p-6 space-y-6">
             <div
-                class="p-4 rounded-sm border-2 transition-all relative overflow-hidden"
-                [class]="{
-                    'border-primary/30 bg-primary/5': decision === 'import',
-                    'border-amber-800/30 bg-amber-800/5': decision === 'match',
-                    'border-surface-200/50 bg-surface-100/20 opacity-80': decision === 'ignore'
-                }"
+                class="rounded-sm border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center"
             >
-                <!-- Status Ribbon -->
+                <lucide-icon [img]="Zap" class="w-10 h-10 text-primary mx-auto mb-3" />
+                <h3 class="text-lg font-black tracking-tight mb-1">Express Import Ready</h3>
+                <p class="text-sm text-surface-600 mb-6 max-w-sm mx-auto">
+                    No ambiguous matches found.
+                    <strong>{{ importStats()!.newCount | number }}</strong> new transactions will be
+                    imported and
+                    <strong>{{ importStats()!.exactCount | number }}</strong> duplicates will be
+                    skipped automatically.
+                </p>
+                <div class="flex justify-center gap-3">
+                    <p-button
+                        (click)="handleExpressImport()"
+                        [loading]="isProcessing()"
+                        [label]="isProcessing() ? 'Importing...' : 'Express Import'"
+                        severity="primary"
+                        styleClass="text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                    >
+                        <lucide-icon [img]="Zap" class="w-4 h-4 mr-2" />
+                    </p-button>
+                    <p-button
+                        (click)="expressMode.set(false)"
+                        label="Review First"
+                        [text]="true"
+                        severity="secondary"
+                        styleClass="text-sm font-black uppercase tracking-widest"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════ LARGE DATASET MODE ════════════════════════════== -->
+    } @else if (isLargeDataset()) {
+        <div class="flex flex-col" style="min-height: 500px">
+            <!-- Smart Defaults Banner -->
+            @if (!smartDefaultsApplied()) {
                 <div
-                    class="absolute top-0 right-0 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter"
-                    [class.bg-primary]="decision === 'import'"
-                    [class.text-white]="decision === 'import' || decision === 'match'"
-                    [class.bg-amber-700]="decision === 'match'"
-                    [class.bg-surface-100]="decision === 'ignore'"
-                    [class.text-surface-500]="decision === 'ignore'"
+                    class="flex items-center justify-between gap-4 px-4 py-3 bg-primary/5 border-b border-primary/10"
                 >
-                    {{ decision }}
+                    <div class="flex items-center gap-2 text-[10px] font-bold text-primary">
+                        <lucide-icon [img]="CheckCheck" class="w-4 h-4" />
+                        <span
+                            >Auto-handle obvious cases: import new, skip duplicates, review fuzzy
+                            matches</span
+                        >
+                    </div>
+                    <p-button
+                        (click)="applySmartDefaults()"
+                        label="Apply Smart Defaults"
+                        size="small"
+                        severity="primary"
+                        [outlined]="true"
+                        styleClass="text-[9px] font-black uppercase tracking-widest whitespace-nowrap"
+                    >
+                        <lucide-icon [img]="Zap" class="w-3 h-3 mr-1.5" />
+                    </p-button>
                 </div>
-
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="px-2 py-0.5 text-[9px] font-black uppercase rounded-none border"
-                            [class.bg-surface-100]="match.type === 'fuzzy'"
-                            [class.border-transparent]="match.type === 'fuzzy'"
-                            [class.border-surface-200]="match.type !== 'fuzzy'"
-                        >
-                            {{ match.type === 'fuzzy' ? 'Ambiguous' : 'New Transaction' }}
-                        </span>
-                        <span class="text-xs font-mono font-bold text-surface-800">
-                            {{ match.parsedTx.date }}
-                        </span>
-                    </div>
-                    <div class="text-lg font-mono font-black text-emerald-900 tabular-nums">
-                        {{ formatCurrency(match.parsedTx.amount) }}
-                    </div>
+            } @else if (tabCounts().review > 0) {
+                <div
+                    class="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[10px] font-bold text-amber-700"
+                >
+                    <lucide-icon [img]="HelpCircle" class="w-3.5 h-3.5" />
+                    Smart defaults applied. {{ tabCounts().review }} transactions need manual review
+                    below.
                 </div>
+            } @else {
+                <div
+                    class="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/10 text-[10px] font-bold text-primary"
+                >
+                    <lucide-icon [img]="CheckCircle" class="w-3.5 h-3.5" />
+                    All decisions resolved. Ready to commit.
+                </div>
+            }
 
-                <div class="grid grid-cols-12 gap-6 items-center">
-                    <div class="col-span-5 space-y-1">
-                        <span
-                            class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
-                        >
-                            Statement Entry
-                        </span>
-                        <div class="text-sm font-black text-surface-800 uppercase tracking-tight">
-                            {{ match.parsedTx.payee }}
-                        </div>
-                        <div class="text-[10px] text-surface-800 italic truncate">
-                            {{ match.parsedTx.memo || 'No memo provided' }}
-                        </div>
-                    </div>
-
-                    <div class="col-span-1 flex justify-center">
-                        <lucide-icon
-                            [img]="ArrowRight"
-                            class="w-5 h-5"
-                            [class.text-amber-800]="match.type === 'fuzzy'"
-                            [class.text-border]="match.type !== 'fuzzy'"
-                        />
-                    </div>
-
-                    <div class="col-span-6 space-y-1">
-                        <span
-                            class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
-                        >
-                            Matched Record
-                        </span>
-                        @if (match.type === 'fuzzy') {
-                            <div class="bg-surface-50/50 border border-amber-800/20 p-2 rounded-sm">
-                                <div
-                                    class="flex items-center gap-2 text-[10px] font-bold text-amber-800 mb-1"
-                                >
-                                    <lucide-icon [img]="LinkIcon" class="w-3 h-3" />
-                                    MATCH FOUND ({{ (match.confidence * 100).toFixed(0) }}%)
-                                </div>
-                                <div class="text-[9px] text-surface-800/80 truncate">
-                                    ID: {{ match.existingTxId }}
-                                </div>
-                            </div>
-                        } @else {
-                            <div
-                                class="text-[10px] text-surface-800/80 italic border border-dashed border-surface-200 p-2 rounded-sm"
-                            >
-                                No similar transaction found in the current account ledger.
-                            </div>
+            <!-- Tab strip -->
+            <div class="flex border-b border-surface-200 bg-surface-50/30">
+                @for (
+                    tab of [
+                        { id: 'all', label: 'All', count: tabCounts().all },
+                        { id: 'new', label: 'New', count: tabCounts().new, color: 'text-primary' },
+                        {
+                            id: 'review',
+                            label: 'Review Needed',
+                            count: tabCounts().review,
+                            color: 'text-amber-700'
+                        },
+                        {
+                            id: 'skipped',
+                            label: 'Duplicates',
+                            count: tabCounts().skipped,
+                            color: 'text-surface-400'
                         }
+                    ];
+                    track tab.id
+                ) {
+                    <button
+                        (click)="setTab(asTab(tab.id))"
+                        [class]="
+                            'flex items-center gap-2 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ' +
+                            (activeTab() === tab.id
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-transparent text-surface-500 hover:text-surface-800')
+                        "
+                    >
+                        {{ tab.label }}
+                        <span
+                            [class]="
+                                'text-[9px] px-1.5 py-0.5 rounded-sm font-black ' +
+                                (activeTab() === tab.id
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface-200 text-surface-500')
+                            "
+                            >{{ tab.count | number }}</span
+                        >
+                    </button>
+                }
+            </div>
+
+            <!-- Bulk action bar -->
+            @if (selectedCount() > 0) {
+                <div
+                    class="flex items-center gap-3 px-4 py-2 bg-surface-800 text-white text-[10px]"
+                >
+                    <span class="font-black uppercase tracking-widest"
+                        >{{ selectedCount() }} selected</span
+                    >
+                    <div class="h-4 w-px bg-surface-600"></div>
+                    <button
+                        (click)="bulkSetDecision('import')"
+                        class="px-3 py-1 rounded-sm bg-primary text-white font-black uppercase tracking-widest hover:bg-primary/80 transition-colors"
+                    >
+                        Import All
+                    </button>
+                    <button
+                        (click)="bulkSetDecision('match')"
+                        class="px-3 py-1 rounded-sm bg-amber-600 text-white font-black uppercase tracking-widest hover:bg-amber-700 transition-colors"
+                    >
+                        Match All
+                    </button>
+                    <button
+                        (click)="bulkSetDecision('ignore')"
+                        class="px-3 py-1 rounded-sm bg-surface-600 text-white font-black uppercase tracking-widest hover:bg-surface-500 transition-colors"
+                    >
+                        Skip All
+                    </button>
+                </div>
+            }
+
+            <!-- Compact table -->
+            <div class="flex-1 overflow-auto">
+                <table class="w-full text-[11px]">
+                    <thead class="sticky top-0 bg-surface-50 border-b border-surface-200 z-10">
+                        <tr>
+                            <th class="w-10 px-3 py-2 text-left">
+                                <input
+                                    type="checkbox"
+                                    [checked]="allVisibleSelected()"
+                                    (change)="toggleSelectAll()"
+                                    class="rounded-sm accent-primary"
+                                />
+                            </th>
+                            <th
+                                class="px-3 py-2 text-left font-black uppercase tracking-widest text-surface-500"
+                            >
+                                Date
+                            </th>
+                            <th
+                                class="px-3 py-2 text-left font-black uppercase tracking-widest text-surface-500"
+                            >
+                                Payee
+                            </th>
+                            <th
+                                class="px-3 py-2 text-right font-black uppercase tracking-widest text-surface-500"
+                            >
+                                Amount
+                            </th>
+                            <th
+                                class="px-3 py-2 text-center font-black uppercase tracking-widest text-surface-500"
+                            >
+                                Type
+                            </th>
+                            <th
+                                class="px-3 py-2 text-center font-black uppercase tracking-widest text-surface-500 w-28"
+                            >
+                                Decision
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of pagedMatches(); track item.globalIdx) {
+                            @let d = decisions()[item.globalIdx];
+                            <tr
+                                [class]="
+                                    'border-b border-surface-100 transition-colors ' +
+                                    (selectedIndices().has(item.globalIdx)
+                                        ? 'bg-primary/5'
+                                        : 'hover:bg-surface-50/50')
+                                "
+                            >
+                                <td class="px-3 py-2">
+                                    <input
+                                        type="checkbox"
+                                        [checked]="selectedIndices().has(item.globalIdx)"
+                                        (change)="toggleSelected(item.globalIdx)"
+                                        class="rounded-sm accent-primary"
+                                    />
+                                </td>
+                                <td class="px-3 py-2 font-mono text-surface-600">
+                                    {{ item.match.parsedTx.date }}
+                                </td>
+                                <td
+                                    class="px-3 py-2 font-bold text-surface-800 max-w-[200px] truncate"
+                                >
+                                    {{ item.match.parsedTx.payee }}
+                                </td>
+                                <td
+                                    class="px-3 py-2 text-right font-mono font-bold tabular-nums"
+                                    [class.text-primary]="item.match.parsedTx.amount > 0"
+                                >
+                                    {{ formatCurrency(item.match.parsedTx.amount) }}
+                                </td>
+                                <td class="px-3 py-2 text-center">
+                                    <span
+                                        [class]="
+                                            'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ' +
+                                            (item.match.type === 'none'
+                                                ? 'bg-primary/10 text-primary border-primary/20'
+                                                : item.match.type === 'fuzzy'
+                                                  ? 'bg-amber-500/10 text-amber-700 border-amber-500/20'
+                                                  : 'bg-surface-100 text-surface-500 border-surface-200')
+                                        "
+                                    >
+                                        {{
+                                            item.match.type === 'none'
+                                                ? 'New'
+                                                : item.match.type === 'fuzzy'
+                                                  ? 'Ambiguous'
+                                                  : 'Duplicate'
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <select
+                                        [value]="d"
+                                        (change)="
+                                            setDecision(item.globalIdx, $any($event.target).value)
+                                        "
+                                        [class]="
+                                            'w-full text-[10px] font-black uppercase tracking-widest border rounded-sm px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer ' +
+                                            decisionClass(d)
+                                        "
+                                    >
+                                        <option value="import">Import</option>
+                                        @if (item.match.type === 'fuzzy') {
+                                            <option value="match">Match</option>
+                                        }
+                                        <option value="ignore">Skip</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+                class="flex items-center justify-between px-4 py-3 border-t border-surface-200 bg-surface-50/30"
+            >
+                <div class="flex items-center gap-3 text-[10px]">
+                    <span class="text-surface-500 font-bold uppercase tracking-widest"
+                        >Rows per page</span
+                    >
+                    @for (size of pageSizeOptions; track size) {
+                        <button
+                            (click)="setPageSize(size)"
+                            [class]="
+                                'w-8 h-6 rounded-sm font-black text-[9px] transition-colors ' +
+                                (pageSize() === size
+                                    ? 'bg-primary text-white'
+                                    : 'bg-surface-200 text-surface-600 hover:bg-surface-300')
+                            "
+                        >
+                            {{ size }}
+                        </button>
+                    }
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-bold text-surface-500">
+                        Page {{ page() + 1 }} of {{ pageCount() | number }}
+                        &nbsp;·&nbsp;
+                        {{ filteredMatches().length | number }} total
+                    </span>
+                    <div class="flex gap-1">
+                        <button
+                            (click)="prevPage()"
+                            [disabled]="page() === 0"
+                            class="px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest bg-surface-200 hover:bg-surface-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                            ← Prev
+                        </button>
+                        <button
+                            (click)="nextPage()"
+                            [disabled]="page() >= pageCount() - 1"
+                            class="px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest bg-surface-200 hover:bg-surface-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Next →
+                        </button>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="mt-6 flex justify-end gap-2 pt-4 border-t border-surface-200/10">
-                    @if (match.type === 'fuzzy') {
+        <!-- ════════════════════════ SMALL DATASET MODE (card per entry) ══════════════ -->
+    } @else {
+        <div class="flex-1 bg-surface-100/10 p-2 space-y-4">
+            @for (match of matches(); track $index; let idx = $index) {
+                @let decision = decisions()[idx];
+                <div
+                    class="p-4 rounded-sm border-2 transition-all relative overflow-hidden"
+                    [class]="{
+                        'border-primary/30 bg-primary/5': decision === 'import',
+                        'border-amber-800/30 bg-amber-800/5': decision === 'match',
+                        'border-surface-200/50 bg-surface-100/20 opacity-80': decision === 'ignore'
+                    }"
+                >
+                    <!-- Status Ribbon -->
+                    <div
+                        class="absolute top-0 right-0 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter"
+                        [class.bg-primary]="decision === 'import'"
+                        [class.text-white]="decision === 'import' || decision === 'match'"
+                        [class.bg-amber-700]="decision === 'match'"
+                        [class.bg-surface-100]="decision === 'ignore'"
+                        [class.text-surface-500]="decision === 'ignore'"
+                    >
+                        {{ decision }}
+                    </div>
+
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="px-2 py-0.5 text-[9px] font-black uppercase rounded-none border"
+                                [class.bg-surface-100]="match.type === 'fuzzy'"
+                                [class.border-transparent]="match.type === 'fuzzy'"
+                                [class.border-surface-200]="match.type !== 'fuzzy'"
+                            >
+                                {{ match.type === 'fuzzy' ? 'Ambiguous' : 'New Transaction' }}
+                            </span>
+                            <span class="text-xs font-mono font-bold text-surface-800">
+                                {{ match.parsedTx.date }}
+                            </span>
+                        </div>
+                        <div class="text-lg font-mono font-black text-emerald-900 tabular-nums">
+                            {{ formatCurrency(match.parsedTx.amount) }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-12 gap-6 items-center">
+                        <div class="col-span-5 space-y-1">
+                            <span
+                                class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
+                            >
+                                Statement Entry
+                            </span>
+                            <div
+                                class="text-sm font-black text-surface-800 uppercase tracking-tight"
+                            >
+                                {{ match.parsedTx.payee }}
+                            </div>
+                            <div class="text-[10px] text-surface-800 italic truncate">
+                                {{ match.parsedTx.memo || 'No memo provided' }}
+                            </div>
+                        </div>
+
+                        <div class="col-span-1 flex justify-center">
+                            <lucide-icon
+                                [img]="ArrowRight"
+                                class="w-5 h-5"
+                                [class.text-amber-800]="match.type === 'fuzzy'"
+                                [class.text-border]="match.type !== 'fuzzy'"
+                            />
+                        </div>
+
+                        <div class="col-span-6 space-y-1">
+                            <span
+                                class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
+                            >
+                                Matched Record
+                            </span>
+                            @if (match.type === 'fuzzy') {
+                                <div
+                                    class="bg-surface-50/50 border border-amber-800/20 p-2 rounded-sm"
+                                >
+                                    <div
+                                        class="flex items-center gap-2 text-[10px] font-bold text-amber-800 mb-1"
+                                    >
+                                        <lucide-icon [img]="LinkIcon" class="w-3 h-3" />
+                                        MATCH FOUND ({{ (match.confidence * 100).toFixed(0) }}%)
+                                    </div>
+                                    <div class="text-[9px] text-surface-800/80 truncate">
+                                        ID: {{ match.existingTxId }}
+                                    </div>
+                                </div>
+                            } @else {
+                                <div
+                                    class="text-[10px] text-surface-800/80 italic border border-dashed border-surface-200 p-2 rounded-sm"
+                                >
+                                    No similar transaction found in the current account ledger.
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end gap-2 pt-4 border-t border-surface-200/10">
+                        @if (match.type === 'fuzzy') {
+                            <p-button
+                                (click)="setDecision(idx, 'match')"
+                                [outlined]="decision !== 'match'"
+                                severity="primary"
+                                size="small"
+                                styleClass="px-4 text-[9px] font-black uppercase"
+                            >
+                                <lucide-icon [img]="LinkIcon" class="w-3 h-3 mr-1.5" />
+                                Confirm Match
+                            </p-button>
+                        }
                         <p-button
-                            (click)="setDecision(idx, 'match')"
-                            [outlined]="decision !== 'match'"
+                            (click)="setDecision(idx, 'import')"
+                            [outlined]="decision !== 'import'"
                             severity="primary"
                             size="small"
                             styleClass="px-4 text-[9px] font-black uppercase"
                         >
-                            <lucide-icon [img]="LinkIcon" class="w-3 h-3 mr-1.5" />
-                            Confirm Match
+                            <lucide-icon [img]="PlusCircle" class="w-3 h-3 mr-1.5" />
+                            {{ match.type === 'fuzzy' ? 'Add as Separate' : 'Add to Ledger' }}
                         </p-button>
-                    }
-                    <p-button
-                        (click)="setDecision(idx, 'import')"
-                        [outlined]="decision !== 'import'"
-                        severity="primary"
-                        size="small"
-                        styleClass="px-4 text-[9px] font-black uppercase"
-                    >
-                        <lucide-icon [img]="PlusCircle" class="w-3 h-3 mr-1.5" />
-                        {{ match.type === 'fuzzy' ? 'Add as Separate' : 'Add to Ledger' }}
-                    </p-button>
-                    <p-button
-                        (click)="setDecision(idx, 'ignore')"
-                        [outlined]="decision !== 'ignore'"
-                        severity="secondary"
-                        size="small"
-                        styleClass="px-4 text-[9px] font-black uppercase"
-                    >
-                        <lucide-icon [img]="X" class="w-3 h-3 mr-1.5" />
-                        Ignore
-                    </p-button>
+                        <p-button
+                            (click)="setDecision(idx, 'ignore')"
+                            [outlined]="decision !== 'ignore'"
+                            severity="secondary"
+                            size="small"
+                            styleClass="px-4 text-[9px] font-black uppercase"
+                        >
+                            <lucide-icon [img]="X" class="w-3 h-3 mr-1.5" />
+                            Ignore
+                        </p-button>
+                    </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 
+    <!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════ -->
     <ng-template pTemplate="footer">
         <div class="flex justify-end gap-2">
             <p-button
@@ -163,14 +517,16 @@
                 severity="secondary"
                 [disabled]="isProcessing()"
                 styleClass="text-xs font-bold uppercase px-6"
-            ></p-button>
-            <p-button
-                (click)="handleApply()"
-                [label]="isProcessing() ? 'Synchronizing...' : 'Commit All Decisions'"
-                [disabled]="isProcessing()"
-                severity="primary"
-                styleClass="text-xs font-black uppercase px-10 shadow-lg shadow-primary/20"
-            ></p-button>
+            />
+            @if (!isZeroFuzzy() || !isLargeDataset()) {
+                <p-button
+                    (click)="handleApply()"
+                    [label]="isProcessing() ? 'Synchronizing...' : 'Commit All Decisions'"
+                    [disabled]="isProcessing()"
+                    severity="primary"
+                    styleClass="text-xs font-black uppercase px-10 shadow-lg shadow-primary/20"
+                />
+            }
         </div>
     </ng-template>
 </p-dialog>

@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -14,6 +15,7 @@ import { AccountType, TypeGuards } from '@core';
 import {
     Banknote,
     Car,
+    CheckCircle,
     ChevronDown,
     ChevronUp,
     CreditCard,
@@ -21,20 +23,23 @@ import {
     Landmark,
     LucideAngularModule,
     Receipt,
+    Upload,
     Wallet,
-    X
+    X,
+    Zap
 } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
 
+import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { PostHogService } from '../../../services/posthog/posthog.service';
 import { LoanDetailsFormComponent } from '../loan-details-form/loan-details-form.component';
 
 /**
  * Wizard step types.
  */
-type WizardStep = 'select-type' | 'enter-details' | 'creating';
+type WizardStep = 'select-type' | 'enter-details' | 'import-data' | 'creating';
 
 /**
  * Account type option for the wizard.
@@ -138,12 +143,13 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
 
 /**
  * Dialog for creating a new account.
- * Guides the user through type selection and basic configuration.
+ * Guides the user through type selection, configuration, and optional initial data import.
  */
 @Component({
     selector: 'new-account-dialog',
     standalone: true,
     imports: [
+        CommonModule,
         FormsModule,
         LucideAngularModule,
         LoanDetailsFormComponent,
@@ -161,6 +167,7 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
 })
 export class NewAccountDialogComponent {
     private readonly posthogService = inject(PostHogService);
+    readonly importService = inject(ImportOrchestrationService);
 
     // Inputs
     readonly isOpen = input.required<boolean>();
@@ -178,10 +185,13 @@ export class NewAccountDialogComponent {
     readonly initialBalance = signal<string>('');
     readonly error = signal<string | null>(null);
 
+    /** The newly-created account — populated after handleCreate() succeeds */
+    readonly createdAccount = signal<IAccount | null>(null);
+
+    /** Tracks drag-over state for the drop zone */
+    readonly isDropZoneActive = signal<boolean>(false);
+
     // Computed
-    /**
-     * Stepper value based on current step name.
-     */
     readonly stepValue = computed(() => {
         switch (this.step()) {
             case 'select-type':
@@ -190,6 +200,8 @@ export class NewAccountDialogComponent {
                 return 2;
             case 'creating':
                 return 2;
+            case 'import-data':
+                return 3;
             default:
                 return 1;
         }
@@ -217,8 +229,12 @@ export class NewAccountDialogComponent {
         return type ? TypeGuards.isLoanAccount(type) : false;
     });
 
+    readonly importProgress = this.importService.progress;
+    readonly importStats = this.importService.stats;
+    readonly importDone = computed(() => this.importService.progress().stage === 'done');
+
     constructor() {
-        // Reset state when opening/closing
+        // Reset state when closing
         effect(() => {
             if (!this.isOpen()) {
                 this.step.set('select-type');
@@ -227,6 +243,8 @@ export class NewAccountDialogComponent {
                 this.institutionName.set('');
                 this.initialBalance.set('');
                 this.error.set(null);
+                this.createdAccount.set(null);
+                this.importService.reset();
             }
         });
     }
@@ -248,7 +266,7 @@ export class NewAccountDialogComponent {
         }
     }
 
-    async handleCreate(): Promise<void> {
+    async handleCreate(goToImport = false): Promise<void> {
         if (!this.accountName().trim()) {
             this.error.set('Account name is required');
             return;
@@ -288,17 +306,65 @@ export class NewAccountDialogComponent {
                 updatedAt: now
             };
 
+            this.createdAccount.set(newAccount);
             this.accountCreated.emit(newAccount);
             this.posthogService.posthog.capture('account_created', {
                 account_type: type,
                 has_institution_name: !!this.institutionName().trim(),
-                has_initial_balance: !!this.initialBalance()
+                has_initial_balance: !!this.initialBalance(),
+                will_import: goToImport
             });
-            this.closed.emit();
+
+            if (goToImport) {
+                this.importService.reset();
+                this.step.set('import-data');
+            } else {
+                this.closed.emit();
+            }
         } catch {
             this.error.set('Failed to create account');
             this.step.set('enter-details');
         }
+    }
+
+    // ── Import step helpers ───────────────────────────────────────────────────
+
+    onDropZoneDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isDropZoneActive.set(true);
+    }
+
+    onDropZoneDragLeave(): void {
+        this.isDropZoneActive.set(false);
+    }
+
+    onDropZoneDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isDropZoneActive.set(false);
+        const file = event.dataTransfer?.files[0];
+        if (file) this.startImportFromFile(file);
+    }
+
+    onImportFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file) this.startImportFromFile(file);
+        input.value = '';
+    }
+
+    private startImportFromFile(file: File): void {
+        const accountId = this.createdAccount()?.id ?? '';
+        this.importService.startImport(file, accountId);
+    }
+
+    skipImport(): void {
+        this.importService.reset();
+        this.closed.emit();
+    }
+
+    finishAfterImport(): void {
+        this.importService.reset();
+        this.closed.emit();
     }
 
     handleCancel(): void {
@@ -326,4 +392,7 @@ export class NewAccountDialogComponent {
     readonly Receipt = Receipt;
     readonly ChevronDown = ChevronDown;
     readonly ChevronUp = ChevronUp;
+    readonly Upload = Upload;
+    readonly CheckCircle = CheckCircle;
+    readonly Zap = Zap;
 }
