@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { SecurityManagerService } from '../../../services/security-manager/security-manager.service';
 import { AuthOverlayComponent } from '../../auth/auth-overlay/auth-overlay.component';
 import { SyncPendingBannerComponent } from '../../auth/sync-pending-banner/sync-pending-banner.component';
+import { ConflictResolutionModalComponent } from '../../sync/conflict-resolution-modal/conflict-resolution-modal.component';
+import { MergeSyncToastComponent } from '../../sync/merge-sync-toast/merge-sync-toast.component';
 import { BreadcrumbNavComponent } from '../breadcrumb-nav/breadcrumb-nav.component';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
@@ -21,7 +23,9 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
         BreadcrumbNavComponent,
         SecurityOverlayComponent,
         AuthOverlayComponent,
-        SyncPendingBannerComponent
+        SyncPendingBannerComponent,
+        MergeSyncToastComponent,
+        ConflictResolutionModalComponent
     ],
     templateUrl: './app-shell.component.html',
     styleUrl: './app-shell.component.css',

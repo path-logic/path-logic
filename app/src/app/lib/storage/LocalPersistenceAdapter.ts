@@ -199,3 +199,33 @@ export async function hasLocalFallback(): Promise<boolean> {
     const snap = await loadLocalSnapshot();
     return snap !== null;
 }
+
+// ── Drive sync timestamp ──────────────────────────────────────────────────────
+// Tracks when the last successful Drive sync completed.
+// Used as a baseline by MergeEngine to detect true conflicts:
+// a record modified on BOTH sides after this point is a conflict.
+
+const LAST_DRIVE_SYNC_KEY = 'pl_last_drive_sync';
+
+/**
+ * Persists the timestamp of the last successful Drive sync.
+ * Call this after every successful Drive upload or merge.
+ */
+export function saveLastDriveSyncTime(timeMs: number): void {
+    try {
+        localStorage.setItem(LAST_DRIVE_SYNC_KEY, String(timeMs));
+    } catch {
+        // localStorage may be blocked in private browsing — non-fatal
+    }
+}
+
+/**
+ * Returns the timestamp of the last successful Drive sync, or 0 if never synced.
+ */
+export function getLastDriveSyncTime(): number {
+    try {
+        return parseInt(localStorage.getItem(LAST_DRIVE_SYNC_KEY) ?? '0', 10) || 0;
+    } catch {
+        return 0;
+    }
+}

@@ -1,0 +1,32 @@
+@if (visible()) {
+    <div class="merge-toast" role="status" aria-live="polite">
+        <div class="toast-icon-wrap">
+            <lucide-icon [img]="GitMerge" class="toast-icon" aria-hidden="true" />
+        </div>
+
+        <div class="toast-body">
+            <span class="toast-title">Ledger Synced</span>
+            <span class="toast-detail">
+                @if (mergeCount() === 1) {
+                    1 new transaction synced from another device
+                } @else {
+                    {{ mergeCount() }} transactions synced from another device
+                }
+            </span>
+
+            @if (hasConflicts()) {
+                <span class="toast-conflicts">
+                    ⚠ {{ conflictCount() }} conflict{{ conflictCount() === 1 ? '' : 's' }} need
+                    your review
+                </span>
+            }
+        </div>
+
+        <button class="toast-close" (click)="dismiss()" aria-label="Dismiss">
+            <lucide-icon [img]="X" class="close-icon" />
+        </button>
+
+        <!-- Auto-dismiss progress bar -->
+        <div class="toast-progress" aria-hidden="true"></div>
+    </div>
+}

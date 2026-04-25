@@ -15,11 +15,14 @@ import {
     uploadDatabase
 } from '../../lib/storage/GoogleDriveAdapter';
 import {
+    getLastDriveSyncTime,
     getLocalVersion,
     loadLocalSnapshot,
+    saveLastDriveSyncTime,
     saveLocalSnapshot
 } from '../../lib/storage/LocalPersistenceAdapter';
 import { getDb } from '../../lib/storage/SQLiteAdapter';
+import type { IMergeResult } from '../../lib/sync/MergeEngine';
 import { SQLiteMergeEngine } from '../../lib/sync/MergeEngine';
 import { AuthService } from '../auth/auth.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
@@ -226,24 +229,31 @@ export class SyncService {
                     const remoteEncrypted = await downloadDatabase(accessToken, driveFile.id);
                     const remoteDecrypted = await decryptDatabase(remoteEncrypted, userId);
 
-                    const localDb: Database | null = getDb();
+                    const localDb = getDb();
                     if (localDb) {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const SQL: any = (localDb as any).constructor;
-                        const remoteDb: Database = new SQL.Database(remoteDecrypted);
+                        const remoteDb = new SQL.Database(remoteDecrypted);
                         try {
-                            const mergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(
-                                remoteDb,
-                                localDb
-                            );
-                            if (mergeResult) {
+                            const lastSyncTime = getLastDriveSyncTime();
+                            const mergeResult: IMergeResult =
+                                await SQLiteMergeEngine.mergeRemoteIntoLocal(
+                                    remoteDb,
+                                    localDb,
+                                    lastSyncTime
+                                );
+                            if (
+                                mergeResult.mergedCount > 0 ||
+                                mergeResult.conflicts.length > 0
+                            ) {
                                 this.ledgerStore.syncStatus.set('merging');
                                 await this.ledgerStore.loadFromEncryptedData(
                                     new Uint8Array(localDb.export())
                                 );
-                                this.ledgerStore.mergeCount.set(
-                                    typeof mergeResult === 'number' ? mergeResult : 1
-                                );
+                                this.ledgerStore.mergeCount.set(mergeResult.mergedCount);
+                                if (mergeResult.conflicts.length > 0) {
+                                    this.ledgerStore.syncConflicts.set(mergeResult.conflicts);
+                                }
                             }
                         } finally {
                             remoteDb.close();
@@ -320,12 +330,13 @@ export class SyncService {
         const decryptedData = await decryptDatabase(encryptedData, userId);
 
         if (!this.ledgerStore.isInitialized()) {
-            // New device — just load Drive data directly
+            // New device — load Drive data directly (no merge needed)
             await this.ledgerStore.loadFromEncryptedData(decryptedData);
             await saveLocalSnapshot(encryptedData, Date.now());
             this.ledgerStore.hasLocalFallback.set(true);
             this.ledgerStore.syncStatus.set('synced');
             this.ledgerStore.isDirty.set(false);
+            saveLastDriveSyncTime(Date.now());
             this.posthogService.posthog.capture('data_loaded_from_drive', {
                 source: 'drive',
                 is_returning_user: true
@@ -339,19 +350,23 @@ export class SyncService {
         if (localDb) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const SQL: any = (localDb as any).constructor;
-            const remoteDb: Database = new SQL.Database(decryptedData);
+            const remoteDb = new SQL.Database(decryptedData);
             try {
-                const mergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(
+                const lastSyncTime = getLastDriveSyncTime();
+                const mergeResult: IMergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(
                     remoteDb,
-                    localDb
+                    localDb,
+                    lastSyncTime
                 );
-                if (mergeResult) {
+                if (mergeResult.mergedCount > 0 || mergeResult.conflicts.length > 0) {
                     await this.ledgerStore.loadFromEncryptedData(new Uint8Array(localDb.export()));
-                    this.ledgerStore.mergeCount.set(
-                        typeof mergeResult === 'number' ? mergeResult : 1
-                    );
+                    this.ledgerStore.mergeCount.set(mergeResult.mergedCount);
+                    if (mergeResult.conflicts.length > 0) {
+                        this.ledgerStore.syncConflicts.set(mergeResult.conflicts);
+                    }
                     this.posthogService.posthog.capture('data_merged_from_drive', {
-                        merge_count: this.ledgerStore.mergeCount()
+                        merge_count: mergeResult.mergedCount,
+                        conflict_count: mergeResult.conflicts.length
                     });
                 }
             } finally {
@@ -372,7 +387,9 @@ export class SyncService {
         const dbExport = this.ledgerStore.exportForSync();
         const encrypted = await encryptDatabase(dbExport, userId);
         await uploadDatabase(accessToken, encrypted, driveFileId ?? undefined);
-        await saveLocalSnapshot(encrypted, Date.now());
+        const now = Date.now();
+        await saveLocalSnapshot(encrypted, now);
+        saveLastDriveSyncTime(now);
         this.ledgerStore.hasLocalFallback.set(true);
         this.ledgerStore.syncStatus.set('synced');
         this.ledgerStore.isDirty.set(false);

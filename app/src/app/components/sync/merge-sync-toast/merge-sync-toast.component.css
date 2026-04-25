@@ -1,0 +1,136 @@
+:host {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9000;
+    pointer-events: none;
+}
+
+.merge-toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    width: 340px;
+    border-radius: 12px;
+    background: #1e293b;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    box-shadow:
+        0 8px 32px -4px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    pointer-events: all;
+    overflow: hidden;
+    animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Icon ─────────────────────────────────────────────────────────────── */
+
+.toast-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.toast-icon {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────── */
+
+.toast-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: 0.02em;
+}
+
+.toast-detail {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+.toast-conflicts {
+    font-size: 0.7rem;
+    color: #fb923c;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* ── Close button ─────────────────────────────────────────────────────── */
+
+.toast-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+}
+
+.toast-close:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.close-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Progress bar ─────────────────────────────────────────────────────── */
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    animation: progress 6s linear forwards;
+    transform-origin: left;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────── */
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}

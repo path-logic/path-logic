@@ -5,6 +5,9 @@
     <security-overlay [isVisible]="isIdle()" (unlocked)="resetTimers()" />
     <auth-overlay />
     <sync-pending-banner />
+    <!-- Background Drive sync notifications -->
+    <merge-sync-toast />
+    <conflict-resolution-modal />
 
     <header></header>
 

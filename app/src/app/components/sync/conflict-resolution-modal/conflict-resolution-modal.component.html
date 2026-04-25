@@ -1,0 +1,117 @@
+@if (showModal()) {
+    <!-- Backdrop -->
+    <div class="modal-backdrop" aria-hidden="true"></div>
+
+    <!-- Modal -->
+    <div
+        class="modal-container"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="conflict-modal-title"
+    >
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="header-left">
+                <div class="header-icon">
+                    <lucide-icon [img]="AlertTriangle" class="header-icon-svg" aria-hidden="true" />
+                </div>
+                <div>
+                    <h2 id="conflict-modal-title" class="modal-title">Sync Conflicts Detected</h2>
+                    <p class="modal-subtitle">
+                        {{ conflicts().length }}
+                        {{ conflicts().length === 1 ? 'transaction was' : 'transactions were' }}
+                        edited on multiple devices. Choose which version to keep.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conflict list -->
+        <div class="modal-body">
+            @for (conflict of conflicts(); track conflict.id) {
+                <div class="conflict-card">
+                    <!-- Transaction label -->
+                    <div class="conflict-label">
+                        <span class="conflict-payee">{{ conflict.mine.payee || conflict.theirs.payee }}</span>
+                        <span class="conflict-date">
+                            {{ formatDate(conflict.mine.date) }}
+                        </span>
+                    </div>
+
+                    <!-- Side-by-side comparison -->
+                    <div class="conflict-sides">
+                        <!-- Mine -->
+                        <div class="conflict-side conflict-side--mine">
+                            <div class="side-header">
+                                <lucide-icon [img]="Monitor" class="side-icon" />
+                                <span class="side-label">This Device</span>
+                                <span class="side-time">{{ formatTimestamp(conflict.mine.updatedAt) }}</span>
+                            </div>
+                            <div class="side-amount" [class.negative]="conflict.mine.totalAmount < 0">
+                                {{ formatAmount(conflict.mine.totalAmount) }}
+                            </div>
+                            @if (conflict.mine.memo) {
+                                <div class="side-memo">{{ conflict.mine.memo }}</div>
+                            }
+                            @if (conflict.mine.status !== conflict.theirs.status) {
+                                <div class="side-status">Status: {{ conflict.mine.status }}</div>
+                            }
+                            <button
+                                class="side-btn side-btn--mine"
+                                (click)="keepMine(conflict)"
+                                type="button"
+                            >
+                                <lucide-icon [img]="Check" class="btn-icon" />
+                                Keep Mine
+                            </button>
+                        </div>
+
+                        <!-- VS divider -->
+                        <div class="conflict-vs" aria-hidden="true">vs</div>
+
+                        <!-- Theirs -->
+                        <div class="conflict-side conflict-side--theirs">
+                            <div class="side-header">
+                                <lucide-icon [img]="Cloud" class="side-icon" />
+                                <span class="side-label">Other Device</span>
+                                <span class="side-time">{{ formatTimestamp(conflict.theirs.updatedAt) }}</span>
+                            </div>
+                            <div class="side-amount" [class.negative]="conflict.theirs.totalAmount < 0">
+                                {{ formatAmount(conflict.theirs.totalAmount) }}
+                            </div>
+                            @if (conflict.theirs.memo) {
+                                <div class="side-memo">{{ conflict.theirs.memo }}</div>
+                            }
+                            @if (conflict.mine.status !== conflict.theirs.status) {
+                                <div class="side-status">Status: {{ conflict.theirs.status }}</div>
+                            }
+                            <button
+                                class="side-btn side-btn--theirs"
+                                (click)="keepTheirs(conflict)"
+                                type="button"
+                            >
+                                <lucide-icon [img]="Check" class="btn-icon" />
+                                Keep Theirs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Footer bulk actions -->
+        <div class="modal-footer">
+            <span class="footer-hint">Or resolve all at once:</span>
+            <div class="footer-actions">
+                <button class="bulk-btn bulk-btn--mine" (click)="keepAllMine()" type="button">
+                    <lucide-icon [img]="Monitor" class="btn-icon" />
+                    Keep All Mine
+                </button>
+                <button class="bulk-btn bulk-btn--theirs" (click)="keepAllTheirs()" type="button">
+                    <lucide-icon [img]="Cloud" class="btn-icon" />
+                    Keep All Theirs
+                </button>
+            </div>
+        </div>
+    </div>
+}

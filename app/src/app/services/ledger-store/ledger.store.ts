@@ -12,6 +12,7 @@ import type {
 
 import { encryptDatabase } from '../../lib/crypto/encryption';
 import type { ILockStatus } from '../../lib/storage/GoogleDriveAdapter';
+import type { ITransactionConflict } from '../../lib/sync/MergeEngine';
 import {
     deleteRecurringSchedule,
     deleteTransaction,
@@ -88,6 +89,9 @@ export class LedgerStore {
     readonly lockStatus: WritableSignal<ILockStatus | null> = signal<ILockStatus | null>(null);
     /** Number of transactions merged from Drive in the last background sync. */
     readonly mergeCount: WritableSignal<number> = signal<number>(0);
+    /** Transactions with true conflicts (both sides changed since last sync). */
+    readonly syncConflicts: WritableSignal<Array<ITransactionConflict>> = signal<Array<ITransactionConflict>>([]);
+
 
     /**
      * Firebase UID — set by SyncService after auth resolves.
@@ -262,6 +266,41 @@ export class LedgerStore {
         return ReconciliationEngine.reconcile(db, parsedTxs, accountId);
     }
 
+    /**
+     * Resolve a specific conflict by choosing one side.
+     * Called by the ConflictResolutionModal after the user makes a choice.
+     *
+     * @param id         Transaction ID
+     * @param keepMine   true = keep local version, false = apply remote version
+     */
+    async resolveConflict(id: string, keepMine: boolean): Promise<void> {
+        if (!keepMine) {
+            // Apply the remote version — it's already in syncConflicts
+            const conflict = this.syncConflicts().find(c => c.id === id);
+            if (conflict) {
+                const now = new Date().toISOString();
+                const tx: ITransaction = {
+                    id: conflict.id,
+                    accountId: conflict.theirs.accountId,
+                    payeeId: conflict.theirs.payeeId,
+                    date: conflict.theirs.date as ISODateString,
+                    payee: conflict.theirs.payee,
+                    memo: conflict.theirs.memo ?? '',
+                    totalAmount: conflict.theirs.totalAmount,
+                    status: conflict.theirs.status as ITransaction['status'],
+                    splits: [],
+                    checkNumber: conflict.theirs.checkNumber,
+                    importHash: conflict.theirs.importHash ?? '',
+                    createdAt: now as ISODateString,
+                    updatedAt: now as ISODateString
+                };
+                await this.updateTransaction(tx);
+            }
+        }
+        // Remove this conflict from the list (whether kept mine or applied theirs)
+        this.syncConflicts.update(c => c.filter(x => x.id !== id));
+    }
+
     reset(): void {
         resetDatabase();
         this.transactions.set([]);
@@ -275,6 +314,8 @@ export class LedgerStore {
         this.syncError.set(null);
         this.authError.set(false);
         this.hasLocalFallback.set(false);
+        this.mergeCount.set(0);
+        this.syncConflicts.set([]);
     }
 
     // --- Private helpers ---
