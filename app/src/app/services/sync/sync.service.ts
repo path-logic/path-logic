@@ -51,57 +51,20 @@ export class SyncService {
 
     /**
      * Pull encrypted DB from Google Drive, decrypt, and load into the store.
-     * Falls back to local IndexedDB cache if Drive is unavailable.
+     * Requires both a valid userId (Firebase UID) and a Google OAuth accessToken.
+     * Falls back to local IndexedDB cache if the Drive file is missing.
+     *
+     * Call loadFromLocalOnly() instead when no Drive token is available.
      */
     async loadFromDrive(): Promise<void> {
         const accessToken: string | null = this.authService.accessToken();
         const userId: string | null = this.authService.userId();
 
-        if (!userId) {
-            console.warn('[Sync] No user ID — cannot load data');
+        if (!accessToken || !userId) {
+            console.error('[Sync] loadFromDrive() called without accessToken or userId');
             return;
         }
 
-        // ── Drive-less path (page refresh — access token was not persisted) ───
-        //
-        // Firebase restores user identity on refresh but the Google OAuth token
-        // is ephemeral and lost. Load from the local IndexedDB fallback so the
-        // app is immediately usable. The sync-pending banner will prompt the
-        // user to re-authenticate to resume Drive sync.
-        if (!accessToken) {
-            console.warn(
-                '[Sync] No Google Drive access token (likely a page refresh). ' +
-                    'Attempting local fallback load.'
-            );
-            this.ledgerStore.authError.set(true);
-            this.ledgerStore.syncStatus.set('pending-local');
-
-            try {
-                const localData: Uint8Array | null = await loadLocalFallback();
-                if (localData) {
-                    const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
-                    await this.ledgerStore.loadFromEncryptedData(decryptedData);
-                    this.ledgerStore.hasLocalFallback.set(true);
-                    console.info(
-                        '[Sync] Loaded data from local fallback. ' +
-                            'Re-authenticate to sync with Drive.'
-                    );
-                } else {
-                    // No local cache exists yet — fresh install on this browser
-                    await this.ledgerStore.initialize();
-                    console.info(
-                        '[Sync] No local fallback found. Initialized fresh local DB.'
-                    );
-                }
-            } catch (err: unknown) {
-                console.error('[Sync] Failed to load local fallback:', err);
-                // Last resort: init a blank DB so the app is not completely broken
-                await this.ledgerStore.initialize();
-            }
-            return;
-        }
-
-        // ── Normal path — we have both a user ID and a Drive access token ────
         this.isSyncing.set(true);
         this.ledgerStore.syncStatus.set('pending-local');
 
@@ -112,8 +75,6 @@ export class SyncService {
                 const encryptedData: Uint8Array = await downloadDatabase(accessToken, driveFile.id);
                 const decryptedData: Uint8Array = await decryptDatabase(encryptedData, userId);
                 await this.ledgerStore.loadFromEncryptedData(decryptedData);
-
-                // Save a local fallback copy
                 await saveLocalFallback(encryptedData);
                 this.ledgerStore.hasLocalFallback.set(true);
                 this.ledgerStore.syncStatus.set('synced');
@@ -135,7 +96,7 @@ export class SyncService {
                         is_returning_user: true
                     });
                 } else {
-                    // Fresh start
+                    // Fresh start — no Drive file and no local copy
                     await this.ledgerStore.initialize();
                     this.ledgerStore.syncStatus.set('synced');
                     this.posthogService.posthog.capture('data_loaded_from_drive', {
@@ -147,7 +108,6 @@ export class SyncService {
         } catch (error: unknown) {
             if (error instanceof GDriveAuthError) {
                 this.ledgerStore.authError.set(true);
-                // Try local fallback
                 const localData: Uint8Array | null = await loadLocalFallback();
                 if (localData) {
                     const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
@@ -167,6 +127,37 @@ export class SyncService {
             }
         } finally {
             this.isSyncing.set(false);
+        }
+    }
+
+    /**
+     * Degraded startup path — used when the Google Drive access token is
+     * unavailable (e.g. page refresh after the 55-minute token TTL expires).
+     *
+     * Loads the local IndexedDB fallback if it exists, otherwise starts fresh.
+     * Sets authError = true so the sync-pending banner prompts re-authentication.
+     */
+    async loadFromLocalOnly(userId: string): Promise<void> {
+        this.ledgerStore.authError.set(true);
+        this.ledgerStore.syncStatus.set('pending-local');
+
+        try {
+            const localData: Uint8Array | null = await loadLocalFallback();
+            if (localData) {
+                const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
+                await this.ledgerStore.loadFromEncryptedData(decryptedData);
+                this.ledgerStore.hasLocalFallback.set(true);
+                console.info(
+                    '[Sync] Loaded local fallback. Re-authenticate to resume Drive sync.'
+                );
+            } else {
+                // No local copy — brand new install on this browser
+                await this.ledgerStore.initialize();
+                console.info('[Sync] No local fallback. Initialized fresh DB.');
+            }
+        } catch (err: unknown) {
+            console.error('[Sync] Failed to load local fallback:', err);
+            await this.ledgerStore.initialize();
         }
     }
 

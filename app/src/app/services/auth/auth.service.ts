@@ -7,14 +7,36 @@ import { environment } from '../../../environments/environment';
 import { FirebaseService } from '../firebase/firebase.service';
 import { PostHogService } from '../posthog/posthog.service';
 
+/** LocalStorage key prefix for the persisted Google OAuth token. */
+const TOKEN_KEY = (uid: string): string => `pl_gdtoken_${uid}`;
+
+/**
+ * Google OAuth tokens last 60 minutes. We treat them as stale at 55 min
+ * so we never attempt a Drive call with an expired token.
+ */
+const TOKEN_TTL_MS = 55 * 60 * 1000;
+
+interface IStoredToken {
+    token: string;
+    expiresAt: number;
+}
+
 /**
  * AuthService wraps Firebase Authentication with Angular signals.
  *
- * Silent auto-login: Firebase Auth persists the authentication state in IndexedDB
- * by default. On every app initialization, `onAuthStateChanged` fires immediately
- * with the cached user (or `null` if no session). This means users are silently
- * logged in without any interaction, and the sync pipeline is always available.
- * If no session exists, the app redirects to `/sign-in`.
+ * Auth startup sequence (enforced by AppComponent):
+ *   1. Firebase resolves onAuthStateChanged → currentUser() is set.
+ *   2. AuthService immediately attempts to restore a cached Google OAuth
+ *      token from localStorage (persisted from the previous session).
+ *   3. AppComponent reads accessToken() — if present, a full Drive sync
+ *      is performed; if absent (expired/first install), the app falls
+ *      back to the local IndexedDB copy and sets authError so the
+ *      sync-pending banner prompts a re-login.
+ *
+ * Silent auto-login: Firebase Auth persists the authentication state in
+ * IndexedDB by default. On every app initialization onAuthStateChanged
+ * fires immediately with the cached user (or null if no session).
+ * If no session exists, the app redirects to /sign-in.
  *
  * In E2E mode, auth is bypassed entirely — no Firebase listeners, no redirects.
  */
@@ -49,23 +71,27 @@ export class AuthService {
         }
 
         // Listen for auth state changes (fires immediately with cached state)
-        console.log('[AuthService] Attaching onAuthStateChanged listener...');
         onAuthStateChanged(
             this.firebase.auth,
             (user: User | null): void => {
-                console.log('[AuthService] Auth state changed. User exists:', !!user);
                 this._user.set(user);
                 this.isInitializing.set(false);
+
+                // Attempt to restore a persisted Google token immediately so
+                // AppComponent can take the full Drive path without any delay.
+                if (user) {
+                    const cached = this.restoreStoredToken(user.uid);
+                    if (cached) {
+                        this.accessToken.set(cached);
+                    }
+                }
             },
             error => {
-                console.error(
-                    '[AuthService] Fatal error inside onAuthStateChanged listener:',
-                    error
-                );
+                console.error('[AuthService] Fatal error inside onAuthStateChanged:', error);
             }
         );
 
-        // Redirect to sign-in when auth resolves with no session or valid session
+        // Redirect to sign-in when auth resolves with no session
         effect((): void => {
             const user: User | null | undefined = this.currentUser();
             if (user === undefined) return; // still loading
@@ -82,28 +108,22 @@ export class AuthService {
         provider.addScope('https://www.googleapis.com/auth/drive.appdata');
 
         try {
-            console.log('[AuthService] Initiating signInWithPopup...');
             const result = await signInWithPopup(this.firebase.auth, provider);
-            console.log('[AuthService] signInWithPopup returned:', !!result);
 
             if (result) {
                 const credential = GoogleAuthProvider.credentialFromResult(result);
                 if (credential?.accessToken) {
-                    console.log(
-                        '[AuthService] Successfully extracted Google Drive token from popup.'
-                    );
                     this.accessToken.set(credential.accessToken);
+                    // Persist so it survives page refreshes for up to 55 minutes
+                    this.storeToken(result.user.uid, credential.accessToken);
                 }
 
-                // Identify user and capture sign-in event
                 const user = result.user;
                 this.posthogService.posthog.identify(user.uid, {
                     email: user.email ?? undefined,
                     name: user.displayName ?? undefined
                 });
-                this.posthogService.posthog.capture('user_signed_in', {
-                    provider: 'google'
-                });
+                this.posthogService.posthog.capture('user_signed_in', { provider: 'google' });
             }
         } catch (error) {
             console.error('[AuthService] Error during signInWithPopup:', error);
@@ -114,7 +134,45 @@ export class AuthService {
     async signOut(): Promise<void> {
         this.posthogService.posthog.capture('user_signed_out');
         this.posthogService.posthog.reset();
+
+        const uid = this.userId();
+        if (uid) this.clearStoredToken(uid);
+
         await signOut(this.firebase.auth);
         this.accessToken.set(null);
+    }
+
+    // ── Token persistence ────────────────────────────────────────────────────
+
+    private storeToken(uid: string, token: string): void {
+        try {
+            const payload: IStoredToken = { token, expiresAt: Date.now() + TOKEN_TTL_MS };
+            localStorage.setItem(TOKEN_KEY(uid), JSON.stringify(payload));
+        } catch {
+            // localStorage may be full or blocked (private browsing) — non-fatal
+        }
+    }
+
+    private restoreStoredToken(uid: string): string | null {
+        try {
+            const raw = localStorage.getItem(TOKEN_KEY(uid));
+            if (!raw) return null;
+            const { token, expiresAt } = JSON.parse(raw) as IStoredToken;
+            if (Date.now() >= expiresAt) {
+                localStorage.removeItem(TOKEN_KEY(uid));
+                return null; // expired
+            }
+            return token;
+        } catch {
+            return null;
+        }
+    }
+
+    private clearStoredToken(uid: string): void {
+        try {
+            localStorage.removeItem(TOKEN_KEY(uid));
+        } catch {
+            // non-fatal
+        }
     }
 }

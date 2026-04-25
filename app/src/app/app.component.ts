@@ -8,9 +8,40 @@ import { LedgerStore } from './services/ledger-store/ledger.store';
 import { PostHogService } from './services/posthog/posthog.service';
 import { SyncService } from './services/sync/sync.service';
 
-/** How long to wait after the last mutation before pushing to Drive. */
+/** How long after the last mutation before auto-saving to Drive. */
 const AUTO_SAVE_DEBOUNCE_MS = 3_000;
 
+/**
+ * Root application component.
+ *
+ * ## Startup sequence
+ *
+ *   1. Firebase resolves onAuthStateChanged (handled by AuthService).
+ *      AuthService simultaneously tries to restore the persisted Google
+ *      OAuth token from localStorage.
+ *
+ *   2. Once `isInitializing` is false and a user exists, this component
+ *      calls `initializeApp()` exactly once:
+ *
+ *        a. Google token available → `SyncService.loadFromDrive()`
+ *           Full Drive sync: download → decrypt → load → save local fallback.
+ *
+ *        b. Google token absent (token expired or first browser install) →
+ *           `SyncService.loadFromLocalOnly(userId)`
+ *           Sets authError = true so the sync-pending banner pressure
+ *           the user to re-authenticate before any important operations.
+ *           Data is local-only until they do.
+ *
+ *   3. After initializeApp() completes, `LedgerStore.isInitialized()` is
+ *      true and the app renders normally.
+ *
+ * ## Error cases
+ *
+ *   - Firebase auth fails / no session → AuthService redirects to /sign-in.
+ *   - Drive sync fails with GDriveAuthError → SyncService falls back to
+ *     local copy and sets authError = true.
+ *   - Drive sync fails with other error → syncStatus = 'error', banner shown.
+ */
 @Component({
     imports: [RouterOutlet],
     selector: 'root',
@@ -23,7 +54,6 @@ const AUTO_SAVE_DEBOUNCE_MS = 3_000;
     `
 })
 export class AppComponent {
-    // CI/CD Trigger: Standardized branch triggers and staging deployment.
     readonly title = 'Path Logic';
 
     private readonly authService = inject(AuthService);
@@ -35,6 +65,9 @@ export class AppComponent {
 
     private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
+    /** Prevents the init sequence from running more than once. */
+    private initStarted = false;
+
     constructor() {
         if (isPlatformBrowser(this.platformId) && environment.posthogKey) {
             this.posthogService.init(environment.posthogKey, {
@@ -44,81 +77,49 @@ export class AppComponent {
             });
         }
 
-        // ── Load database once the user is authenticated ────────────────────────
+        // ── Sequential startup: Firebase → Google token → DB load ─────────────
         //
-        // This effect is reactive to both isLoggedIn() AND accessToken() so
-        // it fires in two distinct scenarios:
-        //   1. Page refresh: isLoggedIn becomes true, accessToken stays null.
-        //      SyncService falls back to local IndexedDB data.
-        //   2. Re-authentication via sync banner: accessToken becomes non-null.
-        //      SyncService performs a full Drive load and clears authError.
+        // The effect waits for Firebase auth to resolve (isInitializing = false),
+        // then triggers initializeApp() exactly once. AuthService has already
+        // attempted to restore the cached Google token from localStorage by the
+        // time this effect fires, so accessToken() may already be set.
         effect(() => {
-            console.log('[AppComponent] Effect triggered checking auth state for DB init...');
-            try {
-                const isLoggedIn = this.authService.isLoggedIn();
-                const accessToken = this.authService.accessToken(); // reactive dep for re-auth
-                const initialized = this.ledgerStore.isInitialized();
+            const isInitializing = this.authService.isInitializing();
+            const user = this.authService.currentUser();
 
-                console.log(
-                    `[AppComponent] Auth: ${isLoggedIn}, hasToken: ${!!accessToken}, DB Init: ${initialized}`
-                );
+            // Wait until Firebase has confirmed the auth state
+            if (isInitializing || !user) return;
 
-                if (isLoggedIn && !initialized) {
-                    console.log(
-                        '[AppComponent] User is logged in but DB not initialized. Attempting initialization...'
+            // Guard: only run once per app lifecycle
+            if (this.initStarted) return;
+            this.initStarted = true;
+
+            if (environment.e2e) {
+                this.ledgerStore
+                    .initialize()
+                    .catch((e: unknown) =>
+                        console.error('[AppComponent] E2E DB init failed:', e)
                     );
-                    if (environment.e2e) {
-                        console.log(
-                            '[AppComponent] Environment is E2E, skipping Drive load and initializing local SQL.js only.'
-                        );
-                        this.ledgerStore
-                            .initialize()
-                            .catch((e: unknown) =>
-                                console.error(
-                                    '[AppComponent] Fatal error initializing ledger store in E2E:',
-                                    e
-                                )
-                            );
-                    } else {
-                        console.log(
-                            '[AppComponent] Attempting to run SyncService.loadFromDrive()...'
-                        );
-                        this.syncService
-                            .loadFromDrive()
-                            .then(() => {
-                                console.log(
-                                    '[AppComponent] Successfully ran loadFromDrive pipeline.'
-                                );
-                            })
-                            .catch((e: unknown) => {
-                                console.error(
-                                    '[AppComponent] Fatal error running SyncService.loadFromDrive:',
-                                    e
-                                );
-                            });
-                    }
-                }
-            } catch (error) {
-                console.error('[AppComponent] Fatal synchronous error in root effect:', error);
+                return;
             }
+
+            this.initializeApp(user.uid);
         });
 
         // ── Auto-save to Drive whenever the ledger becomes dirty ──────────────
         //
-        // Debounced so that rapid consecutive mutations (e.g. bulk QIF import)
-        // produce a single upload rather than hammering the Drive API.
-        // The SyncService itself also has a debounce, but this outer debounce
-        // collapses the signal reactions before we even call into the service.
+        // Debounced to collapse rapid consecutive mutations (bulk import, etc.)
+        // into a single upload. Only runs when Drive token is available — if the
+        // user is in degraded (local-only) mode, the sync-pending banner guides
+        // them to re-authenticate instead.
         effect(() => {
             const isDirty = this.ledgerStore.isDirty();
+            const hasToken = !!this.authService.accessToken();
             const isLoggedIn = this.authService.isLoggedIn();
 
-            // Skip: no changes, not authenticated, or running in E2E mode
-            if (!isDirty || !isLoggedIn || environment.e2e) return;
+            if (!isDirty || !isLoggedIn || !hasToken || environment.e2e) return;
 
-            if (this.autoSaveTimer !== null) {
-                clearTimeout(this.autoSaveTimer);
-            }
+            if (this.autoSaveTimer !== null) clearTimeout(this.autoSaveTimer);
 
             this.autoSaveTimer = setTimeout(() => {
                 this.autoSaveTimer = null;
@@ -128,11 +129,35 @@ export class AppComponent {
             }, AUTO_SAVE_DEBOUNCE_MS);
         });
 
-        // Clean up the pending timer when the component is torn down
         this.destroyRef.onDestroy(() => {
-            if (this.autoSaveTimer !== null) {
-                clearTimeout(this.autoSaveTimer);
-            }
+            if (this.autoSaveTimer !== null) clearTimeout(this.autoSaveTimer);
         });
+    }
+
+    /**
+     * Sequential DB initialization:
+     *   1. Google token present → full Drive sync.
+     *   2. Google token absent → local-only degraded mode.
+     */
+    private initializeApp(userId: string): void {
+        const accessToken = this.authService.accessToken();
+
+        if (accessToken) {
+            // Happy path — token was restored from cache or just obtained via popup
+            console.log('[AppComponent] Google token available — loading from Drive.');
+            this.syncService.loadFromDrive().catch((e: unknown) => {
+                console.error('[AppComponent] loadFromDrive failed:', e);
+            });
+        } else {
+            // Degraded path — token expired or not yet obtained
+            // (first install on this browser, or >55 min since last login)
+            console.warn(
+                '[AppComponent] No Google token — loading local fallback. ' +
+                'User will be prompted to re-authenticate.'
+            );
+            this.syncService.loadFromLocalOnly(userId).catch((e: unknown) => {
+                console.error('[AppComponent] loadFromLocalOnly failed:', e);
+            });
+        }
     }
 }
