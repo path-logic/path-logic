@@ -14,16 +14,17 @@ import {
     releaseLock,
     uploadDatabase
 } from '../../lib/storage/GoogleDriveAdapter';
-import { loadLocalFallback, saveLocalFallback } from '../../lib/storage/LocalPersistenceAdapter';
+import {
+    getLocalVersion,
+    loadLocalSnapshot,
+    saveLocalSnapshot
+} from '../../lib/storage/LocalPersistenceAdapter';
 import { getDb } from '../../lib/storage/SQLiteAdapter';
 import { SQLiteMergeEngine } from '../../lib/sync/MergeEngine';
 import { AuthService } from '../auth/auth.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
 import { PostHogService } from '../posthog/posthog.service';
 
-/**
- * Sync status information
- */
 interface ISyncStatus {
     inProgress: boolean;
     lastSyncTime: number;
@@ -32,11 +33,31 @@ interface ISyncStatus {
 const SYNC_DEBOUNCE_MS: number = 2000;
 
 /**
- * Angular service that orchestrates the full sync pipeline:
- * SQLite → Export → Encrypt → Upload to Drive
- * Drive → Download → Decrypt → Load into SQLite
+ * SyncService — Local-First Architecture
  *
- * Orchestrates the full sync pipeline:
+ * IndexedDB is the primary data store. Google Drive is the background
+ * cloud backup. The app is always instantly usable from local storage.
+ *
+ * ## Startup sequence (called from AppComponent):
+ *
+ *   1. initFromLocal(userId)
+ *      → Load IndexedDB snapshot → decrypt → SQL.js → app is usable
+ *      → Returns true if local data existed, false if new device
+ *
+ *   2a. If local data existed:
+ *      → syncFromDrive() runs in the BACKGROUND (no await)
+ *      → Downloads Drive version, compares timestamps
+ *      → If Drive is newer: merge + update IndexedDB
+ *      → If local is newer: upload local to Drive
+ *
+ *   2b. If NO local data (new device):
+ *      → syncFromDrive() runs with await (blocking)
+ *      → Shows "Syncing your Ledger" screen
+ *      → Downloads Drive data, writes to IndexedDB, app becomes usable
+ *
+ * ## Write path (every mutation):
+ *   LedgerStore.mutate() → SQL.js → commitToLocal() (IndexedDB, immediate)
+ *                        → isDirty = true → auto-save → saveToDrive() (background)
  */
 @Injectable({ providedIn: 'root' })
 export class SyncService {
@@ -49,54 +70,80 @@ export class SyncService {
     private readonly authService: AuthService = inject(AuthService);
     private readonly posthogService: PostHogService = inject(PostHogService);
 
+    // ── Startup: Step 1 — Load from IndexedDB ────────────────────────────────
+
     /**
-     * Pull encrypted DB from Google Drive, decrypt, and load into the store.
-     * Requires both a valid userId (Firebase UID) and a Google OAuth accessToken.
-     * Falls back to local IndexedDB cache if the Drive file is missing.
+     * Load the local IndexedDB snapshot and hydrate the store.
+     * This is always the FIRST step on startup — instant, no network.
      *
-     * Call loadFromLocalOnly() instead when no Drive token is available.
+     * Sets userId on the LedgerStore so commitToLocal() can encrypt.
+     *
+     * @returns true if local data was found and loaded, false if new device.
      */
-    async loadFromDrive(): Promise<void> {
-        const accessToken: string | null = this.authService.accessToken();
-        const userId: string | null = this.authService.userId();
+    async initFromLocal(userId: string): Promise<boolean> {
+        this.ledgerStore.userId = userId;
+        this.ledgerStore.isLoading.set(true);
+
+        try {
+            const snapshot = await loadLocalSnapshot();
+
+            if (snapshot) {
+                const decrypted = await decryptDatabase(snapshot.encryptedData, userId);
+                await this.ledgerStore.loadFromEncryptedData(decrypted);
+                this.ledgerStore.hasLocalFallback.set(true);
+                console.info(
+                    `[Sync] Loaded local snapshot (version: ${new Date(snapshot.version).toISOString()})`
+                );
+                return true;
+            } else {
+                console.info('[Sync] No local snapshot — new device or first install.');
+                return false;
+            }
+        } catch (err: unknown) {
+            console.error('[Sync] Failed to load local snapshot:', err);
+            return false;
+        } finally {
+            this.ledgerStore.isLoading.set(false);
+        }
+    }
+
+    // ── Startup: Step 2 — Background Drive sync ───────────────────────────────
+
+    /**
+     * Background Drive sync — compares local version with Drive and
+     * reconciles differences. Safe to call without await after initFromLocal().
+     *
+     * If no Drive token is available, sets authError and returns.
+     * The sync-pending banner will prompt the user to re-authenticate.
+     */
+    async syncFromDrive(): Promise<void> {
+        const accessToken = this.authService.accessToken();
+        const userId = this.authService.userId();
 
         if (!accessToken || !userId) {
-            console.error('[Sync] loadFromDrive() called without accessToken or userId');
+            // No Drive token — local-only mode
+            this.ledgerStore.authError.set(true);
+            this.ledgerStore.syncStatus.set('pending-local');
+
+            // Ensure the DB is initialized even without Drive
+            if (!this.ledgerStore.isInitialized()) {
+                await this.ledgerStore.initialize();
+            }
             return;
         }
 
         this.isSyncing.set(true);
-        this.ledgerStore.syncStatus.set('pending-local');
 
         try {
             const driveFile: IDriveFile | null = await findDatabaseFile(accessToken);
 
-            if (driveFile) {
-                const encryptedData: Uint8Array = await downloadDatabase(accessToken, driveFile.id);
-                const decryptedData: Uint8Array = await decryptDatabase(encryptedData, userId);
-                await this.ledgerStore.loadFromEncryptedData(decryptedData);
-                await saveLocalFallback(encryptedData);
-                this.ledgerStore.hasLocalFallback.set(true);
-                this.ledgerStore.syncStatus.set('synced');
-                this.ledgerStore.isDirty.set(false);
-                this.posthogService.posthog.capture('data_loaded_from_drive', {
-                    source: 'drive',
-                    is_returning_user: true
-                });
-            } else {
-                // No cloud file — try local fallback
-                const localData: Uint8Array | null = await loadLocalFallback();
-                if (localData) {
-                    const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
-                    await this.ledgerStore.loadFromEncryptedData(decryptedData);
-                    this.ledgerStore.hasLocalFallback.set(true);
-                    this.ledgerStore.syncStatus.set('pending-local');
-                    this.posthogService.posthog.capture('data_loaded_from_drive', {
-                        source: 'local_fallback',
-                        is_returning_user: true
-                    });
+            if (!driveFile) {
+                // No Drive file — this is a fresh install or Drive was cleared.
+                // Upload local state (if any) or just mark as synced.
+                if (this.ledgerStore.isInitialized()) {
+                    await this.uploadToDrive(accessToken, userId, null);
                 } else {
-                    // Fresh start — no Drive file and no local copy
+                    // Truly fresh start — no local AND no Drive
                     await this.ledgerStore.initialize();
                     this.ledgerStore.syncStatus.set('synced');
                     this.posthogService.posthog.capture('data_loaded_from_drive', {
@@ -104,84 +151,62 @@ export class SyncService {
                         is_returning_user: false
                     });
                 }
+                return;
+            }
+
+            // Drive file exists — compare timestamps
+            const localVersion = await getLocalVersion();
+            const driveModifiedMs = new Date(driveFile.modifiedTime ?? 0).getTime();
+
+            if (driveModifiedMs > localVersion) {
+                // Drive is newer — download, decrypt, merge
+                await this.downloadAndMerge(accessToken, userId, driveFile);
+            } else {
+                // Local is newer (or equal) — upload
+                if (this.ledgerStore.isDirty()) {
+                    await this.uploadToDrive(accessToken, userId, driveFile.id);
+                } else {
+                    this.ledgerStore.syncStatus.set('synced');
+                }
             }
         } catch (error: unknown) {
             if (error instanceof GDriveAuthError) {
                 this.ledgerStore.authError.set(true);
-                const localData: Uint8Array | null = await loadLocalFallback();
-                if (localData) {
-                    const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
-                    await this.ledgerStore.loadFromEncryptedData(decryptedData);
-                    this.ledgerStore.hasLocalFallback.set(true);
-                }
+                this.ledgerStore.syncStatus.set('pending-local');
             } else {
-                console.error('[Sync] Failed to load from Drive:', error);
+                console.error('[Sync] syncFromDrive failed:', error);
                 this.ledgerStore.syncStatus.set('error');
                 this.ledgerStore.syncError.set(
-                    error instanceof Error ? error.message : 'Unknown error'
+                    error instanceof Error ? error.message : 'Unknown sync error'
                 );
-                this.posthogService.posthog.capture('sync_failed', {
-                    operation: 'load',
-                    error_message: error instanceof Error ? error.message : 'Unknown error'
-                });
             }
         } finally {
             this.isSyncing.set(false);
         }
     }
 
-    /**
-     * Degraded startup path — used when the Google Drive access token is
-     * unavailable (e.g. page refresh after the 55-minute token TTL expires).
-     *
-     * Loads the local IndexedDB fallback if it exists, otherwise starts fresh.
-     * Sets authError = true so the sync-pending banner prompts re-authentication.
-     */
-    async loadFromLocalOnly(userId: string): Promise<void> {
-        this.ledgerStore.authError.set(true);
-        this.ledgerStore.syncStatus.set('pending-local');
-
-        try {
-            const localData: Uint8Array | null = await loadLocalFallback();
-            if (localData) {
-                const decryptedData: Uint8Array = await decryptDatabase(localData, userId);
-                await this.ledgerStore.loadFromEncryptedData(decryptedData);
-                this.ledgerStore.hasLocalFallback.set(true);
-                console.info(
-                    '[Sync] Loaded local fallback. Re-authenticate to resume Drive sync.'
-                );
-            } else {
-                // No local copy — brand new install on this browser
-                await this.ledgerStore.initialize();
-                console.info('[Sync] No local fallback. Initialized fresh DB.');
-            }
-        } catch (err: unknown) {
-            console.error('[Sync] Failed to load local fallback:', err);
-            await this.ledgerStore.initialize();
-        }
-    }
+    // ── Mutations: Save dirty state to Drive ──────────────────────────────────
 
     /**
-     * Save current database to Drive (with debounce, lock, merge, encrypt).
+     * Save current database to Drive (debounced, with lock + merge).
+     * Called by AppComponent's auto-save effect after mutations.
      */
     async saveToDrive(): Promise<void> {
         const accessToken: string | null = this.authService.accessToken();
         const userId: string | null = this.authService.userId();
         if (!accessToken || !userId) return;
 
-        // Debounce
         const now: number = Date.now();
         if (now - this.lastSyncTime < SYNC_DEBOUNCE_MS) return;
         if (this.syncInProgress) return;
 
         this.syncInProgress = true;
         this.isSyncing.set(true);
-        this.ledgerStore.syncStatus.set('pending-local');
+        this.ledgerStore.syncStatus.set('uploading');
 
         try {
             const clientId: string = this.getClientId();
 
-            // Acquire lock
             const lockAcquired: boolean = await acquireLock(
                 accessToken,
                 clientId,
@@ -195,30 +220,30 @@ export class SyncService {
             }
 
             try {
-                // Check for remote changes and merge
+                // Check for remote changes and merge before uploading
                 const driveFile: IDriveFile | null = await findDatabaseFile(accessToken);
                 if (driveFile) {
-                    const remoteEncrypted: Uint8Array = await downloadDatabase(
-                        accessToken,
-                        driveFile.id
-                    );
-                    const remoteDecrypted: Uint8Array = await decryptDatabase(
-                        remoteEncrypted,
-                        userId
-                    );
+                    const remoteEncrypted = await downloadDatabase(accessToken, driveFile.id);
+                    const remoteDecrypted = await decryptDatabase(remoteEncrypted, userId);
 
-                    // Load remote DB into temp instance and merge
                     const localDb: Database | null = getDb();
                     if (localDb) {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const SQL: any = (localDb as any).constructor;
                         const remoteDb: Database = new SQL.Database(remoteDecrypted);
                         try {
-                            const hadChanges: boolean =
-                                await SQLiteMergeEngine.mergeRemoteIntoLocal(remoteDb, localDb);
-                            if (hadChanges) {
-                                // Refresh store from merged DB
-                                await this.ledgerStore.initialize();
+                            const mergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(
+                                remoteDb,
+                                localDb
+                            );
+                            if (mergeResult) {
+                                this.ledgerStore.syncStatus.set('merging');
+                                await this.ledgerStore.loadFromEncryptedData(
+                                    new Uint8Array(localDb.export())
+                                );
+                                this.ledgerStore.mergeCount.set(
+                                    typeof mergeResult === 'number' ? mergeResult : 1
+                                );
                             }
                         } finally {
                             remoteDb.close();
@@ -227,26 +252,15 @@ export class SyncService {
                 }
 
                 // Export, encrypt, upload
-                const dbExport: Uint8Array = this.ledgerStore.exportForSync();
-                const encrypted: Uint8Array = await encryptDatabase(dbExport, userId);
-                await uploadDatabase(accessToken, encrypted, driveFile?.id);
-
-                // Save local fallback
-                await saveLocalFallback(encrypted);
-                this.ledgerStore.hasLocalFallback.set(true);
-                this.ledgerStore.syncStatus.set('synced');
-                this.ledgerStore.isDirty.set(false);
-                this.ledgerStore.syncError.set(null);
+                await this.uploadToDrive(accessToken, userId, driveFile?.id ?? null);
                 this.lastSyncTime = Date.now();
-                this.posthogService.posthog.capture('sync_completed', {
-                    operation: 'save'
-                });
             } finally {
                 await releaseLock(accessToken);
             }
         } catch (error: unknown) {
             if (error instanceof GDriveAuthError) {
                 this.ledgerStore.authError.set(true);
+                this.ledgerStore.syncStatus.set('pending-local');
             } else {
                 console.error('[Sync] Failed to save to Drive:', error);
                 this.ledgerStore.syncStatus.set('error');
@@ -264,52 +278,109 @@ export class SyncService {
         }
     }
 
-    /**
-     * Refresh lock status from Drive.
-     */
-    async refreshLockStatus(): Promise<void> {
-        const accessToken: string | null = this.authService.accessToken();
-        if (!accessToken) return;
+    // ── Utility methods ───────────────────────────────────────────────────────
 
+    async refreshLockStatus(): Promise<void> {
+        const accessToken = this.authService.accessToken();
+        if (!accessToken) return;
         try {
             const status = await getLockStatus(accessToken);
             this.ledgerStore.lockStatus.set(status);
-        } catch (error: unknown) {
+        } catch (error) {
             console.error('[Sync] Failed to refresh lock status:', error);
         }
     }
 
-    /**
-     * Force release the sync lock.
-     */
     async forceReleaseSyncLock(): Promise<void> {
-        const accessToken: string | null = this.authService.accessToken();
+        const accessToken = this.authService.accessToken();
         if (!accessToken) return;
-
         try {
             await forceReleaseLock(accessToken);
             this.ledgerStore.lockStatus.set(null);
             this.ledgerStore.syncError.set(null);
-        } catch (error: unknown) {
+        } catch (error) {
             console.error('[Sync] Failed to force release lock:', error);
         }
     }
 
-    /**
-     * Get sync status snapshot.
-     */
     getSyncStatus(): ISyncStatus {
-        return {
-            inProgress: this.syncInProgress,
-            lastSyncTime: this.lastSyncTime
-        };
+        return { inProgress: this.syncInProgress, lastSyncTime: this.lastSyncTime };
     }
 
-    /**
-     * Get or create a stable client ID for this browser.
-     */
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private async downloadAndMerge(
+        accessToken: string,
+        userId: string,
+        driveFile: IDriveFile
+    ): Promise<void> {
+        this.ledgerStore.syncStatus.set('downloading');
+
+        const encryptedData = await downloadDatabase(accessToken, driveFile.id);
+        const decryptedData = await decryptDatabase(encryptedData, userId);
+
+        if (!this.ledgerStore.isInitialized()) {
+            // New device — just load Drive data directly
+            await this.ledgerStore.loadFromEncryptedData(decryptedData);
+            await saveLocalSnapshot(encryptedData, Date.now());
+            this.ledgerStore.hasLocalFallback.set(true);
+            this.ledgerStore.syncStatus.set('synced');
+            this.ledgerStore.isDirty.set(false);
+            this.posthogService.posthog.capture('data_loaded_from_drive', {
+                source: 'drive',
+                is_returning_user: true
+            });
+            return;
+        }
+
+        // Existing device — merge Drive into local
+        this.ledgerStore.syncStatus.set('merging');
+        const localDb = getDb();
+        if (localDb) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const SQL: any = (localDb as any).constructor;
+            const remoteDb: Database = new SQL.Database(decryptedData);
+            try {
+                const mergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(
+                    remoteDb,
+                    localDb
+                );
+                if (mergeResult) {
+                    await this.ledgerStore.loadFromEncryptedData(new Uint8Array(localDb.export()));
+                    this.ledgerStore.mergeCount.set(
+                        typeof mergeResult === 'number' ? mergeResult : 1
+                    );
+                    this.posthogService.posthog.capture('data_merged_from_drive', {
+                        merge_count: this.ledgerStore.mergeCount()
+                    });
+                }
+            } finally {
+                remoteDb.close();
+            }
+        }
+
+        // Upload merged result back to Drive
+        await this.uploadToDrive(accessToken, userId, driveFile.id);
+    }
+
+    private async uploadToDrive(
+        accessToken: string,
+        userId: string,
+        driveFileId: string | null
+    ): Promise<void> {
+        this.ledgerStore.syncStatus.set('uploading');
+        const dbExport = this.ledgerStore.exportForSync();
+        const encrypted = await encryptDatabase(dbExport, userId);
+        await uploadDatabase(accessToken, encrypted, driveFileId ?? undefined);
+        await saveLocalSnapshot(encrypted, Date.now());
+        this.ledgerStore.hasLocalFallback.set(true);
+        this.ledgerStore.syncStatus.set('synced');
+        this.ledgerStore.isDirty.set(false);
+        this.ledgerStore.syncError.set(null);
+    }
+
     private getClientId(): string {
-        let clientId: string | null = localStorage.getItem('path-logic-client-id');
+        let clientId = localStorage.getItem('path-logic-client-id');
         if (!clientId) {
             clientId = `client-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             localStorage.setItem('path-logic-client-id', clientId);

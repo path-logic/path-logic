@@ -1,31 +1,45 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Message } from 'primeng/message';
+import { LucideAngularModule, RefreshCw, WifiOff } from 'lucide-angular';
 
+import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 
 /**
- * Mid-session warning banner for when sync is purely local due to authentication issues.
+ * Prominent sync-pending banner.
+ *
+ * Shown whenever the app is in local-only mode (no Drive token).
+ * Designed to be highly visible — the user MUST notice that their
+ * data is not syncing to the cloud.
+ *
+ * Visibility rule: authError is true AND syncStatus is 'pending-local'.
+ * Once the user re-authenticates and Drive sync resumes, the banner disappears.
  */
 @Component({
     selector: 'sync-pending-banner',
     standalone: true,
-    imports: [Message],
+    imports: [LucideAngularModule],
     templateUrl: './sync-pending-banner.component.html',
     styleUrl: './sync-pending-banner.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SyncPendingBannerComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
+    private readonly authService: AuthService = inject(AuthService);
 
-    /**
-     * Computed signal that determines if the banner should be visible.
-     */
     readonly showBanner = computed((): boolean => {
-        const authError: boolean = this.ledgerStore.authError();
-        const isDirty: boolean = this.ledgerStore.isDirty();
-        const syncStatus: string = this.ledgerStore.syncStatus();
-
-        // Show if we have unsynced data but the cloud connection is lost
-        return authError && (isDirty || syncStatus === 'pending-local');
+        return this.ledgerStore.authError() && this.ledgerStore.syncStatus() === 'pending-local';
     });
+
+    readonly WifiOff = WifiOff;
+    readonly RefreshCw = RefreshCw;
+
+    async reAuthenticate(): Promise<void> {
+        try {
+            await this.authService.signInWithGoogle();
+            // Clear authError — the AppComponent effect will trigger a Drive sync
+            this.ledgerStore.authError.set(false);
+        } catch {
+            // User dismissed the popup — keep banner visible
+        }
+    }
 }

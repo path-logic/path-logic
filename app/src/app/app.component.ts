@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, DestroyRef, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Component, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { environment } from '../environments/environment';
@@ -14,33 +14,31 @@ const AUTO_SAVE_DEBOUNCE_MS = 3_000;
 /**
  * Root application component.
  *
- * ## Startup sequence
+ * ## Local-First Startup Sequence
  *
- *   1. Firebase resolves onAuthStateChanged (handled by AuthService).
- *      AuthService simultaneously tries to restore the persisted Google
- *      OAuth token from localStorage.
+ *   1. Firebase resolves onAuthStateChanged → currentUser() set
+ *      AuthService simultaneously restores the Google OAuth token from localStorage.
  *
- *   2. Once `isInitializing` is false and a user exists, this component
- *      calls `initializeApp()` exactly once:
+ *   2. initializeApp() runs exactly once (guarded by initStarted):
  *
- *        a. Google token available → `SyncService.loadFromDrive()`
- *           Full Drive sync: download → decrypt → load → save local fallback.
+ *      a. SyncService.initFromLocal(userId)
+ *         → Loads IndexedDB snapshot instantly (<200ms)
+ *         → App is immediately usable if local data exists
+ *         → Returns false if this is a new device (no local data)
  *
- *        b. Google token absent (token expired or first browser install) →
- *           `SyncService.loadFromLocalOnly(userId)`
- *           Sets authError = true so the sync-pending banner pressure
- *           the user to re-authenticate before any important operations.
- *           Data is local-only until they do.
+ *      b. SyncService.syncFromDrive() — BACKGROUND
+ *         → If local data existed: no await, fully background
+ *         → If new device: awaited — shows "Syncing your Ledger" until done
+ *         → Compares local version timestamp with Drive modifiedTime
+ *         → Downloads + merges if Drive is newer; uploads if local is newer
  *
- *   3. After initializeApp() completes, `LedgerStore.isInitialized()` is
- *      true and the app renders normally.
+ *   3. All subsequent mutations write to IndexedDB immediately (via
+ *      LedgerStore.commitToLocal()) then trigger debounced Drive upload.
  *
- * ## Error cases
- *
- *   - Firebase auth fails / no session → AuthService redirects to /sign-in.
- *   - Drive sync fails with GDriveAuthError → SyncService falls back to
- *     local copy and sets authError = true.
- *   - Drive sync fails with other error → syncStatus = 'error', banner shown.
+ * ## Error Cases
+ *   - Firebase fails / no session → AuthService redirects to /sign-in
+ *   - No Drive token (token expired) → local-only, authError banner shows
+ *   - Drive API fails → syncStatus = 'error', error detail shown in banner
  */
 @Component({
     imports: [RouterOutlet],
@@ -63,9 +61,10 @@ export class AppComponent {
     private readonly platformId = inject(PLATFORM_ID);
     private readonly destroyRef = inject(DestroyRef);
 
-    private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+    /** True while waiting for Drive data on a new device (no local snapshot). */
+    readonly isSyncingNewDevice = signal<boolean>(false);
 
-    /** Prevents the init sequence from running more than once. */
+    private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
     private initStarted = false;
 
     constructor() {
@@ -77,20 +76,12 @@ export class AppComponent {
             });
         }
 
-        // ── Sequential startup: Firebase → Google token → DB load ─────────────
-        //
-        // The effect waits for Firebase auth to resolve (isInitializing = false),
-        // then triggers initializeApp() exactly once. AuthService has already
-        // attempted to restore the cached Google token from localStorage by the
-        // time this effect fires, so accessToken() may already be set.
+        // ── Local-First startup: Firebase confirmed → IndexedDB → Drive sync ──
         effect(() => {
             const isInitializing = this.authService.isInitializing();
             const user = this.authService.currentUser();
 
-            // Wait until Firebase has confirmed the auth state
             if (isInitializing || !user) return;
-
-            // Guard: only run once per app lifecycle
             if (this.initStarted) return;
             this.initStarted = true;
 
@@ -106,12 +97,7 @@ export class AppComponent {
             this.initializeApp(user.uid);
         });
 
-        // ── Auto-save to Drive whenever the ledger becomes dirty ──────────────
-        //
-        // Debounced to collapse rapid consecutive mutations (bulk import, etc.)
-        // into a single upload. Only runs when Drive token is available — if the
-        // user is in degraded (local-only) mode, the sync-pending banner guides
-        // them to re-authenticate instead.
+        // ── Auto-save: push dirty local state to Drive in the background ──────
         effect(() => {
             const isDirty = this.ledgerStore.isDirty();
             const hasToken = !!this.authService.accessToken();
@@ -135,29 +121,36 @@ export class AppComponent {
     }
 
     /**
-     * Sequential DB initialization:
-     *   1. Google token present → full Drive sync.
-     *   2. Google token absent → local-only degraded mode.
+     * Local-first initialization:
+     *   1. Load from IndexedDB (instant)
+     *   2. Sync with Drive in the background
+     *
+     * If no local data exists (new device), step 2 blocks the UI with
+     * a "Syncing your Ledger" screen until Drive data is downloaded.
      */
     private initializeApp(userId: string): void {
-        const accessToken = this.authService.accessToken();
-
-        if (accessToken) {
-            // Happy path — token was restored from cache or just obtained via popup
-            console.log('[AppComponent] Google token available — loading from Drive.');
-            this.syncService.loadFromDrive().catch((e: unknown) => {
-                console.error('[AppComponent] loadFromDrive failed:', e);
+        this.syncService
+            .initFromLocal(userId)
+            .then(async (hasLocalData: boolean) => {
+                if (!hasLocalData) {
+                    // New device — must wait for Drive before app is usable
+                    this.isSyncingNewDevice.set(true);
+                    try {
+                        await this.syncService.syncFromDrive();
+                    } finally {
+                        this.isSyncingNewDevice.set(false);
+                    }
+                } else {
+                    // App is immediately usable — sync Drive in the background
+                    this.syncService.syncFromDrive().catch((e: unknown) => {
+                        console.error('[AppComponent] Background Drive sync failed:', e);
+                    });
+                }
+            })
+            .catch((e: unknown) => {
+                console.error('[AppComponent] initFromLocal failed:', e);
+                // Last resort: ensure app is at least initialized
+                this.ledgerStore.initialize().catch(console.error);
             });
-        } else {
-            // Degraded path — token expired or not yet obtained
-            // (first install on this browser, or >55 min since last login)
-            console.warn(
-                '[AppComponent] No Google token — loading local fallback. ' +
-                'User will be prompted to re-authenticate.'
-            );
-            this.syncService.loadFromLocalOnly(userId).catch((e: unknown) => {
-                console.error('[AppComponent] loadFromLocalOnly failed:', e);
-            });
-        }
     }
 }

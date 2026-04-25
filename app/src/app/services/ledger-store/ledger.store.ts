@@ -10,6 +10,7 @@ import type {
     ITransaction
 } from '@core';
 
+import { encryptDatabase } from '../../lib/crypto/encryption';
 import type { ILockStatus } from '../../lib/storage/GoogleDriveAdapter';
 import {
     deleteRecurringSchedule,
@@ -36,17 +37,36 @@ import {
     updateRecurringSchedule,
     updateTransaction
 } from '../../lib/storage/SQLiteAdapter';
+import { saveLocalSnapshot } from '../../lib/storage/LocalPersistenceAdapter';
 import {
     type IReconciliationMatch,
     ReconciliationEngine
 } from '../../lib/sync/ReconciliationEngine';
 
 /**
+ * Sync status values:
+ *   synced        — local and Drive are in sync
+ *   uploading     — writing local snapshot to Drive
+ *   downloading   — fetching Drive snapshot (new device or Drive is newer)
+ *   merging       — merge engine running after download
+ *   pending-local — no Drive token; data is local-only
+ *   error         — Drive operation failed
+ */
+export type SyncStatus =
+    | 'synced'
+    | 'uploading'
+    | 'downloading'
+    | 'merging'
+    | 'pending-local'
+    | 'error';
+
+/**
  * Angular signal-based ledger store.
  * Replaces the Zustand `useLedgerStore` with Angular signals.
  *
  * All state is reactive via signals. Mutations happen through methods
- * that write to SQLite then refresh the signal values.
+ * that write to SQLite, then immediately commit to IndexedDB, then
+ * set isDirty to trigger background Drive upload.
  */
 @Injectable({ providedIn: 'root' })
 export class LedgerStore {
@@ -62,12 +82,18 @@ export class LedgerStore {
     readonly isInitialized: WritableSignal<boolean> = signal<boolean>(false);
     readonly authError: WritableSignal<boolean> = signal<boolean>(false);
     readonly isDirty: WritableSignal<boolean> = signal<boolean>(false);
-    readonly syncStatus: WritableSignal<'synced' | 'pending-local' | 'error'> = signal<
-        'synced' | 'pending-local' | 'error'
-    >('synced');
+    readonly syncStatus: WritableSignal<SyncStatus> = signal<SyncStatus>('synced');
     readonly syncError: WritableSignal<string | null> = signal<string | null>(null);
     readonly hasLocalFallback: WritableSignal<boolean> = signal<boolean>(false);
     readonly lockStatus: WritableSignal<ILockStatus | null> = signal<ILockStatus | null>(null);
+    /** Number of transactions merged from Drive in the last background sync. */
+    readonly mergeCount: WritableSignal<number> = signal<number>(0);
+
+    /**
+     * Firebase UID — set by SyncService after auth resolves.
+     * Used by commitToLocal() for encryption.
+     */
+    userId: string | null = null;
 
     // --- Database initialization ---
 
@@ -102,24 +128,28 @@ export class LedgerStore {
     async addTransaction(tx: ITransaction): Promise<void> {
         insertTransaction(tx);
         this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async addTransactions(txs: Array<ITransaction>): Promise<void> {
         insertTransactions(txs);
         this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async updateTransaction(tx: ITransaction): Promise<void> {
         updateTransaction(tx);
         this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async removeTransaction(txId: string): Promise<void> {
         deleteTransaction(txId);
         this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
@@ -128,18 +158,21 @@ export class LedgerStore {
     async addAccount(account: IAccount): Promise<void> {
         insertAccount(account);
         this.accounts.set(getAllAccounts());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async updateAccount(account: IAccount): Promise<void> {
         updateAccount(account);
         this.accounts.set(getAllAccounts());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async removeAccount(accountId: string): Promise<void> {
         softDeleteAccount(accountId);
         this.accounts.set(getAllAccounts());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
@@ -187,6 +220,7 @@ export class LedgerStore {
     async updatePayee(payee: IPayee): Promise<void> {
         updatePayee(payee);
         this.payees.set(getAllPayees());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
@@ -195,18 +229,21 @@ export class LedgerStore {
     async addSchedule(schedule: IRecurringSchedule): Promise<void> {
         insertRecurringSchedule(schedule);
         this.schedules.set(getAllRecurringSchedules());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async updateSchedule(schedule: IRecurringSchedule): Promise<void> {
         updateRecurringSchedule(schedule);
         this.schedules.set(getAllRecurringSchedules());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
     async removeSchedule(scheduleId: string): Promise<void> {
         deleteRecurringSchedule(scheduleId);
         this.schedules.set(getAllRecurringSchedules());
+        await this.commitToLocal();
         this.isDirty.set(true);
     }
 
@@ -241,6 +278,23 @@ export class LedgerStore {
     }
 
     // --- Private helpers ---
+
+    /**
+     * Immediately commits the current SQL.js state to IndexedDB.
+     * Called after every mutation as the local write-through step.
+     * Non-fatal: if encryption or IndexedDB fails, we log and continue
+     * (the SQL.js in-memory state is still correct).
+     */
+    private async commitToLocal(): Promise<void> {
+        if (!this.userId) return; // not yet initialized with auth context
+        try {
+            const dbExport = exportDatabase();
+            const encrypted = await encryptDatabase(dbExport, this.userId);
+            await saveLocalSnapshot(encrypted);
+        } catch (err: unknown) {
+            console.error('[LedgerStore] commitToLocal failed (non-fatal):', err);
+        }
+    }
 
     private refreshAllFromDb(): void {
         this.transactions.set(getAllTransactions());

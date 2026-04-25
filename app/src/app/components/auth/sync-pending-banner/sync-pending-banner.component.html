@@ -1,15 +1,24 @@
 @if (showBanner()) {
-    <p-message severity="warn" class="w-full">
-        <ng-template pTemplate="content">
-            <div class="flex items-center justify-between w-full px-2">
-                <div class="flex items-center gap-2">
-                    <i class="pi pi-exclamation-triangle text-amber-700"></i>
-                    <span class="text-[9px] font-bold text-amber-900 uppercase tracking-wider">
-                        Cloud Connection Lost • Changes saved to browser cache only
+    <div class="sync-pending-banner" role="alert" aria-live="assertive">
+        <!-- Pulsing attention dot -->
+        <span class="pulse-ring" aria-hidden="true"></span>
+
+        <div class="banner-content">
+            <div class="banner-left">
+                <lucide-icon [img]="WifiOff" class="banner-icon" aria-hidden="true" />
+                <div class="banner-text">
+                    <span class="banner-title">Cloud Sync Disconnected</span>
+                    <span class="banner-subtitle">
+                        Your data is saved on this device only — changes will not appear on
+                        other devices until you reconnect.
                     </span>
                 </div>
-                <p class="text-[8px] text-amber-900 font-mono uppercase">Offline Mode Enabled</p>
             </div>
-        </ng-template>
-    </p-message>
+
+            <button class="reauth-btn" (click)="reAuthenticate()" type="button">
+                <lucide-icon [img]="RefreshCw" class="btn-icon" aria-hidden="true" />
+                Reconnect to Google Drive
+            </button>
+        </div>
+    </div>
 }
