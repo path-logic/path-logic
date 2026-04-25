@@ -1,9 +1,11 @@
-import { Component, effect, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, effect, inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { environment } from '../environments/environment';
 import { AuthService } from './services/auth/auth.service';
 import { LedgerStore } from './services/ledger-store/ledger.store';
+import { PostHogService } from './services/posthog/posthog.service';
 import { SyncService } from './services/sync/sync.service';
 
 @Component({
@@ -24,8 +26,18 @@ export class AppComponent {
     private readonly authService = inject(AuthService);
     private readonly syncService = inject(SyncService);
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly posthogService = inject(PostHogService);
+    private readonly platformId = inject(PLATFORM_ID);
 
     constructor() {
+        if (isPlatformBrowser(this.platformId) && environment.posthogKey) {
+            this.posthogService.init(environment.posthogKey, {
+                api_host: environment.posthogHost || 'https://us.i.posthog.com',
+                ui_host: 'https://us.posthog.com',
+                capture_exceptions: true
+            });
+        }
+
         // Automatically load database once user is logged in
         effect(() => {
             console.log('[AppComponent] Effect triggered checking auth state for DB init...');

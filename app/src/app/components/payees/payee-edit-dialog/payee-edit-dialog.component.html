@@ -1,0 +1,178 @@
+<p-dialog
+    [header]="dialogHeader"
+    [modal]="true"
+    [(visible)]="isOpen"
+    [style]="{ width: '42rem' }"
+    [draggable]="false"
+>
+    <div class="flex flex-col gap-4 pt-2">
+        @if (error()) {
+            <div
+                class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-sm text-sm text-red-700"
+            >
+                <lucide-icon [img]="AlertCircle" class="w-4 h-4 flex-shrink-0" />
+                {{ error() }}
+            </div>
+        }
+
+        <!-- Name (required) -->
+        <div>
+            <label
+                for="payee-name"
+                class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+            >
+                Name <span class="text-red-500">*</span>
+            </label>
+            <input
+                id="payee-name"
+                type="text"
+                [ngModel]="name()"
+                (ngModelChange)="name.set($event)"
+                placeholder="e.g. Starbucks, Amazon, Landlord..."
+                class="w-full h-9 px-3 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+        </div>
+
+        <!-- Address fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label
+                    for="payee-address"
+                    class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+                >
+                    Address
+                </label>
+                <input
+                    id="payee-address"
+                    type="text"
+                    [ngModel]="address()"
+                    (ngModelChange)="address.set($event)"
+                    placeholder="123 Main St"
+                    class="w-full h-9 px-3 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+            </div>
+            <div>
+                <label
+                    for="payee-city"
+                    class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+                >
+                    City
+                </label>
+                <input
+                    id="payee-city"
+                    type="text"
+                    [ngModel]="city()"
+                    (ngModelChange)="city.set($event)"
+                    placeholder="Chicago"
+                    class="w-full h-9 px-3 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div>
+                <label
+                    for="payee-state"
+                    class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+                >
+                    State
+                </label>
+                <input
+                    id="payee-state"
+                    type="text"
+                    [ngModel]="state()"
+                    (ngModelChange)="state.set($event)"
+                    placeholder="IL"
+                    maxlength="2"
+                    class="w-full h-9 px-3 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary uppercase"
+                />
+            </div>
+            <div>
+                <label
+                    for="payee-zip"
+                    class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+                >
+                    Zip Code
+                </label>
+                <input
+                    id="payee-zip"
+                    type="text"
+                    [ngModel]="zipCode()"
+                    (ngModelChange)="zipCode.set($event)"
+                    placeholder="60601"
+                    class="w-full h-9 px-3 text-sm font-mono bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+            </div>
+            <div>
+                <label
+                    for="payee-phone"
+                    class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+                >
+                    Phone
+                </label>
+                <input
+                    id="payee-phone"
+                    type="tel"
+                    [ngModel]="phone()"
+                    (ngModelChange)="phone.set($event)"
+                    placeholder="(312) 555-0100"
+                    class="w-full h-9 px-3 text-sm font-mono bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+            </div>
+        </div>
+
+        <!-- Website -->
+        <div>
+            <label
+                for="payee-website"
+                class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+            >
+                Website
+            </label>
+            <input
+                id="payee-website"
+                type="url"
+                [ngModel]="website()"
+                (ngModelChange)="website.set($event)"
+                placeholder="https://example.com"
+                class="w-full h-9 px-3 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <label
+                for="payee-notes"
+                class="text-[10px] font-black uppercase tracking-widest text-surface-500 block mb-1"
+            >
+                Notes
+            </label>
+            <textarea
+                id="payee-notes"
+                rows="3"
+                [ngModel]="notes()"
+                (ngModelChange)="notes.set($event)"
+                placeholder="Any additional notes about this payee..."
+                class="w-full px-3 py-2 text-sm bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            ></textarea>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2 pt-2">
+            <p-button
+                label="Cancel"
+                [text]="true"
+                severity="secondary"
+                (onClick)="handleCancel()"
+                [disabled]="isSaving()"
+            />
+            <p-button
+                [label]="isSaving() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Add Payee'"
+                (onClick)="handleSave()"
+                [disabled]="isSaving()"
+                [loading]="isSaving()"
+            />
+        </div>
+    </ng-template>
+</p-dialog>

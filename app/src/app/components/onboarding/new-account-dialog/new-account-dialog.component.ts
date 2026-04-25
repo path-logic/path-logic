@@ -3,6 +3,7 @@ import {
     Component,
     computed,
     effect,
+    inject,
     input,
     output,
     signal
@@ -27,6 +28,7 @@ import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
 
+import { PostHogService } from '../../../services/posthog/posthog.service';
 import { LoanDetailsFormComponent } from '../loan-details-form/loan-details-form.component';
 
 /**
@@ -158,6 +160,8 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewAccountDialogComponent {
+    private readonly posthogService = inject(PostHogService);
+
     // Inputs
     readonly isOpen = input.required<boolean>();
 
@@ -285,6 +289,11 @@ export class NewAccountDialogComponent {
             };
 
             this.accountCreated.emit(newAccount);
+            this.posthogService.posthog.capture('account_created', {
+                account_type: type,
+                has_institution_name: !!this.institutionName().trim(),
+                has_initial_balance: !!this.initialBalance()
+            });
             this.closed.emit();
         } catch {
             this.error.set('Failed to create account');

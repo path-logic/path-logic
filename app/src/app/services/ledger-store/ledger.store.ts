@@ -32,6 +32,7 @@ import {
     resetDatabase,
     softDeleteAccount,
     updateAccount,
+    updatePayee,
     updateRecurringSchedule,
     updateTransaction
 } from '../../lib/storage/SQLiteAdapter';
@@ -181,6 +182,12 @@ export class LedgerStore {
         this.payees.set(getAllPayees());
         this.isDirty.set(true);
         return newPayee;
+    }
+
+    async updatePayee(payee: IPayee): Promise<void> {
+        updatePayee(payee);
+        this.payees.set(getAllPayees());
+        this.isDirty.set(true);
     }
 
     // --- Recurring Schedules ---

@@ -19,6 +19,7 @@ import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { PostHogService } from '../../../services/posthog/posthog.service';
 
 /**
  * Dialog for editing split transactions.
@@ -34,6 +35,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 })
 export class SplitEntryDialogComponent {
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly posthogService = inject(PostHogService);
 
     // Inputs
     readonly isOpen = model<boolean>(false);
@@ -133,11 +135,20 @@ export class SplitEntryDialogComponent {
     }
 
     handleSave(): void {
+        this.posthogService.posthog.capture('split_transaction_saved', {
+            split_count: this.splits().length,
+            is_balanced: this.isBalanced()
+        });
         this.saved.emit({ splits: this.splits() });
         this.isOpen.set(false);
     }
 
     handleAdjustTotal(): void {
+        this.posthogService.posthog.capture('split_transaction_saved', {
+            split_count: this.splits().length,
+            is_balanced: false,
+            adjusted_total: true
+        });
         this.saved.emit({ splits: this.splits(), newTotal: this.sumSplits() });
         this.isOpen.set(false);
     }

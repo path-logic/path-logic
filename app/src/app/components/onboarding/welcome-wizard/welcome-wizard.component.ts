@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    output,
+    signal
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
@@ -19,6 +26,7 @@ import {
 import { Button } from 'primeng/button';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
 
+import { PostHogService } from '../../../services/posthog/posthog.service';
 import { LoanDetailsFormComponent } from '../loan-details-form/loan-details-form.component';
 
 /**
@@ -166,6 +174,8 @@ const TYPE_THEMING: Record<
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WelcomeWizardComponent {
+    private readonly posthogService = inject(PostHogService);
+
     // Outputs
     readonly accountCreated = output<IAccount>();
 
@@ -281,6 +291,10 @@ export class WelcomeWizardComponent {
             };
 
             this.accountCreated.emit(newAccount);
+            this.posthogService.posthog.capture('onboarding_account_created', {
+                account_type: type,
+                has_initial_balance: !!this.initialBalance()
+            });
         } catch {
             this.error.set('Failed to create account');
             this.step.set('enter-details');

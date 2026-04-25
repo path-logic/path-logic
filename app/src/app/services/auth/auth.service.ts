@@ -5,6 +5,7 @@ import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from
 
 import { environment } from '../../../environments/environment';
 import { FirebaseService } from '../firebase/firebase.service';
+import { PostHogService } from '../posthog/posthog.service';
 
 /**
  * AuthService wraps Firebase Authentication with Angular signals.
@@ -21,6 +22,7 @@ import { FirebaseService } from '../firebase/firebase.service';
 export class AuthService {
     private readonly firebase = inject(FirebaseService);
     private readonly router = inject(Router);
+    private readonly posthogService = inject(PostHogService);
 
     /** Internal Firebase user signal */
     private readonly _user = signal<User | null | undefined>(undefined);
@@ -92,6 +94,16 @@ export class AuthService {
                     );
                     this.accessToken.set(credential.accessToken);
                 }
+
+                // Identify user and capture sign-in event
+                const user = result.user;
+                this.posthogService.posthog.identify(user.uid, {
+                    email: user.email ?? undefined,
+                    name: user.displayName ?? undefined
+                });
+                this.posthogService.posthog.capture('user_signed_in', {
+                    provider: 'google'
+                });
             }
         } catch (error) {
             console.error('[AuthService] Error during signInWithPopup:', error);
@@ -100,6 +112,8 @@ export class AuthService {
     }
 
     async signOut(): Promise<void> {
+        this.posthogService.posthog.capture('user_signed_out');
+        this.posthogService.posthog.reset();
         await signOut(this.firebase.auth);
         this.accessToken.set(null);
     }

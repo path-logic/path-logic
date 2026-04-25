@@ -49,7 +49,7 @@ jobs:
               with:
                   key: javascript
                   coverage-file: coverage/app/clover.xml
-                  dsn: ${{ secrets.DEEPSOURCE_DSN }}
+                  dsn: ${{ secrets.  }}
 
             - name: Check formatting
               run: make format-check

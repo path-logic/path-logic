@@ -10,6 +10,7 @@
                 </p>
             </div>
             <button
+                (click)="openAddPayee()"
                 class="h-8 px-4 flex items-center gap-2 border border-primary/20 text-primary hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all"
             >
                 <lucide-icon [img]="Plus" class="w-3.5 h-3.5" />
@@ -202,6 +203,7 @@
                                             </div>
                                             <div class="flex flex-col justify-end gap-2">
                                                 <button
+                                                    (click)="openEditPayee(payee)"
                                                     class="h-7 px-4 flex items-center justify-center border border-surface-200 hover:bg-surface-100 text-[9px] uppercase font-black tracking-widest rounded-sm transition-all"
                                                 >
                                                     Edit Payee
@@ -223,3 +225,9 @@
         </div>
     </div>
 </shell>
+
+<payee-edit-dialog
+    [(isOpen)]="isDialogOpen"
+    [payeeToEdit]="selectedPayee()"
+    (saved)="handlePayeeSaved($event)"
+/>

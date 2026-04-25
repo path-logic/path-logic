@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Cloud, Loader2, Lock, LucideAngularModule, Shield } from 'lucide-angular';
 
 import { AuthService } from '../../services/auth/auth.service';
+import { PostHogService } from '../../services/posthog/posthog.service';
 
 /**
  * Premium sign-in page for Google SSO authentication.
@@ -19,6 +20,7 @@ import { AuthService } from '../../services/auth/auth.service';
 export class SignInComponent {
     private readonly authService: AuthService = inject(AuthService);
     private readonly router: Router = inject(Router);
+    private readonly posthogService: PostHogService = inject(PostHogService);
 
     readonly ShieldIcon = Shield;
     readonly CloudIcon = Cloud;
@@ -38,6 +40,7 @@ export class SignInComponent {
     async signInWithGoogle(): Promise<void> {
         this.isLoading.set(true);
         this.signInError.set(null);
+        this.posthogService.posthog.capture('sign_in_attempted', { provider: 'google' });
 
         try {
             await this.authService.signInWithGoogle();
@@ -48,14 +51,31 @@ export class SignInComponent {
 
             // Provide user-friendly messages for common Firebase Auth errors
             if (message.includes('popup-closed-by-user')) {
+                this.posthogService.posthog.capture('sign_in_failed', {
+                    provider: 'google',
+                    error_type: 'popup_closed'
+                });
                 this.signInError.set('Sign-in cancelled. Please try again.');
             } else if (message.includes('popup-blocked')) {
+                this.posthogService.posthog.capture('sign_in_failed', {
+                    provider: 'google',
+                    error_type: 'popup_blocked'
+                });
                 this.signInError.set(
                     'Pop-up was blocked by your browser. Please allow pop-ups for this site.'
                 );
             } else if (message.includes('network-request-failed')) {
+                this.posthogService.posthog.capture('sign_in_failed', {
+                    provider: 'google',
+                    error_type: 'network_error'
+                });
                 this.signInError.set('Network error. Please check your connection and try again.');
             } else {
+                this.posthogService.posthog.capture('sign_in_failed', {
+                    provider: 'google',
+                    error_type: 'unknown',
+                    error_message: message
+                });
                 this.signInError.set(message);
             }
         } finally {

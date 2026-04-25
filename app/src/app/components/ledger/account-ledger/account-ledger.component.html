@@ -236,3 +236,9 @@
         </div>
     </div>
 </div>
+
+<reconciliation-dialog
+    [(isOpen)]="reconciliationOpen"
+    [matches]="reconciliationMatches()"
+    (confirmed)="handleReconciliationConfirmed($event)"
+/>

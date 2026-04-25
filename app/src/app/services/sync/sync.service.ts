@@ -19,6 +19,7 @@ import { getDb } from '../../lib/storage/SQLiteAdapter';
 import { SQLiteMergeEngine } from '../../lib/sync/MergeEngine';
 import { AuthService } from '../auth/auth.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
+import { PostHogService } from '../posthog/posthog.service';
 
 /**
  * Sync status information
@@ -46,6 +47,7 @@ export class SyncService {
 
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly authService: AuthService = inject(AuthService);
+    private readonly posthogService: PostHogService = inject(PostHogService);
 
     /**
      * Pull encrypted DB from Google Drive, decrypt, and load into the store.
@@ -75,6 +77,10 @@ export class SyncService {
                 this.ledgerStore.hasLocalFallback.set(true);
                 this.ledgerStore.syncStatus.set('synced');
                 this.ledgerStore.isDirty.set(false);
+                this.posthogService.posthog.capture('data_loaded_from_drive', {
+                    source: 'drive',
+                    is_returning_user: true
+                });
             } else {
                 // No cloud file — try local fallback
                 const localData: Uint8Array | null = await loadLocalFallback();
@@ -83,10 +89,18 @@ export class SyncService {
                     await this.ledgerStore.loadFromEncryptedData(decryptedData);
                     this.ledgerStore.hasLocalFallback.set(true);
                     this.ledgerStore.syncStatus.set('pending-local');
+                    this.posthogService.posthog.capture('data_loaded_from_drive', {
+                        source: 'local_fallback',
+                        is_returning_user: true
+                    });
                 } else {
                     // Fresh start
                     await this.ledgerStore.initialize();
                     this.ledgerStore.syncStatus.set('synced');
+                    this.posthogService.posthog.capture('data_loaded_from_drive', {
+                        source: 'fresh_start',
+                        is_returning_user: false
+                    });
                 }
             }
         } catch (error: unknown) {
@@ -105,6 +119,10 @@ export class SyncService {
                 this.ledgerStore.syncError.set(
                     error instanceof Error ? error.message : 'Unknown error'
                 );
+                this.posthogService.posthog.capture('sync_failed', {
+                    operation: 'load',
+                    error_message: error instanceof Error ? error.message : 'Unknown error'
+                });
             }
         } finally {
             this.isSyncing.set(false);
@@ -188,6 +206,9 @@ export class SyncService {
                 this.ledgerStore.isDirty.set(false);
                 this.ledgerStore.syncError.set(null);
                 this.lastSyncTime = Date.now();
+                this.posthogService.posthog.capture('sync_completed', {
+                    operation: 'save'
+                });
             } finally {
                 await releaseLock(accessToken);
             }
@@ -200,6 +221,10 @@ export class SyncService {
                 this.ledgerStore.syncError.set(
                     error instanceof Error ? error.message : 'Unknown error'
                 );
+                this.posthogService.posthog.capture('sync_failed', {
+                    operation: 'save',
+                    error_message: error instanceof Error ? error.message : 'Unknown error'
+                });
             }
         } finally {
             this.syncInProgress = false;

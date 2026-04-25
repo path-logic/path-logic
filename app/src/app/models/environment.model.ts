@@ -12,4 +12,8 @@ export interface IEnvironment {
     readonly e2e?: boolean;
     /** Sentry Public DSN for crashlytics reporting. Only initializes Sentry if present. */
     readonly sentryDsn?: string;
+    /** PostHog project token for product analytics. */
+    readonly posthogKey?: string;
+    /** PostHog ingestion host. */
+    readonly posthogHost?: string;
 }

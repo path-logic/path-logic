@@ -2,6 +2,7 @@ import {
     ChangeDetectionStrategy,
     Component,
     effect,
+    inject,
     input,
     model,
     output,
@@ -21,6 +22,7 @@ import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 
 import type { IReconciliationMatch } from '../../../lib/sync/ReconciliationEngine';
+import { PostHogService } from '../../../services/posthog/posthog.service';
 
 /**
  * ReconciliationDialogComponent provides a UI for users to review and resolve
@@ -35,6 +37,8 @@ import type { IReconciliationMatch } from '../../../lib/sync/ReconciliationEngin
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReconciliationDialogComponent {
+    private readonly posthogService = inject(PostHogService);
+
     // Inputs
     readonly isOpen = model<boolean>(false);
     readonly matches = input.required<Array<IReconciliationMatch>>();
@@ -71,7 +75,15 @@ export class ReconciliationDialogComponent {
     async handleApply(): Promise<void> {
         this.isProcessing.set(true);
         try {
-            this.confirmed.emit(this.decisions());
+            const decisionsSnapshot = this.decisions();
+            const values = Object.values(decisionsSnapshot);
+            this.confirmed.emit(decisionsSnapshot);
+            this.posthogService.posthog.capture('reconciliation_completed', {
+                total_matches: this.matches().length,
+                imported_count: values.filter(d => d === 'import').length,
+                matched_count: values.filter(d => d === 'match').length,
+                ignored_count: values.filter(d => d === 'ignore').length
+            });
             this.isOpen.set(false);
         } catch (error) {
             console.error('Failed to apply reconciliation decisions', error);

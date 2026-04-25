@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { type IRecurringSchedule, Money, ScheduleType } from '@core';
+import type { ISODateString, ITransaction } from '@core';
+import {
+    type IRecurringSchedule,
+    KnownCategory,
+    Money,
+    RecurringEngine,
+    ScheduleType,
+    TransactionStatus
+} from '@core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
@@ -90,14 +98,60 @@ export class RecurringDashboardComponent {
         this.isDialogVisible.set(true);
     }
 
-    postSchedule(schedule: IRecurringSchedule): void {
-        // Here we would use the transaction engine to generate
-        // the transaction based on the schedule, and then
-        // send it to ledgerStore.addTransaction()
-        // And update the schedule.lastOccurredDate and nextDueDate.
+    /**
+     * Posts a recurring schedule as a real ledger transaction and advances
+     * the nextDueDate to the next occurrence.
+     */
+    async postSchedule(schedule: IRecurringSchedule): Promise<void> {
+        const now = new Date().toISOString();
+        const today = now.split('T')[0] as ISODateString;
 
-        // Simulated:
-        alert('Posting transaction for ' + schedule.payee);
+        // Get or create a payee record for this schedule
+        const payee = await this.ledgerStore.getOrCreatePayee(schedule.payee);
+
+        // Build a real transaction from the schedule
+        const tx: ITransaction = {
+            id: `tx-sched-${schedule.id}-${Date.now()}`,
+            accountId: schedule.accountId,
+            payeeId: payee.id,
+            date: schedule.nextDueDate,
+            payee: schedule.payee,
+            memo: schedule.memo,
+            totalAmount: schedule.amount,
+            status: TransactionStatus.Pending,
+            checkNumber: null,
+            importHash: `sched-${schedule.id}-${schedule.nextDueDate}`,
+            splits:
+                schedule.splits.length > 0
+                    ? schedule.splits
+                    : [
+                          {
+                              id: `split-sched-${schedule.id}-${Date.now()}`,
+                              amount: schedule.amount,
+                              memo: schedule.memo,
+                              categoryId: KnownCategory.Uncategorized
+                          }
+                      ],
+            createdAt: now as ISODateString,
+            updatedAt: now as ISODateString
+        };
+
+        await this.ledgerStore.addTransaction(tx);
+
+        // Advance the schedule's nextDueDate using the RecurringEngine
+        const nextDueDate = RecurringEngine.calculateNextDueDate(
+            schedule.startDate,
+            schedule.frequency,
+            schedule.nextDueDate
+        );
+
+        const updatedSchedule: IRecurringSchedule = {
+            ...schedule,
+            lastOccurredDate: today,
+            nextDueDate
+        };
+
+        await this.ledgerStore.updateSchedule(updatedSchedule);
     }
 
     handleSave(schedule: Partial<IRecurringSchedule>): void {

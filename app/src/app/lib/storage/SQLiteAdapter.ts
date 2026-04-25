@@ -245,6 +245,14 @@ export const SQL_QUERIES = {
         SELECT * FROM categories WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
+    UPDATE_PAYEE: `
+        UPDATE payees
+        SET name = ?, address = ?, city = ?, state = ?, zipCode = ?,
+            latitude = ?, longitude = ?, website = ?, phone = ?, notes = ?,
+            defaultCategoryId = ?, clientId = ?, updatedAt = ?
+        WHERE id = ?
+    `,
+
     DELETE_PAYEE: `
         UPDATE payees SET isDeleted = 1, updatedAt = ? WHERE id = ?
     `,
@@ -1085,6 +1093,33 @@ export function insertPayee(payee: IPayee): void {
         clientId,
         payee.createdAt || now,
         payee.updatedAt || now
+    ]);
+}
+
+/**
+ * Update an existing payee record
+ */
+export function updatePayee(payee: IPayee): void {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+    const updatedAt: string = payee.updatedAt || now;
+
+    db.run(SQL_QUERIES.UPDATE_PAYEE, [
+        payee.name,
+        payee.address,
+        payee.city,
+        payee.state,
+        payee.zipCode,
+        payee.latitude,
+        payee.longitude,
+        payee.website,
+        payee.phone,
+        payee.notes,
+        payee.defaultCategoryId,
+        clientId,
+        updatedAt,
+        payee.id
     ]);
 }
 

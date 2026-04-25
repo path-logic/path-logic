@@ -7,6 +7,8 @@ export const environment: IEnvironment = {
     appEnv: 'development',
     sentryDsn:
         'https://0a015d5726fa347de981f189f161fb9e@o4511216118857728.ingest.us.sentry.io/4511216120168448',
+    posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
+    posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
     firebase: {
         apiKey: 'AIzaSyCstrz1oBCHsXtT8RvaVqIX1nw-uwCu1sU',
         authDomain: 'path-logic-dev-93185.firebaseapp.com',

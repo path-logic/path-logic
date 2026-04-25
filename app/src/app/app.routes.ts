@@ -110,6 +110,13 @@ export const appRoutes: Routes = [
                     import('./pages/recurring/recurring-dashboard.component').then(
                         m => m.RecurringDashboardComponent
                     )
+            },
+            {
+                path: 'reports',
+                loadComponent: () =>
+                    import('./pages/reports/reports-page.component').then(
+                        m => m.ReportsPageComponent
+                    )
             }
             // Additional routes will be added during component porting:
         ]

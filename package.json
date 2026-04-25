@@ -95,6 +95,7 @@
         "firebase": "^12.10.0",
         "lucide-angular": "^0.576.0",
         "mathjs": "^15.1.1",
+        "posthog-js": "^1.369.4",
         "primeicons": "^7.0.0",
         "primeng": "21.0.4",
         "rxjs": "~7.8.0",

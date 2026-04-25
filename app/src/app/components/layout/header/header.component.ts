@@ -80,7 +80,7 @@ export class HeaderComponent {
         { name: 'Accounts', href: '/accounts', icon: CreditCard } satisfies INavItem,
         { name: 'Payees', href: '/payees', icon: Users } satisfies INavItem,
         { name: 'Recurring', href: '/recurring', icon: Calendar } satisfies INavItem,
-        { name: 'Reports', href: '#', icon: BarChart3 } satisfies INavItem,
+        { name: 'Reports', href: '/reports', icon: BarChart3 } satisfies INavItem,
         { name: 'Settings', href: '/settings', icon: Settings } satisfies INavItem
     );
 
