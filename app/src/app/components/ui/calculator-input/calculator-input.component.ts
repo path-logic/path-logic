@@ -17,6 +17,118 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Lightweight arithmetic expression evaluator (replaces mathjs dependency)
+//
+// Supports: +  -  *  /  ( )  unary minus  decimal numbers
+// Grammar (standard precedence):
+//   expr    ::= term (('+' | '-') term)*
+//   term    ::= factor (('*' | '/') factor)*
+//   factor  ::= '-' factor | '(' expr ')' | NUMBER
+//
+// ~55 lines. No allocations at idle. Synchronous. Zero dependencies.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Tokenise a cleaned arithmetic string into numbers and operators.
+ * Accepts digits, '.', and the operators +-*\/().
+ * Throws on any unexpected character.
+ */
+function tokenize(expr: string): Array<string> {
+    const tokens: Array<string> = [];
+    let i = 0;
+    while (i < expr.length) {
+        const ch = expr.charAt(i);
+        if (ch === ' ' || ch === '\t') {
+            i++;
+            continue;
+        }
+        if ('+-*/()'.includes(ch)) {
+            tokens.push(ch);
+            i++;
+        } else if ((ch >= '0' && ch <= '9') || ch === '.') {
+            let num = '';
+            while (i < expr.length) {
+                const c = expr.charAt(i);
+                if ((c >= '0' && c <= '9') || c === '.') {
+                    num += c;
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            tokens.push(num);
+        } else {
+            throw new Error(`Invalid character in expression: '${ch}'`);
+        }
+    }
+    return tokens;
+}
+
+/**
+ * Evaluate a cleaned arithmetic expression string.
+ * Returns a finite number or throws on invalid input.
+ */
+function evalArithmetic(expr: string): number {
+    const tokens = tokenize(expr);
+    let pos = 0;
+
+    const peek = (): string | undefined => tokens[pos];
+    const consume = (): string => tokens[pos++] ?? '';
+
+    function parseExpr(): number {
+        let lhs = parseTerm();
+        while (peek() === '+' || peek() === '-') {
+            const op = consume();
+            const rhs = parseTerm();
+            lhs = op === '+' ? lhs + rhs : lhs - rhs;
+        }
+        return lhs;
+    }
+
+    function parseTerm(): number {
+        let lhs = parseFactor();
+        while (peek() === '*' || peek() === '/') {
+            const op = consume();
+            const rhs = parseFactor();
+            if (op === '/' && rhs === 0) throw new Error('Division by zero');
+            lhs = op === '*' ? lhs * rhs : lhs / rhs;
+        }
+        return lhs;
+    }
+
+    function parseFactor(): number {
+        const token = peek();
+        if (token === undefined) throw new Error('Unexpected end of expression');
+        // Unary minus
+        if (token === '-') {
+            consume();
+            return -parseFactor();
+        }
+        // Parenthesised sub-expression
+        if (token === '(') {
+            consume();
+            const val = parseExpr();
+            if (peek() !== ')') throw new Error('Missing closing parenthesis');
+            consume();
+            return val;
+        }
+        // Number literal
+        const num = parseFloat(consume());
+        if (isNaN(num)) throw new Error(`Expected a number, got '${token}'`);
+        return num;
+    }
+
+    const result = parseExpr();
+    if (pos < tokens.length) {
+        throw new Error(`Unexpected token '${tokens[pos]}' at position ${pos}`);
+    }
+    if (!isFinite(result)) throw new Error('Result is not finite');
+    return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Component({
     selector: 'calculator-input',
     standalone: true,
@@ -79,7 +191,6 @@ export class CalculatorInputComponent implements ControlValueAccessor {
 
     handleFocus(): void {
         if (this.readonly || this.disabled) return;
-        // On focus, show raw numbers or expression if possible
         if (this._valueInCents) {
             this.displayValue.set((this._valueInCents / 100).toString());
         }
@@ -97,32 +208,24 @@ export class CalculatorInputComponent implements ControlValueAccessor {
         }
     }
 
-    private async evaluateExpression(expr: string): Promise<void> {
+    private evaluateExpression(expr: string): void {
         if (!expr || expr.trim() === '') {
             this.updateValue(0);
             return;
         }
 
         try {
-            // Strip formatting characters before evaluating
-            const cleanExpr = expr.replace(/[$,]/g, '').replace(/[a-zA-Z]/g, '');
-            // Lazy-load mathjs only when an expression is being evaluated.
-            // This keeps the ~900 KB library out of the initial JS bundle.
-            const { evaluate } = await import('mathjs');
-            const result = evaluate(cleanExpr);
-
-            // Check if it's a valid number
-            if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
-                // Return result in cents (rounded)
-                const cents = Math.round(result * 100);
-                this.history.update(h => [...h, `${expr} = ${formatCurrency(cents)}`]);
-                this.updateValue(cents);
-            } else {
-                // Revert to old value
-                this.setDisplayValueFromCents();
-            }
+            // Strip currency formatting before parsing
+            const cleanExpr = expr
+                .replace(/[$,]/g, '')
+                .replace(/[a-zA-Z]/g, '')
+                .trim();
+            const result = evalArithmetic(cleanExpr);
+            const cents = Math.round(result * 100);
+            this.history.update(h => [...h, `${expr} = ${formatCurrency(cents)}`]);
+            this.updateValue(cents);
         } catch {
-            // Revert on error
+            // Invalid expression — revert to last committed value
             this.setDisplayValueFromCents();
         }
     }
@@ -135,10 +238,7 @@ export class CalculatorInputComponent implements ControlValueAccessor {
     }
 
     private setDisplayValueFromCents(): void {
-        // formatCurrency outputs $X.XX, so we strip the prefix if we rely on input group addon
         const formatted = this._valueInCents ? formatCurrency(this._valueInCents) : '';
-        // If we use prefix, we might want to let the input group handle the $,
-        // string formatting might need adjustment, but formatCurrency includes it by default.
         this.displayValue.set(formatted.replace(/^\$/, ''));
     }
 }
