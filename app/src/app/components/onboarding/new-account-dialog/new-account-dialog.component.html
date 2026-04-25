@@ -290,9 +290,7 @@
                                             Import Ready!
                                         </h3>
                                         <p class="text-sm text-surface-500">
-                                            {{
-                                                importStats()?.totalCount?.toLocaleString()
-                                            }}
+                                            {{ importStats()?.totalCount?.toLocaleString() }}
                                             transactions parsed and ready to review.
                                         </p>
                                     </div>
@@ -379,9 +377,7 @@
                                             class="text-[10px] font-mono text-surface-500 tabular-nums"
                                         >
                                             {{ importProgress().processed.toLocaleString() }} /
-                                            {{
-                                                importProgress().total.toLocaleString()
-                                            }}
+                                            {{ importProgress().total.toLocaleString() }}
                                             transactions
                                         </p>
                                     }

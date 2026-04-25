@@ -11,7 +11,6 @@ import {
 import type { ControlValueAccessor } from '@angular/forms';
 import { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { formatCurrency } from '@core';
-import { evaluate } from 'mathjs';
 import { ButtonModule } from 'primeng/button';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
@@ -98,7 +97,7 @@ export class CalculatorInputComponent implements ControlValueAccessor {
         }
     }
 
-    private evaluateExpression(expr: string): void {
+    private async evaluateExpression(expr: string): Promise<void> {
         if (!expr || expr.trim() === '') {
             this.updateValue(0);
             return;
@@ -107,7 +106,9 @@ export class CalculatorInputComponent implements ControlValueAccessor {
         try {
             // Strip formatting characters before evaluating
             const cleanExpr = expr.replace(/[$,]/g, '').replace(/[a-zA-Z]/g, '');
-            // evaluate math expression safely
+            // Lazy-load mathjs only when an expression is being evaluated.
+            // This keeps the ~900 KB library out of the initial JS bundle.
+            const { evaluate } = await import('mathjs');
             const result = evaluate(cleanExpr);
 
             // Check if it's a valid number

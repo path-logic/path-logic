@@ -31,13 +31,13 @@ jobs:
             - name: Build Web App
               run: |
                   if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-                    npx nx run web:build:production
+                    npx nx run app:build:production
                   else
-                    npx nx run web:build:staging
+                    npx nx run app:build:staging
                   fi
 
             # Build Storybook static site
-            - run: npx nx run web:build-storybook
+            - run: npx nx run app:build-storybook
 
             - name: Authenticate to Google Cloud
               id: auth
