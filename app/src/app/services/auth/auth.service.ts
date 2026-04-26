@@ -2,10 +2,10 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { User } from 'firebase/auth';
 import {
-    getRedirectResult,
+    browserPopupRedirectResolver,
     GoogleAuthProvider,
     onAuthStateChanged,
-    signInWithRedirect,
+    signInWithPopup,
     signOut
 } from 'firebase/auth';
 
@@ -30,34 +30,16 @@ interface IStoredToken {
 /**
  * AuthService wraps Firebase Authentication with Angular signals.
  *
- * ## Sign-in Flow (Redirect, not Popup)
+ * ## Sign-in Flow (Popup)
  *
- * We use signInWithRedirect() instead of signInWithPopup() because Chrome
- * and Firefox enforce Cross-Origin-Opener-Policy (COOP) on Google's OAuth
- * popup domain (accounts.google.com), which prevents the popup from
- * signaling back to the opener — causing a permanent hang.
+ * We use signInWithPopup() with browserPopupRedirectResolver explicitly
+ * passed. The COOP warning about window.close() is non-fatal — Firebase
+ * communicates the credential via window.opener.postMessage() which
+ * works because our app's COOP header is unsafe-none.
  *
- * Redirect flow:
- *   1. User clicks "Continue with Google"
- *   2. signInWithRedirect() — browser navigates to accounts.google.com
- *   3. User authenticates on Google
- *   4. Browser redirects back to our app (at /sign-in)
- *   5. Both getRedirectResult() and onAuthStateChanged run concurrently.
- *      isInitializing stays true until BOTH have resolved.
- *   6. onAuthStateChanged fires with the authenticated user
- *   7. getRedirectResult() resolves with the credential → token stored
- *   8. AppComponent begins local-first init and navigates to /
- *
- * ## Why isInitializing waits for getRedirectResult()
- *
- * After a redirect, Firebase fires onAuthStateChanged TWICE:
- *   - First with null (the previous logged-out state)
- *   - Then with the authenticated user (after processing the redirect)
- *
- * If isInitializing flips to false on the FIRST (null) callback, the
- * navigation effect fires and stays on /sign-in. By keeping isInitializing
- * true until getRedirectResult() resolves, we ensure the navigation effect
- * only acts on the final auth state.
+ * signInWithRedirect() was attempted but is broken for localhost in
+ * Firebase v12: the /__/auth/iframe postMessage bridge fails in Chrome's
+ * current security model, causing getRedirectResult() to always return null.
  *
  * ## Token Persistence
  *
@@ -80,11 +62,7 @@ export class AuthService {
     /** Whether the user is currently logged in. */
     readonly isLoggedIn = computed((): boolean => environment.e2e === true || !!this.currentUser());
 
-    /**
-     * True until BOTH onAuthStateChanged AND getRedirectResult() have resolved.
-     * Prevents the navigation effect from acting on the intermediate null state
-     * that Firebase emits before processing the redirect result.
-     */
+    /** True until onAuthStateChanged fires with a definitive value. */
     readonly isInitializing = signal<boolean>(!environment.e2e);
 
     /** The Google OAuth access token for Drive API calls. */
@@ -93,31 +71,17 @@ export class AuthService {
     /** The user's Firebase UID. */
     readonly userId = computed((): string | null => this.currentUser()?.uid ?? null);
 
-    /** Whether a redirect result is currently being processed. */
-    private redirectResultPending = true;
-
     constructor() {
-        // Skip Firebase auth in E2E test mode
         if (environment.e2e) {
             return;
         }
-
-        // Process redirect result FIRST (async, fire-and-forget).
-        // Sets redirectResultPending = false when done, then re-evaluates isInitializing.
-        void this.handleRedirectResult();
 
         // Listen for auth state changes (fires immediately with cached state)
         onAuthStateChanged(
             this.firebase.auth,
             (user: User | null): void => {
                 this._user.set(user);
-
-                // Only mark initialization complete once redirect result has also resolved.
-                // This prevents the navigation effect from acting on the intermediate
-                // null callback Firebase emits before processing the redirect credential.
-                if (!this.redirectResultPending) {
-                    this.isInitializing.set(false);
-                }
+                this.isInitializing.set(false);
 
                 if (user) {
                     const cached = this.restoreStoredToken(user.uid);
@@ -126,21 +90,22 @@ export class AuthService {
                         console.info('[AuthService] Restored cached Google token from localStorage');
                     } else {
                         console.info(
-                            '[AuthService] No valid cached token — waiting for redirect result or re-auth'
+                            '[AuthService] No valid cached token — user must re-authenticate for Drive'
                         );
                     }
                 }
             },
             error => {
                 console.error('[AuthService] Fatal error inside onAuthStateChanged:', error);
+                this.isInitializing.set(false);
             }
         );
 
-        // Redirect to sign-in when auth resolves with no session
+        // Navigate based on auth state
         effect((): void => {
-            const user: User | null | undefined = this.currentUser();
-            const initializing = this.isInitializing();
-            if (initializing || user === undefined) return; // still loading
+            if (this.isInitializing()) return;
+            const user = this._user();
+            if (user === undefined) return;
             if (!user) {
                 void this.router.navigate(['/sign-in']);
             } else if (this.router.url === '/sign-in') {
@@ -150,14 +115,38 @@ export class AuthService {
     }
 
     /**
-     * Initiates the Google sign-in redirect flow.
-     * The browser navigates to accounts.google.com — no popup, no COOP issues.
-     * When Google redirects back, handleRedirectResult() picks up the credential.
+     * Initiates Google sign-in via a popup window.
+     *
+     * Note: Chrome shows a COOP warning about window.close() being blocked,
+     * but this is non-fatal. The credential is communicated back via
+     * window.opener.postMessage() which works because our app's COOP is
+     * set to unsafe-none. The popup may not auto-close but auth completes.
+     *
+     * signInWithRedirect() was tried but is broken for localhost in Firebase
+     * v12 — getRedirectResult() always returns null due to iframe bridge
+     * failures in Chrome's current security model.
      */
     async signInWithGoogle(): Promise<void> {
         const provider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/drive.appdata');
-        await signInWithRedirect(this.firebase.auth, provider);
+
+        const result = await signInWithPopup(
+            this.firebase.auth,
+            provider,
+            browserPopupRedirectResolver
+        );
+
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (credential?.accessToken) {
+            this.accessToken.set(credential.accessToken);
+            this.storeToken(result.user.uid, credential.accessToken);
+            console.info('[AuthService] Popup sign-in complete, Drive token stored');
+        }
+        this.posthogService.posthog.identify(result.user.uid, {
+            email: result.user.email ?? undefined,
+            name: result.user.displayName ?? undefined
+        });
+        this.posthogService.posthog.capture('user_signed_in', { provider: 'google' });
     }
 
     async signOut(): Promise<void> {
@@ -171,60 +160,6 @@ export class AuthService {
         this.accessToken.set(null);
     }
 
-    // ── Redirect result handler ───────────────────────────────────────────────
-
-    /**
-     * Called on every app startup to pick up the credential from a previous
-     * signInWithRedirect() call.
-     *
-     * Keeps redirectResultPending = true while awaiting so that the
-     * onAuthStateChanged handler knows not to finalize isInitializing yet.
-     * Once resolved (with or without a result), marks the redirect as done
-     * and finalizes isInitializing if auth has also resolved.
-     */
-    private async handleRedirectResult(): Promise<void> {
-        // Set a 5-second timeout safety net — if Firebase hangs,
-        // isInitializing must eventually resolve so the user isn't stuck forever.
-        const safetyTimer = setTimeout(() => {
-            console.warn('[AuthService] getRedirectResult() timed out after 5s — releasing init lock');
-            this.redirectResultPending = false;
-            if (this._user() !== undefined) {
-                this.isInitializing.set(false);
-            }
-        }, 5000);
-
-        try {
-            const result = await getRedirectResult(this.firebase.auth);
-
-            if (result) {
-                const credential = GoogleAuthProvider.credentialFromResult(result);
-                if (credential?.accessToken) {
-                    this.accessToken.set(credential.accessToken);
-                    this.storeToken(result.user.uid, credential.accessToken);
-                    console.info('[AuthService] Google redirect sign-in complete, token stored');
-                }
-                this.posthogService.posthog.identify(result.user.uid, {
-                    email: result.user.email ?? undefined,
-                    name: result.user.displayName ?? undefined
-                });
-                this.posthogService.posthog.capture('user_signed_in', { provider: 'google' });
-            } else {
-                console.info('[AuthService] No pending redirect result (normal startup)');
-            }
-        } catch (error: unknown) {
-            console.warn('[AuthService] getRedirectResult error (non-fatal):', error);
-        } finally {
-            clearTimeout(safetyTimer);
-            this.redirectResultPending = false;
-
-            // If onAuthStateChanged already fired (user is set or null, not undefined),
-            // we can now finalize isInitializing.
-            if (this._user() !== undefined) {
-                this.isInitializing.set(false);
-            }
-        }
-    }
-
     // ── Token persistence ─────────────────────────────────────────────────────
 
     private storeToken(uid: string, token: string): void {
@@ -232,7 +167,7 @@ export class AuthService {
             const payload: IStoredToken = { token, expiresAt: Date.now() + TOKEN_TTL_MS };
             localStorage.setItem(TOKEN_KEY(uid), JSON.stringify(payload));
         } catch {
-            // localStorage may be full or blocked (private browsing) — non-fatal
+            // localStorage may be full or blocked — non-fatal
         }
     }
 
@@ -243,7 +178,7 @@ export class AuthService {
             const { token, expiresAt } = JSON.parse(raw) as IStoredToken;
             if (Date.now() >= expiresAt) {
                 localStorage.removeItem(TOKEN_KEY(uid));
-                return null; // expired
+                return null;
             }
             return token;
         } catch {
