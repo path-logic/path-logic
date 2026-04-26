@@ -1,25 +1,34 @@
 {
-    "projects": {
-        "default": "path-logic",
-        "staging": "path-logic-staging",
-        "dev": "path-logic-dev-93185"
+  "projects": {
+    "default": "path-logic",
+    "staging": "path-logic-staging",
+    "dev": "path-logic-dev-93185"
+  },
+  "targets": {
+    "path-logic": {
+      "hosting": {
+        "web": [
+          "path-logic"
+        ],
+        "storybook": [
+          "pathlogic-storybook"
+        ]
+      }
     },
-    "targets": {
-        "path-logic": {
-            "hosting": {
-                "web": ["path-logic"],
-                "storybook": ["pathlogic-storybook"]
-            }
-        },
-        "path-logic-staging": {
-            "hosting": {
-                "web": ["path-logic-staging"]
-            }
-        },
-        "path-logic-dev-93185": {
-            "hosting": {
-                "web": ["path-logic-dev-93185"]
-            }
-        }
+    "path-logic-staging": {
+      "hosting": {
+        "web": [
+          "path-logic-staging"
+        ]
+      }
+    },
+    "path-logic-dev-93185": {
+      "hosting": {
+        "dev": [
+          "path-logic-dev-93185"
+        ]
+      }
     }
+  },
+  "etags": {}
 }
