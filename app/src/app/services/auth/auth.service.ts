@@ -1,7 +1,13 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { User } from 'firebase/auth';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import {
+    getRedirectResult,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    signInWithRedirect,
+    signOut
+} from 'firebase/auth';
 
 import { environment } from '../../../environments/environment';
 import { FirebaseService } from '../firebase/firebase.service';
@@ -24,21 +30,27 @@ interface IStoredToken {
 /**
  * AuthService wraps Firebase Authentication with Angular signals.
  *
- * Auth startup sequence (enforced by AppComponent):
- *   1. Firebase resolves onAuthStateChanged → currentUser() is set.
- *   2. AuthService immediately attempts to restore a cached Google OAuth
- *      token from localStorage (persisted from the previous session).
- *   3. AppComponent reads accessToken() — if present, a full Drive sync
- *      is performed; if absent (expired/first install), the app falls
- *      back to the local IndexedDB copy and sets authError so the
- *      sync-pending banner prompts a re-login.
+ * ## Sign-in Flow (Redirect, not Popup)
  *
- * Silent auto-login: Firebase Auth persists the authentication state in
- * IndexedDB by default. On every app initialization onAuthStateChanged
- * fires immediately with the cached user (or null if no session).
- * If no session exists, the app redirects to /sign-in.
+ * We use signInWithRedirect() instead of signInWithPopup() because Chrome
+ * and Firefox enforce Cross-Origin-Opener-Policy (COOP) on Google's OAuth
+ * popup domain (accounts.google.com), which prevents the popup from
+ * signaling back to the opener — causing a permanent hang.
  *
- * In E2E mode, auth is bypassed entirely — no Firebase listeners, no redirects.
+ * Redirect flow:
+ *   1. User clicks "Continue with Google"
+ *   2. signInWithRedirect() — browser navigates to accounts.google.com
+ *   3. User authenticates on Google
+ *   4. Browser redirects back to our app
+ *   5. getRedirectResult() called eagerly in constructor → credential extracted
+ *   6. Access token persisted to localStorage (55-min TTL)
+ *   7. onAuthStateChanged fires → AppComponent begins local-first init
+ *
+ * ## Token Persistence
+ *
+ * Google OAuth tokens are persisted in localStorage with a 55-minute TTL.
+ * On page refresh, the stored token is restored in onAuthStateChanged so
+ * AppComponent can take the full Drive sync path without re-prompting.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -70,6 +82,11 @@ export class AuthService {
             return;
         }
 
+        // Handle the redirect result FIRST — this fires when the browser returns
+        // from Google after signInWithRedirect(). If there is no pending redirect,
+        // getRedirectResult() resolves to null quickly and we move on.
+        void this.handleRedirectResult();
+
         // Listen for auth state changes (fires immediately with cached state)
         onAuthStateChanged(
             this.firebase.auth,
@@ -83,6 +100,11 @@ export class AuthService {
                     const cached = this.restoreStoredToken(user.uid);
                     if (cached) {
                         this.accessToken.set(cached);
+                        console.info('[AuthService] Restored cached Google token from localStorage');
+                    } else {
+                        console.info(
+                            '[AuthService] No valid cached token — waiting for redirect result or re-auth'
+                        );
                     }
                 }
             },
@@ -103,32 +125,16 @@ export class AuthService {
         });
     }
 
+    /**
+     * Initiates the Google sign-in redirect flow.
+     * The browser navigates to accounts.google.com — no popup, no COOP issues.
+     * When Google redirects back, handleRedirectResult() picks up the credential.
+     */
     async signInWithGoogle(): Promise<void> {
-        const provider: GoogleAuthProvider = new GoogleAuthProvider();
+        const provider = new GoogleAuthProvider();
         provider.addScope('https://www.googleapis.com/auth/drive.appdata');
-
-        try {
-            const result = await signInWithPopup(this.firebase.auth, provider);
-
-            if (result) {
-                const credential = GoogleAuthProvider.credentialFromResult(result);
-                if (credential?.accessToken) {
-                    this.accessToken.set(credential.accessToken);
-                    // Persist so it survives page refreshes for up to 55 minutes
-                    this.storeToken(result.user.uid, credential.accessToken);
-                }
-
-                const user = result.user;
-                this.posthogService.posthog.identify(user.uid, {
-                    email: user.email ?? undefined,
-                    name: user.displayName ?? undefined
-                });
-                this.posthogService.posthog.capture('user_signed_in', { provider: 'google' });
-            }
-        } catch (error) {
-            console.error('[AuthService] Error during signInWithPopup:', error);
-            throw error;
-        }
+        // signInWithRedirect navigates the browser — doesn't return a credential here
+        await signInWithRedirect(this.firebase.auth, provider);
     }
 
     async signOut(): Promise<void> {
@@ -142,7 +148,38 @@ export class AuthService {
         this.accessToken.set(null);
     }
 
-    // ── Token persistence ────────────────────────────────────────────────────
+    // ── Redirect result handler ───────────────────────────────────────────────
+
+    /**
+     * Called on every app startup to pick up the credential from a previous
+     * signInWithRedirect() call. Extracts and persists the Google OAuth token.
+     *
+     * Safe to call even when there is no pending redirect — resolves to null.
+     */
+    private async handleRedirectResult(): Promise<void> {
+        try {
+            const result = await getRedirectResult(this.firebase.auth);
+            if (!result) return; // No pending redirect — normal startup
+
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                this.accessToken.set(credential.accessToken);
+                this.storeToken(result.user.uid, credential.accessToken);
+                console.info('[AuthService] Google redirect sign-in complete, token stored');
+            }
+
+            this.posthogService.posthog.identify(result.user.uid, {
+                email: result.user.email ?? undefined,
+                name: result.user.displayName ?? undefined
+            });
+            this.posthogService.posthog.capture('user_signed_in', { provider: 'google' });
+        } catch (error: unknown) {
+            // Non-fatal — user may have cancelled on Google's page
+            console.warn('[AuthService] getRedirectResult error (non-fatal):', error);
+        }
+    }
+
+    // ── Token persistence ─────────────────────────────────────────────────────
 
     private storeToken(uid: string, token: string): void {
         try {

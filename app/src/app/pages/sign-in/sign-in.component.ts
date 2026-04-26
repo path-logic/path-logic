@@ -8,6 +8,10 @@ import { PostHogService } from '../../services/posthog/posthog.service';
 /**
  * Premium sign-in page for Google SSO authentication.
  * Full-page dark layout with animated logo, trust signals, and error handling.
+ *
+ * Uses the redirect flow (signInWithRedirect) — the browser navigates away to
+ * Google when the button is clicked, then returns to the app. No popup = no
+ * COOP errors.
  */
 @Component({
     selector: 'sign-in',
@@ -27,15 +31,16 @@ export class SignInComponent {
     readonly LockIcon = Lock;
     readonly Loader2Icon = Loader2;
 
-    /** Whether the sign-in process is currently in progress. */
+    /** True while the redirect is initiating (spinner shown). */
     readonly isLoading = signal<boolean>(false);
 
-    /** Error message to display if sign-in fails. */
+    /** Error message shown only if the redirect itself fails (rare). */
     readonly signInError = signal<string | null>(null);
 
     /**
-     * Initiates the Google sign-in flow via Firebase Auth.
-     * On success, navigates to the dashboard.
+     * Initiates the Google sign-in redirect flow via Firebase Auth.
+     * The browser navigates away to accounts.google.com — this method
+     * only returns/throws on an error before the redirect starts.
      */
     async signInWithGoogle(): Promise<void> {
         this.isLoading.set(true);
@@ -44,27 +49,13 @@ export class SignInComponent {
 
         try {
             await this.authService.signInWithGoogle();
-            // The page will redirect to Google for authentication.
+            // On success the browser navigates away — we never reach here
         } catch (error: unknown) {
+            // Only fires if the redirect initiation fails (e.g. network error)
             const message: string =
                 error instanceof Error ? error.message : 'An unexpected error occurred.';
 
-            // Provide user-friendly messages for common Firebase Auth errors
-            if (message.includes('popup-closed-by-user')) {
-                this.posthogService.posthog.capture('sign_in_failed', {
-                    provider: 'google',
-                    error_type: 'popup_closed'
-                });
-                this.signInError.set('Sign-in cancelled. Please try again.');
-            } else if (message.includes('popup-blocked')) {
-                this.posthogService.posthog.capture('sign_in_failed', {
-                    provider: 'google',
-                    error_type: 'popup_blocked'
-                });
-                this.signInError.set(
-                    'Pop-up was blocked by your browser. Please allow pop-ups for this site.'
-                );
-            } else if (message.includes('network-request-failed')) {
+            if (message.includes('network-request-failed')) {
                 this.posthogService.posthog.capture('sign_in_failed', {
                     provider: 'google',
                     error_type: 'network_error'
@@ -78,7 +69,8 @@ export class SignInComponent {
                 });
                 this.signInError.set(message);
             }
-        } finally {
+
+            // Only reset loading on error — on success the browser navigates away
             this.isLoading.set(false);
         }
     }
