@@ -150,11 +150,29 @@ export class AppComponent {
             .initFromLocal(userId)
             .then(async (hasLocalData: boolean) => {
                 if (!hasLocalData) {
-                    // New device — must wait for Drive before app is usable
+                    // New device — attempt to load from Drive.
+                    // Race against a hard timeout so a stale token or network
+                    // issue never permanently hangs the UI.
                     this.isSyncingNewDevice.set(true);
+                    const SYNC_TIMEOUT_MS = 15_000;
+                    const timeoutPromise = new Promise<void>(resolve =>
+                        setTimeout(() => {
+                            console.warn(
+                                `[AppComponent] Drive sync timed out after ${SYNC_TIMEOUT_MS}ms — falling through to local-only mode.`
+                            );
+                            resolve();
+                        }, SYNC_TIMEOUT_MS)
+                    );
                     try {
-                        await this.syncService.syncFromDrive();
+                        await Promise.race([
+                            this.syncService.syncFromDrive(),
+                            timeoutPromise
+                        ]);
                     } finally {
+                        // Ensure DB is initialized even if sync failed or timed out
+                        if (!this.ledgerStore.isInitialized()) {
+                            await this.ledgerStore.initialize();
+                        }
                         this.isSyncingNewDevice.set(false);
                     }
                 } else {

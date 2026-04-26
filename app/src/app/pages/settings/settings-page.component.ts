@@ -27,7 +27,8 @@ export class SettingsPageComponent {
     readonly environment = environment;
     readonly currentTheme = this.themeService.preference;
 
-    readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: object }> = [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: any }> = [
         { value: 'system', label: 'System', icon: Monitor },
         { value: 'light',  label: 'Light',  icon: Sun },
         { value: 'dark',   label: 'Dark',   icon: Moon }

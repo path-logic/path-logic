@@ -56,11 +56,34 @@ export interface IDriveFile {
     modifiedTime: string;
 }
 
+/** Timeout for all Drive API requests. Prevents indefinite hangs on stale tokens. */
+const DRIVE_REQUEST_TIMEOUT_MS = 10_000;
+
+/**
+ * Fetch wrapper for all Google Drive API calls.
+ * Applies a hard timeout via AbortController so stale/expired tokens
+ * or network issues fail fast instead of hanging the UI indefinitely.
+ */
+async function driveApiFetch(url: string, init: RequestInit = {}): Promise<Response> {
+    const controller = new AbortController();
+    const timerId = setTimeout(() => controller.abort(), DRIVE_REQUEST_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...init, signal: controller.signal });
+    } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            throw new Error(`Drive API request timed out after ${DRIVE_REQUEST_TIMEOUT_MS}ms: ${url}`);
+        }
+        throw err;
+    } finally {
+        clearTimeout(timerId);
+    }
+}
+
 /**
  * Find the encrypted database file in appDataFolder
  */
 export async function findDatabaseFile(accessToken: string): Promise<IDriveFile | null> {
-    const response: Response = await fetch(
+    const response: Response = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${DB_FILENAME}'`,
         {
             headers: {
@@ -84,7 +107,7 @@ export async function findDatabaseFile(accessToken: string): Promise<IDriveFile 
  * Delete both database and lock files from Drive (Factory Reset)
  */
 export async function factoryResetDrive(accessToken: string): Promise<void> {
-    const filesResponse = await fetch(
+    const filesResponse = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=(name='${DB_FILENAME}' or name='${LOCK_FILENAME}')`,
         {
             headers: {
@@ -100,7 +123,7 @@ export async function factoryResetDrive(accessToken: string): Promise<void> {
     const { files } = (await filesResponse.json()) as { files: Array<IDriveFile> };
 
     for (const file of files) {
-        const deleteResponse = await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
+        const deleteResponse = await driveApiFetch(`${DRIVE_API_BASE}/files/${file.id}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${accessToken}`
@@ -117,7 +140,7 @@ export async function factoryResetDrive(accessToken: string): Promise<void> {
  * Download the encrypted database from Drive
  */
 export async function downloadDatabase(accessToken: string, fileId: string): Promise<Uint8Array> {
-    const response: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
+    const response: Response = await driveApiFetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
         headers: {
             Authorization: `Bearer ${accessToken}`
         }
@@ -157,7 +180,7 @@ export async function uploadDatabase(
 
     const method: string = existingFileId ? 'PATCH' : 'POST';
 
-    const response: Response = await fetch(url, {
+    const response: Response = await driveApiFetch(url, {
         method,
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -177,7 +200,7 @@ export async function uploadDatabase(
  * Get current lock status from Drive
  */
 export async function getLockStatus(accessToken: string): Promise<ILockStatus | null> {
-    const response: Response = await fetch(
+    const response: Response = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'&fields=files(id,name,modifiedTime)`,
         {
             headers: {
@@ -199,7 +222,7 @@ export async function getLockStatus(accessToken: string): Promise<ILockStatus | 
     if (!firstFile) return null;
 
     const fileId: string = firstFile.id;
-    const fileResponse: Response = await fetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
+    const fileResponse: Response = await driveApiFetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
         headers: {
             Authorization: `Bearer ${accessToken}`
         }
@@ -253,7 +276,7 @@ export async function acquireLock(
         parents: ['appDataFolder']
     };
 
-    const searchResponse: Response = await fetch(
+    const searchResponse: Response = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
@@ -269,7 +292,7 @@ export async function acquireLock(
     const searchData: { files?: Array<{ id: string }> } = await searchResponse.json();
     if (searchData.files && Array.isArray(searchData.files)) {
         for (const file of searchData.files) {
-            await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
+            await driveApiFetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -280,7 +303,7 @@ export async function acquireLock(
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', new Blob([JSON.stringify(lockStatus)], { type: 'application/json' }));
 
-    const response: Response = await fetch(`${UPLOAD_API_BASE}/files?uploadType=multipart`, {
+    const response: Response = await driveApiFetch(`${UPLOAD_API_BASE}/files?uploadType=multipart`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -303,7 +326,7 @@ export async function acquireLock(
  * Release a sync lock on Drive
  */
 export async function releaseLock(accessToken: string): Promise<void> {
-    const response: Response = await fetch(
+    const response: Response = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
@@ -322,7 +345,7 @@ export async function releaseLock(accessToken: string): Promise<void> {
         for (const file of data.files) {
             // We could verify clientId here, but usually, if you're releasing, you know what you're doing.
             // For safety, let's just delete the file.
-            await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
+            await driveApiFetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${accessToken}`
@@ -336,7 +359,7 @@ export async function releaseLock(accessToken: string): Promise<void> {
  * Forcibly release a lock (manual override)
  */
 export async function forceReleaseLock(accessToken: string): Promise<void> {
-    const response: Response = await fetch(
+    const response: Response = await driveApiFetch(
         `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=name='${LOCK_FILENAME}'`,
         {
             headers: {
@@ -353,7 +376,7 @@ export async function forceReleaseLock(accessToken: string): Promise<void> {
 
     if (data.files && Array.isArray(data.files)) {
         for (const file of data.files) {
-            await fetch(`${DRIVE_API_BASE}/files/${file.id}`, {
+            await driveApiFetch(`${DRIVE_API_BASE}/files/${file.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${accessToken}`

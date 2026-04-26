@@ -46,7 +46,7 @@
                                         "
                                         [attr.aria-pressed]="currentTheme() === opt.value"
                                     >
-                                        <lucide-icon [img]="opt.icon" class="w-3 h-3" />
+                                        <lucide-icon [img]="$any(opt.icon)" class="w-3 h-3" />
                                         {{ opt.label }}
                                     </button>
                                 }
