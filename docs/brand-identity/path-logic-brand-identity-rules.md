@@ -113,9 +113,11 @@ These colors are used identically in both themes unless a specific override is n
 
 ### 3.4 Theme Implementation Rules
 
-- Implement via CSS custom properties on `:root` (dark) and `[data-theme="light"]` or `.theme-light` class selectors, OR via PrimeNG theme configuration.
-- The active theme preference MUST be persisted in the user's settings (stored in IndexedDB via the local persistence layer).
-- Respect `prefers-color-scheme` on first load if no user preference is saved.
+- **Default: System preference.** On first load (no saved preference), read `prefers-color-scheme` and apply the matching theme. If the OS is set to dark, show dark. If light, show light.
+- **Three-state toggle:** The user can choose **System** (auto-follow OS) / **Light** / **Dark**. "System" is the default.
+- Implement via CSS custom properties on `:root` with `[data-theme="dark"]` and `[data-theme="light"]` selectors, OR via PrimeNG theme configuration.
+- The active theme preference (`system` | `light` | `dark`) MUST be persisted in the user's settings (stored in IndexedDB via the local persistence layer).
+- When set to "System", the app MUST react to OS-level theme changes in real time (listen for `matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ...)`).
 - NEVER hardcode hex values in component styles. Always reference design tokens.
 
 ---
