@@ -73,29 +73,32 @@ export class TransactionTableComponent implements OnInit {
             header: () => 'Date',
             cell: info => info.getValue()
         }),
-        this.columnHelper.accessor('payee', {
-            header: () => 'Payee / Memo',
-            cell: info => {
-                const tx = info.row.original;
-                return {
-                    payee: tx.payee,
-                    memo:
-                        tx.splits.length > 1
-                            ? `${tx.splits.length} Splits: ${tx.splits[0]?.memo || ''}`
-                            : tx.memo
-                };
+        this.columnHelper.accessor(
+            row => ({
+                payee: row.payee,
+                memo:
+                    row.splits.length > 1
+                        ? `${row.splits.length} Splits: ${row.splits[0]?.memo ?? ''}`
+                        : (row.memo ?? '')
+            }),
+            {
+                id: 'payee',
+                header: () => 'Payee / Memo',
+                // Filter against the payee name string, not the composed object
+                filterFn: (row, _colId, filterValue: string) =>
+                    row.original.payee.toLowerCase().includes((filterValue as string).toLowerCase())
             }
-        }),
-        this.columnHelper.accessor(row => row, {
-            id: 'category',
-            header: () => 'Category',
-            cell: info => {
-                const tx = info.getValue();
-                return tx.splits.length > 1
+        ),
+        this.columnHelper.accessor(
+            row =>
+                row.splits.length > 1
                     ? 'SPLIT'
-                    : (tx.splits[0]?.categoryId ?? KnownCategory.Uncategorized);
+                    : (row.splits[0]?.categoryId ?? KnownCategory.Uncategorized),
+            {
+                id: 'category',
+                header: () => 'Category'
             }
-        }),
+        ),
         this.columnHelper.accessor('status', {
             header: () => 'Status',
             cell: info => info.getValue()

@@ -259,7 +259,9 @@
             <!-- Import progress overlay -->
             <import-progress-overlay (cancelled)="handleImportCancelled()" />
 
-            <transaction-table [data]="filteredTransactions()" />
+            @if (filteredTransactions(); as txData) {
+                <transaction-table [data]="txData" />
+            }
         </div>
     </div>
 </div>

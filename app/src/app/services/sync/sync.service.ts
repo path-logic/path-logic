@@ -233,7 +233,8 @@ export class SyncService {
                     if (localDb) {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const SQL: any = (localDb as any).constructor;
-                        const remoteDb = new SQL.Database(remoteDecrypted);
+                        // SQL is the Database class itself — instantiate directly
+                        const remoteDb = new SQL(remoteDecrypted);
                         try {
                             const lastSyncTime = getLastDriveSyncTime();
                             const mergeResult: IMergeResult =
@@ -350,7 +351,8 @@ export class SyncService {
         if (localDb) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const SQL: any = (localDb as any).constructor;
-            const remoteDb = new SQL.Database(decryptedData);
+            // SQL is the Database class itself — instantiate directly
+            const remoteDb = new SQL(decryptedData);
             try {
                 const lastSyncTime = getLastDriveSyncTime();
                 const mergeResult: IMergeResult = await SQLiteMergeEngine.mergeRemoteIntoLocal(

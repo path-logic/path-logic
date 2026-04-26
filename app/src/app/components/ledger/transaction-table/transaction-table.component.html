@@ -40,12 +40,7 @@
                             "
                         >
                             @if (!header.isPlaceholder) {
-                                <ng-container
-                                    *ngTemplateOutlet="
-                                        $any(header.column.columnDef.header);
-                                        context: header.getContext()
-                                    "
-                                ></ng-container>
+                                {{ $any(header.column.columnDef.header)(header.getContext()) }}
                             }
                         </div>
                     }
