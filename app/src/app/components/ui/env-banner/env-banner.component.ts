@@ -2,10 +2,16 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { environment } from '../../../../environments/environment';
 
+const ENV_LABELS: Record<string, string> = {
+    development: 'DEV',
+    staging: 'STG',
+    e2e: 'E2E'
+};
+
 /**
  * Corner ribbon banner shown on non-production environments.
  * Renders a diagonal stripe in the top-right corner labelled with the
- * current environment name (e.g. "DEV", "STAGING").
+ * current environment name (e.g. "DEV", "STG").
  *
  * Production builds return null so there is zero DOM overhead in prod.
  */
@@ -55,8 +61,8 @@ import { environment } from '../../../../environments/environment';
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.5);
         }
 
-        /* STAGING — violet */
-        .env-ribbon[data-env='STAGING'] span {
+        /* STG — violet */
+        .env-ribbon[data-env='STG'] span {
             background: #7c3aed;
             color: #fff;
             box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5);
@@ -72,5 +78,5 @@ import { environment } from '../../../../environments/environment';
 })
 export class EnvBannerComponent {
     readonly isProd = environment.production || environment.appEnv === 'production';
-    readonly envLabel = environment.appEnv.toUpperCase();
+    readonly envLabel = ENV_LABELS[environment.appEnv] ?? environment.appEnv.toUpperCase();
 }
