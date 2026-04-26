@@ -15,6 +15,11 @@
             "hosting": {
                 "web": ["path-logic-staging"]
             }
+        },
+        "path-logic-dev-93185": {
+            "hosting": {
+                "web": ["path-logic-dev-93185"]
+            }
         }
     }
 }

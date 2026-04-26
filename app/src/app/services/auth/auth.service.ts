@@ -183,6 +183,16 @@ export class AuthService {
      * and finalizes isInitializing if auth has also resolved.
      */
     private async handleRedirectResult(): Promise<void> {
+        // Set a 5-second timeout safety net — if Firebase hangs,
+        // isInitializing must eventually resolve so the user isn't stuck forever.
+        const safetyTimer = setTimeout(() => {
+            console.warn('[AuthService] getRedirectResult() timed out after 5s — releasing init lock');
+            this.redirectResultPending = false;
+            if (this._user() !== undefined) {
+                this.isInitializing.set(false);
+            }
+        }, 5000);
+
         try {
             const result = await getRedirectResult(this.firebase.auth);
 
@@ -204,7 +214,7 @@ export class AuthService {
         } catch (error: unknown) {
             console.warn('[AuthService] getRedirectResult error (non-fatal):', error);
         } finally {
-            // Redirect result is resolved — allow isInitializing to complete.
+            clearTimeout(safetyTimer);
             this.redirectResultPending = false;
 
             // If onAuthStateChanged already fired (user is set or null, not undefined),
