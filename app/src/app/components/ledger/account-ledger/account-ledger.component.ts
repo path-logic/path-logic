@@ -50,6 +50,7 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         ReconciliationDialogComponent,
         ImportProgressOverlayComponent
     ],
+    providers: [MessageService],
     templateUrl: './account-ledger.component.html',
     styleUrls: ['./account-ledger.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
