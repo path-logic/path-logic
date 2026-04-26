@@ -1,12 +1,10 @@
 import { DOCUMENT } from '@angular/common';
 import { effect, inject, Injectable, signal } from '@angular/core';
 
-import { UserSettingsStore } from '../user-settings-store/user-settings.store';
-
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
 
-const THEME_SETTING_KEY = 'theme.preference';
+const STORAGE_KEY = 'pl.theme.preference';
 
 /**
  * ThemeService — manages the three-state theme toggle.
@@ -18,8 +16,10 @@ const THEME_SETTING_KEY = 'theme.preference';
  *   - `dark`: always dark, regardless of OS setting.
  *
  * ## Persistence
- *   Preference is stored via `UserSettingsStore` (IndexedDB). On first
- *   load with no stored preference, defaults to `system`.
+ *   Uses `localStorage` directly (not IndexedDB / UserSettingsStore) so
+ *   the preference is always available synchronously at bootstrap — before
+ *   the SQLite database has been initialized. This avoids the
+ *   "Database not initialized" error on cold starts.
  *
  * ## Implementation
  *   Sets `data-theme="light" | "dark"` on `<html>`. CSS custom properties
@@ -29,7 +29,6 @@ const THEME_SETTING_KEY = 'theme.preference';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
     private readonly document = inject(DOCUMENT);
-    private readonly userSettings = inject(UserSettingsStore);
 
     /** The user's saved preference: system | light | dark */
     readonly preference = signal<ThemePreference>('system');
@@ -43,27 +42,36 @@ export class ThemeService {
     constructor() {
         this.initialize();
 
-        // Re-apply whenever preference changes
+        // Re-apply whenever preference signal changes
         effect(() => {
             this.applyTheme(this.preference());
         });
     }
 
-    /** Sets the user's theme preference and persists it. */
+    /** Sets the user's theme preference and persists it to localStorage. */
     setTheme(preference: ThemePreference): void {
-        this.userSettings.updateSetting(THEME_SETTING_KEY, preference);
+        try {
+            localStorage.setItem(STORAGE_KEY, preference);
+        } catch {
+            // localStorage may be unavailable in some private browsing modes
+        }
         this.preference.set(preference);
     }
 
     private initialize(): void {
-        const saved = this.userSettings.getSetting(THEME_SETTING_KEY) as
-            | ThemePreference
-            | undefined;
-        this.preference.set(saved ?? 'system');
+        let saved: ThemePreference | null = null;
+        try {
+            saved = localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
+        } catch {
+            // Ignore — fall back to system
+        }
+        // Validate the stored value is still a known preference
+        const valid: ThemePreference[] = ['system', 'light', 'dark'];
+        this.preference.set(valid.includes(saved as ThemePreference) ? (saved as ThemePreference) : 'system');
     }
 
     private applyTheme(preference: ThemePreference): void {
-        // Clean up any existing OS listener
+        // Clean up any existing OS listener before setting up a new state
         this.teardownOsListener();
 
         const resolved = this.resolve(preference);

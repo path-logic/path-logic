@@ -61,10 +61,22 @@
         font-family: 'Outfit', sans-serif;
     }
 
+    /* Data tables and dense UI rows use Inter for superior small-size legibility */
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td,
+    .font-data {
+        font-family: 'Inter', 'Outfit', sans-serif;
+    }
+
     /* Tabular numbers — mandatory for all financial figures.
        Decimal points and digits align perfectly in table columns. */
     .font-mono,
     .font-numeric,
+    .font-data,
     [data-financial] {
         font-variant-numeric: tabular-nums;
         font-feature-settings: 'tnum';
