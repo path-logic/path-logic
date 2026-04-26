@@ -87,6 +87,9 @@
             "continuous": true,
             "executor": "@angular/build:dev-server",
             "options": {
+                "ssl": true,
+                "sslKey": "app/ssl/localhost-key.pem",
+                "sslCert": "app/ssl/localhost.pem",
                 "headers": {
                     "Cross-Origin-Opener-Policy": "unsafe-none",
                     "Cross-Origin-Embedder-Policy": "unsafe-none"
