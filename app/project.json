@@ -126,26 +126,19 @@
             }
         },
         "build-storybook": {
-            "executor": "@storybook/angular:build-storybook",
-            "outputs": ["dist/app/storybook"],
+            "executor": "nx:run-commands",
+            "outputs": ["{workspaceRoot}/dist/app/storybook"],
             "options": {
-                "configDir": "app/.storybook",
-                "browserTarget": "app:build:development",
-                "compodoc": true,
-                "compodocArgs": ["-e", "json", "-d", "app"],
-                "outputDir": "dist/app/storybook"
+                "command": "STORYBOOK_DISABLE_TELEMETRY=1 node_modules/.bin/storybook build -c app/.storybook -o dist/app/storybook",
+                "cwd": "."
             },
             "cache": true
         },
         "storybook": {
-            "executor": "@storybook/angular:start-storybook",
+            "executor": "nx:run-commands",
             "options": {
-                "port": 6006,
-                "configDir": "app/.storybook",
-                "browserTarget": "app:build:development",
-                "compodoc": true,
-                "compodocArgs": ["-e", "json", "-d", "app", "-p", "app/tsconfig.app.json"],
-                "experimentalZoneless": true
+                "command": "STORYBOOK_DISABLE_TELEMETRY=1 node_modules/.bin/storybook dev -p 6006 -c app/.storybook",
+                "cwd": "."
             }
         },
         "test-storybook": {

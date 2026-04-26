@@ -13,7 +13,8 @@
         },
         "path-logic-staging": {
             "hosting": {
-                "web": ["path-logic-staging"]
+                "web": ["path-logic-staging"],
+                "storybook-staging": ["pathlogic-storybook-staging"]
             }
         }
     }

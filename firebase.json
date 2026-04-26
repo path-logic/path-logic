@@ -15,6 +15,11 @@
             "target": "storybook",
             "public": "dist/app/storybook",
             "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+        },
+        {
+            "target": "storybook-staging",
+            "public": "dist/app/storybook",
+            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
         }
     ]
 }
