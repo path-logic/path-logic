@@ -44,6 +44,7 @@ const ENV_LABELS: Record<string, string> = {
             right: -28px;
             width: 130px;
             padding: 4px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
             font-family: 'Outfit', 'Inter', sans-serif;
             font-size: 11px;
             font-weight: 700;
@@ -58,21 +59,18 @@ const ENV_LABELS: Record<string, string> = {
         .env-ribbon[data-env='DEV'] span {
             background: #f59e0b;
             color: #1c1410;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.5);
         }
 
         /* STG — violet */
         .env-ribbon[data-env='STG'] span {
             background: #7c3aed;
             color: #fff;
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.5);
         }
 
         /* E2E — rose */
         .env-ribbon[data-env='E2E'] span {
             background: #e11d48;
             color: #fff;
-            box-shadow: 0 2px 8px rgba(225, 29, 72, 0.5);
         }
     `
 })
