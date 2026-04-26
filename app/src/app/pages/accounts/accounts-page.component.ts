@@ -10,6 +10,7 @@ import {
     Landmark,
     LucideAngularModule,
     Plus,
+    Trash2,
     Wallet
 } from 'lucide-angular';
 
@@ -44,6 +45,8 @@ export class AccountsPageComponent {
     // State
     readonly expandedId = signal<string | null>(null);
     readonly isAddDialogOpen = signal<boolean>(false);
+    readonly pendingDeleteId = signal<string | null>(null);
+    readonly isDeleteConfirmOpen = signal<boolean>(false);
 
     // Store Signals
     readonly accounts = this.ledgerStore.accounts;
@@ -79,8 +82,31 @@ export class AccountsPageComponent {
         // (step 3) and will emit (closed) when the user finishes or skips.
     }
 
+    requestDeleteAccount(accountId: string, event: Event): void {
+        event.stopPropagation(); // Don't toggle the expand panel
+        this.pendingDeleteId.set(accountId);
+        this.isDeleteConfirmOpen.set(true);
+    }
+
+    confirmDeleteAccount(): void {
+        const id = this.pendingDeleteId();
+        if (id) {
+            void this.ledgerStore.removeAccount(id);
+            // Collapse if this account was expanded
+            if (this.expandedId() === id) this.expandedId.set(null);
+        }
+        this.isDeleteConfirmOpen.set(false);
+        this.pendingDeleteId.set(null);
+    }
+
+    cancelDelete(): void {
+        this.isDeleteConfirmOpen.set(false);
+        this.pendingDeleteId.set(null);
+    }
+
     // Lucide Icons
     readonly Plus = Plus;
+    readonly Trash2 = Trash2;
     readonly ChevronDown = ChevronDown;
     readonly ChevronRight = ChevronRight;
 }

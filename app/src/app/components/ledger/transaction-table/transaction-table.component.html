@@ -66,6 +66,21 @@
             }
 
             <div [style.height.px]="virtualizer.getTotalSize()" class="w-full relative">
+                <!-- Today divider: positioned at the first future row's Y offset -->
+                @let todayIdx = getTodayRowIndex();
+                @if (todayIdx >= 0) {
+                    @let todayVItem = virtualizer.getVirtualItems()[todayIdx];
+                    @if (todayVItem) {
+                        <div
+                            class="today-divider absolute w-full z-20 flex items-center gap-2 pointer-events-none select-none"
+                            [style.top.px]="0"
+                            [style.transform]="'translateY(' + todayVItem.start + 'px)'"
+                        >
+                            <span class="today-divider__label">TODAY</span>
+                            <div class="today-divider__line"></div>
+                        </div>
+                    }
+                }
                 @for (virtualRow of virtualizer.getVirtualItems(); track virtualRow.key) {
                     @let row = table.getRowModel().rows[virtualRow.index];
                     @if (row) {

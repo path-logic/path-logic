@@ -3,12 +3,15 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import type { ISODateString, ITransaction } from '@core';
 import {
+    type IDetectedPattern,
     type IRecurringSchedule,
     KnownCategory,
     Money,
+    PaymentMethod,
     RecurringEngine,
     ScheduleType,
-    TransactionStatus
+    TransactionStatus,
+    detectRecurringPatterns
 } from '@core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -43,6 +46,18 @@ export class RecurringDashboardComponent {
 
     isDialogVisible = signal(false);
     selectedSchedule = signal<Partial<IRecurringSchedule>>({});
+
+    // Analyze panel
+    isAnalyzeOpen = signal(false);
+    detectedPatterns = signal<Array<IDetectedPattern>>([]);
+    skippedPatternPayees = signal<Set<string>>(new Set());
+
+    get visiblePatterns(): Array<IDetectedPattern> {
+        const skipped = this.skippedPatternPayees();
+        return this.detectedPatterns().filter(
+            p => !skipped.has(`${p.accountId}::${p.payee.toLowerCase().trim()}`)
+        );
+    }
 
     // Formatting Helpers
     formatCurrency(amount: number): string {
@@ -91,6 +106,52 @@ export class RecurringDashboardComponent {
             splits: []
         });
         this.isDialogVisible.set(true);
+    }
+
+    runAnalysis(): void {
+        const allTransactions = this.ledgerStore.transactions();
+        const patterns = detectRecurringPatterns(allTransactions);
+        this.detectedPatterns.set(patterns);
+        this.skippedPatternPayees.set(new Set());
+        this.isAnalyzeOpen.set(true);
+    }
+
+    acceptPattern(pattern: IDetectedPattern): void {
+        const today = new Date().toISOString().slice(0, 10) as ISODateString;
+        const prefilled: Partial<IRecurringSchedule> = {
+            accountId: pattern.accountId,
+            payee: pattern.payee,
+            amount: Math.round(pattern.suggestedAmount),
+            type: pattern.suggestedAmount < 0 ? ScheduleType.Debit : ScheduleType.Deposit,
+            frequency: pattern.suggestedFrequency,
+            startDate: today,
+            nextDueDate: today,
+            splits:
+                pattern.mostRecentSplits.length > 0
+                    ? pattern.mostRecentSplits
+                    : [
+                          {
+                              id: `split-det-${Date.now()}`,
+                              amount: Math.round(pattern.suggestedAmount),
+                              memo: '',
+                              categoryId: KnownCategory.Uncategorized
+                          }
+                      ],
+            memo: pattern.mostRecentTransaction.memo ?? '',
+            autoPost: false,
+            isActive: true,
+            endDate: null,
+            lastOccurredDate: null,
+            paymentMethod: PaymentMethod.Other
+        };
+        this.selectedSchedule.set(prefilled);
+        this.isAnalyzeOpen.set(false);
+        this.isDialogVisible.set(true);
+    }
+
+    skipPattern(pattern: IDetectedPattern): void {
+        const key = `${pattern.accountId}::${pattern.payee.toLowerCase().trim()}`;
+        this.skippedPatternPayees.update(s => new Set([...s, key]));
     }
 
     editSchedule(schedule: IRecurringSchedule): void {

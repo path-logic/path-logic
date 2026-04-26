@@ -60,6 +60,9 @@ export class TransactionTableComponent implements OnInit {
     readonly monthsToShow = signal<number>(6);
     readonly isAtTop = signal<boolean>(true);
 
+    /** ISO date string for today (YYYY-MM-DD) — used to render the today-divider row. */
+    readonly todayDateString = new Date().toISOString().slice(0, 10);
+
     // Template children
     readonly parentRef = viewChild<ElementRef<HTMLDivElement>>('parentRef');
 
@@ -251,23 +254,45 @@ export class TransactionTableComponent implements OnInit {
         return 'text-primary';
     }
 
+    /**
+     * Returns the virtual row index of the first transaction on or after today.
+     * Returns -1 if all transactions are in the past.
+     * Used by the template to position the today-divider.
+     */
+    getTodayRowIndex(): number {
+        const rows = this.table.getRowModel().rows;
+        const todayMs = new Date().setHours(0, 0, 0, 0);
+        return rows.findIndex(row => new Date(row.original.date).setHours(0, 0, 0, 0) >= todayMs);
+    }
+
     private scrollToToday(): void {
         const rows = this.table.getRowModel().rows;
         if (rows.length === 0) return;
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayMs = new Date().setHours(0, 0, 0, 0);
 
+        // Find the first row whose date is today or in the future
         let targetIndex = rows.findIndex(row => {
-            const rowDate = new Date(row.original.date);
-            rowDate.setHours(0, 0, 0, 0);
-            return rowDate >= today;
+            return new Date(row.original.date).setHours(0, 0, 0, 0) >= todayMs;
         });
-
         if (targetIndex === -1) targetIndex = rows.length - 1;
 
-        this.virtualizer.scrollToIndex(targetIndex, { align: 'center' });
         this.activeIndex.set(targetIndex);
+
+        // Calculate scroll position so the today-row sits at 65% from the top
+        // of the visible container, showing past context above and future below.
+        const container = this.parentRef()?.nativeElement;
+        const rowHeight = 36; // matches estimateSize
+        const rowTop = targetIndex * rowHeight;
+        const containerHeight = container?.clientHeight ?? 400;
+        const offset = Math.max(0, rowTop - containerHeight * 0.65);
+
+        if (container) {
+            container.scrollTop = offset;
+        } else {
+            // Fallback: use virtualizer if container not yet measured
+            this.virtualizer.scrollToIndex(targetIndex, { align: 'center' });
+        }
     }
 
     // Lucide icons

@@ -952,6 +952,38 @@ export function softDeleteAccount(id: string): void {
 }
 
 /**
+ * Cascade soft-delete an account: marks all its splits, transactions,
+ * and the account itself as deleted in a single atomic transaction.
+ * Prevents orphaned transaction data while preserving the audit trail.
+ */
+export function softDeleteAccountCascade(accountId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now = new Date().toISOString();
+    db.run('BEGIN');
+    try {
+        // 1. Soft-delete all splits belonging to this account's transactions
+        db.run(
+            `UPDATE splits SET isDeleted = 1, updatedAt = ?
+             WHERE transactionId IN (
+                 SELECT id FROM transactions WHERE accountId = ? AND isDeleted = 0
+             )`,
+            [now, accountId]
+        );
+        // 2. Soft-delete all transactions for this account
+        db.run(
+            `UPDATE transactions SET isDeleted = 1, updatedAt = ? WHERE accountId = ?`,
+            [now, accountId]
+        );
+        // 3. Soft-delete the account itself
+        db.run(SQL_QUERIES.SOFT_DELETE_ACCOUNT, [now, now, accountId]);
+        db.run('COMMIT');
+    } catch (err) {
+        db.run('ROLLBACK');
+        throw err;
+    }
+}
+
+/**
  * Insert loan details for an account
  */
 export function insertLoanDetails(accountId: string, details: ILoanDetails): void {

@@ -33,6 +33,7 @@ import {
     loadDatabase,
     resetDatabase,
     softDeleteAccount,
+    softDeleteAccountCascade,
     updateAccount,
     updatePayee,
     updateRecurringSchedule,
@@ -174,8 +175,9 @@ export class LedgerStore {
     }
 
     async removeAccount(accountId: string): Promise<void> {
-        softDeleteAccount(accountId);
+        softDeleteAccountCascade(accountId);
         this.accounts.set(getAllAccounts());
+        this.transactions.set(getAllTransactions());
         await this.commitToLocal();
         this.isDirty.set(true);
     }

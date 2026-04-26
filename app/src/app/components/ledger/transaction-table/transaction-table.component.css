@@ -20,3 +20,43 @@
 .ledger-scroll::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.5);
 }
+
+/* ── Today Divider ─────────────────────────────────────────────────── */
+
+/**
+ * Absolutely-positioned divider that marks the boundary between past
+ * and future transactions. Aligned to the first future row's Y offset
+ * via translateY in the template.
+ *
+ * Height is 0 so it doesn't shift row layout — the visual sits on top
+ * of the row boundary via negative translate.
+ */
+.today-divider {
+    height: 0;
+    overflow: visible;
+    transform-origin: top left;
+    /* Shift up by half the label height so the line sits between rows */
+    margin-top: -10px;
+}
+
+.today-divider__label {
+    flex: none;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+    border: 1px solid hsl(var(--primary) / 0.3);
+    border-radius: 2px;
+    padding: 1px 5px;
+    line-height: 14px;
+    white-space: nowrap;
+}
+
+.today-divider__line {
+    flex: 1;
+    height: 2px;
+    background: hsl(var(--primary) / 0.6);
+    border-radius: 1px;
+}
