@@ -15,17 +15,6 @@
             "target": "storybook",
             "public": "dist/app/storybook",
             "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-        },
-        {
-            "target": "dev",
-            "public": "dist/app/browser",
-            "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-            "rewrites": [
-                {
-                    "source": "**",
-                    "destination": "/index.html"
-                }
-            ]
         }
     ]
 }
