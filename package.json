@@ -15,6 +15,7 @@
         "format-check": "prettier --check .",
         "typecheck": "nx run-many --target=typecheck --all",
         "build-storybook": "nx build-storybook app",
+        "storybook": "nx run app:storybook",
         "prepare": "husky"
     },
     "devDependencies": {

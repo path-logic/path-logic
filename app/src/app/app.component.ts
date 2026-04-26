@@ -1,8 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 
 import { environment } from '../environments/environment';
+import { EnvBannerComponent } from './components/ui/env-banner/env-banner.component';
 import { AuthService } from './services/auth/auth.service';
 import { LedgerStore } from './services/ledger-store/ledger.store';
 import { PostHogService } from './services/posthog/posthog.service';
@@ -41,9 +43,12 @@ const AUTO_SAVE_DEBOUNCE_MS = 3_000;
  *   - Drive API fails → syncStatus = 'error', error detail shown in banner
  */
 @Component({
-    imports: [RouterOutlet],
+    imports: [RouterOutlet, EnvBannerComponent],
     selector: 'root',
-    template: `<router-outlet />`,
+    template: `
+        <env-banner />
+        <router-outlet />
+    `,
     styles: `
         :host {
             display: block;
@@ -68,6 +73,13 @@ export class AppComponent {
     private initStarted = false;
 
     constructor() {
+        // Set document title — include env label on non-production builds
+        const titleService = inject(Title);
+        const isProd = environment.production || environment.appEnv === 'production';
+        titleService.setTitle(
+            isProd ? 'Path Logic' : `[${environment.appEnv.toUpperCase()}] Path Logic`
+        );
+
         if (isPlatformBrowser(this.platformId) && environment.posthogKey) {
             this.posthogService.init(environment.posthogKey, {
                 api_host: environment.posthogHost || 'https://us.i.posthog.com',
