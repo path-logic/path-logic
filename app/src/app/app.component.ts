@@ -9,6 +9,7 @@ import { AuthService } from './services/auth/auth.service';
 import { LedgerStore } from './services/ledger-store/ledger.store';
 import { PostHogService } from './services/posthog/posthog.service';
 import { SyncService } from './services/sync/sync.service';
+import { ThemeService } from './services/theme/theme.service';
 
 /** How long after the last mutation before auto-saving to Drive. */
 const AUTO_SAVE_DEBOUNCE_MS = 3_000;
@@ -73,6 +74,10 @@ export class AppComponent {
     private initStarted = false;
 
     constructor() {
+        // Initialize theme before first paint — reads OS/saved preference and
+        // sets data-theme on <html>, activating the CSS custom property system.
+        inject(ThemeService);
+
         // Set document title — include env label on non-production builds
         const titleService = inject(Title);
         const isProd = environment.production || environment.appEnv === 'production';

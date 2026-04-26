@@ -14,8 +14,8 @@
     padding: 14px 16px;
     width: 340px;
     border-radius: 12px;
-    background: #1e293b;
-    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: var(--pl-bg-elevated);
+    border: 1px solid color-mix(in srgb, var(--pl-accent-violet) 40%, transparent);
     box-shadow:
         0 8px 32px -4px rgba(0, 0, 0, 0.5),
         0 0 0 1px rgba(255, 255, 255, 0.04) inset;
@@ -33,7 +33,7 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #6366f1, var(--pl-accent-violet));
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -57,19 +57,19 @@
 .toast-title {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--pl-text-primary);
     letter-spacing: 0.02em;
 }
 
 .toast-detail {
     font-size: 0.72rem;
-    color: #94a3b8;
+    color: var(--pl-text-muted);
     line-height: 1.4;
 }
 
 .toast-conflicts {
     font-size: 0.7rem;
-    color: #fb923c;
+    color: var(--pl-status-warn);
     font-weight: 600;
     margin-top: 4px;
 }
@@ -84,7 +84,7 @@
     height: 24px;
     border: none;
     background: transparent;
-    color: #64748b;
+    color: var(--pl-text-muted);
     cursor: pointer;
     border-radius: 4px;
     flex-shrink: 0;
@@ -92,8 +92,8 @@
 }
 
 .toast-close:hover {
-    color: #f1f5f9;
-    background: rgba(255, 255, 255, 0.08);
+    color: var(--pl-text-primary);
+    background: color-mix(in srgb, var(--pl-text-primary) 8%, transparent);
 }
 
 .close-icon {
@@ -108,7 +108,7 @@
     bottom: 0;
     left: 0;
     height: 2px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    background: linear-gradient(90deg, #6366f1, var(--pl-accent-violet));
     animation: progress 6s linear forwards;
     transform-origin: left;
 }
@@ -127,10 +127,6 @@
 }
 
 @keyframes progress {
-    from {
-        width: 100%;
-    }
-    to {
-        width: 0%;
-    }
+    from { width: 100%; }
+    to   { width: 0%; }
 }

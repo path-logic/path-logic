@@ -44,8 +44,8 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #fbbf24;
-    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
+    background: var(--pl-status-warn);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pl-status-warn) 70%, transparent);
     animation: pulse 1.8s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
 }
 
@@ -70,9 +70,9 @@
 .banner-icon {
     width: 22px;
     height: 22px;
-    color: #fbbf24;
+    color: var(--pl-status-warn);
     flex-shrink: 0;
-    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6));
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--pl-status-warn) 60%, transparent));
 }
 
 .banner-text {
@@ -155,24 +155,14 @@
 }
 
 @keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
-    }
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pl-status-warn) 70%, transparent); }
+    70%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--pl-status-warn) 0%, transparent); }
+    100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pl-status-warn) 0%, transparent); }
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

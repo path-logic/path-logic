@@ -1,10 +1,12 @@
-/* ── Modal backdrop ───────────────────────────────────────────────────────── */
+:host {
+    display: block;
+}
 
 .modal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(4px);
     z-index: 8000;
     animation: fadeIn 0.25s ease both;
 }
@@ -20,11 +22,11 @@
     display: flex;
     flex-direction: column;
     border-radius: 16px;
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--pl-bg-base);
+    border: 1px solid color-mix(in srgb, var(--pl-text-primary) 8%, transparent);
     box-shadow:
         0 24px 64px -12px rgba(0, 0, 0, 0.8),
-        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+        0 0 0 1px color-mix(in srgb, var(--pl-text-primary) 4%, transparent) inset;
     animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
     overflow: hidden;
 }
@@ -33,8 +35,8 @@
 
 .modal-header {
     padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    background: linear-gradient(135deg, rgba(234, 88, 12, 0.12) 0%, transparent 60%);
+    border-bottom: 1px solid color-mix(in srgb, var(--pl-text-primary) 6%, transparent);
+    background: color-mix(in srgb, var(--pl-status-warn) 8%, transparent);
 }
 
 .header-left {
@@ -50,28 +52,28 @@
     width: 44px;
     height: 44px;
     border-radius: 10px;
-    background: rgba(234, 88, 12, 0.2);
-    border: 1px solid rgba(234, 88, 12, 0.4);
+    background: color-mix(in srgb, var(--pl-status-warn) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--pl-status-warn) 40%, transparent);
     flex-shrink: 0;
 }
 
 .header-icon-svg {
     width: 22px;
     height: 22px;
-    color: #fb923c;
+    color: var(--pl-status-warn);
 }
 
 .modal-title {
     font-size: 1rem;
     font-weight: 800;
-    color: #f1f5f9;
+    color: var(--pl-text-primary);
     letter-spacing: -0.01em;
     margin: 0 0 4px;
 }
 
 .modal-subtitle {
     font-size: 0.78rem;
-    color: #64748b;
+    color: var(--pl-text-muted);
     margin: 0;
 }
 
@@ -90,8 +92,8 @@
 
 .conflict-card {
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
+    background: color-mix(in srgb, var(--pl-bg-surface) 100%, transparent);
     overflow: hidden;
 }
 
@@ -100,20 +102,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--pl-text-primary) 3%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
 }
 
 .conflict-payee {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--pl-text-primary);
 }
 
 .conflict-date {
     font-size: 0.72rem;
-    color: #64748b;
+    color: var(--pl-text-muted);
     font-family: monospace;
+    font-variant-numeric: tabular-nums;
 }
 
 /* ── Side-by-side layout ──────────────────────────────────────────────────── */
@@ -132,7 +135,7 @@
 }
 
 .conflict-side--mine {
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
 }
 
 .conflict-vs {
@@ -143,7 +146,7 @@
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.1em;
-    color: #334155;
+    color: var(--pl-text-disabled);
     text-transform: uppercase;
 }
 
@@ -159,7 +162,7 @@
 .side-icon {
     width: 13px;
     height: 13px;
-    color: #64748b;
+    color: var(--pl-text-muted);
     flex-shrink: 0;
 }
 
@@ -168,12 +171,12 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #64748b;
+    color: var(--pl-text-muted);
 }
 
 .side-time {
     font-size: 0.64rem;
-    color: #475569;
+    color: var(--pl-text-disabled);
     margin-left: auto;
 }
 
@@ -182,24 +185,24 @@
 .side-amount {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #34d399;
+    color: var(--pl-status-pos);
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 }
 
 .side-amount.negative {
-    color: #f87171;
+    color: var(--pl-status-neg);
 }
 
 .side-memo {
     font-size: 0.72rem;
-    color: #64748b;
+    color: var(--pl-text-muted);
     font-style: italic;
 }
 
 .side-status {
     font-size: 0.68rem;
-    color: #94a3b8;
+    color: var(--pl-text-muted);
     font-family: monospace;
 }
 
@@ -221,26 +224,26 @@
 }
 
 .side-btn--mine {
-    background: rgba(99, 102, 241, 0.15);
-    border-color: rgba(99, 102, 241, 0.35);
-    color: #a5b4fc;
+    background: color-mix(in srgb, var(--pl-accent-violet) 15%, transparent);
+    border-color: color-mix(in srgb, var(--pl-accent-violet) 35%, transparent);
+    color: var(--pl-accent-violet);
 }
 
 .side-btn--mine:hover {
-    background: rgba(99, 102, 241, 0.25);
-    border-color: rgba(99, 102, 241, 0.6);
+    background: color-mix(in srgb, var(--pl-accent-violet) 25%, transparent);
+    border-color: color-mix(in srgb, var(--pl-accent-violet) 60%, transparent);
     transform: translateY(-1px);
 }
 
 .side-btn--theirs {
-    background: rgba(20, 184, 166, 0.12);
-    border-color: rgba(20, 184, 166, 0.3);
-    color: #5eead4;
+    background: color-mix(in srgb, var(--pl-status-pos) 12%, transparent);
+    border-color: color-mix(in srgb, var(--pl-status-pos) 30%, transparent);
+    color: var(--pl-status-pos);
 }
 
 .side-btn--theirs:hover {
-    background: rgba(20, 184, 166, 0.22);
-    border-color: rgba(20, 184, 166, 0.55);
+    background: color-mix(in srgb, var(--pl-status-pos) 22%, transparent);
+    border-color: color-mix(in srgb, var(--pl-status-pos) 55%, transparent);
     transform: translateY(-1px);
 }
 
@@ -253,16 +256,16 @@
 
 .modal-footer {
     padding: 14px 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.01);
+    background: color-mix(in srgb, var(--pl-bg-surface) 50%, transparent);
 }
 
 .footer-hint {
     font-size: 0.72rem;
-    color: #475569;
+    color: var(--pl-text-disabled);
     white-space: nowrap;
 }
 
@@ -286,32 +289,32 @@
 }
 
 .bulk-btn--mine {
-    background: rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.3);
-    color: #a5b4fc;
+    background: color-mix(in srgb, var(--pl-accent-violet) 12%, transparent);
+    border-color: color-mix(in srgb, var(--pl-accent-violet) 30%, transparent);
+    color: var(--pl-accent-violet);
 }
 
 .bulk-btn--mine:hover {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: rgba(99, 102, 241, 0.55);
+    background: color-mix(in srgb, var(--pl-accent-violet) 20%, transparent);
+    border-color: color-mix(in srgb, var(--pl-accent-violet) 55%, transparent);
 }
 
 .bulk-btn--theirs {
-    background: rgba(20, 184, 166, 0.1);
-    border-color: rgba(20, 184, 166, 0.28);
-    color: #5eead4;
+    background: color-mix(in srgb, var(--pl-status-pos) 10%, transparent);
+    border-color: color-mix(in srgb, var(--pl-status-pos) 28%, transparent);
+    color: var(--pl-status-pos);
 }
 
 .bulk-btn--theirs:hover {
-    background: rgba(20, 184, 166, 0.18);
-    border-color: rgba(20, 184, 166, 0.5);
+    background: color-mix(in srgb, var(--pl-status-pos) 18%, transparent);
+    border-color: color-mix(in srgb, var(--pl-status-pos) 50%, transparent);
 }
 
 /* ── Animations ───────────────────────────────────────────────────────────── */
 
 @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
 }
 
 @keyframes scaleIn {
@@ -334,13 +337,13 @@
 
     .conflict-vs {
         padding: 4px;
-        border-top: 1px solid rgba(255,255,255,0.05);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-top: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
+        border-bottom: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
     }
 
     .conflict-side--mine {
         border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid color-mix(in srgb, var(--pl-border-subtle) 100%, transparent);
     }
 
     .footer-actions {
