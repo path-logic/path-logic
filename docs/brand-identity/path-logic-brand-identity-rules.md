@@ -16,14 +16,39 @@
 
 ## 2. Brand Voice & Tone
 
-**Persona:** The Systems Architect / The Quiet Professional.
+**Persona:** The Knowledgeable Guide — authoritative but approachable. We use precise terminology but never assume the user already knows it.
 
 | Rule | Detail |
 |---|---|
-| **Authoritative & Precise** | Use exact terminology: Ledger, Reconciliation, Split Transaction, Zero-Knowledge, AES-GCM. Never simplify technical terms into consumer-friendly euphemisms. |
+| **Precise but Approachable** | Use correct terminology (Ledger, Reconciliation, Split Transaction, AES-GCM) but always provide contextual help for "inside baseball" terms. See §2.1 Glossary Tooltips below. |
 | **Transparent & Direct** | No marketing fluff, no superlatives ("best ever!"), no hype. The performance and architecture speak for themselves. |
 | **Zero Gamification** | Do NOT use emojis in the UI, "streak" counters, congratulatory modals, confetti animations, or patronizing financial jargon ("You saved $5! 🎉"). |
-| **Respectful** | The user is an expert. Don't explain what a checking account is. Don't add "Are you sure?" confirmations for routine actions. |
+| **Respectful** | Don't over-explain obvious concepts, but never make the user feel dumb for not knowing a technical term. The tooltip is there for them. |
+
+### 2.1 Glossary Tooltips ("What's This?" Pattern)
+
+Technical, financial, or security terms that a general audience may not know MUST be rendered with a **glossary tooltip** — a dotted-underline indicator that shows a plain-English definition on hover (desktop) or tap (mobile).
+
+**Visual treatment:**
+- Dotted underline (`border-bottom: 1px dotted`) in `text-muted` color.
+- Cursor changes to `help` on hover.
+- Tooltip appears on hover/focus with a short, jargon-free explanation.
+- Tooltip uses `bg-elevated` background, `text-primary` text, `border-subtle` border, and a subtle `box-shadow`.
+
+**Example terms and their plain-English definitions:**
+
+| Term | Tooltip Definition |
+|---|---|
+| AES-GCM 256 | "Military-grade encryption — your data is scrambled so only you can read it." |
+| Zero-Knowledge | "We can't see your data, even if we wanted to. Only your device holds the key." |
+| Reconciliation | "Matching your records against your bank statement to make sure nothing's missing." |
+| Split Transaction | "One payment that covers multiple categories — like a paycheck split into salary, taxes, and insurance." |
+| BYOS | "Bring Your Own Storage — your data lives in your Google Drive or iCloud, not on our servers." |
+| Ledger | "Your transaction log — every dollar in and out, organized by account." |
+| WASM SQLite | "A full database running privately inside your browser — no server needed." |
+| Cashflow Projection | "A 90-day forecast of your balance based on your recurring bills and income." |
+
+**Implementation rule:** When generating UI copy that includes any term from this glossary (or similar technical jargon), wrap it in the glossary tooltip component. If a new technical term is introduced, add it to this table.
 
 ---
 
