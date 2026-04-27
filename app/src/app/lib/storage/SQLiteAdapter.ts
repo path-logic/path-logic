@@ -91,6 +91,7 @@ const SCHEMA_DDL = `
         checkNumber TEXT,
         importHash TEXT NOT NULL,
         isDeleted INTEGER NOT NULL DEFAULT 0,
+        deletedAt TEXT,
         clientId TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
@@ -105,6 +106,7 @@ const SCHEMA_DDL = `
         memo TEXT,
         amount INTEGER NOT NULL,
         isDeleted INTEGER NOT NULL DEFAULT 0,
+        deletedAt TEXT,
         clientId TEXT,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (transactionId) REFERENCES transactions(id) ON DELETE CASCADE,
@@ -192,11 +194,11 @@ export const SQL_QUERIES = {
     `,
 
     DELETE_TRANSACTION: `
-        UPDATE transactions SET isDeleted = 1, updatedAt = ? WHERE id = ?
+        UPDATE transactions SET isDeleted = 1, deletedAt = ?, updatedAt = ? WHERE id = ?
     `,
 
     DELETE_ALL_TRANSACTIONS: `
-        UPDATE transactions SET isDeleted = 1, updatedAt = ?
+        UPDATE transactions SET isDeleted = 1, deletedAt = ?, updatedAt = ?
     `,
 
     // Account queries
@@ -272,11 +274,11 @@ SELECT * FROM splits WHERE transactionId = ? AND isDeleted = 0 ORDER BY id
     `,
 
     DELETE_SPLITS_BY_TRANSACTION: `
-        UPDATE splits SET isDeleted = 1, updatedAt = ? WHERE transactionId = ?
+        UPDATE splits SET isDeleted = 1, deletedAt = ?, updatedAt = ? WHERE transactionId = ?
     `,
 
     DELETE_ALL_SPLITS: `
-        UPDATE splits SET isDeleted = 1, updatedAt = ?
+        UPDATE splits SET isDeleted = 1, deletedAt = ?, updatedAt = ?
     `,
 
     // Loan Details queries
@@ -536,6 +538,18 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
         );
         if (!hasDeletedAt) {
             dbInstance.run('ALTER TABLE accounts ADD COLUMN deletedAt TEXT');
+        }
+    }
+
+    // Migration: Add deletedAt to transactions and splits if missing
+    for (const table of ['transactions', 'splits'] as const) {
+        const tableInfo: Array<QueryExecResult> = dbInstance.exec(`PRAGMA table_info(${table})`);
+        const result: QueryExecResult | undefined = tableInfo.at(0);
+        if (result?.values) {
+            const hasDeletedAt = result.values.some((v: Array<SqlValue>) => v[1] === 'deletedAt');
+            if (!hasDeletedAt) {
+                dbInstance.run(`ALTER TABLE ${table} ADD COLUMN deletedAt TEXT`);
+            }
         }
     }
 
@@ -823,8 +837,8 @@ export function updateTransaction(tx: ITransaction): void {
         tx.id
     ]);
 
-    // Mark existing splits as deleted and re-insert
-    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [updatedAt, tx.id]);
+    // Mark existing splits as deleted and re-insert (during update, deletedAt is set then cleared by re-insert)
+    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [updatedAt, updatedAt, tx.id]);
     for (const split of tx.splits) {
         db.run(SQL_QUERIES.INSERT_SPLIT, [
             split.id,
@@ -845,8 +859,8 @@ export function updateTransaction(tx: ITransaction): void {
 export function deleteTransaction(txId: string): void {
     if (!db) throw new Error('Database not initialized');
     const now: string = new Date().toISOString();
-    db.run(SQL_QUERIES.DELETE_TRANSACTION, [now, txId]);
-    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [now, txId]);
+    db.run(SQL_QUERIES.DELETE_TRANSACTION, [now, now, txId]);
+    db.run(SQL_QUERIES.DELETE_SPLITS_BY_TRANSACTION, [now, now, txId]);
 }
 
 /**
@@ -963,18 +977,21 @@ export function softDeleteAccountCascade(accountId: string): void {
     try {
         // 1. Soft-delete all splits belonging to this account's transactions
         db.run(
-            `UPDATE splits SET isDeleted = 1, updatedAt = ?
+            `UPDATE splits
+             SET isDeleted = 1, deletedAt = ?, updatedAt = ?
              WHERE transactionId IN (
                  SELECT id FROM transactions WHERE accountId = ? AND isDeleted = 0
              )`,
-            [now, accountId]
+            [now, now, accountId]
         );
         // 2. Soft-delete all transactions for this account
         db.run(
-            `UPDATE transactions SET isDeleted = 1, updatedAt = ? WHERE accountId = ?`,
-            [now, accountId]
+            `UPDATE transactions
+             SET isDeleted = 1, deletedAt = ?, updatedAt = ?
+             WHERE accountId = ?`,
+            [now, now, accountId]
         );
-        // 3. Soft-delete the account itself
+        // 3. Soft-delete the account itself (SOFT_DELETE_ACCOUNT sets deletedAt, isActive=0, isDeleted=1)
         db.run(SQL_QUERIES.SOFT_DELETE_ACCOUNT, [now, now, accountId]);
         db.run('COMMIT');
     } catch (err) {
@@ -1246,8 +1263,8 @@ export function clearDatabase(): void {
 
     db.run('BEGIN TRANSACTION');
     try {
-        db.run(SQL_QUERIES.DELETE_ALL_SPLITS, [new Date().toISOString()]);
-        db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS, [new Date().toISOString()]);
+        db.run(SQL_QUERIES.DELETE_ALL_SPLITS, [new Date().toISOString(), new Date().toISOString()]);
+        db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS, [new Date().toISOString(), new Date().toISOString()]);
         db.run('UPDATE categories SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE payees SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE accounts SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);

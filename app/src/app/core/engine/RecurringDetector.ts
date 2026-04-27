@@ -50,11 +50,12 @@ interface IFrequencyBucket {
 }
 
 const FREQUENCY_BUCKETS: Array<IFrequencyBucket> = [
-    { frequency: Frequency.Weekly,        center: 7,   tolerance: 2  },
-    { frequency: Frequency.Biweekly,      center: 14,  tolerance: 3  },
-    { frequency: Frequency.Monthly,       center: 30,  tolerance: 5  },
-    { frequency: Frequency.Quarterly,     center: 91,  tolerance: 12 },
-    { frequency: Frequency.Yearly,        center: 365, tolerance: 20 }
+    { frequency: Frequency.Weekly,          center: 7,   tolerance: 2  },
+    { frequency: Frequency.Biweekly,        center: 14,  tolerance: 3  },
+    { frequency: Frequency.EveryFourWeeks,  center: 28,  tolerance: 3  },
+    { frequency: Frequency.Monthly,         center: 30,  tolerance: 5  },
+    { frequency: Frequency.Quarterly,       center: 91,  tolerance: 12 },
+    { frequency: Frequency.Yearly,          center: 365, tolerance: 20 }
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
