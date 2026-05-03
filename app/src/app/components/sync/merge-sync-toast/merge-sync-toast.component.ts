@@ -6,7 +6,6 @@ import {
     inject,
     signal
 } from '@angular/core';
-import { GitMerge, LucideAngularModule, X } from 'lucide-angular';
 
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 
@@ -24,16 +23,13 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'merge-sync-toast',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './merge-sync-toast.component.html',
     styleUrl: './merge-sync-toast.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MergeSyncToastComponent {
     private readonly ledgerStore = inject(LedgerStore);
-
-    readonly GitMerge = GitMerge;
-    readonly X = X;
 
     readonly mergeCount = computed(() => this.ledgerStore.mergeCount());
     readonly hasConflicts = computed(() => this.ledgerStore.syncConflicts().length > 0);

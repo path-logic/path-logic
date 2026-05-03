@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { IPayee, ISODateString } from '@core';
-import { AlertCircle, LucideAngularModule } from 'lucide-angular';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 
@@ -24,7 +23,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'payee-edit-dialog',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule, DialogModule, ButtonModule],
+    imports: [CommonModule, FormsModule, DialogModule, ButtonModule],
     templateUrl: './payee-edit-dialog.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -139,6 +138,4 @@ export class PayeeEditDialogComponent {
     handleCancel(): void {
         this.isOpen.set(false);
     }
-
-    readonly AlertCircle = AlertCircle;
 }

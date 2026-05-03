@@ -13,7 +13,7 @@
         <div class="modal-header">
             <div class="header-left">
                 <div class="header-icon">
-                    <lucide-icon [img]="AlertTriangle" class="header-icon-svg" aria-hidden="true" />
+                    <i class="pi pi-exclamation-triangle header-icon-svg"></i>
                 </div>
                 <div>
                     <h2 id="conflict-modal-title" class="modal-title">Sync Conflicts Detected</h2>
@@ -45,7 +45,7 @@
                         <!-- Mine -->
                         <div class="conflict-side conflict-side--mine">
                             <div class="side-header">
-                                <lucide-icon [img]="Monitor" class="side-icon" />
+                                <i class="pi pi-circle side-icon"></i>
                                 <span class="side-label">This Device</span>
                                 <span class="side-time">{{
                                     formatTimestamp(conflict.mine.updatedAt)
@@ -68,7 +68,7 @@
                                 (click)="keepMine(conflict)"
                                 type="button"
                             >
-                                <lucide-icon [img]="Check" class="btn-icon" />
+                                <i class="pi pi-check btn-icon"></i>
                                 Keep Mine
                             </button>
                         </div>
@@ -79,7 +79,7 @@
                         <!-- Theirs -->
                         <div class="conflict-side conflict-side--theirs">
                             <div class="side-header">
-                                <lucide-icon [img]="Cloud" class="side-icon" />
+                                <i class="pi pi-circle side-icon"></i>
                                 <span class="side-label">Other Device</span>
                                 <span class="side-time">{{
                                     formatTimestamp(conflict.theirs.updatedAt)
@@ -102,7 +102,7 @@
                                 (click)="keepTheirs(conflict)"
                                 type="button"
                             >
-                                <lucide-icon [img]="Check" class="btn-icon" />
+                                <i class="pi pi-check btn-icon"></i>
                                 Keep Theirs
                             </button>
                         </div>
@@ -116,11 +116,11 @@
             <span class="footer-hint">Or resolve all at once:</span>
             <div class="footer-actions">
                 <button class="bulk-btn bulk-btn--mine" (click)="keepAllMine()" type="button">
-                    <lucide-icon [img]="Monitor" class="btn-icon" />
+                    <i class="pi pi-circle btn-icon"></i>
                     Keep All Mine
                 </button>
                 <button class="bulk-btn bulk-btn--theirs" (click)="keepAllTheirs()" type="button">
-                    <lucide-icon [img]="Cloud" class="btn-icon" />
+                    <i class="pi pi-circle btn-icon"></i>
                     Keep All Theirs
                 </button>
             </div>

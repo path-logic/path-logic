@@ -12,7 +12,7 @@
                 <ng-template #content let-activateCallback="activateCallback">
                     <div class="text-center mb-10 animate-in fade-in duration-700">
                         <div class="flex items-center justify-center gap-2 mb-3 group">
-                            <lucide-icon [img]="Sparkles" class="w-6 h-6 text-surface-800" />
+                            <i class="pi pi-sparkles w-6 h-6 text-surface-800"></i>
                             <h1
                                 class="text-2xl font-black uppercase tracking-tight text-surface-800"
                             >
@@ -49,12 +49,7 @@
                                     <div
                                         class="w-14 h-14 rounded-lg bg-surface-100/50 flex items-center justify-center group-hover:bg-surface-100 transition-colors"
                                     >
-                                        <lucide-icon
-                                            [img]="option.icon"
-                                            [class]="
-                                                'w-7 h-7 ' + getTypeTheming(option.type).iconText
-                                            "
-                                        />
+                                        <i [class]="'pi ' + option.icon"></i>
                                     </div>
                                     <h2 class="text-lg font-semibold text-surface-800">
                                         {{ option.label }}
@@ -100,10 +95,11 @@
                                             <div
                                                 class="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors"
                                             >
-                                                <lucide-icon
-                                                    [img]="option.icon"
-                                                    class="w-7 h-7 text-amber-500"
-                                                />
+                                                <i
+                                                    [class]="
+                                                        'pi w-7 h-7 text-amber-500 ' + option.icon
+                                                    "
+                                                ></i>
                                             </div>
                                             <h2 class="text-lg font-semibold text-surface-800">
                                                 {{ option.label }}
@@ -162,10 +158,7 @@
                                                 theming().iconBorder
                                             "
                                         >
-                                            <lucide-icon
-                                                [img]="selectedOption()?.icon || Landmark"
-                                                [class]="'w-7 h-7 ' + theming().iconText"
-                                            />
+                                            <i [class]="'pi ' + selectedOption()?.icon"></i>
                                         </div>
                                         <div>
                                             <h2
@@ -248,7 +241,7 @@
                                                 severity="primary"
                                                 styleClass="w-full h-11 bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                                             >
-                                                <lucide-icon [img]="Upload" class="w-4 h-4 mr-2" />
+                                                <i class="pi pi-upload w-4 h-4 mr-2"></i>
                                             </p-button>
                                             <p-button
                                                 (click)="handleStandardAccountCreate(false)"
@@ -286,10 +279,7 @@
                                         <div
                                             class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
                                         >
-                                            <lucide-icon
-                                                [img]="CheckCircle"
-                                                class="w-8 h-8 text-primary"
-                                            />
+                                            <i class="pi pi-check-circle w-8 h-8 text-primary"></i>
                                         </div>
                                         <div class="text-center">
                                             <h3 class="text-lg font-black tracking-tight mb-1">
@@ -312,7 +302,7 @@
                                                 severity="primary"
                                                 styleClass="px-6 py-2.5 rounded-md bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
                                             >
-                                                <lucide-icon [img]="Zap" class="w-4 h-4 mr-2" />
+                                                <i class="pi pi-bolt w-4 h-4 mr-2"></i>
                                             </p-button>
                                         </div>
                                     </div>
@@ -416,15 +406,7 @@
                                                 : 'border-surface-300 hover:border-primary/50 hover:bg-surface-50')
                                         "
                                     >
-                                        <lucide-icon
-                                            [img]="Upload"
-                                            [class]="
-                                                'w-10 h-10 transition-colors ' +
-                                                (isDropZoneActive()
-                                                    ? 'text-primary'
-                                                    : 'text-surface-400')
-                                            "
-                                        />
+                                        <i class="pi pi-circle"></i>
                                         <div class="text-center">
                                             <p
                                                 class="text-sm font-black uppercase tracking-widest mb-1"

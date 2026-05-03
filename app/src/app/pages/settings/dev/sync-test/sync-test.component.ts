@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AlertTriangle, ArrowLeft, Database, LucideAngularModule } from 'lucide-angular';
 
 import { AppShellComponent } from '../../../../components/layout/app-shell/app-shell.component';
 
@@ -13,14 +12,12 @@ import { AppShellComponent } from '../../../../components/layout/app-shell/app-s
 @Component({
     selector: 'sync-test',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
+    imports: [CommonModule, RouterLink, AppShellComponent],
     templateUrl: './sync-test.component.html',
     styleUrls: ['./sync-test.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SyncTestComponent {
     // Lucide Icons
-    readonly ArrowLeft = ArrowLeft;
-    readonly Database = Database;
-    readonly AlertTriangle = AlertTriangle;
 }

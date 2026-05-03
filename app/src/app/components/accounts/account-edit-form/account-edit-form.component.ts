@@ -19,7 +19,6 @@ import type {
     ISODateString
 } from '@core';
 import { AccountType, LoanCalculations, TypeGuards } from '@core';
-import { AlertCircle, LucideAngularModule } from 'lucide-angular';
 
 /**
  * Form for creating or editing accounts.
@@ -28,7 +27,7 @@ import { AlertCircle, LucideAngularModule } from 'lucide-angular';
 @Component({
     selector: 'account-edit-form',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    imports: [CommonModule, ReactiveFormsModule],
     templateUrl: './account-edit-form.component.html',
     styleUrls: ['./account-edit-form.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -161,5 +160,4 @@ export class AccountEditFormComponent implements OnInit {
     }
 
     // Lucide Icons
-    readonly AlertCircle = AlertCircle;
 }

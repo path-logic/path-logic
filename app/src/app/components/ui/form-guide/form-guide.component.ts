@@ -8,7 +8,6 @@ import {
     input,
     signal
 } from '@angular/core';
-import { ChevronRight, EyeOff, HelpCircle, LucideAngularModule, X } from 'lucide-angular';
 
 import { UserSettingsStore } from '../../../services/user-settings-store/user-settings.store';
 
@@ -18,7 +17,7 @@ import { UserSettingsStore } from '../../../services/user-settings-store/user-se
 @Component({
     selector: 'form-guide',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule],
+    imports: [CommonModule],
     templateUrl: './form-guide.component.html',
     styleUrls: ['./form-guide.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -75,8 +74,4 @@ export class FormGuideComponent {
     }
 
     // Lucide Icons
-    readonly HelpCircle = HelpCircle;
-    readonly X = X;
-    readonly ChevronRight = ChevronRight;
-    readonly EyeOff = EyeOff;
 }

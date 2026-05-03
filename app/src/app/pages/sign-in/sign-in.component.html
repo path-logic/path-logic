@@ -18,7 +18,7 @@
         <!-- Sign In Button -->
         <button class="sign-in-button" (click)="signInWithGoogle()" [disabled]="isLoading()">
             @if (isLoading()) {
-                <lucide-icon [img]="Loader2Icon" class="spinner" />
+                <i class="pi pi-circle spinner"></i>
                 <span>Authenticating...</span>
             } @else {
                 <svg
@@ -59,7 +59,7 @@
         <!-- Trust Signals -->
         <div class="trust-section">
             <div class="trust-item">
-                <lucide-icon [img]="LockIcon" class="trust-icon" />
+                <i class="pi pi-circle trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">End-to-End Encrypted</p>
                     <p class="trust-description text-content-muted">
@@ -69,7 +69,7 @@
             </div>
 
             <div class="trust-item">
-                <lucide-icon [img]="CloudIcon" class="trust-icon" />
+                <i class="pi pi-circle trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">User-Owned Storage</p>
                     <p class="trust-description text-content-muted">
@@ -79,7 +79,7 @@
             </div>
 
             <div class="trust-item">
-                <lucide-icon [img]="ShieldIcon" class="trust-icon" />
+                <i class="pi pi-circle trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">Zero-Knowledge Architecture</p>
                     <p class="trust-description text-content-muted">

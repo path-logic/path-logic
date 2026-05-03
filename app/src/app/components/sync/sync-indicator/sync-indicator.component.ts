@@ -1,7 +1,6 @@
 import type { OnDestroy, OnInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import type { TimerHandle } from '@core';
-import { AlertTriangle, Cloud, LucideAngularModule, RefreshCw } from 'lucide-angular';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -14,7 +13,7 @@ import { SyncService } from '../../../services/sync/sync.service';
 @Component({
     selector: 'sync-indicator',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './sync-indicator.component.html',
     styleUrl: './sync-indicator.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -23,10 +22,6 @@ export class SyncIndicatorComponent implements OnInit, OnDestroy {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly syncService: SyncService = inject(SyncService);
     private readonly authService: AuthService = inject(AuthService);
-
-    readonly CloudIcon = Cloud;
-    readonly RefreshCwIcon = RefreshCw;
-    readonly AlertTriangleIcon = AlertTriangle;
 
     private pollInterval: TimerHandle | null = null;
     readonly lastSyncTime = signal<number>(0);

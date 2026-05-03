@@ -150,10 +150,12 @@
                                                 class="text-[9px] font-bold uppercase text-nowrap flex items-center gap-1.5"
                                                 [class]="getStatusClass($any(cell.getValue()))"
                                             >
-                                                <lucide-icon
-                                                    [img]="getStatusIcon($any(cell.getValue()))"
-                                                    class="w-3 h-3"
-                                                />
+                                                <i
+                                                    [class]="
+                                                        'pi w-3 h-3 ' +
+                                                        getStatusIcon($any(cell.getValue()))
+                                                    "
+                                                ></i>
                                                 {{ cell.getValue() }}
                                             </div>
                                         }

@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { type IAccount } from '@core';
-import { ChevronLeft, Info, LucideAngularModule } from 'lucide-angular';
 
 import { AccountEditFormComponent } from '../../../components/accounts/account-edit-form/account-edit-form.component';
 import { AppShellComponent } from '../../../components/layout/app-shell/app-shell.component';
@@ -15,7 +14,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'account-info',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule, AccountEditFormComponent, AppShellComponent],
+    imports: [CommonModule, AccountEditFormComponent, AppShellComponent],
     templateUrl: './account-info.component.html',
     styleUrls: ['./account-info.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -60,6 +59,4 @@ export class AccountInfoComponent {
     }
 
     // Lucide Icons
-    readonly ChevronLeft = ChevronLeft;
-    readonly Info = Info;
 }

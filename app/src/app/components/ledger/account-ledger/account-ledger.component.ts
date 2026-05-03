@@ -15,17 +15,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { ISODateString, ISplit, ITransaction } from '@core';
 import { AccountType, KnownCategory, Money, TransactionStatus } from '@core';
-import {
-    Banknote,
-    Calendar,
-    CreditCard,
-    Landmark,
-    LucideAngularModule,
-    Plus,
-    Search,
-    Upload,
-    Wallet
-} from 'lucide-angular';
 import { MessageService } from 'primeng/api';
 
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
@@ -44,7 +33,6 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         CommonModule,
         FormsModule,
         RouterLink,
-        LucideAngularModule,
         TransactionTableComponent,
         SyncIndicatorComponent,
         ReconciliationDialogComponent,
@@ -339,19 +327,18 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
         return Money.formatCurrency(amount);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getAccountIcon(type: AccountType): any {
+    getAccountIcon(type: AccountType | undefined): string {
         switch (type) {
             case AccountType.Checking:
-                return Landmark;
+                return 'pi-building-columns';
             case AccountType.Savings:
-                return Banknote;
+                return 'pi-chart-line';
             case AccountType.Credit:
-                return CreditCard;
+                return 'pi-credit-card';
             case AccountType.Cash:
-                return Wallet;
+                return 'pi-wallet';
             default:
-                return Landmark;
+                return 'pi-building-columns';
         }
     }
 
@@ -362,13 +349,4 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     }
 
     // ── Icons ─────────────────────────────────────────────────────────────────
-
-    readonly Landmark = Landmark;
-    readonly Banknote = Banknote;
-    readonly CreditCard = CreditCard;
-    readonly Wallet = Wallet;
-    readonly Plus = Plus;
-    readonly Search = Search;
-    readonly Calendar = Calendar;
-    readonly Upload = Upload;
 }

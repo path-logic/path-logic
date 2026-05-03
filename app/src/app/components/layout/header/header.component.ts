@@ -11,15 +11,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { type ITransaction, Money, TransactionStatus } from '@core';
-import {
-    BarChart3,
-    Calendar,
-    CreditCard,
-    Home,
-    LucideAngularModule,
-    Settings,
-    Users
-} from 'lucide-angular';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../../services/auth/auth.service';
@@ -31,7 +22,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 export interface INavItem {
     name: string;
     href: string;
-    icon: object;
+    icon: string;
 }
 
 /**
@@ -40,7 +31,7 @@ export interface INavItem {
 @Component({
     selector: 'header',
     standalone: true,
-    imports: [RouterLink, RouterLinkActive, LucideAngularModule],
+    imports: [RouterLink, RouterLinkActive],
     templateUrl: './header.component.html',
     styleUrl: './header.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -76,12 +67,12 @@ export class HeaderComponent {
      * List of navigation links shown in the header.
      */
     readonly navItems = new Array<INavItem>(
-        { name: 'Overview', href: '/', icon: Home } satisfies INavItem,
-        { name: 'Accounts', href: '/accounts', icon: CreditCard } satisfies INavItem,
-        { name: 'Payees', href: '/payees', icon: Users } satisfies INavItem,
-        { name: 'Recurring', href: '/recurring', icon: Calendar } satisfies INavItem,
-        { name: 'Reports', href: '/reports', icon: BarChart3 } satisfies INavItem,
-        { name: 'Settings', href: '/settings', icon: Settings } satisfies INavItem
+        { name: 'Overview', href: '/', icon: 'pi-home' } satisfies INavItem,
+        { name: 'Accounts', href: '/accounts', icon: 'pi-credit-card' } satisfies INavItem,
+        { name: 'Payees', href: '/payees', icon: 'pi-users' } satisfies INavItem,
+        { name: 'Recurring', href: '/recurring', icon: 'pi-calendar' } satisfies INavItem,
+        { name: 'Reports', href: '/reports', icon: 'pi-chart-bar' } satisfies INavItem,
+        { name: 'Settings', href: '/settings', icon: 'pi-cog' } satisfies INavItem
     );
 
     readonly netBalance = computed((): number => {

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
-import { LucideAngularModule, X } from 'lucide-angular';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 
 /**
@@ -11,7 +10,7 @@ import { ImportOrchestrationService } from '../../../services/import/import-orch
 @Component({
     selector: 'import-progress-overlay',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule],
+    imports: [CommonModule],
     templateUrl: './import-progress-overlay.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -67,6 +66,4 @@ export class ImportProgressOverlayComponent {
         this.importService.cancel();
         this.cancelled.emit();
     }
-
-    readonly X = X;
 }

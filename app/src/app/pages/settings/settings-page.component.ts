@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { LucideAngularModule, Monitor, Moon, Palette, Shield, Sun, Zap } from 'lucide-angular';
 
 import { environment } from '../../../environments/environment';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -15,7 +14,7 @@ import { type ThemePreference, ThemeService } from '../../services/theme/theme.s
 @Component({
     selector: 'settings-page',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule, AppShellComponent, FeatureFlagToggleComponent],
+    imports: [CommonModule, AppShellComponent, FeatureFlagToggleComponent],
     templateUrl: './settings-page.component.html',
     styleUrls: ['./settings-page.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -24,14 +23,13 @@ export class SettingsPageComponent {
     private readonly themeService = inject(ThemeService);
 
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
-    readonly environment = environment;
     readonly currentTheme = this.themeService.preference;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: any }> = [
-        { value: 'system', label: 'System', icon: Monitor },
-        { value: 'light', label: 'Light', icon: Sun },
-        { value: 'dark', label: 'Dark', icon: Moon }
+     
+    readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: string }> = [
+        { value: 'system', label: 'System', icon: 'pi-desktop' },
+        { value: 'light', label: 'Light', icon: 'pi-sun' },
+        { value: 'dark', label: 'Dark', icon: 'pi-moon' }
     ];
 
     readonly storybookUrl = environment.production
@@ -39,9 +37,6 @@ export class SettingsPageComponent {
         : 'http://localhost:6006';
 
     // Lucide Icons
-    readonly Shield = Shield;
-    readonly Zap = Zap;
-    readonly Palette = Palette;
 
     setTheme(pref: ThemePreference): void {
         this.themeService.setTheme(pref);

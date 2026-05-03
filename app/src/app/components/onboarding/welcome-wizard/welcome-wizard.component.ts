@@ -10,23 +10,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
-import {
-    ArrowRight,
-    Banknote,
-    Car,
-    CheckCircle,
-    ChevronDown,
-    ChevronUp,
-    CreditCard,
-    Home,
-    Landmark,
-    LucideAngularModule,
-    Receipt,
-    Sparkles,
-    Upload,
-    Wallet,
-    Zap
-} from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
 
@@ -44,8 +27,7 @@ type WizardStep = 'select-type' | 'enter-details' | 'import-data';
  */
 interface IAccountTypeOption {
     type: AccountType;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
+    icon: string;
     label: string;
     description: string;
 }
@@ -53,25 +35,25 @@ interface IAccountTypeOption {
 const PRIMARY_TYPES: Array<IAccountTypeOption> = [
     {
         type: AccountType.Checking,
-        icon: Landmark,
+        icon: 'pi-building-columns',
         label: 'Checking Account',
         description: 'Track daily spending, bills, and income'
     },
     {
         type: AccountType.Savings,
-        icon: Banknote,
+        icon: 'pi-money-bill',
         label: 'Savings Account',
         description: 'Monitor long-term savings goals'
     },
     {
         type: AccountType.Credit,
-        icon: CreditCard,
+        icon: 'pi-credit-card',
         label: 'Credit Card',
         description: 'Track credit card spending and payments'
     },
     {
         type: AccountType.Cash,
-        icon: Wallet,
+        icon: 'pi-wallet',
         label: 'Cash',
         description: 'Monitor physical cash transactions'
     }
@@ -80,19 +62,19 @@ const PRIMARY_TYPES: Array<IAccountTypeOption> = [
 const LOAN_TYPES: Array<IAccountTypeOption> = [
     {
         type: AccountType.Mortgage,
-        icon: Home,
+        icon: 'pi-home',
         label: 'Mortgage',
         description: 'Track home loan, escrow, and equity'
     },
     {
         type: AccountType.AutoLoan,
-        icon: Car,
+        icon: 'pi-car',
         label: 'Auto Loan',
         description: 'Track vehicle financing and payoff'
     },
     {
         type: AccountType.PersonalLoan,
-        icon: Receipt,
+        icon: 'pi-receipt',
         label: 'Personal Loan',
         description: 'Track unsecured debts and consolidation'
     }
@@ -165,7 +147,6 @@ const TYPE_THEMING: Record<
     standalone: true,
     imports: [
         FormsModule,
-        LucideAngularModule,
         LoanDetailsFormComponent,
         Stepper,
         StepList,
@@ -393,12 +374,4 @@ export class WelcomeWizardComponent {
     }
 
     // Lucide Icons
-    readonly ArrowRight = ArrowRight;
-    readonly ChevronDown = ChevronDown;
-    readonly ChevronUp = ChevronUp;
-    readonly Sparkles = Sparkles;
-    readonly Landmark = Landmark;
-    readonly Upload = Upload;
-    readonly CheckCircle = CheckCircle;
-    readonly Zap = Zap;
 }

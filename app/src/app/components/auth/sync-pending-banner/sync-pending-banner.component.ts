@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { LucideAngularModule, RefreshCw, WifiOff } from 'lucide-angular';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -17,7 +16,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'sync-pending-banner',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './sync-pending-banner.component.html',
     styleUrl: './sync-pending-banner.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,9 +28,6 @@ export class SyncPendingBannerComponent {
     readonly showBanner = computed((): boolean => {
         return this.ledgerStore.authError() && this.ledgerStore.syncStatus() === 'pending-local';
     });
-
-    readonly WifiOff = WifiOff;
-    readonly RefreshCw = RefreshCw;
 
     async reAuthenticate(): Promise<void> {
         try {

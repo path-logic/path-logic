@@ -20,7 +20,6 @@ import type {
     ISODateString
 } from '@core';
 import { AccountType, LoanCalculations } from '@core';
-import { ArrowLeft, ArrowRight, Car, Home, LucideAngularModule, Receipt } from 'lucide-angular';
 
 import { FormGuideComponent } from '../../ui/form-guide/form-guide.component';
 
@@ -31,7 +30,7 @@ import { FormGuideComponent } from '../../ui/form-guide/form-guide.component';
 @Component({
     selector: 'loan-details-form',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, FormGuideComponent],
+    imports: [CommonModule, ReactiveFormsModule, FormGuideComponent],
     templateUrl: './loan-details-form.component.html',
     styleUrls: ['./loan-details-form.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -58,13 +57,13 @@ export class LoanDetailsFormComponent implements OnInit {
     readonly icon = computed(() => {
         switch (this.type()) {
             case AccountType.Mortgage:
-                return Home;
+                return 'pi-home';
             case AccountType.AutoLoan:
-                return Car;
+                return 'pi-car';
             case AccountType.PersonalLoan:
-                return Receipt;
+                return 'pi-receipt';
             default:
-                return Home;
+                return 'pi-home';
         }
     });
 
@@ -275,6 +274,4 @@ export class LoanDetailsFormComponent implements OnInit {
     }
 
     // Lucide Icons
-    readonly ArrowLeft = ArrowLeft;
-    readonly ArrowRight = ArrowRight;
 }

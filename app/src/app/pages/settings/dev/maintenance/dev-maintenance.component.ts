@@ -1,22 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-    AlertTriangle,
-    ArrowLeft,
-    CheckCircle2,
-    Database,
-    Info,
-    LucideAngularModule,
-    RefreshCw,
-    RotateCcw,
-    ShieldAlert,
-    Tag,
-    Trash2,
-    Users,
-    Wallet,
-    XCircle
-} from 'lucide-angular';
 
 import { environment } from '../../../../../environments/environment';
 import { AppShellComponent } from '../../../../components/layout/app-shell/app-shell.component';
@@ -37,7 +21,7 @@ import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'dev-maintenance',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
+    imports: [CommonModule, RouterLink, AppShellComponent],
     templateUrl: './dev-maintenance.component.html',
     styleUrls: ['./dev-maintenance.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -155,17 +139,4 @@ export class DevMaintenanceComponent {
     }
 
     // Lucide Icons
-    readonly ArrowLeft = ArrowLeft;
-    readonly AlertTriangle = AlertTriangle;
-    readonly Trash2 = Trash2;
-    readonly Database = Database;
-    readonly RotateCcw = RotateCcw;
-    readonly ShieldAlert = ShieldAlert;
-    readonly CheckCircle2 = CheckCircle2;
-    readonly XCircle = XCircle;
-    readonly Users = Users;
-    readonly Tag = Tag;
-    readonly Wallet = Wallet;
-    readonly Info = Info;
-    readonly RefreshCw = RefreshCw;
 }

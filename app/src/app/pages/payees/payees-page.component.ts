@@ -2,18 +2,6 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { IPayee } from '@core';
-import {
-    ChevronDown,
-    ChevronRight,
-    FileText,
-    Globe,
-    LucideAngularModule,
-    MapPin,
-    Phone,
-    Plus,
-    Search,
-    User
-} from 'lucide-angular';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { PayeeEditDialogComponent } from '../../components/payees/payee-edit-dialog/payee-edit-dialog.component';
@@ -26,13 +14,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 @Component({
     selector: 'payees-page',
     standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        LucideAngularModule,
-        AppShellComponent,
-        PayeeEditDialogComponent
-    ],
+    imports: [CommonModule, FormsModule, AppShellComponent, PayeeEditDialogComponent],
     templateUrl: './payees-page.component.html',
     styleUrls: ['./payees-page.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -87,13 +69,4 @@ export class PayeesPageComponent {
     }
 
     // Lucide Icons
-    readonly Plus = Plus;
-    readonly ChevronDown = ChevronDown;
-    readonly ChevronRight = ChevronRight;
-    readonly User = User;
-    readonly MapPin = MapPin;
-    readonly Globe = Globe;
-    readonly Phone = Phone;
-    readonly FileText = FileText;
-    readonly Search = Search;
 }

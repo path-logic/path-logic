@@ -13,22 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
-import {
-    Banknote,
-    Car,
-    CheckCircle,
-    ChevronDown,
-    ChevronUp,
-    CreditCard,
-    Home,
-    Landmark,
-    LucideAngularModule,
-    Receipt,
-    Upload,
-    Wallet,
-    X,
-    Zap
-} from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
@@ -47,8 +31,7 @@ type WizardStep = 'select-type' | 'enter-details' | 'import-data' | 'creating';
  */
 interface IAccountTypeOption {
     type: AccountType;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
+    icon: string;
     label: string;
     description: string;
 }
@@ -56,25 +39,25 @@ interface IAccountTypeOption {
 const PRIMARY_TYPES: Array<IAccountTypeOption> = [
     {
         type: AccountType.Checking,
-        icon: Landmark,
+        icon: 'pi-building-columns',
         label: 'Checking',
         description: 'Daily spending & income'
     },
     {
         type: AccountType.Savings,
-        icon: Banknote,
+        icon: 'pi-money-bill',
         label: 'Savings',
         description: 'Long-term goals'
     },
     {
         type: AccountType.Credit,
-        icon: CreditCard,
+        icon: 'pi-credit-card',
         label: 'Credit Card',
         description: 'Track spending & debt'
     },
     {
         type: AccountType.Cash,
-        icon: Wallet,
+        icon: 'pi-wallet',
         label: 'Cash',
         description: 'Physical currency'
     }
@@ -83,19 +66,19 @@ const PRIMARY_TYPES: Array<IAccountTypeOption> = [
 const LOAN_TYPES: Array<IAccountTypeOption> = [
     {
         type: AccountType.Mortgage,
-        icon: Home,
+        icon: 'pi-home',
         label: 'Mortgage',
         description: 'Home loan & equity'
     },
     {
         type: AccountType.AutoLoan,
-        icon: Car,
+        icon: 'pi-car',
         label: 'Auto Loan',
         description: 'Vehicle financing'
     },
     {
         type: AccountType.PersonalLoan,
-        icon: Receipt,
+        icon: 'pi-receipt',
         label: 'Personal Loan',
         description: 'Unsecured debt'
     }
@@ -152,7 +135,6 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
     imports: [
         CommonModule,
         FormsModule,
-        LucideAngularModule,
         LoanDetailsFormComponent,
         Stepper,
         StepList,
@@ -387,17 +369,4 @@ export class NewAccountDialogComponent {
     }
 
     // Lucide Icons
-    readonly X = X;
-    readonly Landmark = Landmark;
-    readonly Banknote = Banknote;
-    readonly CreditCard = CreditCard;
-    readonly Wallet = Wallet;
-    readonly Home = Home;
-    readonly Car = Car;
-    readonly Receipt = Receipt;
-    readonly ChevronDown = ChevronDown;
-    readonly ChevronUp = ChevronUp;
-    readonly Upload = Upload;
-    readonly CheckCircle = CheckCircle;
-    readonly Zap = Zap;
 }

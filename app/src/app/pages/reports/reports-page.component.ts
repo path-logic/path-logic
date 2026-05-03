@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BarChart3, LucideAngularModule, PieChart, TrendingUp, Wallet } from 'lucide-angular';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 
@@ -10,16 +9,11 @@ import { AppShellComponent } from '../../components/layout/app-shell/app-shell.c
 @Component({
     selector: 'reports-page',
     standalone: true,
-    imports: [LucideAngularModule, AppShellComponent],
+    imports: [AppShellComponent],
     templateUrl: './reports-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReportsPageComponent {
-    readonly BarChart3 = BarChart3;
-    readonly PieChart = PieChart;
-    readonly TrendingUp = TrendingUp;
-    readonly Wallet = Wallet;
-
     readonly plannedReports = [
         { title: 'Monthly Budget' },
         { title: 'Cash Flow Statement' },

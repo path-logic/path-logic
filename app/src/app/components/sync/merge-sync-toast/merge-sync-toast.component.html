@@ -1,7 +1,7 @@
 @if (visible()) {
     <div class="merge-toast" role="status" aria-live="polite">
         <div class="toast-icon-wrap">
-            <lucide-icon [img]="GitMerge" class="toast-icon" aria-hidden="true" />
+            <i class="pi pi-sort-alt toast-icon"></i>
         </div>
 
         <div class="toast-body">
@@ -23,7 +23,7 @@
         </div>
 
         <button class="toast-close" (click)="dismiss()" aria-label="Dismiss">
-            <lucide-icon [img]="X" class="close-icon" />
+            <i class="pi pi-times close-icon"></i>
         </button>
 
         <!-- Auto-dismiss progress bar -->

@@ -13,18 +13,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import type { IReconciliationMatch } from '@core';
 import { Money } from '@core';
-import {
-    AlertCircle,
-    ArrowRight,
-    CheckCheck,
-    CheckCircle,
-    HelpCircle,
-    Link as LinkIcon,
-    LucideAngularModule,
-    PlusCircle,
-    X,
-    Zap
-} from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import type { IImportStats, ReconciliationDecision } from '../../../services/import/import.types';
@@ -35,7 +23,7 @@ export type { IReconciliationMatch };
 
 type ReviewTab = 'all' | 'new' | 'review' | 'skipped';
 
-const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
 /**
  * ReconciliationDialogComponent — review and resolve QIF import matches.
@@ -48,7 +36,7 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 @Component({
     selector: 'reconciliation-dialog',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule, Dialog, Button],
+    imports: [CommonModule, FormsModule, Dialog, Button],
     templateUrl: './reconciliation-dialog.component.html',
     styleUrls: ['./reconciliation-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -74,6 +62,7 @@ export class ReconciliationDialogComponent {
     // Smart Review state
     readonly activeTab = signal<ReviewTab>('all');
     readonly page = signal<number>(0);
+    readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
     readonly pageSize = signal<(typeof PAGE_SIZE_OPTIONS)[number]>(50);
     readonly selectedIndices = signal<Set<number>>(new Set());
     readonly smartDefaultsApplied = signal<boolean>(false);
@@ -304,17 +293,5 @@ export class ReconciliationDialogComponent {
         return id as ReviewTab;
     }
 
-    readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
-
     // ── Icons ─────────────────────────────────────────────────────────────────
-
-    readonly AlertCircle = AlertCircle;
-    readonly ArrowRight = ArrowRight;
-    readonly CheckCheck = CheckCheck;
-    readonly CheckCircle = CheckCircle;
-    readonly HelpCircle = HelpCircle;
-    readonly LinkIcon = LinkIcon;
-    readonly PlusCircle = PlusCircle;
-    readonly X = X;
-    readonly Zap = Zap;
 }

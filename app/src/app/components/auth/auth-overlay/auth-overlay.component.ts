@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Cloud, Lock, LucideAngularModule, ShieldCheck } from 'lucide-angular';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -11,7 +10,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'auth-overlay',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './auth-overlay.component.html',
     styleUrl: './auth-overlay.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -19,10 +18,6 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 export class AuthOverlayComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly authService: AuthService = inject(AuthService);
-
-    readonly LockIcon = Lock;
-    readonly CloudIcon = Cloud;
-    readonly ShieldCheckIcon = ShieldCheck;
 
     /**
      * Computed signal that determines if the overlay should be visible.

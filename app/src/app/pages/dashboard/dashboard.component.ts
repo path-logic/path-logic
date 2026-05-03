@@ -3,16 +3,6 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import type { CashflowProjection, IAccount, IRecurringSchedule, ITransaction } from '@core';
 import { AccountType, generateProjection, Money, TransactionStatus } from '@core';
-import {
-    ChevronRight,
-    Clock,
-    CreditCard,
-    Landmark,
-    LucideAngularModule,
-    Plus,
-    TrendingUp,
-    Wallet
-} from 'lucide-angular';
 
 import { ProjectionChartComponent } from '../../components/dashboard/projection-chart/projection-chart.component';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -24,13 +14,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 @Component({
     selector: 'dashboard',
     standalone: true,
-    imports: [
-        RouterLink,
-        DatePipe,
-        LucideAngularModule,
-        AppShellComponent,
-        ProjectionChartComponent
-    ],
+    imports: [RouterLink, DatePipe, AppShellComponent, ProjectionChartComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -43,11 +27,6 @@ export class DashboardComponent {
     readonly isInitialized = this.ledgerStore.isInitialized;
 
     // Icons
-    readonly Plus = Plus;
-    readonly TrendingUp = TrendingUp;
-    readonly Landmark = Landmark;
-    readonly ChevronRight = ChevronRight;
-    readonly Clock = Clock;
 
     /**
      * Total net position (cleared + pending).
@@ -129,19 +108,18 @@ export class DashboardComponent {
     }
 
     /**
-     * Returns the appropriate Lucide icon for an account type.
+     * Returns the appropriate PrimeIcon class for an account type.
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getAccountIcon(type: AccountType): any {
+    getAccountIcon(type: AccountType): string {
         switch (type) {
             case AccountType.Checking:
-                return Landmark;
+                return 'pi-building-columns';
             case AccountType.Savings:
-                return TrendingUp;
+                return 'pi-chart-line';
             case AccountType.Credit:
-                return CreditCard;
+                return 'pi-credit-card';
             default:
-                return Wallet;
+                return 'pi-wallet';
         }
     }
 }

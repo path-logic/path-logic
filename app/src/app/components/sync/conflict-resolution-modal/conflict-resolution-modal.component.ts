@@ -1,13 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import {
-    AlertTriangle,
-    Check,
-    Cloud,
-    GitMerge,
-    LucideAngularModule,
-    Monitor,
-    X
-} from 'lucide-angular';
 
 import type { ITransactionConflict } from '../../../lib/sync/MergeEngine';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -23,20 +14,13 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'conflict-resolution-modal',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './conflict-resolution-modal.component.html',
     styleUrl: './conflict-resolution-modal.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConflictResolutionModalComponent {
     private readonly ledgerStore = inject(LedgerStore);
-
-    readonly AlertTriangle = AlertTriangle;
-    readonly Check = Check;
-    readonly X = X;
-    readonly GitMerge = GitMerge;
-    readonly Monitor = Monitor;
-    readonly Cloud = Cloud;
 
     readonly conflicts = computed(() => this.ledgerStore.syncConflicts());
     readonly showModal = computed(() => this.conflicts().length > 0);

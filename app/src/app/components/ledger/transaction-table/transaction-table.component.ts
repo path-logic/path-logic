@@ -24,7 +24,6 @@ import {
     getSortedRowModel
 } from '@tanstack/angular-table';
 import { injectVirtualizer } from '@tanstack/angular-virtual';
-import { CheckCircle2, Clock, LucideAngularModule } from 'lucide-angular';
 
 /**
  * High-density transaction table component.
@@ -34,7 +33,7 @@ import { CheckCircle2, Clock, LucideAngularModule } from 'lucide-angular';
 @Component({
     selector: 'transaction-table',
     standalone: true,
-    imports: [CommonModule, FormsModule, LucideAngularModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './transaction-table.component.html',
     styleUrls: ['./transaction-table.component.css'],
     providers: [DecimalPipe, DatePipe],
@@ -243,9 +242,8 @@ export class TransactionTableComponent implements OnInit {
         return 'text-[9px] bg-surface-100 px-1.5 py-0.5 rounded-sm border border-surface-200 text-surface-500 whitespace-nowrap uppercase tracking-tighter font-bold';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getStatusIcon(status: TransactionStatus): any {
-        return status === TransactionStatus.Cleared ? CheckCircle2 : Clock;
+    getStatusIcon(status: TransactionStatus): string {
+        return status === TransactionStatus.Cleared ? 'pi-check-circle' : 'pi-clock';
     }
 
     getStatusClass(status: string): string {
@@ -296,6 +294,4 @@ export class TransactionTableComponent implements OnInit {
     }
 
     // Lucide icons
-    readonly CheckCircle2 = CheckCircle2;
-    readonly Clock = Clock;
 }

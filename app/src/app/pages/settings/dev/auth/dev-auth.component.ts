@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ArrowLeft, CheckCircle2, Key, LogOut, LucideAngularModule, Shield } from 'lucide-angular';
 
 import { AppShellComponent } from '../../../../components/layout/app-shell/app-shell.component';
 import { AuthService } from '../../../../services/auth/auth.service';
@@ -14,7 +13,7 @@ import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'dev-auth',
     standalone: true,
-    imports: [CommonModule, LucideAngularModule, RouterLink, AppShellComponent],
+    imports: [CommonModule, RouterLink, AppShellComponent],
     templateUrl: './dev-auth.component.html',
     styleUrls: ['./dev-auth.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -63,9 +62,4 @@ export class DevAuthComponent {
     }
 
     // Lucide Icons
-    readonly Shield = Shield;
-    readonly Key = Key;
-    readonly LogOut = LogOut;
-    readonly CheckCircle2 = CheckCircle2;
-    readonly ArrowLeft = ArrowLeft;
 }

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Cloud, Loader2, Lock, LucideAngularModule, Shield } from 'lucide-angular';
 
 import { AuthService } from '../../services/auth/auth.service';
 import { PostHogService } from '../../services/posthog/posthog.service';
@@ -11,7 +10,7 @@ import { PostHogService } from '../../services/posthog/posthog.service';
 @Component({
     selector: 'sign-in',
     standalone: true,
-    imports: [LucideAngularModule],
+    imports: [],
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -20,11 +19,6 @@ export class SignInComponent {
     private readonly authService: AuthService = inject(AuthService);
     private readonly router: Router = inject(Router);
     private readonly posthogService: PostHogService = inject(PostHogService);
-
-    readonly ShieldIcon = Shield;
-    readonly CloudIcon = Cloud;
-    readonly LockIcon = Lock;
-    readonly Loader2Icon = Loader2;
 
     readonly isLoading = signal<boolean>(false);
     readonly signInError = signal<string | null>(null);

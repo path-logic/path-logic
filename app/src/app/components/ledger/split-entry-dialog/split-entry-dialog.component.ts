@@ -13,7 +13,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import type { ISplit } from '@core';
 import { KnownCategory, Money } from '@core';
-import { Calculator, LucideAngularModule, Plus, Scale, Trash2, X } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
@@ -28,7 +27,7 @@ import { PostHogService } from '../../../services/posthog/posthog.service';
 @Component({
     selector: 'split-entry-dialog',
     standalone: true,
-    imports: [FormsModule, LucideAngularModule, Dialog, Button, Select],
+    imports: [FormsModule, Dialog, Button, Select],
     templateUrl: './split-entry-dialog.component.html',
     styleUrls: ['./split-entry-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -170,9 +169,4 @@ export class SplitEntryDialogComponent {
     }
 
     // Lucide Icons
-    readonly Calculator = Calculator;
-    readonly Plus = Plus;
-    readonly Scale = Scale;
-    readonly Trash2 = Trash2;
-    readonly X = X;
 }

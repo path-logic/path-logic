@@ -2,17 +2,6 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AccountType, type IAccount, Money } from '@core';
-import {
-    Banknote,
-    ChevronDown,
-    ChevronRight,
-    CreditCard,
-    Landmark,
-    LucideAngularModule,
-    Plus,
-    Trash2,
-    Wallet
-} from 'lucide-angular';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { NewAccountDialogComponent } from '../../components/onboarding/new-account-dialog/new-account-dialog.component';
@@ -30,7 +19,6 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
     imports: [
         CommonModule,
         RouterLink,
-        LucideAngularModule,
         WelcomeWizardComponent,
         NewAccountDialogComponent,
         AppShellComponent
@@ -70,19 +58,21 @@ export class AccountsPageComponent {
         this.isOnboarding.set(false);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getIcon(type: AccountType): any {
+    /**
+     * Helper to determine account icon based on type
+     */
+    getAccountIcon(type: AccountType): string {
         switch (type) {
             case AccountType.Checking:
-                return Landmark;
+                return 'pi-building-columns';
             case AccountType.Savings:
-                return Banknote;
+                return 'pi-chart-line';
             case AccountType.Credit:
-                return CreditCard;
+                return 'pi-credit-card';
             case AccountType.Cash:
-                return Wallet;
+                return 'pi-wallet';
             default:
-                return Landmark;
+                return 'pi-building-columns';
         }
     }
 
@@ -123,8 +113,4 @@ export class AccountsPageComponent {
     }
 
     // Lucide Icons
-    readonly Plus = Plus;
-    readonly Trash2 = Trash2;
-    readonly ChevronDown = ChevronDown;
-    readonly ChevronRight = ChevronRight;
 }

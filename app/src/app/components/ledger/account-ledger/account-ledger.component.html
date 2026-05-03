@@ -19,7 +19,7 @@
                     Accounts
                 </h2>
                 <a routerLink="/accounts" class="text-primary hover:text-white transition-colors">
-                    <lucide-icon [img]="Plus" class="w-3 h-3" />
+                    <i class="pi pi-plus w-3 h-3"></i>
                 </a>
             </div>
             <div class="flex-1 overflow-y-auto p-2 space-y-1">
@@ -46,7 +46,7 @@
                                 {{ acc.name }}
                             </span>
                             <span class="text-[10px] text-surface-500 opacity-50">
-                                <lucide-icon [img]="getAccountIcon(acc.type)" class="w-3.5 h-3.5" />
+                                <i [class]="'pi w-3.5 h-3.5 ' + getAccountIcon(acc.type)"></i>
                             </span>
                         </div>
                         <div class="text-sm font-mono font-bold text-surface-500">
@@ -60,10 +60,9 @@
                     routerLink="/recurring"
                     class="flex items-center gap-2 p-2 rounded-sm hover:bg-primary/10 transition-colors group"
                 >
-                    <lucide-icon
-                        [img]="Calendar"
-                        class="w-3.5 h-3.5 text-surface-500 group-hover:text-primary"
-                    />
+                    <i
+                        class="pi pi-calendar w-3.5 h-3.5 text-surface-500 group-hover:text-primary"
+                    ></i>
                     <span
                         class="text-[10px] font-black uppercase tracking-widest text-surface-500 group-hover:text-primary"
                     >
@@ -135,10 +134,9 @@
                         Payee / Recipient
                     </label>
                     <div class="relative">
-                        <lucide-icon
-                            [img]="Search"
-                            class="absolute left-2 top-1.5 w-3 h-3 text-surface-500"
-                        />
+                        <i
+                            class="pi pi-search absolute left-2 top-1.5 w-3 h-3 text-surface-500"
+                        ></i>
                         <input
                             id="entry-payee"
                             type="text"
@@ -218,7 +216,7 @@
                     "
                     class="h-7 px-3 text-xs font-black uppercase bg-primary/10 border border-primary/20 text-primary rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                    <lucide-icon [img]="Upload" class="w-3 h-3" />
+                    <i class="pi pi-upload w-3 h-3"></i>
                     Import QIF
                 </button>
                 <button
@@ -249,7 +247,7 @@
                 <div
                     class="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none"
                 >
-                    <lucide-icon [img]="Upload" class="w-12 h-12 text-primary/50 mb-3" />
+                    <i class="pi pi-upload w-12 h-12 text-primary/50 mb-3"></i>
                     <p class="text-sm font-black uppercase tracking-[0.2em] text-primary">
                         Drop QIF File to Import
                     </p>
