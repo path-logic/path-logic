@@ -66,8 +66,10 @@ export class ThemeService {
             // Ignore — fall back to system
         }
         // Validate the stored value is still a known preference
-        const valid: ThemePreference[] = ['system', 'light', 'dark'];
-        this.preference.set(valid.includes(saved as ThemePreference) ? (saved as ThemePreference) : 'system');
+        const valid: Array<ThemePreference> = ['system', 'light', 'dark'];
+        this.preference.set(
+            valid.includes(saved as ThemePreference) ? (saved as ThemePreference) : 'system'
+        );
     }
 
     private applyTheme(preference: ThemePreference): void {

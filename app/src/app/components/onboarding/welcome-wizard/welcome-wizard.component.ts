@@ -7,12 +7,14 @@ import {
     signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
 import {
     ArrowRight,
     Banknote,
     Car,
+    CheckCircle,
     ChevronDown,
     ChevronUp,
     CreditCard,
@@ -21,18 +23,21 @@ import {
     LucideAngularModule,
     Receipt,
     Sparkles,
-    Wallet
+    Upload,
+    Wallet,
+    Zap
 } from 'lucide-angular';
 import { Button } from 'primeng/button';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
 
+import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { PostHogService } from '../../../services/posthog/posthog.service';
 import { LoanDetailsFormComponent } from '../loan-details-form/loan-details-form.component';
 
 /**
  * Wizard step types.
  */
-type WizardStep = 'select-type' | 'enter-details';
+type WizardStep = 'select-type' | 'enter-details' | 'import-data';
 
 /**
  * Account type option for the wizard.
@@ -175,9 +180,12 @@ const TYPE_THEMING: Record<
 })
 export class WelcomeWizardComponent {
     private readonly posthogService = inject(PostHogService);
+    readonly importService = inject(ImportOrchestrationService);
+    private readonly router = inject(Router);
 
     // Outputs
     readonly accountCreated = output<IAccount>();
+    readonly wizardCompleted = output();
 
     // State
     readonly step = signal<WizardStep>('select-type');
@@ -186,6 +194,13 @@ export class WelcomeWizardComponent {
     readonly accountName = signal<string>('');
     readonly initialBalance = signal<string>('');
     readonly error = signal<string | null>(null);
+
+    readonly createdAccount = signal<IAccount | null>(null);
+    readonly isDropZoneActive = signal<boolean>(false);
+
+    readonly importProgress = this.importService.progress;
+    readonly importStats = this.importService.stats;
+    readonly importDone = computed(() => this.importService.progress().stage === 'done');
 
     // Computed
     /**
@@ -197,6 +212,8 @@ export class WelcomeWizardComponent {
                 return 1;
             case 'enter-details':
                 return 2;
+            case 'import-data':
+                return 3;
             default:
                 return 1;
         }
@@ -248,7 +265,7 @@ export class WelcomeWizardComponent {
         }
     }
 
-    handleStandardAccountCreate(): void {
+    handleStandardAccountCreate(goToImport = false): void {
         if (!this.accountName().trim()) {
             this.error.set('Account name is required');
             return;
@@ -288,13 +305,21 @@ export class WelcomeWizardComponent {
             };
 
             // Emit to parent — the parent calls ledgerStore.addAccount() which
-            // updates accounts(). Once accounts().length > 0, the accounts page
-            // replaces this wizard with the account list view.
+            // updates accounts(). The wizard stays mounted because of isOnboarding flag.
+            this.createdAccount.set(newAccount);
             this.accountCreated.emit(newAccount);
             this.posthogService.posthog.capture('onboarding_account_created', {
                 account_type: type,
-                has_initial_balance: !!this.initialBalance()
+                has_initial_balance: !!this.initialBalance(),
+                will_import: goToImport
             });
+
+            if (goToImport) {
+                this.importService.reset();
+                this.step.set('import-data');
+            } else {
+                this.wizardCompleted.emit();
+            }
         } catch {
             this.error.set('Failed to create account');
             this.step.set('enter-details');
@@ -304,6 +329,49 @@ export class WelcomeWizardComponent {
     handleBack(): void {
         this.error.set(null);
         this.step.set('select-type');
+    }
+
+    // ── Import step helpers ───────────────────────────────────────────────────
+
+    onDropZoneDragOver(event: DragEvent): void {
+        event.preventDefault();
+        this.isDropZoneActive.set(true);
+    }
+
+    onDropZoneDragLeave(): void {
+        this.isDropZoneActive.set(false);
+    }
+
+    onDropZoneDrop(event: DragEvent): void {
+        event.preventDefault();
+        this.isDropZoneActive.set(false);
+        const file = event.dataTransfer?.files[0];
+        if (file) this.startImportFromFile(file);
+    }
+
+    onImportFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file) this.startImportFromFile(file);
+        input.value = '';
+    }
+
+    private startImportFromFile(file: File): void {
+        const accountId = this.createdAccount()?.id ?? '';
+        this.importService.startImport(file, accountId);
+    }
+
+    skipImport(): void {
+        this.importService.reset();
+        this.wizardCompleted.emit();
+    }
+
+    finishAfterImport(): void {
+        const accountId = this.createdAccount()?.id;
+        if (accountId) {
+            void this.router.navigate(['/accounts', accountId]);
+        }
+        this.wizardCompleted.emit();
     }
 
     getTypeTheming(type: AccountType): {
@@ -330,4 +398,7 @@ export class WelcomeWizardComponent {
     readonly ChevronUp = ChevronUp;
     readonly Sparkles = Sparkles;
     readonly Landmark = Landmark;
+    readonly Upload = Upload;
+    readonly CheckCircle = CheckCircle;
+    readonly Zap = Zap;
 }

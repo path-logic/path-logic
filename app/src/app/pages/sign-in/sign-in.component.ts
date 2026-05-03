@@ -44,11 +44,15 @@ export class SignInComponent {
             let userMessage = message;
             let errorType = 'unknown';
 
-            if (message.includes('popup-closed-by-user') || message.includes('cancelled-popup-request')) {
+            if (
+                message.includes('popup-closed-by-user') ||
+                message.includes('cancelled-popup-request')
+            ) {
                 userMessage = 'Sign-in cancelled. Please try again.';
                 errorType = 'popup_closed';
             } else if (message.includes('popup-blocked')) {
-                userMessage = 'Pop-up was blocked. Please allow pop-ups for this site and try again.';
+                userMessage =
+                    'Pop-up was blocked. Please allow pop-ups for this site and try again.';
                 errorType = 'popup_blocked';
             } else if (message.includes('network-request-failed')) {
                 userMessage = 'Network error. Please check your connection and try again.';

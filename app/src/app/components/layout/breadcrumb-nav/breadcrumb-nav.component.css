@@ -1,3 +1,31 @@
 :host {
     display: block;
 }
+
+::ng-deep .p-breadcrumb {
+    /* Override PrimeNG v18 breadcrumb component tokens */
+    --p-breadcrumb-item-color: var(--pl-text-muted);
+    --p-breadcrumb-item-hover-color: var(--pl-text-primary);
+    --p-breadcrumb-item-hover-background: var(--pl-bg-elevated);
+    --p-breadcrumb-separator-color: var(--pl-text-muted);
+
+    /* Also override text-color explicitly for any text within the breadcrumb */
+    --p-text-color: var(--pl-text-muted);
+    --p-text-muted-color: var(--pl-text-muted);
+}
+
+::ng-deep .p-breadcrumb .p-breadcrumb-item-link {
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+}
+
+::ng-deep .p-breadcrumb .p-breadcrumb-item-link:hover {
+    background-color: color-mix(in srgb, var(--pl-bg-elevated) 60%, transparent) !important;
+    color: var(--pl-text-primary) !important;
+}
+
+::ng-deep .p-breadcrumb .p-breadcrumb-item-link:hover .p-breadcrumb-item-label,
+::ng-deep .p-breadcrumb .p-breadcrumb-item-link:hover .p-breadcrumb-item-icon {
+    color: var(--pl-text-primary) !important;
+}

@@ -12,7 +12,7 @@ import type {
 
 import { encryptDatabase } from '../../lib/crypto/encryption';
 import type { ILockStatus } from '../../lib/storage/GoogleDriveAdapter';
-import type { ITransactionConflict } from '../../lib/sync/MergeEngine';
+import { saveLocalSnapshot } from '../../lib/storage/LocalPersistenceAdapter';
 import {
     deleteRecurringSchedule,
     deleteTransaction,
@@ -32,14 +32,13 @@ import {
     insertTransactions,
     loadDatabase,
     resetDatabase,
-    softDeleteAccount,
     softDeleteAccountCascade,
     updateAccount,
     updatePayee,
     updateRecurringSchedule,
     updateTransaction
 } from '../../lib/storage/SQLiteAdapter';
-import { saveLocalSnapshot } from '../../lib/storage/LocalPersistenceAdapter';
+import type { ITransactionConflict } from '../../lib/sync/MergeEngine';
 import {
     type IReconciliationMatch,
     ReconciliationEngine
@@ -91,8 +90,9 @@ export class LedgerStore {
     /** Number of transactions merged from Drive in the last background sync. */
     readonly mergeCount: WritableSignal<number> = signal<number>(0);
     /** Transactions with true conflicts (both sides changed since last sync). */
-    readonly syncConflicts: WritableSignal<Array<ITransactionConflict>> = signal<Array<ITransactionConflict>>([]);
-
+    readonly syncConflicts: WritableSignal<Array<ITransactionConflict>> = signal<
+        Array<ITransactionConflict>
+    >([]);
 
     /**
      * Firebase UID — set by SyncService after auth resolves.

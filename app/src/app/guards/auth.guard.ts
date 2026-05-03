@@ -1,5 +1,10 @@
 import { inject } from '@angular/core';
-import type { CanActivateFn, UrlTree } from '@angular/router';
+import type {
+    ActivatedRouteSnapshot,
+    CanActivateFn,
+    RouterStateSnapshot,
+    UrlTree
+} from '@angular/router';
 import { Router } from '@angular/router';
 
 import { environment } from '../../environments/environment';
@@ -8,10 +13,12 @@ import { AuthService } from '../services/auth/auth.service';
 /**
  * Functional route guard for protected routes.
  * Applied once at the parent route level so all child routes inherit protection.
- * Redirects to /sign-in if the user is not authenticated.
- * Bypassed when running in E2E test mode.
+ * Redirects to /sign-in if the user is not authenticated, preserving the requested URL.
  */
-export const authGuard: CanActivateFn = (): boolean | UrlTree => {
+export const authGuard: CanActivateFn = (
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+): boolean | UrlTree => {
     if (environment.e2e) {
         return true;
     }
@@ -23,5 +30,5 @@ export const authGuard: CanActivateFn = (): boolean | UrlTree => {
         return true;
     }
 
-    return router.createUrlTree(['/sign-in']);
+    return router.createUrlTree(['/sign-in'], { queryParams: { returnUrl: state.url } });
 };

@@ -87,7 +87,9 @@ export class AuthService {
                     const cached = this.restoreStoredToken(user.uid);
                     if (cached) {
                         this.accessToken.set(cached);
-                        console.info('[AuthService] Restored cached Google token from localStorage');
+                        console.info(
+                            '[AuthService] Restored cached Google token from localStorage'
+                        );
                     } else {
                         console.info(
                             '[AuthService] No valid cached token — user must re-authenticate for Drive'
@@ -107,9 +109,13 @@ export class AuthService {
             const user = this._user();
             if (user === undefined) return;
             if (!user) {
-                void this.router.navigate(['/sign-in']);
-            } else if (this.router.url === '/sign-in') {
-                void this.router.navigate(['/']);
+                if (!this.router.url.startsWith('/sign-in')) {
+                    void this.router.navigate(['/sign-in']);
+                }
+            } else if (this.router.url.startsWith('/sign-in')) {
+                const urlTree = this.router.parseUrl(this.router.url);
+                const returnUrl = urlTree.queryParams['returnUrl'] || '/';
+                void this.router.navigateByUrl(returnUrl);
             }
         });
     }

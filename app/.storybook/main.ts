@@ -20,7 +20,7 @@ const config = {
     },
     // Resolve TypeScript path aliases from tsconfig.base.json for the Vite pipeline.
     // viteFinal is injected by @storybook/builder-vite and not in the base StorybookConfig type.
-    viteFinal: async (config: Record<string, unknown>) => {
+    viteFinal: async (config: Record<string, unknown>): Promise<Record<string, unknown>> => {
         const { mergeConfig } = await import('vite');
         return mergeConfig(config as Parameters<typeof mergeConfig>[0], {
             resolve: {

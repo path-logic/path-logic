@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
-
 import { AppComponent } from './app.component';
+import { AuthService } from './services/auth/auth.service';
 
 describe('AppComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [AppComponent, RouterModule.forRoot([])]
+            imports: [AppComponent, RouterModule.forRoot([])],
+            providers: [{ provide: AuthService, useValue: { user$: null, session$: null } }]
         }).compileComponents();
     });
 

@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { LucideAngularModule, AlertTriangle, Check, X, GitMerge, Monitor, Cloud } from 'lucide-angular';
+import {
+    AlertTriangle,
+    Check,
+    Cloud,
+    GitMerge,
+    LucideAngularModule,
+    Monitor,
+    X
+} from 'lucide-angular';
 
 import type { ITransactionConflict } from '../../../lib/sync/MergeEngine';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';

@@ -19,28 +19,28 @@ module.exports = {
             // so they automatically switch between dark and light themes.
             colors: {
                 brand: {
-                    base:     'var(--pl-bg-base)',
-                    surface:  'var(--pl-bg-surface)',
+                    base: 'var(--pl-bg-base)',
+                    surface: 'var(--pl-bg-surface)',
                     elevated: 'var(--pl-bg-elevated)',
-                    border:   'var(--pl-border-subtle)'
+                    border: 'var(--pl-border-subtle)'
                 },
                 content: {
-                    primary:  'var(--pl-text-primary)',
-                    muted:    'var(--pl-text-muted)',
+                    primary: 'var(--pl-text-primary)',
+                    muted: 'var(--pl-text-muted)',
                     disabled: 'var(--pl-text-disabled)'
                 },
                 accent: {
                     violet: 'var(--pl-accent-violet)'
                 },
                 status: {
-                    pos:  'var(--pl-status-pos)',
-                    neg:  'var(--pl-status-neg)',
+                    pos: 'var(--pl-status-pos)',
+                    neg: 'var(--pl-status-neg)',
                     warn: 'var(--pl-status-warn)'
                 }
             },
             boxShadow: {
                 premium: '0 8px 30px rgba(0,0,0,0.04)',
-                glass:   '0 8px 32px 0 rgba(31, 38, 135, 0.07)'
+                glass: '0 8px 32px 0 rgba(31, 38, 135, 0.07)'
             }
         }
     },

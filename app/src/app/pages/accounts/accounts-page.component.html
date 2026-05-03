@@ -2,14 +2,19 @@
     @if (!isDbReady()) {
         <!-- DB is still initializing (loading from Drive) — show a loading state -->
         <div class="w-full min-h-full flex flex-col items-center justify-center gap-4 pt-24">
-            <div class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div
+                class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
+            ></div>
             <p class="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">
                 Loading your data...
             </p>
         </div>
-    } @else if (accounts().length === 0) {
+    } @else if (isOnboarding()) {
         <div class="w-full min-h-full flex flex-col items-center justify-start pt-12 px-4">
-            <welcome-wizard (accountCreated)="handleAccountCreated($event)" />
+            <welcome-wizard
+                (accountCreated)="handleAccountCreated($event)"
+                (wizardCompleted)="handleOnboardingCompleted()"
+            />
         </div>
     } @else {
         <div class="flex flex-col space-y-4 pb-12">
@@ -209,7 +214,9 @@
                 class="bg-surface-0 border border-surface-200 rounded-sm shadow-xl w-full max-w-sm mx-4 p-6 space-y-4"
             >
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-sm bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
+                    <div
+                        class="w-9 h-9 rounded-sm bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0"
+                    >
                         <lucide-icon [img]="Trash2" class="w-4 h-4 text-red-500" />
                     </div>
                     <div>
@@ -227,8 +234,8 @@
 
                 <p class="text-[12px] text-surface-600 leading-relaxed">
                     This will archive the account and hide
-                    <strong>all of its transactions</strong> from your ledger.
-                    Your data is soft-deleted and remains in the encrypted database file.
+                    <strong>all of its transactions</strong> from your ledger. Your data is
+                    soft-deleted and remains in the encrypted database file.
                 </p>
 
                 <div class="flex gap-2 pt-2">

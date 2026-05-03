@@ -105,9 +105,7 @@ export class AppComponent {
             if (environment.e2e) {
                 this.ledgerStore
                     .initialize()
-                    .catch((e: unknown) =>
-                        console.error('[AppComponent] E2E DB init failed:', e)
-                    );
+                    .catch((e: unknown) => console.error('[AppComponent] E2E DB init failed:', e));
                 return;
             }
 
@@ -164,10 +162,7 @@ export class AppComponent {
                         }, SYNC_TIMEOUT_MS)
                     );
                     try {
-                        await Promise.race([
-                            this.syncService.syncFromDrive(),
-                            timeoutPromise
-                        ]);
+                        await Promise.race([this.syncService.syncFromDrive(), timeoutPromise]);
                     } finally {
                         // Ensure DB is initialized even if sync failed or timed out
                         if (!this.ledgerStore.isInitialized()) {

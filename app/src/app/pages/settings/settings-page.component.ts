@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Monitor, Moon, LucideAngularModule, Palette, Shield, Sun, Zap } from 'lucide-angular';
+import { LucideAngularModule, Monitor, Moon, Palette, Shield, Sun, Zap } from 'lucide-angular';
 
 import { environment } from '../../../environments/environment';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -30,8 +30,8 @@ export class SettingsPageComponent {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: any }> = [
         { value: 'system', label: 'System', icon: Monitor },
-        { value: 'light',  label: 'Light',  icon: Sun },
-        { value: 'dark',   label: 'Dark',   icon: Moon }
+        { value: 'light', label: 'Light', icon: Sun },
+        { value: 'dark', label: 'Dark', icon: Moon }
     ];
 
     readonly storybookUrl = environment.production

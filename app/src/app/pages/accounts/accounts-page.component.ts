@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AccountType, type IAccount, Money } from '@core';
 import {
@@ -47,10 +47,28 @@ export class AccountsPageComponent {
     readonly isAddDialogOpen = signal<boolean>(false);
     readonly pendingDeleteId = signal<string | null>(null);
     readonly isDeleteConfirmOpen = signal<boolean>(false);
+    readonly isOnboarding = signal<boolean>(false);
 
     // Store Signals
     readonly accounts = this.ledgerStore.accounts;
     readonly isDbReady = this.ledgerStore.isInitialized;
+
+    constructor() {
+        effect(
+            () => {
+                if (this.isDbReady()) {
+                    if (this.accounts().length === 0 && !this.isOnboarding()) {
+                        this.isOnboarding.set(true);
+                    }
+                }
+            },
+            { allowSignalWrites: true }
+        );
+    }
+
+    handleOnboardingCompleted(): void {
+        this.isOnboarding.set(false);
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getIcon(type: AccountType): any {

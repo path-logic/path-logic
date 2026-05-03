@@ -1264,7 +1264,10 @@ export function clearDatabase(): void {
     db.run('BEGIN TRANSACTION');
     try {
         db.run(SQL_QUERIES.DELETE_ALL_SPLITS, [new Date().toISOString(), new Date().toISOString()]);
-        db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS, [new Date().toISOString(), new Date().toISOString()]);
+        db.run(SQL_QUERIES.DELETE_ALL_TRANSACTIONS, [
+            new Date().toISOString(),
+            new Date().toISOString()
+        ]);
         db.run('UPDATE categories SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE payees SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);
         db.run('UPDATE accounts SET isDeleted = 1, updatedAt = ?', [new Date().toISOString()]);

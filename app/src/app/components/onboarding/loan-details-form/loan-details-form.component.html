@@ -32,7 +32,7 @@
                     <input
                         id="loan-acc-name"
                         formControlName="accountName"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                         placeholder="e.g. Home Mortgage"
                         [attr.aria-invalid]="
                             loanForm.get('accountName')?.invalid &&
@@ -62,7 +62,7 @@
                     <input
                         id="loan-acc-inst"
                         formControlName="institutionName"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                         placeholder="e.g. Wells Fargo"
                     />
                 </div>
@@ -91,7 +91,7 @@
                         step="0.01"
                         (focus)="handleFocus('originalAmount')"
                         (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
                         placeholder="0.00"
                     />
                     @if (
@@ -117,7 +117,7 @@
                         formControlName="currentBalance"
                         type="number"
                         step="0.01"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
                         placeholder="0.00"
                     />
                     <p class="text-[10px] text-surface-500 mt-2 italic leading-relaxed">
@@ -138,7 +138,7 @@
                         step="0.001"
                         (focus)="handleFocus('interestRate')"
                         (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-base transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                         placeholder="3.5"
                     />
                 </div>
@@ -155,7 +155,7 @@
                         type="number"
                         (focus)="handleFocus('termMonths')"
                         (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
                         placeholder="360"
                     />
                 </div>
@@ -170,7 +170,7 @@
                         id="loan-start-date"
                         formControlName="startDate"
                         type="date"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-base transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                     />
                 </div>
             </div>
@@ -199,7 +199,7 @@
                             step="0.01"
                             (focus)="handleFocus('monthlyPayment')"
                             (blur)="handleBlur()"
-                            class="flex-1 h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-base transition-all"
+                            class="flex-1 h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                             placeholder="0.00"
                         />
                         <button
@@ -224,7 +224,7 @@
                         type="number"
                         min="1"
                         max="31"
-                        class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm transition-all"
+                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
                     />
                 </div>
             </div>
@@ -249,7 +249,7 @@
                         <input
                             id="mort-address"
                             formControlName="propertyAddress"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
                         />
                     </div>
                     <div class="grid grid-cols-2 gap-6">
@@ -264,7 +264,7 @@
                                 id="mort-value"
                                 formControlName="propertyValue"
                                 type="number"
-                                class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-base transition-all"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                             />
                         </div>
                         <div class="flex items-center gap-3 pt-6">
@@ -297,7 +297,7 @@
                                     id="mort-escrow"
                                     formControlName="escrowAmount"
                                     type="number"
-                                    class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-base transition-all"
+                                    class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                                 />
                             </div>
                         }
@@ -324,7 +324,7 @@
                         <input
                             id="auto-make"
                             formControlName="vehicleMake"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
                             placeholder="e.g. Toyota"
                         />
                     </div>
@@ -338,7 +338,7 @@
                         <input
                             id="auto-model"
                             formControlName="vehicleModel"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
                             placeholder="e.g. Camry"
                         />
                     </div>
@@ -353,7 +353,7 @@
                             id="auto-year"
                             formControlName="vehicleYear"
                             type="number"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-sm transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
                             placeholder="2023"
                         />
                     </div>
@@ -367,7 +367,7 @@
                         <input
                             id="auto-vin"
                             formControlName="vin"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono uppercase text-base transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums uppercase text-base transition-all"
                             maxLength="17"
                         />
                     </div>
@@ -393,7 +393,7 @@
                         <input
                             id="pers-purpose"
                             formControlName="purpose"
-                            class="w-full h-11 px-4 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
                             placeholder="e.g. Debt Consolidation"
                         />
                     </div>

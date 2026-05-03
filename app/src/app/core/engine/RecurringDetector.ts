@@ -12,9 +12,8 @@
  * can edit them in the RecurringPaymentForm.
  */
 
-import type { ITransaction } from '../domain/types';
+import type { ISplit, ITransaction } from '../domain/types';
 import { Frequency } from '../domain/types';
-import type { ISplit } from '../domain/types';
 
 export interface IDetectedPattern {
     /** Normalized payee name used as the key. */
@@ -50,12 +49,12 @@ interface IFrequencyBucket {
 }
 
 const FREQUENCY_BUCKETS: Array<IFrequencyBucket> = [
-    { frequency: Frequency.Weekly,          center: 7,   tolerance: 2  },
-    { frequency: Frequency.Biweekly,        center: 14,  tolerance: 3  },
-    { frequency: Frequency.EveryFourWeeks,  center: 28,  tolerance: 3  },
-    { frequency: Frequency.Monthly,         center: 30,  tolerance: 5  },
-    { frequency: Frequency.Quarterly,       center: 91,  tolerance: 12 },
-    { frequency: Frequency.Yearly,          center: 365, tolerance: 20 }
+    { frequency: Frequency.Weekly, center: 7, tolerance: 2 },
+    { frequency: Frequency.Biweekly, center: 14, tolerance: 3 },
+    { frequency: Frequency.EveryFourWeeks, center: 28, tolerance: 3 },
+    { frequency: Frequency.Monthly, center: 30, tolerance: 5 },
+    { frequency: Frequency.Quarterly, center: 91, tolerance: 12 },
+    { frequency: Frequency.Yearly, center: 365, tolerance: 20 }
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -124,7 +123,7 @@ function computeConfidence(
     // Amount consistency (CV < 0.1 = fixed rate, CV > 0.5 = highly variable)
     const amountScore = Math.max(0, 1 - amountCv * 2);
 
-    return Math.min(1, countScore * 0.25 + intervalScore * 0.45 + amountScore * 0.30);
+    return Math.min(1, countScore * 0.25 + intervalScore * 0.45 + amountScore * 0.3);
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -183,7 +182,8 @@ export function detectRecurringPatterns(
 
         if (confidence < minConfidence) continue;
 
-        const mostRecent = sorted[sorted.length - 1]!;
+        const mostRecent = sorted[sorted.length - 1];
+        if (!mostRecent) continue;
 
         results.push({
             payee: mostRecent.payee,

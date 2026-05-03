@@ -1,8 +1,9 @@
-<div class="sign-in-page">
+<div
+    class="sign-in-page h-screen bg-brand-base text-content-primary font-sans selection:bg-brand-surface overflow-hidden flex flex-col relative"
+>
     <div class="sign-in-container">
-        <!-- Animated Logo -->
+        <!-- Static Logo -->
         <div class="logo-section">
-            <div class="logo-glow"></div>
             <div class="logo-box">
                 <span class="logo-letter">P</span>
             </div>
@@ -60,8 +61,8 @@
             <div class="trust-item">
                 <lucide-icon [img]="LockIcon" class="trust-icon" />
                 <div>
-                    <p class="trust-title text-surface-800">End-to-End Encrypted</p>
-                    <p class="trust-description text-surface-800/90">
+                    <p class="trust-title text-content-primary">End-to-End Encrypted</p>
+                    <p class="trust-description text-content-muted">
                         Your data is encrypted locally before it leaves your browser.
                     </p>
                 </div>
@@ -70,8 +71,8 @@
             <div class="trust-item">
                 <lucide-icon [img]="CloudIcon" class="trust-icon" />
                 <div>
-                    <p class="trust-title text-surface-800">User-Owned Storage</p>
-                    <p class="trust-description text-surface-800/90">
+                    <p class="trust-title text-content-primary">User-Owned Storage</p>
+                    <p class="trust-description text-content-muted">
                         Data is stored exclusively in your own Google Drive.
                     </p>
                 </div>
@@ -80,8 +81,8 @@
             <div class="trust-item">
                 <lucide-icon [img]="ShieldIcon" class="trust-icon" />
                 <div>
-                    <p class="trust-title text-surface-800">Zero-Knowledge Architecture</p>
-                    <p class="trust-description text-surface-800/90">
+                    <p class="trust-title text-content-primary">Zero-Knowledge Architecture</p>
+                    <p class="trust-description text-content-muted">
                         Path Logic never sees, stores, or has access to your financial data.
                     </p>
                 </div>
@@ -89,7 +90,7 @@
         </div>
 
         <!-- Footer -->
-        <p class="footer-text text-surface-800/80">
+        <p class="footer-text text-content-disabled">
             Requires Google Drive access (appDataFolder scope only)
         </p>
     </div>

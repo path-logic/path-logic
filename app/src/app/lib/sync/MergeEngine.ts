@@ -39,7 +39,7 @@ export interface IMergeResult {
     /** Records where remote was newer and was silently applied (LWW). */
     mergedCount: number;
     /** Transactions where BOTH sides changed since last Drive sync. */
-    conflicts: ITransactionConflict[];
+    conflicts: Array<ITransactionConflict>;
 }
 
 // ── Internal types ────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ export class SQLiteMergeEngine {
         lastSyncTime: number = 0
     ): Promise<IMergeResult> {
         let mergedCount = 0;
-        const conflicts: ITransactionConflict[] = [];
+        const conflicts: Array<ITransactionConflict> = [];
 
         // Merge in dependency order:
         // 1. Categories (referenced by payees, splits, schedules)
@@ -129,9 +129,21 @@ export class SQLiteMergeEngine {
         // 4. Transactions & Splits
         // 5. Recurring Schedules & Splits
 
-        mergedCount += this.mergeTable(remoteDb, localDb, 'categories', this.mapCategory, lastSyncTime);
+        mergedCount += this.mergeTable(
+            remoteDb,
+            localDb,
+            'categories',
+            this.mapCategory,
+            lastSyncTime
+        );
         mergedCount += this.mergeTable(remoteDb, localDb, 'payees', this.mapPayee, lastSyncTime);
-        mergedCount += this.mergeTable(remoteDb, localDb, 'accounts', this.mapAccount, lastSyncTime);
+        mergedCount += this.mergeTable(
+            remoteDb,
+            localDb,
+            'accounts',
+            this.mapAccount,
+            lastSyncTime
+        );
 
         const txResult = this.mergeTransactions(remoteDb, localDb, lastSyncTime);
         mergedCount += txResult.mergedCount;
@@ -195,9 +207,9 @@ export class SQLiteMergeEngine {
         remoteDb: Database,
         localDb: Database,
         lastSyncTime: number
-    ): { mergedCount: number; conflicts: ITransactionConflict[] } {
+    ): { mergedCount: number; conflicts: Array<ITransactionConflict> } {
         let mergedCount = 0;
-        const conflicts: ITransactionConflict[] = [];
+        const conflicts: Array<ITransactionConflict> = [];
 
         const remoteResult = remoteDb.exec(`SELECT * FROM transactions`);
         if (remoteResult.length === 0 || !remoteResult[0]) return { mergedCount, conflicts };
@@ -221,7 +233,9 @@ export class SQLiteMergeEngine {
                 continue;
             }
 
-            const localTx = this.mapTransaction(localResult[0]!.values[0]!);
+            const localRow = localResult[0]?.values[0];
+            if (!localRow) continue;
+            const localTx = this.mapTransaction(localRow);
             const remoteMs = new Date(remoteTx.updatedAt).getTime();
             const localMs = new Date(localTx.updatedAt).getTime();
 
@@ -318,10 +332,9 @@ export class SQLiteMergeEngine {
         remoteTx: IMergeable,
         remoteDb: Database
     ): void {
-        const remoteSplitsResult = remoteDb.exec(
-            `SELECT * FROM splits WHERE transaction_id = ? `,
-            [remoteTx.id]
-        );
+        const remoteSplitsResult = remoteDb.exec(`SELECT * FROM splits WHERE transaction_id = ? `, [
+            remoteTx.id
+        ]);
         const remoteSplits = (remoteSplitsResult[0]?.values || [])
             .filter((r): r is Array<SqlValue> => r !== null)
             .map(r => this.mapSplit(r));

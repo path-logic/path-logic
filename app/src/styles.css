@@ -15,41 +15,41 @@
 :root,
 [data-theme='dark'] {
     /* Backgrounds */
-    --pl-bg-base:     #08080a;   /* Deepest obsidian. Main app background. */
-    --pl-bg-surface:  #121216;   /* Panels, sidebars, data tables. */
-    --pl-bg-elevated: #1c1c22;   /* Modals, dropdowns, command palette. */
-    --pl-border-subtle: #2a2a35; /* Thin dividers, table borders. */
+    --pl-bg-base: #0f172a; /* Slate 900. Main app background. */
+    --pl-bg-surface: #1e293b; /* Slate 800. Panels, sidebars, data tables. */
+    --pl-bg-elevated: #334155; /* Slate 700. Modals, dropdowns, command palette. */
+    --pl-border-subtle: #334155; /* Slate 700. Thin dividers, table borders. */
 
     /* Typography */
-    --pl-text-primary:  #f1f5f9; /* High-contrast. Primary data and headings. */
-    --pl-text-muted:    #94a3b8; /* Table headers, secondary text, timestamps. */
-    --pl-text-disabled: #475569; /* Inactive states, placeholders. */
+    --pl-text-primary: #f8fafc; /* High-contrast. Primary data and headings. */
+    --pl-text-muted: #94a3b8; /* Table headers, secondary text, timestamps. */
+    --pl-text-disabled: #64748b; /* Inactive states, placeholders. */
 
     /* Semantic accents */
     --pl-accent-violet: #8b5cf6; /* Electric Violet. Branding, active states, focus rings. */
-    --pl-status-pos:    #10b981; /* Emerald. Inflows, credits, positive balances. */
-    --pl-status-neg:    #ef4444; /* Crimson. Outflows, debits, negative balances. */
-    --pl-status-warn:   #f59e0b; /* Amber. Unreconciled transactions, budget alerts. */
+    --pl-status-pos: #10b981; /* Emerald. Inflows, credits, positive balances. */
+    --pl-status-neg: #ef4444; /* Crimson. Outflows, debits, negative balances. */
+    --pl-status-warn: #f59e0b; /* Amber. Unreconciled transactions, budget alerts. */
 }
 
 /* --- LIGHT THEME ----------------------------------------------------------- */
 [data-theme='light'] {
     /* Backgrounds */
-    --pl-bg-base:       #f8f9fa; /* Warm off-white. Main app background. */
-    --pl-bg-surface:    #ffffff; /* Panels, sidebars, data tables. */
-    --pl-bg-elevated:   #f1f3f5; /* Modals, dropdowns, command palette. */
+    --pl-bg-base: #f8f9fa; /* Warm off-white. Main app background. */
+    --pl-bg-surface: #ffffff; /* Panels, sidebars, data tables. */
+    --pl-bg-elevated: #f1f3f5; /* Modals, dropdowns, command palette. */
     --pl-border-subtle: #dee2e6; /* Thin dividers, table borders. */
 
     /* Typography */
-    --pl-text-primary:  #1a1a2e; /* Deep navy-black. Primary data, headings. */
-    --pl-text-muted:    #64748b; /* Table headers, secondary text, timestamps. */
+    --pl-text-primary: #1a1a2e; /* Deep navy-black. Primary data, headings. */
+    --pl-text-muted: #64748b; /* Table headers, secondary text, timestamps. */
     --pl-text-disabled: #adb5bd; /* Inactive states, placeholders. */
 
     /* Semantic accents — same violet, but slightly darker pos/neg for WCAG AA */
     --pl-accent-violet: #8b5cf6;
-    --pl-status-pos:    #059669; /* Darkened for contrast on white */
-    --pl-status-neg:    #dc2626; /* Darkened for contrast on white */
-    --pl-status-warn:   #d97706; /* Darkened for contrast on white */
+    --pl-status-pos: #059669; /* Darkened for contrast on white */
+    --pl-status-neg: #dc2626; /* Darkened for contrast on white */
+    --pl-status-warn: #d97706; /* Darkened for contrast on white */
 }
 
 /* =============================================================================
@@ -100,5 +100,36 @@
     .focus-brand:focus-visible {
         outline: 2px solid var(--pl-accent-violet);
         outline-offset: 2px;
+    }
+}
+
+/* =============================================================================
+   PRIMENG OVERRIDES
+   Force unstyled PrimeNG components to adhere to Path Logic design tokens.
+   ============================================================================= */
+
+@layer components {
+    /* DataTable */
+    .p-datatable thead th,
+    .p-datatable .p-datatable-thead > tr > th {
+        background-color: var(--pl-bg-surface) !important;
+        color: var(--pl-text-muted) !important;
+        border-bottom: 1px solid var(--pl-border-subtle) !important;
+        font-weight: 500 !important;
+        padding: 0.75rem 1rem;
+    }
+
+    .p-datatable tbody td,
+    .p-datatable .p-datatable-tbody > tr > td {
+        background-color: var(--pl-bg-surface) !important;
+        color: var(--pl-text-primary) !important;
+        border-bottom: 1px solid var(--pl-border-subtle) !important;
+        padding: 0.75rem 1rem;
+    }
+
+    .p-datatable .p-datatable-emptymessage > td {
+        background-color: var(--pl-bg-surface) !important;
+        color: var(--pl-text-muted) !important;
+        border-bottom: 1px solid var(--pl-border-subtle) !important;
     }
 }

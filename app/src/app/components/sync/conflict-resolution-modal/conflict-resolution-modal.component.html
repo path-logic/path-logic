@@ -32,7 +32,9 @@
                 <div class="conflict-card">
                     <!-- Transaction label -->
                     <div class="conflict-label">
-                        <span class="conflict-payee">{{ conflict.mine.payee || conflict.theirs.payee }}</span>
+                        <span class="conflict-payee">{{
+                            conflict.mine.payee || conflict.theirs.payee
+                        }}</span>
                         <span class="conflict-date">
                             {{ formatDate(conflict.mine.date) }}
                         </span>
@@ -45,9 +47,14 @@
                             <div class="side-header">
                                 <lucide-icon [img]="Monitor" class="side-icon" />
                                 <span class="side-label">This Device</span>
-                                <span class="side-time">{{ formatTimestamp(conflict.mine.updatedAt) }}</span>
+                                <span class="side-time">{{
+                                    formatTimestamp(conflict.mine.updatedAt)
+                                }}</span>
                             </div>
-                            <div class="side-amount" [class.negative]="conflict.mine.totalAmount < 0">
+                            <div
+                                class="side-amount"
+                                [class.negative]="conflict.mine.totalAmount < 0"
+                            >
                                 {{ formatAmount(conflict.mine.totalAmount) }}
                             </div>
                             @if (conflict.mine.memo) {
@@ -74,9 +81,14 @@
                             <div class="side-header">
                                 <lucide-icon [img]="Cloud" class="side-icon" />
                                 <span class="side-label">Other Device</span>
-                                <span class="side-time">{{ formatTimestamp(conflict.theirs.updatedAt) }}</span>
+                                <span class="side-time">{{
+                                    formatTimestamp(conflict.theirs.updatedAt)
+                                }}</span>
                             </div>
-                            <div class="side-amount" [class.negative]="conflict.theirs.totalAmount < 0">
+                            <div
+                                class="side-amount"
+                                [class.negative]="conflict.theirs.totalAmount < 0"
+                            >
                                 {{ formatAmount(conflict.theirs.totalAmount) }}
                             </div>
                             @if (conflict.theirs.memo) {

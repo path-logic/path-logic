@@ -71,7 +71,9 @@ async function driveApiFetch(url: string, init: RequestInit = {}): Promise<Respo
         return await fetch(url, { ...init, signal: controller.signal });
     } catch (err: unknown) {
         if (err instanceof DOMException && err.name === 'AbortError') {
-            throw new Error(`Drive API request timed out after ${DRIVE_REQUEST_TIMEOUT_MS}ms: ${url}`);
+            throw new Error(
+                `Drive API request timed out after ${DRIVE_REQUEST_TIMEOUT_MS}ms: ${url}`
+            );
         }
         throw err;
     } finally {
@@ -222,11 +224,14 @@ export async function getLockStatus(accessToken: string): Promise<ILockStatus | 
     if (!firstFile) return null;
 
     const fileId: string = firstFile.id;
-    const fileResponse: Response = await driveApiFetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
+    const fileResponse: Response = await driveApiFetch(
+        `${DRIVE_API_BASE}/files/${fileId}?alt=media`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         }
-    });
+    );
 
     if (!fileResponse.ok) {
         await handleResponseError(fileResponse, 'Failed to download lock');
@@ -303,13 +308,16 @@ export async function acquireLock(
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', new Blob([JSON.stringify(lockStatus)], { type: 'application/json' }));
 
-    const response: Response = await driveApiFetch(`${UPLOAD_API_BASE}/files?uploadType=multipart`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: form
-    });
+    const response: Response = await driveApiFetch(
+        `${UPLOAD_API_BASE}/files?uploadType=multipart`,
+        {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: form
+        }
+    );
 
     if (!response.ok) {
         await handleResponseError(response, 'Failed to create lock');

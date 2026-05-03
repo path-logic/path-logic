@@ -1,15 +1,21 @@
 import {
     type ApplicationConfig,
     ErrorHandler,
+    inject,
+    provideAppInitializer,
     provideBrowserGlobalErrorListeners,
     provideZonelessChangeDetection
 } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Lara from '@primeuix/themes/lara';
 import { providePrimeNG } from 'primeng/config';
+import { firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { appRoutes } from './app.routes';
+import { AuthService } from './services/auth/auth.service';
 
 import { definePreset } from '@primeuix/themes';
 
@@ -81,6 +87,12 @@ const PremiumPreset = definePreset(Lara, {
 
 export const appConfig: ApplicationConfig = {
     providers: [
+        provideAppInitializer(() => {
+            const auth = inject(AuthService);
+            return firstValueFrom(
+                toObservable(auth.isInitializing).pipe(filter(isInit => !isInit))
+            );
+        }),
         { provide: ErrorHandler, useValue: { handleError: console.error } },
         provideBrowserGlobalErrorListeners(),
         provideZonelessChangeDetection(),
@@ -90,7 +102,7 @@ export const appConfig: ApplicationConfig = {
             theme: {
                 preset: PremiumPreset,
                 options: {
-                    darkModeSelector: '.dark',
+                    darkModeSelector: '[data-theme="dark"]',
                     cssLayer: {
                         name: 'primeng',
                         order: 'tailwind-base, primeng, tailwind-utilities'

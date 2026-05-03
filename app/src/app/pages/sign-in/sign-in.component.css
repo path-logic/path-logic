@@ -1,47 +1,11 @@
-/* Sign-In Page */
 :host {
     display: block;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
 }
 
 .sign-in-page {
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
-    background: hsl(var(--background));
-    position: relative;
-    overflow: hidden;
-}
-
-/* Subtle grid background */
-.sign-in-page::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(
-        circle at 1px 1px,
-        hsl(var(--muted-foreground) / 0.06) 1px,
-        transparent 0
-    );
-    background-size: 32px 32px;
-    pointer-events: none;
-}
-
-/* Gradient glow behind content */
-.sign-in-page::after {
-    content: '';
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    width: 600px;
-    height: 600px;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%);
-    pointer-events: none;
 }
 
 .sign-in-container {
@@ -53,7 +17,6 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    animation: fadeInUp 0.6s ease-out;
 }
 
 /* Logo */
@@ -66,32 +29,21 @@
     justify-content: center;
 }
 
-.logo-glow {
-    position: absolute;
-    inset: 0;
-    border-radius: 9999px;
-    background: hsl(var(--primary) / 0.2);
-    animation: pulse 2s ease-in-out infinite;
-}
-
 .logo-box {
     position: relative;
     width: 56px;
     height: 56px;
-    background: hsl(var(--primary));
-    border-radius: 0.375rem;
+    background: var(--pl-accent-violet);
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow:
-        0 0 30px hsl(var(--primary) / 0.3),
-        0 8px 32px hsl(0 0% 0% / 0.3);
 }
 
 .logo-letter {
     font-size: 1.5rem;
     font-weight: 900;
-    color: hsl(var(--primary-foreground));
+    color: var(--pl-text-primary);
     letter-spacing: -0.05em;
 }
 
@@ -105,11 +57,11 @@
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -0.05em;
-    color: hsl(var(--foreground));
+    color: var(--pl-text-primary);
 }
 
 .brand-accent {
-    color: hsl(var(--primary));
+    color: var(--pl-accent-violet);
 }
 
 .brand-tagline {
@@ -118,7 +70,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    color: hsl(var(--foreground) / 0.8);
+    color: var(--pl-text-muted);
 }
 
 /* Sign-In Button */
@@ -129,24 +81,28 @@
     justify-content: center;
     gap: 0.75rem;
     padding: 0.875rem 1.5rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.5rem;
-    background: hsl(var(--card));
-    color: hsl(var(--foreground));
+    border: 1px solid var(--pl-border-subtle);
+    border-radius: 4px;
+    background: var(--pl-bg-surface);
+    color: var(--pl-text-primary);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 80ms ease-out;
+}
+
+.sign-in-button:focus-visible {
+    outline: 2px solid var(--pl-accent-violet);
+    outline-offset: 2px;
 }
 
 .sign-in-button:hover:not(:disabled) {
-    background: hsl(var(--accent));
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+    background: var(--pl-bg-elevated);
+    border-color: var(--pl-accent-violet);
 }
 
 .sign-in-button:active:not(:disabled) {
-    transform: scale(0.98);
+    background: var(--pl-bg-surface);
 }
 
 .sign-in-button:disabled {
@@ -168,16 +124,15 @@
 .error-message {
     width: 100%;
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    background: hsl(0 84% 60% / 0.1);
-    border: 1px solid hsl(0 84% 60% / 0.2);
-    animation: fadeIn 0.3s ease-out;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--pl-status-neg) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--pl-status-neg) 20%, transparent);
 }
 
 .error-message p {
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0 84% 40%);
+    color: var(--pl-status-neg);
     text-align: center;
     margin: 0;
 }
@@ -186,9 +141,9 @@
 .trust-section {
     width: 100%;
     padding: 1.25rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.5rem;
-    background: hsl(var(--muted) / 0.3);
+    border: 1px solid var(--pl-border-subtle);
+    border-radius: 4px;
+    background: var(--pl-bg-surface);
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -203,7 +158,7 @@
 .trust-icon {
     width: 14px;
     height: 14px;
-    color: hsl(var(--primary));
+    color: var(--pl-text-muted);
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -212,13 +167,13 @@
     font-size: 0.625rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: hsl(var(--foreground));
+    color: var(--pl-text-primary);
     margin: 0;
 }
 
 .trust-description {
     font-size: 0.5625rem;
-    color: hsl(var(--foreground) / 0.8);
+    color: var(--pl-text-muted);
     line-height: 1.5;
     margin: 0;
 }
@@ -229,43 +184,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: hsl(var(--foreground) / 0.7);
+    color: var(--pl-text-disabled);
     text-align: center;
 }
 
 /* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        opacity: 0.4;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.8;
-        transform: scale(1.1);
-    }
-}
-
 @keyframes spin {
     from {
         transform: rotate(0deg);

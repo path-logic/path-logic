@@ -88,7 +88,9 @@
     cursor: pointer;
     border-radius: 4px;
     flex-shrink: 0;
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 
 .toast-close:hover {
@@ -127,6 +129,10 @@
 }
 
 @keyframes progress {
-    from { width: 100%; }
-    to   { width: 0%; }
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
 }

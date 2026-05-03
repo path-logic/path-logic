@@ -10,6 +10,7 @@ import {
     signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
 import {
@@ -168,6 +169,7 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
 export class NewAccountDialogComponent {
     private readonly posthogService = inject(PostHogService);
     readonly importService = inject(ImportOrchestrationService);
+    private readonly router = inject(Router);
 
     // Inputs
     readonly isOpen = input.required<boolean>();
@@ -363,7 +365,10 @@ export class NewAccountDialogComponent {
     }
 
     finishAfterImport(): void {
-        this.importService.reset();
+        const accountId = this.createdAccount()?.id;
+        if (accountId) {
+            void this.router.navigate(['/accounts', accountId]);
+        }
         this.closed.emit();
     }
 

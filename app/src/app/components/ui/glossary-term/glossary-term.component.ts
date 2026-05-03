@@ -12,22 +12,18 @@ import {
  * Key = the canonical term (case-insensitive lookup).
  */
 const GLOSSARY: Record<string, string> = {
-    'aes-gcm 256':
-        'Military-grade encryption — your data is scrambled so only you can read it.',
-    'aes-gcm':
-        'Military-grade encryption — your data is scrambled so only you can read it.',
+    'aes-gcm 256': 'Military-grade encryption — your data is scrambled so only you can read it.',
+    'aes-gcm': 'Military-grade encryption — your data is scrambled so only you can read it.',
     'zero-knowledge':
         "We can't see your data, even if we wanted to. Only your device holds the key.",
     reconciliation:
         "Matching your records against your bank statement to make sure nothing's missing.",
-    reconcile:
-        "Matching your records against your bank statement to make sure nothing's missing.",
+    reconcile: "Matching your records against your bank statement to make sure nothing's missing.",
     'split transaction':
         'One payment that covers multiple categories — like a paycheck split into salary, taxes, and insurance.',
     byos: 'Bring Your Own Storage — your data lives in your Google Drive or iCloud, not on our servers.',
     ledger: 'Your transaction log — every dollar in and out, organized by account.',
-    'wasm sqlite':
-        'A full database running privately inside your browser — no server needed.',
+    'wasm sqlite': 'A full database running privately inside your browser — no server needed.',
     'cashflow projection':
         'A 90-day forecast of your balance based on your recurring bills and income.'
 };
@@ -125,8 +121,14 @@ const GLOSSARY: Record<string, string> = {
         }
 
         @keyframes tooltipIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
     `
 })

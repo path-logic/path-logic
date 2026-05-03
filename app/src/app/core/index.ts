@@ -41,9 +41,9 @@ export { validateSplitSum } from './engine/invariants';
 export type { IValidationResult } from './engine/invariants';
 export { ReconciliationEngine } from './engine/ReconciliationEngine';
 export type { IReconciliationMatch } from './engine/ReconciliationEngine';
-export { RecurringEngine } from './engine/RecurringEngine';
 export { detectRecurringPatterns } from './engine/RecurringDetector';
 export type { IDetectedPattern } from './engine/RecurringDetector';
+export { RecurringEngine } from './engine/RecurringEngine';
 export { TransactionEngine } from './engine/TransactionEngine';
 export type {
     IMortgageParams,

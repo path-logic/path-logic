@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { LucideAngularModule, GitMerge, X } from 'lucide-angular';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    signal
+} from '@angular/core';
+import { GitMerge, LucideAngularModule, X } from 'lucide-angular';
 
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 

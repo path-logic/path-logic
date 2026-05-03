@@ -1,6 +1,5 @@
 import type { WritableSignal } from '@angular/core';
 import { inject, Injectable, signal } from '@angular/core';
-import type { Database } from 'sql.js';
 
 import { decryptDatabase, encryptDatabase } from '../../lib/crypto/encryption';
 import { GDriveAuthError } from '../../lib/storage/errors';
@@ -243,10 +242,7 @@ export class SyncService {
                                     localDb,
                                     lastSyncTime
                                 );
-                            if (
-                                mergeResult.mergedCount > 0 ||
-                                mergeResult.conflicts.length > 0
-                            ) {
+                            if (mergeResult.mergedCount > 0 || mergeResult.conflicts.length > 0) {
                                 this.ledgerStore.syncStatus.set('merging');
                                 await this.ledgerStore.loadFromEncryptedData(
                                     new Uint8Array(localDb.export())
