@@ -228,6 +228,7 @@ export class NewAccountDialogComponent {
                 this.initialBalance.set('');
                 this.error.set(null);
                 this.createdAccount.set(null);
+            } else {
                 this.importService.reset();
             }
         });

@@ -27,13 +27,13 @@
 
         <span class="flex items-center gap-1">
             @if (syncStatus() === 'error') {
-                <i class="pi pi-circle w-2.5 h-2.5 text-red-500"></i>
+                <i class="pi pi-circle text-[10px] text-red-500"></i>
             } @else if (syncStatus() === 'pending-local') {
-                <i class="pi pi-circle w-2.5 h-2.5 text-amber-500 animate-spin"></i>
+                <i class="pi pi-circle text-[10px] text-amber-500 animate-spin"></i>
             } @else if (isSyncing()) {
-                <i class="pi pi-circle w-2.5 h-2.5 animate-spin"></i>
+                <i class="pi pi-circle text-[10px] animate-spin"></i>
             } @else {
-                <i class="pi pi-circle w-2.5 h-2.5"></i>
+                <i class="pi pi-circle text-[10px]"></i>
             }
             Cloud Sync: {{ statusLabel() }}
         </span>

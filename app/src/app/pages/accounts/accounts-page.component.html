@@ -31,7 +31,7 @@
                     (click)="isAddDialogOpen.set(true)"
                     class="min-h-[44px] px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all"
                 >
-                    <i class="pi pi-plus w-4 h-4"></i>
+                    <i class="pi pi-plus text-base"></i>
                     Add Account
                 </button>
             </header>
@@ -60,14 +60,14 @@
                                 <div class="flex items-center gap-4">
                                     <div
                                         [class]="
-                                            'w-9 h-9 rounded-lg flex items-center justify-center transition-colors ' +
+                                            'text-xl rounded-lg flex items-center justify-center transition-colors ' +
                                             (expandedId() === account.id
                                                 ? 'bg-primary text-white'
                                                 : 'bg-surface-100 text-surface-500')
                                         "
                                     >
                                         <i
-                                            [class]="'pi w-4 h-4 ' + getAccountIcon(account.type)"
+                                            [class]="'pi text-base ' + getAccountIcon(account.type)"
                                         ></i>
                                     </div>
                                     <div>
@@ -101,10 +101,10 @@
                                         </p>
                                     </div>
                                     @if (expandedId() === account.id) {
-                                        <i class="pi pi-chevron-down w-4 h-4 text-primary"></i>
+                                        <i class="pi pi-chevron-down text-base text-primary"></i>
                                     } @else {
                                         <i
-                                            class="pi pi-chevron-right w-4 h-4 text-surface-500/50"
+                                            class="pi pi-chevron-right text-base text-surface-500/50"
                                         ></i>
                                     }
                                 </div>
@@ -177,7 +177,7 @@
                                                 class="min-h-[44px] px-4 flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-500 text-sm font-medium rounded-xl transition-all"
                                                 aria-label="Delete this account"
                                             >
-                                                <i class="pi pi-trash w-4 h-4"></i>
+                                                <i class="pi pi-trash text-base"></i>
                                                 Delete Account
                                             </button>
                                         </div>
@@ -212,7 +212,7 @@
                     <div
                         class="w-9 h-9 rounded-sm bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0"
                     >
-                        <i class="pi pi-trash w-4 h-4 text-red-500"></i>
+                        <i class="pi pi-trash text-base text-red-500"></i>
                     </div>
                     <div>
                         <h2

@@ -45,7 +45,14 @@
                                                 getTypeTheming(option.type).iconBg
                                             "
                                         >
-                                            <i [class]="'pi ' + option.icon"></i>
+                                            <i
+                                                [class]="
+                                                    'pi text-2xl ' +
+                                                    getTypeTheming(option.type).iconText +
+                                                    ' ' +
+                                                    option.icon
+                                                "
+                                            ></i>
                                         </div>
                                         <span
                                             class="text-[10px] font-black uppercase tracking-widest mb-1"
@@ -85,7 +92,7 @@
                                                 >
                                                     <i
                                                         [class]="
-                                                            'pi w-4 h-4 text-amber-500 ' +
+                                                            'pi text-xl text-amber-500 ' +
                                                             option.icon
                                                         "
                                                     ></i>
@@ -145,7 +152,14 @@
                                                 theming().iconBg
                                             "
                                         >
-                                            <i [class]="'pi ' + selectedOption()?.icon"></i>
+                                            <i
+                                                [class]="
+                                                    'pi text-2xl ' +
+                                                    theming().iconText +
+                                                    ' ' +
+                                                    selectedOption()?.icon
+                                                "
+                                            ></i>
                                         </div>
                                         <div>
                                             <h3
@@ -275,7 +289,7 @@
                                     <div
                                         class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
                                     >
-                                        <i class="pi pi-check-circle w-8 h-8 text-primary"></i>
+                                        <i class="pi pi-check-circle text-5xl text-primary"></i>
                                     </div>
                                     <div class="text-center">
                                         <h3 class="text-lg font-black tracking-tight mb-1">
@@ -394,13 +408,17 @@
                                     (dragleave)="onDropZoneDragLeave()"
                                     (drop)="onDropZoneDrop($event)"
                                     [class]="
-                                        'flex-1 border-2 border-dashed rounded-sm flex flex-col items-center justify-center gap-4 p-8 cursor-pointer transition-all min-h-[200px] ' +
+                                        'group flex-1 border-2 border-dashed rounded-sm flex flex-col items-center justify-center gap-4 p-8 cursor-pointer transition-all min-h-[200px] ' +
                                         (isDropZoneActive()
                                             ? 'border-primary bg-primary/5'
                                             : 'border-surface-300 hover:border-primary/50 hover:bg-surface-50')
                                     "
                                 >
-                                    <i class="pi pi-circle"></i>
+                                    <div
+                                        class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform"
+                                    >
+                                        <i class="pi pi-cloud-upload text-3xl text-primary"></i>
+                                    </div>
                                     <div class="text-center">
                                         <p
                                             class="text-sm font-black uppercase tracking-widest mb-1"

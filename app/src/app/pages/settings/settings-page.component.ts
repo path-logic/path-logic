@@ -25,7 +25,6 @@ export class SettingsPageComponent {
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
     readonly currentTheme = this.themeService.preference;
 
-     
     readonly themeOptions: Array<{ value: ThemePreference; label: string; icon: string }> = [
         { value: 'system', label: 'System', icon: 'pi-desktop' },
         { value: 'light', label: 'Light', icon: 'pi-sun' },

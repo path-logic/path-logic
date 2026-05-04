@@ -8,7 +8,7 @@
         <div
             class="w-14 h-14 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-inner"
         >
-            <i [class]="'pi w-7 h-7 text-amber-500 ' + icon()"></i>
+            <i [class]="'pi text-3xl text-amber-500 ' + icon()"></i>
         </div>
         <div>
             <h2 class="text-xl font-bold text-surface-800 tracking-tight">
@@ -432,7 +432,7 @@
                 [disabled]="isSubmitting()"
                 class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest border border-surface-200 hover:bg-surface-100 rounded-sm transition-all disabled:opacity-50"
             >
-                <i class="pi pi-arrow-left w-4 h-4"></i>
+                <i class="pi pi-arrow-left text-base"></i>
                 Back
             </button>
             <button
@@ -442,7 +442,7 @@
             >
                 {{ isSubmitting() ? 'Creating...' : 'Create Loan Account' }}
                 @if (!isSubmitting()) {
-                    <i class="pi pi-arrow-right w-4 h-4"></i>
+                    <i class="pi pi-arrow-right text-base"></i>
                 }
             </button>
         </div>

@@ -8,7 +8,7 @@
                     class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/70 transition-colors mb-4 group"
                 >
                     <i
-                        class="pi pi-arrow-left w-3 h-3 group-hover:-translate-x-1 transition-transform"
+                        class="pi pi-arrow-left text-xs group-hover:-translate-x-1 transition-transform"
                     ></i>
                     Back to Dev Tools
                 </a>
@@ -47,7 +47,7 @@
                     ></div>
                     <div class="space-y-6">
                         <div class="flex items-center gap-3">
-                            <i class="pi pi-circle w-5 h-5 text-red-500"></i>
+                            <i class="pi pi-circle text-xl text-red-500"></i>
                             <h2 class="text-sm font-black uppercase tracking-widest">
                                 Factory Reset
                             </h2>
@@ -62,7 +62,7 @@
                         <div class="p-4 rounded-lg bg-red-500/5 border border-red-500/20 space-y-3">
                             <div class="flex items-start gap-3">
                                 <i
-                                    class="pi pi-exclamation-triangle w-4 h-4 text-red-500 mt-0.5"
+                                    class="pi pi-exclamation-triangle text-base text-red-500 mt-0.5"
                                 ></i>
                                 <div
                                     class="text-[10px] font-bold uppercase tracking-widest text-red-500/80 leading-relaxed"
@@ -90,7 +90,7 @@
                                 "
                             >
                                 <div class="flex items-center gap-2">
-                                    <i class="pi pi-circle w-4 h-4"></i>
+                                    <i class="pi pi-circle text-base"></i>
                                     {{
                                         wasPartial()
                                             ? 'Local wipe complete'
@@ -109,7 +109,7 @@
                             <div
                                 class="p-3 rounded bg-rose-500/5 border border-rose-500/20 flex items-center gap-2 text-rose-500 text-[10px] font-black uppercase tracking-widest"
                             >
-                                <i class="pi pi-times-circle w-4 h-4"></i>
+                                <i class="pi pi-times-circle text-base"></i>
                                 Reset failed.
                             </div>
                         }
@@ -120,10 +120,10 @@
                             [disabled]="isResetting()"
                         >
                             @if (isResetting()) {
-                                <i class="pi pi-circle w-4 h-4 animate-spin"></i>
+                                <i class="pi pi-circle text-base animate-spin"></i>
                                 Wiping...
                             } @else {
-                                <i class="pi pi-trash w-4 h-4"></i>
+                                <i class="pi pi-trash text-base"></i>
                                 Initialize Factory Reset
                             }
                         </button>
@@ -134,7 +134,7 @@
                                 class="w-full text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 hover:text-red-500 transition-colors flex items-center justify-center gap-2"
                                 [disabled]="isResetting()"
                             >
-                                <i class="pi pi-circle w-3 h-3"></i>
+                                <i class="pi pi-circle text-xs"></i>
                                 Force Wipe Local Data
                             </button>
                         </div>
@@ -143,7 +143,7 @@
 
                 <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
                     <div class="flex items-center gap-3 mb-6">
-                        <i class="pi pi-info-circle w-4 h-4 text-primary opacity-60"></i>
+                        <i class="pi pi-info-circle text-base text-primary opacity-60"></i>
                         <h3 class="text-[10px] font-black uppercase tracking-widest">
                             Environment Manifest
                         </h3>
@@ -178,7 +178,7 @@
                 >
                     <div class="flex items-center justify-between mb-8">
                         <div class="flex items-center gap-3">
-                            <i class="pi pi-circle w-5 h-5 text-primary"></i>
+                            <i class="pi pi-circle text-xl text-primary"></i>
                             <h2 class="text-sm font-black uppercase tracking-widest">
                                 Database Explorer
                             </h2>
@@ -187,7 +187,7 @@
                             (click)="refreshStore()"
                             class="h-9 px-4 rounded border border-surface-200/50 bg-surface-100/5 text-[9px] font-black uppercase tracking-widest hover:bg-surface-100/10 transition-colors flex items-center gap-2"
                         >
-                            <i class="pi pi-refresh w-3 h-3"></i>
+                            <i class="pi pi-refresh text-xs"></i>
                             Refresh State
                         </button>
                     </div>
@@ -205,7 +205,7 @@
                                     : 'text-surface-500 opacity-60 hover:opacity-100')
                             "
                         >
-                            <i class="pi pi-wallet w-3 h-3 mr-2"></i>
+                            <i class="pi pi-wallet text-xs mr-2"></i>
                             Accounts ({{ ledgerStore.accounts().length }})
                         </button>
                         <button
@@ -217,7 +217,7 @@
                                     : 'text-surface-500 opacity-60 hover:opacity-100')
                             "
                         >
-                            <i class="pi pi-circle w-3 h-3 mr-2"></i>
+                            <i class="pi pi-circle text-xs mr-2"></i>
                             Payees ({{ ledgerStore.payees().length }})
                         </button>
                         <button
@@ -229,7 +229,7 @@
                                     : 'text-surface-500 opacity-60 hover:opacity-100')
                             "
                         >
-                            <i class="pi pi-circle w-3 h-3 mr-2"></i>
+                            <i class="pi pi-circle text-xs mr-2"></i>
                             Categories ({{ ledgerStore.categories().length }})
                         </button>
                     </div>
@@ -297,7 +297,7 @@
                                                     (click)="handleDeleteAccount(account.id)"
                                                     class="opacity-0 group-hover:opacity-100 transition-opacity text-surface-500 hover:text-red-500 p-1"
                                                 >
-                                                    <i class="pi pi-trash w-3.5 h-3.5"></i>
+                                                    <i class="pi pi-trash text-sm"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -358,7 +358,7 @@
                                                     (click)="handleDeletePayee(payee.id)"
                                                     class="opacity-0 group-hover:opacity-100 transition-opacity text-surface-500 hover:text-red-500 p-1"
                                                 >
-                                                    <i class="pi pi-trash w-3.5 h-3.5"></i>
+                                                    <i class="pi pi-trash text-sm"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -426,7 +426,7 @@
                                                     (click)="handleDeleteCategory(category.id)"
                                                     class="opacity-0 group-hover:opacity-100 transition-opacity text-surface-500 hover:text-red-500 p-1"
                                                 >
-                                                    <i class="pi pi-trash w-3.5 h-3.5"></i>
+                                                    <i class="pi pi-trash text-sm"></i>
                                                 </button>
                                             </td>
                                         </tr>

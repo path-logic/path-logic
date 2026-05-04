@@ -111,6 +111,12 @@
         ]
     },
     "overrides": {
-        "webpack": "5.105.4"
+        "webpack": "5.105.4",
+        "@storybook/blocks": {
+            "storybook": "$storybook"
+        },
+        "@storybook/test": {
+            "storybook": "$storybook"
+        }
     }
 }

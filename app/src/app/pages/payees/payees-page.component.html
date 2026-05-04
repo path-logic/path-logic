@@ -13,7 +13,7 @@
                 (click)="openAddPayee()"
                 class="h-8 px-4 flex items-center gap-2 border border-primary/20 text-primary hover:bg-primary/10 rounded-sm text-[10px] font-black uppercase tracking-widest transition-all"
             >
-                <i class="pi pi-plus w-3.5 h-3.5"></i>
+                <i class="pi pi-plus text-sm"></i>
                 Add Payee
             </button>
         </header>
@@ -21,7 +21,7 @@
         <div class="px-4">
             <div class="relative mb-4">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="pi pi-search h-3.5 w-3.5 text-surface-500/50"></i>
+                    <i class="pi pi-search text-sm text-surface-500/50"></i>
                 </div>
                 <input
                     type="text"
@@ -77,7 +77,7 @@
                                                     : 'bg-surface-100 text-surface-500')
                                             "
                                         >
-                                            <i class="pi pi-user w-3.5 h-3.5"></i>
+                                            <i class="pi pi-user text-sm"></i>
                                         </div>
                                         <div>
                                             <h3
@@ -90,7 +90,7 @@
                                                     <span
                                                         class="text-[9px] text-surface-500 font-bold uppercase tracking-wider flex items-center gap-1"
                                                     >
-                                                        <i class="pi pi-map-marker w-2.5 h-2.5"></i>
+                                                        <i class="pi pi-map-marker text-[10px]"></i>
                                                         {{ payee.city }}, {{ payee.state }}
                                                     </span>
                                                 }
@@ -106,10 +106,12 @@
                                     </div>
                                     <div class="flex items-center gap-4">
                                         @if (expandedId() === payee.id) {
-                                            <i class="pi pi-chevron-down w-4 h-4 text-primary"></i>
+                                            <i
+                                                class="pi pi-chevron-down text-base text-primary"
+                                            ></i>
                                         } @else {
                                             <i
-                                                class="pi pi-chevron-right w-4 h-4 text-surface-500/50"
+                                                class="pi pi-chevron-right text-base text-surface-500/50"
                                             ></i>
                                         }
                                     </div>
@@ -124,7 +126,7 @@
                                                 <p
                                                     class="text-[9px] text-surface-500 font-bold uppercase mb-2 flex items-center gap-2 tracking-widest"
                                                 >
-                                                    <i class="pi pi-map-marker w-3 h-3"></i>
+                                                    <i class="pi pi-map-marker text-xs"></i>
                                                     Location
                                                 </p>
                                                 <div
@@ -153,7 +155,7 @@
                                                 <p
                                                     class="text-[9px] text-surface-500 font-bold uppercase mb-2 flex items-center gap-2 tracking-widest"
                                                 >
-                                                    <i class="pi pi-circle w-3 h-3"></i>
+                                                    <i class="pi pi-circle text-xs"></i>
                                                     Contact & Info
                                                 </p>
                                                 <div
@@ -161,7 +163,7 @@
                                                 >
                                                     <p class="flex items-center gap-2">
                                                         <i
-                                                            class="pi pi-circle w-2.5 h-2.5 text-surface-500/50"
+                                                            class="pi pi-circle text-[10px] text-surface-500/50"
                                                         ></i>
                                                         @if (payee.website) {
                                                             <a
@@ -177,13 +179,13 @@
                                                     </p>
                                                     <p class="flex items-center gap-2">
                                                         <i
-                                                            class="pi pi-phone w-2.5 h-2.5 text-surface-500/50"
+                                                            class="pi pi-phone text-[10px] text-surface-500/50"
                                                         ></i>
                                                         {{ payee.phone || 'No phone' }}
                                                     </p>
                                                     <p class="flex items-center gap-2">
                                                         <i
-                                                            class="pi pi-file w-2.5 h-2.5 text-surface-500/50"
+                                                            class="pi pi-file text-[10px] text-surface-500/50"
                                                         ></i>
                                                         <span class="italic font-normal lowercase">
                                                             {{ payee.notes || 'No notes' }}
