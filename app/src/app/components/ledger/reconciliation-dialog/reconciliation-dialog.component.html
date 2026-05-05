@@ -28,14 +28,14 @@
                     <span
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-primary/10 border border-primary/20 text-[9px] font-black uppercase tracking-widest text-primary"
                     >
-                        <i class="pi pi-circle text-[10px]"></i>
+                        <i class="pi pi-calculator text-[10px]"></i>
                         {{ importStats()!.newCount | number }} New
                     </span>
                     @if (importStats()!.fuzzyCount > 0) {
                         <span
                             class="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-widest text-amber-700"
                         >
-                            <i class="pi pi-circle text-[10px]"></i>
+                            <i class="pi pi-check-circle text-[10px]"></i>
                             {{ importStats()!.fuzzyCount | number }} Review
                         </span>
                     }
@@ -95,7 +95,7 @@
                     class="flex items-center justify-between gap-4 px-4 py-3 bg-primary/5 border-b border-primary/10"
                 >
                     <div class="flex items-center gap-2 text-[10px] font-bold text-primary">
-                        <i class="pi pi-circle text-base"></i>
+                        <i class="pi pi-percentage text-base"></i>
                         <span
                             >Auto-handle obvious cases: import new, skip duplicates, review fuzzy
                             matches</span
@@ -116,7 +116,7 @@
                 <div
                     class="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[10px] font-bold text-amber-700"
                 >
-                    <i class="pi pi-circle text-sm"></i>
+                    <i class="pi pi-file-edit text-sm"></i>
                     Smart defaults applied. {{ tabCounts().review }} transactions need manual review
                     below.
                 </div>
@@ -430,7 +430,7 @@
                         </div>
 
                         <div class="col-span-1 flex justify-center">
-                            <i class="pi pi-circle text-xl"></i>
+                            <i class="pi pi-plus-circle text-xl"></i>
                         </div>
 
                         <div class="col-span-6 space-y-1">
@@ -446,7 +446,7 @@
                                     <div
                                         class="flex items-center gap-2 text-[10px] font-bold text-amber-800 mb-1"
                                     >
-                                        <i class="pi pi-circle text-xs"></i>
+                                        <i class="pi pi-upload text-xs"></i>
                                         MATCH FOUND ({{ (match.confidence * 100).toFixed(0) }}%)
                                     </div>
                                     <div class="text-[9px] text-surface-800/80 truncate">
@@ -472,7 +472,7 @@
                                 size="small"
                                 styleClass="px-4 text-[9px] font-black uppercase"
                             >
-                                <i class="pi pi-circle text-xs mr-1.5"></i>
+                                <i class="pi pi-times text-xs mr-1.5"></i>
                                 Confirm Match
                             </p-button>
                         }
@@ -483,7 +483,7 @@
                             size="small"
                             styleClass="px-4 text-[9px] font-black uppercase"
                         >
-                            <i class="pi pi-circle text-xs mr-1.5"></i>
+                            <i class="pi pi-check text-xs mr-1.5"></i>
                             {{ match.type === 'fuzzy' ? 'Add as Separate' : 'Add to Ledger' }}
                         </p-button>
                         <p-button

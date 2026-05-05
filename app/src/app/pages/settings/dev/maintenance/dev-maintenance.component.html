@@ -47,7 +47,7 @@
                     ></div>
                     <div class="space-y-6">
                         <div class="flex items-center gap-3">
-                            <i class="pi pi-circle text-xl text-red-500"></i>
+                            <i class="pi pi-exclamation-triangle text-xl text-red-500"></i>
                             <h2 class="text-sm font-black uppercase tracking-widest">
                                 Factory Reset
                             </h2>
@@ -90,7 +90,7 @@
                                 "
                             >
                                 <div class="flex items-center gap-2">
-                                    <i class="pi pi-circle text-base"></i>
+                                    <i class="pi pi-trash text-base"></i>
                                     {{
                                         wasPartial()
                                             ? 'Local wipe complete'
@@ -120,7 +120,7 @@
                             [disabled]="isResetting()"
                         >
                             @if (isResetting()) {
-                                <i class="pi pi-circle text-base animate-spin"></i>
+                                <i class="pi pi-spinner text-base animate-spin"></i>
                                 Wiping...
                             } @else {
                                 <i class="pi pi-trash text-base"></i>
@@ -134,7 +134,7 @@
                                 class="w-full text-[9px] font-black uppercase tracking-[0.2em] text-surface-500 hover:text-red-500 transition-colors flex items-center justify-center gap-2"
                                 [disabled]="isResetting()"
                             >
-                                <i class="pi pi-circle text-xs"></i>
+                                <i class="pi pi-info-circle text-xs"></i>
                                 Force Wipe Local Data
                             </button>
                         </div>
@@ -178,7 +178,7 @@
                 >
                     <div class="flex items-center justify-between mb-8">
                         <div class="flex items-center gap-3">
-                            <i class="pi pi-circle text-xl text-primary"></i>
+                            <i class="pi pi-database text-xl text-primary"></i>
                             <h2 class="text-sm font-black uppercase tracking-widest">
                                 Database Explorer
                             </h2>
@@ -217,7 +217,7 @@
                                     : 'text-surface-500 opacity-60 hover:opacity-100')
                             "
                         >
-                            <i class="pi pi-circle text-xs mr-2"></i>
+                            <i class="pi pi-download text-xs mr-2"></i>
                             Payees ({{ ledgerStore.payees().length }})
                         </button>
                         <button
@@ -229,7 +229,7 @@
                                     : 'text-surface-500 opacity-60 hover:opacity-100')
                             "
                         >
-                            <i class="pi pi-circle text-xs mr-2"></i>
+                            <i class="pi pi-upload text-xs mr-2"></i>
                             Categories ({{ ledgerStore.categories().length }})
                         </button>
                     </div>

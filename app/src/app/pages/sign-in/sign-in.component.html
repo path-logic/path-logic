@@ -18,7 +18,7 @@
         <!-- Sign In Button -->
         <button class="sign-in-button" (click)="signInWithGoogle()" [disabled]="isLoading()">
             @if (isLoading()) {
-                <i class="pi pi-circle spinner"></i>
+                <i class="pi pi-spinner spinner"></i>
                 <span>Authenticating...</span>
             } @else {
                 <svg
@@ -59,7 +59,7 @@
         <!-- Trust Signals -->
         <div class="trust-section">
             <div class="trust-item">
-                <i class="pi pi-circle trust-icon"></i>
+                <i class="pi pi-shield trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">End-to-End Encrypted</p>
                     <p class="trust-description text-content-muted">
@@ -69,7 +69,7 @@
             </div>
 
             <div class="trust-item">
-                <i class="pi pi-circle trust-icon"></i>
+                <i class="pi pi-cloud trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">User-Owned Storage</p>
                     <p class="trust-description text-content-muted">
@@ -79,7 +79,7 @@
             </div>
 
             <div class="trust-item">
-                <i class="pi pi-circle trust-icon"></i>
+                <i class="pi pi-eye-slash trust-icon"></i>
                 <div>
                     <p class="trust-title text-content-primary">Zero-Knowledge Architecture</p>
                     <p class="trust-description text-content-muted">
