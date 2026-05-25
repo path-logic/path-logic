@@ -1,0 +1,26 @@
+!Type:Bank
+D04/01/2024
+T-50.00
+PGrocery Store
+MWeekly groceries
+^
+D04/02/2024
+T-120.00
+PElectric Company
+MApril electric bill
+^
+D04/03/2024
+T2000.00
+PACME Corp Payroll
+MPaycheck deposit
+^
+D04/05/2024
+T-800.00
+PRent Payment
+MApril rent
+^
+D04/07/2024
+T-45.00
+PNetflix
+MStreaming subscription
+^

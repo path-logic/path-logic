@@ -1,0 +1,4 @@
+node_modules/
+ssl/
+storybook-static/
+!src/app/core/parsers/__fixtures__/**/*.qif
