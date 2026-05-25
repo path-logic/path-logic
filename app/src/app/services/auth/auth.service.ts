@@ -73,6 +73,11 @@ export class AuthService {
 
     constructor() {
         if (environment.e2e) {
+            this._user.set({
+                uid: 'e2e-user',
+                email: 'e2e@example.com',
+                displayName: 'E2E User'
+            } as unknown as User);
             return;
         }
 

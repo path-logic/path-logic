@@ -4,9 +4,35 @@
     [modal]="true"
     [closable]="true"
     [style]="{ width: '40rem' }"
-    styleClass="penny-dialog"
+    styleClass="penny-dialog split-entry-dialog"
 >
     <div class="space-y-4">
+        <!-- Transaction Context -->
+        <div
+            class="flex items-center justify-between bg-surface-50 p-3 rounded-md border border-surface-200"
+        >
+            <div class="flex flex-col">
+                <span class="text-sm font-bold text-surface-800">{{
+                    payee() || 'Unknown Payee'
+                }}</span>
+                <span class="text-[10px] text-surface-500">
+                    {{ date() || 'No Date' }}
+                    @if (memo()) {
+                        • {{ memo() }}
+                    }
+                </span>
+            </div>
+            <div
+                class="px-2 py-1 rounded-sm text-[9px] font-bold uppercase tracking-widest"
+                [class.bg-emerald-100]="totalAmount() >= 0"
+                [class.text-emerald-800]="totalAmount() >= 0"
+                [class.bg-red-100]="totalAmount() < 0"
+                [class.text-red-800]="totalAmount() < 0"
+            >
+                {{ transactionType() }}
+            </div>
+        </div>
+
         <!-- Summary Header -->
         <div
             class="flex justify-between items-center bg-surface-100/30 p-4 rounded-sm border border-surface-200"
@@ -29,7 +55,8 @@
                 </p>
                 <p
                     class="font-mono font-bold text-lg"
-                    [class.text-emerald-900]="isBalanced()"
+                    [class.text-emerald-700]="isBalanced()"
+                    [class.dark:text-emerald-400]="isBalanced()"
                     [class.text-red-500]="!isBalanced()"
                     [class.animate-pulse]="!isBalanced()"
                 >
@@ -38,74 +65,330 @@
             </div>
         </div>
 
-        <!-- Split Table -->
-        <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2 ledger-scroll">
-            @for (split of splits(); track split.id; let i = $index) {
-                <div
-                    class="flex gap-3 items-center group animate-in slide-in-from-left-2"
-                    [style.animation-delay]="i * 50 + 'ms'"
-                >
-                    <div class="w-[180px]">
-                        <p-select
-                            [options]="categories()"
-                            optionLabel="name"
-                            optionValue="id"
-                            [ngModel]="split.categoryId ?? 'uncategorized'"
-                            (ngModelChange)="handleUpdateSplit(split.id, { categoryId: $event })"
-                            styleClass="text-[10px] uppercase font-bold w-full"
-                        ></p-select>
-                    </div>
-                    <div class="flex-1">
-                        <input
-                            type="text"
-                            placeholder="Split Memo"
-                            [attr.aria-label]="'Split memo ' + (i + 1)"
-                            [ngModel]="split.memo"
-                            (ngModelChange)="handleUpdateSplit(split.id, { memo: $event })"
-                            class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                    </div>
-                    <div class="w-[120px]">
-                        <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            [attr.aria-label]="'Split amount ' + (i + 1)"
-                            [ngModel]="centsToDollars(split.amount)"
-                            (ngModelChange)="
-                                handleUpdateSplit(split.id, {
-                                    amount: dollarsToCents($event)
-                                })
-                            "
-                            class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] font-mono text-right focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                    </div>
-                    <p-button
-                        (click)="handleRemoveSplit(split.id)"
-                        icon="pi pi-trash"
-                        severity="danger"
-                        [text]="true"
-                        size="small"
-                        aria-label="Remove split line"
-                    ></p-button>
-                </div>
-            }
+        <!-- Split Layout Toggle (A/B Test) -->
+        <div
+            class="flex items-center justify-between mt-2 bg-surface-100/50 p-2 rounded-sm border border-primary/20"
+        >
+            <span class="text-[10px] font-bold text-primary uppercase tracking-widest"
+                >A/B Test: Layout Mode</span
+            >
+            <p-select
+                [options]="[
+                    { label: 'Standard', value: 'standard' },
+                    { label: 'Paycheck (Vertical)', value: 'vertical' },
+                    { label: 'Paycheck (Tabs)', value: 'tabs' }
+                ]"
+                [ngModel]="layoutMode()"
+                (ngModelChange)="layoutMode.set($event)"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="text-[10px] uppercase font-bold w-[200px]"
+            >
+            </p-select>
         </div>
 
-        <p-button
-            (click)="handleAddSplit()"
-            icon="pi pi-plus"
-            label="Add Split Line"
-            [outlined]="true"
-            severity="secondary"
-            class="w-full"
-            styleClass="w-full border-dashed text-[10px] font-bold uppercase"
-        ></p-button>
+        <!-- Reusable Split Row Template -->
+        <ng-template #splitRowTemplate let-split="split" let-idx="idx" let-delay="delay">
+            <div
+                class="flex gap-3 items-center group animate-in slide-in-from-left-2"
+                [style.animation-delay]="delay + 'ms'"
+            >
+                <div class="w-[180px]">
+                    <p-select
+                        [options]="categories()"
+                        optionLabel="name"
+                        optionValue="id"
+                        [ngModel]="split.categoryId ?? 'uncategorized'"
+                        (ngModelChange)="handleUpdateSplit(split.id, { categoryId: $event })"
+                        styleClass="text-[10px] uppercase font-bold w-full"
+                    ></p-select>
+                </div>
+                <div class="flex-1">
+                    <input
+                        type="text"
+                        placeholder="Split Memo"
+                        [attr.aria-label]="'Split memo ' + (idx + 1)"
+                        [ngModel]="split.memo"
+                        (ngModelChange)="handleUpdateSplit(split.id, { memo: $event })"
+                        class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                </div>
+                <div class="w-[120px]">
+                    <input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        [attr.aria-label]="'Split amount ' + (idx + 1)"
+                        [ngModel]="centsToDollars(split.amount)"
+                        (ngModelChange)="
+                            handleUpdateSplit(split.id, {
+                                amount: dollarsToCents($event)
+                            })
+                        "
+                        class="w-full h-8 px-2 bg-surface-50 border border-surface-200 rounded-md text-[10px] font-mono text-right focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                </div>
+                <p-button
+                    (click)="handleRemoveSplit(split.id)"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    size="small"
+                    aria-label="Remove split line"
+                ></p-button>
+            </div>
+        </ng-template>
+
+        <!-- LAYOUT: STANDARD -->
+        @if (!isPaycheck()) {
+            <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2 ledger-scroll">
+                @for (split of splits(); track split.id; let i = $index) {
+                    <ng-container
+                        *ngTemplateOutlet="
+                            splitRowTemplate;
+                            context: { split: split, idx: i, delay: i * 50 }
+                        "
+                    ></ng-container>
+                }
+            </div>
+            <p-button
+                (click)="handleAddSplit()"
+                icon="pi pi-plus"
+                label="Add Split Line"
+                [outlined]="true"
+                severity="secondary"
+                class="w-full"
+                styleClass="w-full border-dashed text-[10px] font-bold uppercase"
+            ></p-button>
+        }
+
+        <!-- LAYOUT: VERTICAL (Paycheck) -->
+        @if (isPaycheck() && layoutMode() === 'vertical') {
+            <div class="space-y-6 max-h-[400px] overflow-y-auto pr-2 ledger-scroll">
+                <!-- Earnings Section -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between border-b border-surface-200 pb-1">
+                        <span
+                            class="text-[10px] font-black uppercase text-surface-600 tracking-widest"
+                            >Wages & Earnings</span
+                        >
+                        <span class="font-mono text-[10px] font-bold text-emerald-700">{{
+                            formatCurrency(sumEarnings())
+                        }}</span>
+                    </div>
+                    @for (split of earningsSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('earnings')"
+                        icon="pi pi-plus"
+                        label="Add Earning"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase"
+                    ></p-button>
+                </div>
+
+                <!-- Taxes Section -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between border-b border-surface-200 pb-1">
+                        <span
+                            class="text-[10px] font-black uppercase text-surface-600 tracking-widest"
+                            >Taxes Withheld</span
+                        >
+                        <span class="font-mono text-[10px] font-bold text-red-700">{{
+                            formatCurrency(sumTaxes())
+                        }}</span>
+                    </div>
+                    @for (split of taxSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('taxes')"
+                        icon="pi pi-plus"
+                        label="Add Tax"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase text-surface-500"
+                    ></p-button>
+                </div>
+
+                <!-- Deductions Section -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between border-b border-surface-200 pb-1">
+                        <span
+                            class="text-[10px] font-black uppercase text-surface-600 tracking-widest"
+                            >Pre/Post-Tax Deductions</span
+                        >
+                        <span class="font-mono text-[10px] font-bold text-red-700">{{
+                            formatCurrency(sumDeductions())
+                        }}</span>
+                    </div>
+                    @for (split of deductionSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('deductions')"
+                        icon="pi pi-plus"
+                        label="Add Deduction"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase text-surface-500"
+                    ></p-button>
+                </div>
+            </div>
+        }
+
+        <!-- LAYOUT: TABS (Paycheck) -->
+        @if (isPaycheck() && layoutMode() === 'tabs') {
+            <div class="flex border-b border-surface-200 gap-4 mb-2">
+                <button
+                    (click)="activeTab.set('wages')"
+                    [class.border-b-2]="activeTab() === 'wages'"
+                    [class.border-primary]="activeTab() === 'wages'"
+                    [class.text-primary]="activeTab() === 'wages'"
+                    [class.text-surface-500]="activeTab() !== 'wages'"
+                    class="px-2 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                    Wages ({{ formatCurrency(sumEarnings()) }})
+                </button>
+                <button
+                    (click)="activeTab.set('taxes')"
+                    [class.border-b-2]="activeTab() === 'taxes'"
+                    [class.border-primary]="activeTab() === 'taxes'"
+                    [class.text-primary]="activeTab() === 'taxes'"
+                    [class.text-surface-500]="activeTab() !== 'taxes'"
+                    class="px-2 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                    Taxes ({{ formatCurrency(sumTaxes()) }})
+                </button>
+                <button
+                    (click)="activeTab.set('deductions')"
+                    [class.border-b-2]="activeTab() === 'deductions'"
+                    [class.border-primary]="activeTab() === 'deductions'"
+                    [class.text-primary]="activeTab() === 'deductions'"
+                    [class.text-surface-500]="activeTab() !== 'deductions'"
+                    class="px-2 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                >
+                    Deductions ({{ formatCurrency(sumDeductions()) }})
+                </button>
+            </div>
+
+            <div class="space-y-2 max-h-[350px] overflow-y-auto pr-2 ledger-scroll">
+                @if (activeTab() === 'wages') {
+                    @for (split of earningsSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('earnings')"
+                        icon="pi pi-plus"
+                        label="Add Earning"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase"
+                    ></p-button>
+                }
+                @if (activeTab() === 'taxes') {
+                    @for (split of taxSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('taxes')"
+                        icon="pi pi-plus"
+                        label="Add Tax"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase text-surface-500"
+                    ></p-button>
+                }
+                @if (activeTab() === 'deductions') {
+                    @for (split of deductionSplits(); track split.id; let i = $index) {
+                        <ng-container
+                            *ngTemplateOutlet="
+                                splitRowTemplate;
+                                context: { split: split, idx: i, delay: i * 30 }
+                            "
+                        ></ng-container>
+                    }
+                    <p-button
+                        (click)="handleAddSplitByType('deductions')"
+                        icon="pi pi-plus"
+                        label="Add Deduction"
+                        [text]="true"
+                        size="small"
+                        styleClass="text-[9px] font-bold uppercase text-surface-500"
+                    ></p-button>
+                }
+            </div>
+        }
     </div>
 
     <ng-template pTemplate="footer">
+        @if (isPaycheck()) {
+            <!-- Paycheck MS Money Summary Footer -->
+            <div
+                class="flex flex-col w-full border-t border-surface-200 pt-3 mt-1 bg-surface-50/50 rounded-b-md px-4 pb-2"
+            >
+                <div
+                    class="flex justify-between items-center text-[10px] font-mono text-surface-600 mb-1"
+                >
+                    <span>Total Wages:</span>
+                    <span>{{ formatCurrency(sumEarnings()) }}</span>
+                </div>
+                <div
+                    class="flex justify-between items-center text-[10px] font-mono text-surface-600 mb-1"
+                >
+                    <span>Total Taxes:</span>
+                    <span class="text-red-700">{{ formatCurrency(sumTaxes()) }}</span>
+                </div>
+                <div
+                    class="flex justify-between items-center text-[10px] font-mono text-surface-600 mb-2"
+                >
+                    <span>Total Deductions:</span>
+                    <span class="text-red-700">{{ formatCurrency(sumDeductions()) }}</span>
+                </div>
+                <div
+                    class="flex justify-between items-center text-sm font-black uppercase tracking-widest border-t border-surface-200 pt-2"
+                >
+                    <span>Net Paycheck:</span>
+                    <span
+                        [class.text-emerald-800]="isBalanced()"
+                        [class.text-red-600]="!isBalanced()"
+                        >{{ formatCurrency(sumSplits()) }}</span
+                    >
+                </div>
+            </div>
+        }
+
         <div
-            class="flex justify-between items-center w-full gap-2 pt-2 border-t border-surface-200 mt-2"
+            class="flex justify-between items-center w-full gap-2 pt-2 mt-2"
+            [class.border-t]="!isPaycheck()"
+            [class.border-surface-200]="!isPaycheck()"
         >
             @if (!isBalanced()) {
                 <div class="flex gap-2">

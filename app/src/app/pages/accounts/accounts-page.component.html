@@ -43,50 +43,54 @@
                     @for (account of accounts(); track account.id) {
                         <div
                             [class]="
-                                'transition-all overflow-hidden border rounded-xl ' +
+                                'transition-all overflow-hidden border rounded-xl focus-within:ring-2 focus-within:ring-primary ' +
                                 (expandedId() === account.id
                                     ? 'bg-surface-100/40 border-primary/50 shadow-[0_0_20px_rgba(56,189,248,0.1)]'
                                     : 'bg-transparent border-surface-200/50 hover:border-primary/30')
                             "
                         >
                             <div
-                                class="p-3 flex items-center justify-between cursor-pointer select-none min-h-[56px]"
+                                class="p-4 flex items-center justify-between cursor-pointer select-none min-h-[64px] outline-none"
                                 (click)="toggleExpand(account.id)"
                                 (keydown.enter)="toggleExpand(account.id)"
                                 (keydown.space)="toggleExpand(account.id)"
                                 tabindex="0"
                                 role="button"
                             >
-                                <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-5">
                                     <div
                                         [class]="
-                                            'text-xl rounded-lg flex items-center justify-center transition-colors ' +
+                                            'w-10 h-10 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ' +
                                             (expandedId() === account.id
-                                                ? 'bg-primary text-white'
-                                                : 'bg-surface-100 text-surface-500')
+                                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                                : 'bg-primary/10 text-primary')
                                         "
                                     >
                                         <i
-                                            [class]="'pi text-base ' + getAccountIcon(account.type)"
+                                            [class]="'pi text-xl ' + getAccountIcon(account.type)"
                                         ></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-semibold text-surface-800">
+                                        <h3 class="text-base font-bold text-surface-800">
                                             {{ account.name }}
                                         </h3>
-                                        <p class="text-xs text-surface-500 mt-0.5">
+                                        <p
+                                            class="text-xs font-medium text-surface-500 mt-1 uppercase tracking-wider"
+                                        >
                                             {{ account.institutionName }}
                                         </p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-8">
                                     <div class="text-right">
-                                        <p class="text-xs text-surface-500 font-medium mb-0.5">
+                                        <p
+                                            class="text-[10px] text-surface-500 font-bold uppercase tracking-widest mb-1"
+                                        >
                                             Current Balance
                                         </p>
                                         <p
                                             [class]="
-                                                'font-semibold text-sm ' +
+                                                'font-mono font-black text-lg tracking-tight ' +
                                                 (account.clearedBalance + account.pendingBalance >=
                                                 0
                                                     ? 'text-primary'
@@ -101,18 +105,26 @@
                                         </p>
                                     </div>
                                     @if (expandedId() === account.id) {
-                                        <i class="pi pi-chevron-down text-base text-primary"></i>
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-surface-100 flex items-center justify-center"
+                                        >
+                                            <i
+                                                class="pi pi-chevron-up text-sm text-surface-600"
+                                            ></i>
+                                        </div>
                                     } @else {
-                                        <i
-                                            class="pi pi-chevron-right text-base text-surface-500/50"
-                                        ></i>
+                                        <div class="w-8 h-8 flex items-center justify-center">
+                                            <i
+                                                class="pi pi-chevron-down text-sm text-surface-400"
+                                            ></i>
+                                        </div>
                                     }
                                 </div>
                             </div>
 
                             @if (expandedId() === account.id) {
                                 <div
-                                    class="px-14 pb-4 pt-0 border-t border-surface-200/50 animate-in slide-in-from-top-1"
+                                    class="px-8 pb-6 pt-2 border-t border-surface-200/50 animate-in slide-in-from-top-1"
                                 >
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
                                         <div>
@@ -122,18 +134,29 @@
                                                 Metadata
                                             </p>
                                             <div class="space-y-1.5">
-                                                <p class="text-sm text-surface-800">
-                                                    <span class="text-surface-500">Type: </span
-                                                    >{{ account.type }}
+                                                <p
+                                                    class="text-sm text-surface-800 flex items-center gap-1.5"
+                                                >
+                                                    <span class="text-surface-500">Type:</span>
+                                                    <span class="font-medium capitalize">{{
+                                                        account.type
+                                                    }}</span>
                                                 </p>
-                                                <p class="text-sm text-surface-800">
-                                                    <span class="text-surface-500">Status: </span>
-                                                    {{ account.isActive ? 'Active' : 'Archived' }}
+                                                <p
+                                                    class="text-sm text-surface-800 flex items-center gap-1.5"
+                                                >
+                                                    <span class="text-surface-500">Status:</span>
+                                                    <span class="font-medium">{{
+                                                        account.isActive ? 'Active' : 'Archived'
+                                                    }}</span>
                                                 </p>
-                                                <p class="text-xs font-mono text-surface-500/70">
+                                                <p
+                                                    class="text-xs font-mono text-surface-500 flex items-center gap-1.5"
+                                                >
                                                     <span class="font-sans text-surface-500"
-                                                        >ID: </span
-                                                    >{{ account.id }}
+                                                        >ID:</span
+                                                    >
+                                                    <span class="opacity-70">{{ account.id }}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -144,14 +167,18 @@
                                                 Summary
                                             </p>
                                             <div class="space-y-1.5">
-                                                <p class="text-sm text-surface-800">
-                                                    <span class="text-surface-500">Cleared: </span>
+                                                <p
+                                                    class="text-sm text-surface-800 flex items-center gap-1.5"
+                                                >
+                                                    <span class="text-surface-500">Cleared:</span>
                                                     <span class="font-semibold text-primary">
                                                         {{ formatCurrency(account.clearedBalance) }}
                                                     </span>
                                                 </p>
-                                                <p class="text-sm text-surface-800">
-                                                    <span class="text-surface-500">Pending: </span>
+                                                <p
+                                                    class="text-sm text-surface-800 flex items-center gap-1.5"
+                                                >
+                                                    <span class="text-surface-500">Pending:</span>
                                                     <span class="font-semibold text-amber-500">
                                                         {{ formatCurrency(account.pendingBalance) }}
                                                     </span>
@@ -161,20 +188,20 @@
                                         <div class="flex flex-col justify-end gap-2">
                                             <a
                                                 [routerLink]="['/accounts', account.id, 'info']"
-                                                class="min-h-[44px] px-4 flex items-center justify-center border border-surface-200 hover:bg-surface-100 text-sm font-medium rounded-xl transition-all text-center"
+                                                class="min-h-[44px] px-4 flex items-center justify-center border border-surface-200 hover:bg-surface-100 text-surface-800 text-sm font-medium rounded-xl transition-all shadow hover:shadow-md text-center"
                                             >
                                                 Edit Details
                                             </a>
                                             <a
                                                 [routerLink]="['/accounts', account.id]"
-                                                class="min-h-[44px] px-4 flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium border border-primary/20 rounded-xl transition-all text-center"
+                                                class="min-h-[44px] px-4 flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium border border-primary/20 rounded-xl transition-all shadow hover:shadow-md text-center"
                                             >
                                                 View Ledger
                                             </a>
                                             <button
                                                 type="button"
                                                 (click)="requestDeleteAccount(account.id, $event)"
-                                                class="min-h-[44px] px-4 flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-500 text-sm font-medium rounded-xl transition-all"
+                                                class="min-h-[44px] px-4 flex items-center justify-center gap-2 border border-red-200 hover:bg-red-50 text-red-500 text-sm font-medium rounded-xl transition-all shadow hover:shadow-md"
                                                 aria-label="Delete this account"
                                             >
                                                 <i class="pi pi-trash text-base"></i>

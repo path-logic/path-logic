@@ -22,7 +22,7 @@ test.describe('Resolver Inputs', () => {
             await page.waitForTimeout(1000);
 
             // The app-shell should be present (layout rendered)
-            await expect(page.locator('app-shell')).toBeVisible();
+            await expect(page.locator('shell')).toBeVisible();
         } else {
             // No accounts exist — this is acceptable, the test passes
             test.skip();
@@ -38,6 +38,6 @@ test.describe('Resolver Inputs', () => {
         await page.waitForTimeout(2000);
 
         // The app should not crash — either accounts page or the detail page with empty state
-        await expect(page.locator('app-shell')).toBeVisible();
+        await expect(page.locator('shell')).toBeVisible();
     });
 });

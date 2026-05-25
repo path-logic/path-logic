@@ -1,8 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { CashflowProjection, IAccount, IRecurringSchedule, ITransaction } from '@core';
 import { AccountType, generateProjection, Money, TransactionStatus } from '@core';
+import { LocalDatePipe } from '../../pipes/local-date.pipe';
 
 import { ProjectionChartComponent } from '../../components/dashboard/projection-chart/projection-chart.component';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -14,7 +14,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 @Component({
     selector: 'dashboard',
     standalone: true,
-    imports: [RouterLink, DatePipe, AppShellComponent, ProjectionChartComponent],
+    imports: [RouterLink, LocalDatePipe, AppShellComponent, ProjectionChartComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush

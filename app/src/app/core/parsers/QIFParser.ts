@@ -295,6 +295,18 @@ export class QIFParser {
         // Generate import hash for deduplication
         const importHash: string = generateImportHash(date, amount, payee);
 
+        // Auto-balance splits if there's a math mismatch
+        if (splits.length > 0) {
+            const sumSplits = splits.reduce((acc, s) => acc + s.amount, 0);
+            if (sumSplits !== amount) {
+                splits.push({
+                    category: null,
+                    amount: amount - sumSplits,
+                    memo: 'Auto-balancing adjustment'
+                });
+            }
+        }
+
         result.transaction = {
             date,
             amount,

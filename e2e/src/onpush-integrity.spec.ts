@@ -24,7 +24,7 @@ test.describe('OnPush Integrity', () => {
         await page.goto('/');
 
         // The projection chart component should render within the dashboard
-        const chart = page.locator('app-projection-chart');
+        const chart = page.locator('projection-chart');
         await expect(chart).toBeVisible();
     });
 
@@ -46,11 +46,11 @@ test.describe('OnPush Integrity', () => {
         await page.goto('/accounts');
 
         // The app-shell layout should render
-        await expect(page.locator('app-shell')).toBeVisible();
+        await expect(page.locator('shell')).toBeVisible();
 
         // Either the accounts list or the welcome wizard should be visible
         const accountsHeading = page.getByText('Accounts Management');
-        const welcomeWizard = page.locator('app-welcome-wizard');
+        const welcomeWizard = page.locator('welcome-wizard');
 
         const hasAccounts = await accountsHeading.isVisible().catch(() => false);
         const hasWizard = await welcomeWizard.isVisible().catch(() => false);

@@ -15,6 +15,7 @@ import { filter } from 'rxjs';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { ThemeService } from '../../../services/theme/theme.service';
 
 /**
  * Interface for navigation items within the header.
@@ -42,6 +43,7 @@ export class HeaderComponent {
     private readonly elementRef: ElementRef = inject(ElementRef);
     private readonly destroyRef: DestroyRef = inject(DestroyRef);
     private readonly router: Router = inject(Router);
+    readonly themeService: ThemeService = inject(ThemeService);
 
     readonly showUserMenu = signal<boolean>(false);
 
@@ -113,5 +115,13 @@ export class HeaderComponent {
     handleSignOut(): void {
         this.showUserMenu.set(false);
         void this.authService.signOut();
+    }
+
+    /**
+     * Toggles between dark and light modes.
+     */
+    toggleTheme(): void {
+        const current = this.themeService.resolvedTheme();
+        this.themeService.setTheme(current === 'dark' ? 'light' : 'dark');
     }
 }

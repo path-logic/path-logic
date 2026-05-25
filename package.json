@@ -106,8 +106,8 @@
         "*.{js,ts,html,css,json,md}": [
             "prettier --write"
         ],
-        "*.{js,ts,html}": [
-            "eslint --fix"
+        "*.ts": [
+            "eslint --fix --no-warn-ignored"
         ]
     },
     "overrides": {

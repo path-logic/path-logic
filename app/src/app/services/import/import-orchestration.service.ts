@@ -1,5 +1,6 @@
 import { Injectable, NgZone, inject, signal } from '@angular/core';
 import type { IReconciliationMatch } from '@core';
+import { KnownCategory } from '@core';
 import { ReconciliationEngine } from '../../core/engine/ReconciliationEngine';
 import { QIFParser } from '../../core/parsers/QIFParser';
 import { LedgerStore } from '../ledger-store/ledger.store';
@@ -52,11 +53,15 @@ export class ImportOrchestrationService {
     readonly matches = signal<Array<IReconciliationMatch>>([]);
     readonly stats = signal<IImportStats | null>(null);
     readonly error = signal<string | null>(null);
+    readonly unknownCategories = signal<Array<string>>([]);
 
     // ── Private ──────────────────────────────────────────────────────────────
 
     private worker: Worker | null = null;
     private currentAccountId: string = '';
+    private pendingMatches: Array<IReconciliationMatch> | null = null;
+    private pendingTier: ImportTier | null = null;
+    private pendingStats: IImportStats | null = null;
 
     // ── Public API ───────────────────────────────────────────────────────────
 
@@ -115,7 +120,98 @@ export class ImportOrchestrationService {
         this.matches.set([]);
         this.stats.set(null);
         this.error.set(null);
+        this.unknownCategories.set([]);
         this.currentAccountId = '';
+        this.pendingMatches = null;
+        this.pendingTier = null;
+        this.pendingStats = null;
+    }
+
+    // ── Category Mapping ─────────────────────────────────────────────────────
+
+    private getCategorySearchPaths(qifCategory: string): Array<string> {
+        const isTransfer = qifCategory.startsWith('[') && qifCategory.endsWith(']');
+        if (isTransfer) {
+            return ['[TRANSFER]'];
+        }
+
+        const cleanName = qifCategory.replace(/[[\]]/g, '').trim();
+        const paths = [cleanName];
+
+        if (cleanName.includes(':')) {
+            const parts = cleanName.split(':');
+            const lastPart = parts[parts.length - 1];
+            if (lastPart) {
+                paths.push(lastPart.trim());
+            }
+        }
+
+        return paths;
+    }
+
+    /**
+     * Resolves pending unknown categories, saves them to aliases,
+     * applies them to the pending matches, and completes the import.
+     */
+    async resolveUnknownCategories(mappings: Record<string, string>): Promise<void> {
+        if (!this.pendingMatches) return;
+
+        // Save aliases to DB
+        for (const [alias, categoryId] of Object.entries(mappings)) {
+            if (categoryId) {
+                await this.ledgerStore.upsertCategoryAlias(alias, categoryId);
+            }
+        }
+
+        // Apply mappings to pending matches
+        const mappedMatches = this.pendingMatches.map(match => {
+            const applyCat = (catStr: string | null): string | null => {
+                if (!catStr) return null;
+                const paths = this.getCategorySearchPaths(catStr);
+
+                for (const path of paths) {
+                    if (path === '[TRANSFER]') return KnownCategory.InternalTransfer;
+
+                    // Exact match
+                    const exact = this.ledgerStore
+                        .categories()
+                        .find(c => c.name.toLowerCase() === path.toLowerCase());
+                    if (exact) return exact.id;
+
+                    // Alias match (including the ones we just saved)
+                    const mappedId = mappings[path] || this.ledgerStore.getCategoryAlias(path);
+                    if (mappedId) return mappedId;
+                }
+
+                return null;
+            };
+
+            return {
+                ...match,
+                parsedTx: {
+                    ...match.parsedTx,
+                    category: applyCat(match.parsedTx.category),
+                    splits: (match.parsedTx.splits || []).map(s => ({
+                        ...s,
+                        category: applyCat(s.category)
+                    }))
+                }
+            };
+        });
+
+        const tier = this.pendingTier || 'small';
+        const stats = this.pendingStats || {
+            newCount: mappedMatches.filter(m => m.type === 'none').length,
+            fuzzyCount: mappedMatches.filter(m => m.type === 'fuzzy').length,
+            exactCount: mappedMatches.filter(m => m.type === 'exact').length,
+            totalCount: mappedMatches.length
+        };
+
+        this.applyMappingsAndComplete(mappedMatches, tier, stats);
+        this.unknownCategories.set([]);
+        this.pendingMatches = null;
+        this.pendingStats = null;
+        this.pendingTier = null;
     }
 
     // ── Strategy: Inline (small files) ───────────────────────────────────────
@@ -164,9 +260,13 @@ export class ImportOrchestrationService {
                 if (msg.type === 'progress') {
                     this.setStage(msg.stage, msg.pct, msg.processed, msg.total, tier);
                 } else if (msg.type === 'done') {
-                    this.finalize(msg.matches, tier, msg.stats);
-                    this.worker?.terminate();
-                    this.worker = null;
+                    // Yield the main thread to allow the UI to paint the new "Finalizing" state
+                    // This creates a deliberate, premium loading state instead of freezing the UI
+                    setTimeout(() => {
+                        this.finalize(msg.matches, tier, msg.stats);
+                        this.worker?.terminate();
+                        this.worker = null;
+                    }, 400);
                 } else if (msg.type === 'error') {
                     this.setError(msg.message);
                     this.worker?.terminate();
@@ -221,6 +321,110 @@ export class ImportOrchestrationService {
             totalCount: matches.length
         };
 
+        // Pre-cache exact matches and SQLite aliases to prevent O(N^2) synchronous freezes
+        const categories = this.ledgerStore.categories();
+        const categoryMap = new Map<string, string>();
+        for (const c of categories) {
+            categoryMap.set(c.name.toLowerCase(), c.id);
+        }
+
+        const aliasCache = new Map<string, string | null>();
+
+        const resolveCategoryPath = (path: string): string | null => {
+            if (path === '[TRANSFER]') return 'INTERNAL_TRANSFER_VIRTUAL_ID'; // Will map to KnownCategory.InternalTransfer
+
+            const lowerPath = path.toLowerCase();
+            const catId = categoryMap.get(lowerPath);
+            if (catId) return catId;
+
+            const cachedAlias = aliasCache.get(path);
+            if (cachedAlias !== undefined) return cachedAlias;
+
+            const aliasMatch = this.ledgerStore.getCategoryAlias(path);
+            aliasCache.set(path, aliasMatch);
+            return aliasMatch;
+        };
+
+        // Scan for unknown categories
+        const unknowns = new Set<string>();
+
+        for (const match of matches) {
+            const scanCategory = (cat: string | null): void => {
+                if (!cat) return;
+                const paths = this.getCategorySearchPaths(cat);
+
+                for (const path of paths) {
+                    const mappedId = resolveCategoryPath(path);
+                    if (mappedId) return; // Found a match!
+                }
+
+                // Unknown! Use the fully qualified path
+                const firstPath = paths[0];
+                if (firstPath) {
+                    unknowns.add(firstPath);
+                }
+            };
+
+            scanCategory(match.parsedTx.category);
+            for (const split of match.parsedTx.splits || []) {
+                scanCategory(split.category);
+            }
+        }
+
+        if (unknowns.size > 0) {
+            this.unknownCategories.set(Array.from(unknowns));
+            this.pendingMatches = matches;
+            this.pendingStats = stats;
+            this.pendingTier = tier;
+            this.progress.set({
+                stage: 'mapping_categories',
+                pct: 80,
+                processed: stats.totalCount,
+                total: stats.totalCount,
+                tier
+            });
+            return;
+        }
+
+        // Apply any pre-existing mappings right away if there are no unknowns
+        const mappedMatches = matches.map(match => {
+            const applyCat = (catStr: string | null): string | null => {
+                if (!catStr) return null;
+                const paths = this.getCategorySearchPaths(catStr);
+
+                for (const path of paths) {
+                    const mappedId = resolveCategoryPath(path);
+                    if (mappedId === 'INTERNAL_TRANSFER_VIRTUAL_ID') {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        return (window as any).KnownCategory?.InternalTransfer || '[TRANSFER]';
+                    }
+                    if (mappedId) return mappedId;
+                }
+
+                return null;
+            };
+
+            return {
+                ...match,
+                parsedTx: {
+                    ...match.parsedTx,
+                    category: applyCat(match.parsedTx.category),
+                    splits: (match.parsedTx.splits || []).map(s => ({
+                        ...s,
+                        category: applyCat(s.category)
+                    }))
+                }
+            };
+        });
+
+        this.applyMappingsAndComplete(mappedMatches, tier, stats);
+    }
+
+    private applyMappingsAndComplete(
+        matches: Array<IReconciliationMatch>,
+        tier: ImportTier,
+        stats: IImportStats
+    ): void {
         this.matches.set(matches);
         this.stats.set(stats);
         this.progress.set({

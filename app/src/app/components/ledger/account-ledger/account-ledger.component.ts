@@ -9,21 +9,27 @@ import {
     inject,
     input,
     signal,
+    untracked,
     viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import type { ISODateString, ISplit, ITransaction } from '@core';
+import type { IPayee, ISODateString, ITransaction } from '@core';
 import { AccountType, KnownCategory, Money, TransactionStatus } from '@core';
 import { MessageService } from 'primeng/api';
 
+import type { IAccount } from '@core';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import type { ReconciliationDecision } from '../../../services/import/import.types';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
+import { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
+import { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';
+import { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';
 import { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';
 import { ReconciliationDialogComponent } from '../reconciliation-dialog/reconciliation-dialog.component';
+import { TransactionEntryFormComponent } from '../transaction-entry-form/transaction-entry-form.component';
 import { TransactionTableComponent } from '../transaction-table/transaction-table.component';
 
 @Component({
@@ -34,9 +40,13 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         FormsModule,
         RouterLink,
         TransactionTableComponent,
+        TransactionEntryFormComponent,
         SyncIndicatorComponent,
         ReconciliationDialogComponent,
-        ImportProgressOverlayComponent
+        ExpressImportDialogComponent,
+        ImportProgressOverlayComponent,
+        CategoryMappingDialogComponent,
+        NewAccountDialogComponent
     ],
     providers: [MessageService],
     templateUrl: './account-ledger.component.html',
@@ -55,15 +65,12 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     // State
     readonly activeAccountId = signal<string | null>(null);
 
-    // Quick Add Form
-    readonly entryPayee = signal<string>('');
-    readonly entryAmount = signal<string>('');
-    readonly entryDate = signal<string>(new Date().toISOString().split('T')[0] ?? '');
-    readonly entryMemo = signal<string>('');
-    readonly manualSplits = signal<Array<ISplit>>(new Array<ISplit>());
+    // New Account Dialog
+    readonly isAddDialogOpen = signal<boolean>(false);
 
     // Reconciliation Dialog
     readonly reconciliationOpen = signal<boolean>(false);
+    readonly expressImportOpen = signal<boolean>(false);
 
     // Drag-and-drop state
     readonly isDragOver = signal<boolean>(false);
@@ -102,14 +109,25 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     constructor() {
-        // Open the reconciliation dialog when import finishes
+        // Open the appropriate dialog when import finishes
         effect(() => {
             const stage = this.importService.progress().stage;
             if (stage === 'done') {
-                this.reconciliationOpen.set(true);
-                this.posthogService.posthog.capture('qif_import_parsed', {
-                    match_count: this.importService.matches().length,
-                    account_id: this.activeAccountId()
+                untracked(() => {
+                    const matches = this.importService.matches();
+                    const stats = this.importService.stats();
+                    const isExpress = matches.length >= 100 && stats?.fuzzyCount === 0;
+
+                    if (isExpress) {
+                        this.expressImportOpen.set(true);
+                    } else {
+                        this.reconciliationOpen.set(true);
+                    }
+
+                    this.posthogService.posthog.capture('qif_import_parsed', {
+                        match_count: matches.length,
+                        account_id: this.activeAccountId()
+                    });
                 });
             }
         });
@@ -121,6 +139,10 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.importService.reset();
+    }
+
+    handleAccountCreated(account: IAccount): void {
+        this.ledgerStore.addAccount(account);
     }
 
     // ── Drag and Drop ─────────────────────────────────────────────────────────
@@ -187,13 +209,20 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     // ── Reconciliation commit ─────────────────────────────────────────────────
 
-    async handleReconciliationConfirmed(
-        decisions: Record<number, ReconciliationDecision>
-    ): Promise<void> {
+    async handleReconciliationConfirmed(event: {
+        decisions: Record<number, ReconciliationDecision>;
+        done: () => void;
+    }): Promise<void> {
+        const { decisions, done } = event;
         const matches = this.importService.matches();
         const accountId = this.activeAccountId() ?? 'default';
-        const now = new Date().toISOString();
+        const now = new Date().toISOString() as ISODateString;
+
         const txsToImport: Array<ITransaction> = [];
+        const txsToUpdate: Array<ITransaction> = [];
+        const newPayees = new Map<string, IPayee>();
+        const currentPayees = new Map(this.ledgerStore.payees().map(p => [p.name, p]));
+
         let matchedCount = 0;
         let ignoredCount = 0;
 
@@ -204,7 +233,30 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
             if (decision === 'import') {
                 const parsed = match.parsedTx;
-                const payee = await this.ledgerStore.getOrCreatePayee(parsed.payee);
+
+                let payee = currentPayees.get(parsed.payee);
+                if (!payee && newPayees.has(parsed.payee)) {
+                    payee = newPayees.get(parsed.payee);
+                }
+                if (!payee) {
+                    payee = {
+                        id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                        name: parsed.payee,
+                        address: null,
+                        city: null,
+                        state: null,
+                        zipCode: null,
+                        latitude: null,
+                        longitude: null,
+                        website: null,
+                        phone: null,
+                        notes: null,
+                        defaultCategoryId: null,
+                        createdAt: now,
+                        updatedAt: now
+                    };
+                    newPayees.set(parsed.payee, payee);
+                }
 
                 txsToImport.push({
                     id: `tx-import-${Date.now()}-${idx}`,
@@ -217,24 +269,32 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                     status: TransactionStatus.Cleared,
                     checkNumber: parsed.checkNumber,
                     importHash: parsed.importHash,
-                    splits: [
-                        {
-                            id: `split-import-${Date.now()}-${idx}`,
-                            amount: parsed.amount,
-                            memo: parsed.memo,
-                            categoryId: KnownCategory.Uncategorized
-                        }
-                    ],
-                    createdAt: now as ISODateString,
-                    updatedAt: now as ISODateString
+                    splits:
+                        parsed.splits && parsed.splits.length > 0
+                            ? parsed.splits.map((s, sIdx) => ({
+                                  id: `split-import-${Date.now()}-${idx}-${sIdx}`,
+                                  amount: s.amount || parsed.amount,
+                                  memo: s.memo || '',
+                                  categoryId: this.mapQifCategory(s.category ?? undefined)
+                              }))
+                            : [
+                                  {
+                                      id: `split-import-${Date.now()}-${idx}`,
+                                      amount: parsed.amount,
+                                      memo: parsed.memo,
+                                      categoryId: KnownCategory.Uncategorized
+                                  }
+                              ],
+                    createdAt: now,
+                    updatedAt: now
                 });
             } else if (decision === 'match' && match.existingTxId) {
                 const existingTx = this.transactions().find(t => t.id === match.existingTxId);
                 if (existingTx) {
-                    await this.ledgerStore.updateTransaction({
+                    txsToUpdate.push({
                         ...existingTx,
                         status: TransactionStatus.Cleared,
-                        updatedAt: now as ISODateString
+                        updatedAt: now
                     });
                     matchedCount++;
                 }
@@ -243,8 +303,12 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
             }
         }
 
-        if (txsToImport.length > 0) {
-            await this.ledgerStore.addTransactions(txsToImport);
+        if (newPayees.size > 0 || txsToImport.length > 0 || txsToUpdate.length > 0) {
+            await this.ledgerStore.applyReconciliationBatch(
+                Array.from(newPayees.values()),
+                txsToImport,
+                txsToUpdate
+            );
         }
 
         // Show completion toast
@@ -268,57 +332,54 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
         });
 
         this.importService.reset();
+        done();
+    }
+
+    handleReviewFirst(): void {
+        this.expressImportOpen.set(false);
+        this.reconciliationOpen.set(true);
     }
 
     handleImportCancelled(): void {
         this.importService.reset();
     }
 
-    // ── Quick Add ─────────────────────────────────────────────────────────────
+    private mapQifCategory(qifCategory: string | undefined): string {
+        if (!qifCategory) return KnownCategory.Uncategorized;
 
-    async handleQuickAdd(): Promise<void> {
-        const payee = this.entryPayee();
-        const amountStr = this.entryAmount();
-        if (!payee || !amountStr) return;
+        // Clean: remove brackets and take the last part after ':'
+        const cleanNameRaw = qifCategory.replace(/[[\]]/g, '').trim();
+        let cleanName = cleanNameRaw;
+        if (cleanNameRaw.includes(':')) {
+            const parts = cleanNameRaw.split(':');
+            const lastPart = parts[parts.length - 1];
+            if (lastPart) {
+                cleanName = lastPart.trim();
+            }
+        }
 
-        const amountCents = Money.dollarsToCents(parseFloat(amountStr));
-        const now = new Date().toISOString();
+        const categories = this.ledgerStore.categories();
+        const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());
 
-        const tx: ITransaction = {
-            id: `tx-${Date.now()}`,
-            accountId: this.activeAccountId() ?? 'default',
-            payeeId: 'manual',
-            date: this.entryDate() as ISODateString,
-            payee: payee,
-            memo: this.entryMemo(),
-            totalAmount: amountCents,
-            status: TransactionStatus.Cleared,
-            checkNumber: null,
-            importHash: `manual-${Date.now()}`,
-            splits:
-                this.manualSplits().length > 0
-                    ? this.manualSplits()
-                    : new Array<ISplit>({
-                          id: `split-${Date.now()}`,
-                          amount: amountCents,
-                          memo: this.entryMemo(),
-                          categoryId: KnownCategory.Uncategorized
-                      }),
-            createdAt: now as ISODateString,
-            updatedAt: now as ISODateString
-        };
+        return match ? match.id : KnownCategory.Uncategorized;
+    }
 
-        await this.ledgerStore.addTransaction(tx);
-        this.posthogService.posthog.capture('transaction_added', {
-            account_id: this.activeAccountId(),
-            is_split: this.manualSplits().length > 0,
-            amount_cents: amountCents
+    // ── Edit Transaction ──────────────────────────────────────────────────────
+
+    readonly entryForm = viewChild(TransactionEntryFormComponent);
+
+    editTransaction(tx: ITransaction): void {
+        this.entryForm()?.editTransaction(tx);
+    }
+
+    async deleteTransaction(txId: string): Promise<void> {
+        await this.ledgerStore.removeTransaction(txId);
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Transaction Deleted',
+            detail: 'The transaction has been removed.',
+            life: 3000
         });
-
-        this.entryPayee.set('');
-        this.entryAmount.set('');
-        this.entryMemo.set('');
-        this.manualSplits.set(new Array<ISplit>());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

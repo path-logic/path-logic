@@ -178,6 +178,7 @@ export class WelcomeWizardComponent {
 
     readonly createdAccount = signal<IAccount | null>(null);
     readonly isDropZoneActive = signal<boolean>(false);
+    readonly isNavigating = signal<boolean>(false);
 
     readonly importProgress = this.importService.progress;
     readonly importStats = this.importService.stats;
@@ -348,11 +349,21 @@ export class WelcomeWizardComponent {
     }
 
     finishAfterImport(): void {
+        this.isNavigating.set(true);
         const accountId = this.createdAccount()?.id;
-        if (accountId) {
-            void this.router.navigate(['/accounts', accountId]);
-        }
-        this.wizardCompleted.emit();
+
+        // Yield to let the spinner render before heavy routing
+        setTimeout(() => {
+            if (accountId) {
+                void this.router.navigate(['/accounts', accountId]).then(() => {
+                    this.wizardCompleted.emit();
+                    this.isNavigating.set(false);
+                });
+            } else {
+                this.wizardCompleted.emit();
+                this.isNavigating.set(false);
+            }
+        }, 50);
     }
 
     getTypeTheming(type: AccountType): {

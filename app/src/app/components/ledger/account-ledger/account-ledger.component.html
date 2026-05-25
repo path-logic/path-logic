@@ -18,9 +18,12 @@
                 <h2 class="text-xs text-surface-500 font-bold uppercase tracking-widest">
                     Accounts
                 </h2>
-                <a routerLink="/accounts" class="text-primary hover:text-white transition-colors">
+                <button
+                    (click)="isAddDialogOpen.set(true)"
+                    class="text-primary hover:text-white transition-colors"
+                >
                     <i class="pi pi-plus text-xs"></i>
-                </a>
+                </button>
             </div>
             <div class="flex-1 overflow-y-auto p-2 space-y-1">
                 @for (acc of accounts(); track acc.id) {
@@ -45,8 +48,12 @@
                             >
                                 {{ acc.name }}
                             </span>
-                            <span class="text-[10px] text-surface-500 opacity-50">
-                                <i [class]="'pi text-sm ' + getAccountIcon(acc.type)"></i>
+                            <span
+                                class="transition-colors"
+                                [class.text-primary]="activeAccountId() === acc.id"
+                                [class.text-surface-400]="activeAccountId() !== acc.id"
+                            >
+                                <i [class]="'pi text-base ' + getAccountIcon(acc.type)"></i>
                             </span>
                         </div>
                         <div class="text-sm font-mono font-bold text-surface-500">
@@ -70,140 +77,35 @@
             </div>
         </div>
 
-        <div class="bg-surface-0 border border-surface-200 rounded-sm p-3">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-bold uppercase text-surface-500 tracking-wider">
-                    Sync Engine
-                </span>
-                <sync-indicator />
-            </div>
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-sm">
-                    <span class="text-surface-500 uppercase font-bold tracking-tighter">
-                        Cleared
+        <div class="bg-surface-0 border border-surface-200 rounded-sm p-3 flex flex-col gap-3">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-bold uppercase text-surface-500 tracking-wider">
+                        Sync Engine
                     </span>
-                    <span class="font-mono text-emerald-900 font-bold">
-                        {{ formatCurrency(clearedBalance()) }}
-                    </span>
+                    <sync-indicator />
                 </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-surface-500 uppercase font-bold tracking-tighter">
-                        Pending
-                    </span>
-                    <span class="font-mono text-amber-500 font-bold">
-                        {{ formatCurrency(pendingBalance()) }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Main Ledger Area -->
-    <div class="flex-1 flex flex-col gap-4 overflow-hidden">
-        <!-- Quick Add Row -->
-        <div
-            class="bg-surface-0 border border-surface-200 rounded-sm p-3 shadow-lg flex-none relative z-10"
-        >
-            <form
-                (submit)="$event.preventDefault(); handleQuickAdd()"
-                class="grid grid-cols-12 gap-3 items-end"
-            >
-                <div class="col-span-2">
-                    <label
-                        for="entry-date"
-                        class="text-[10px] font-bold text-surface-500 uppercase block mb-1"
-                    >
-                        Date
-                    </label>
-                    <input
-                        id="entry-date"
-                        type="date"
-                        [ngModel]="entryDate()"
-                        (ngModelChange)="entryDate.set($event)"
-                        name="date"
-                        class="w-full h-7 text-xs font-mono uppercase px-2 bg-surface-50 border border-surface-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                </div>
-                <div class="col-span-3">
-                    <label
-                        for="entry-payee"
-                        class="text-[10px] font-bold text-surface-500 uppercase block mb-1"
-                    >
-                        Payee / Recipient
-                    </label>
-                    <div class="relative">
-                        <i
-                            class="pi pi-search absolute left-2 top-1.5 text-xs text-surface-500"
-                        ></i>
-                        <input
-                            id="entry-payee"
-                            type="text"
-                            placeholder="Who did you pay?"
-                            [ngModel]="entryPayee()"
-                            (ngModelChange)="entryPayee.set($event)"
-                            name="payee"
-                            class="w-full h-7 pl-7 text-sm bg-surface-50 border border-surface-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-surface-500 uppercase font-bold tracking-tighter">
+                            Cleared
+                        </span>
+                        <span class="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                            {{ formatCurrency(clearedBalance()) }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-surface-500 uppercase font-bold tracking-tighter">
+                            Pending
+                        </span>
+                        <span class="font-mono text-amber-500 font-bold">
+                            {{ formatCurrency(pendingBalance()) }}
+                        </span>
                     </div>
                 </div>
-                <div class="col-span-2">
-                    <label
-                        for="entry-amount"
-                        class="text-[10px] font-bold text-surface-500 uppercase block mb-1"
-                    >
-                        Amount
-                    </label>
-                    <input
-                        id="entry-amount"
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        [ngModel]="entryAmount()"
-                        (ngModelChange)="entryAmount.set($event)"
-                        name="amount"
-                        class="w-full h-7 text-sm font-mono text-emerald-900 px-2 bg-surface-50 border border-surface-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                </div>
-                <div class="col-span-3">
-                    <label
-                        for="entry-memo"
-                        class="text-[10px] font-bold text-surface-500 uppercase block mb-1"
-                    >
-                        Memo / Description
-                    </label>
-                    <input
-                        id="entry-memo"
-                        type="text"
-                        placeholder="What was it for?"
-                        [ngModel]="entryMemo()"
-                        (ngModelChange)="entryMemo.set($event)"
-                        name="memo"
-                        class="w-full h-7 text-sm px-2 bg-surface-50 border border-surface-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                </div>
-                <div class="col-span-2 flex gap-2">
-                    <button
-                        type="submit"
-                        class="flex-1 text-xs font-black uppercase h-7 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                        Record
-                    </button>
-                    <button
-                        type="button"
-                        class="px-2 text-xs uppercase font-bold h-7 border border-surface-200 bg-surface-50 rounded-md hover:bg-surface-100 transition-colors"
-                        [class]="{ 'bg-primary/10 border-primary': manualSplits().length > 0 }"
-                    >
-                        {{
-                            manualSplits().length > 0 ? manualSplits().length + ' Splits' : 'Split'
-                        }}
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
 
-        <!-- Toolbar -->
-        <div class="flex items-center justify-between flex-none px-1">
-            <div class="flex gap-2">
+            <div class="pt-3 border-t border-surface-200 flex flex-col gap-2">
                 <!-- Import button -->
                 <button
                     (click)="triggerImport()"
@@ -212,26 +114,33 @@
                         importProgress().stage !== 'done' &&
                         importProgress().stage !== 'error'
                     "
-                    class="h-7 px-3 text-xs font-black uppercase bg-primary/10 border border-primary/20 text-primary rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    class="h-8 w-full text-xs font-black uppercase bg-primary/10 border border-primary/20 text-primary rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     <i class="pi pi-upload text-xs"></i>
                     Import QIF
                 </button>
                 <button
-                    class="h-7 px-3 text-xs font-black uppercase border border-surface-200 bg-surface-50 rounded-md hover:bg-surface-100 transition-colors"
+                    class="h-8 w-full text-xs font-black uppercase border border-surface-200 bg-surface-50 rounded-md hover:bg-surface-100 transition-colors"
                 >
                     Reconcile
                 </button>
+
+                <!-- Drag hint -->
+                @if (importProgress().stage === 'idle') {
+                    <div class="text-center mt-1">
+                        <span
+                            class="text-[9px] font-bold uppercase tracking-widest text-surface-400"
+                        >
+                            or drag &amp; drop anywhere
+                        </span>
+                    </div>
+                }
             </div>
-
-            <!-- Drag hint (shown when no import in progress) -->
-            @if (importProgress().stage === 'idle') {
-                <span class="text-[9px] font-bold uppercase tracking-widest text-surface-400">
-                    or drag &amp; drop a .qif file anywhere
-                </span>
-            }
         </div>
+    </aside>
 
+    <!-- Main Ledger Area -->
+    <div class="flex-1 flex flex-col gap-4 overflow-hidden">
         <!-- Ledger table + overlays -->
         <div
             class="bg-surface-0 border border-surface-200 rounded-sm flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all"
@@ -256,11 +165,31 @@
             <import-progress-overlay (cancelled)="handleImportCancelled()" />
 
             @if (filteredTransactions(); as txData) {
-                <transaction-table [data]="txData" />
+                <transaction-table
+                    [data]="txData"
+                    (editClicked)="editTransaction($event)"
+                    (deleted)="deleteTransaction($event)"
+                />
             }
         </div>
+
+        <!-- Transaction Entry Form -->
+        <transaction-entry-form
+            [accountId]="activeAccountId() || ''"
+            (requestAddAccount)="isAddDialogOpen.set(true)"
+            class="block flex-none relative z-10"
+        />
     </div>
 </div>
+
+<!-- Express Import dialog -->
+<express-import-dialog
+    [(isOpen)]="expressImportOpen"
+    [matches]="importMatches()"
+    [importStats]="importStats()"
+    (reviewFirst)="handleReviewFirst()"
+    (confirmed)="handleReconciliationConfirmed($event)"
+/>
 
 <!-- Reconciliation dialog -->
 <reconciliation-dialog
@@ -268,4 +197,14 @@
     [matches]="importMatches()"
     [importStats]="importStats()"
     (confirmed)="handleReconciliationConfirmed($event)"
+/>
+
+<!-- Category Mapping dialog -->
+<category-mapping-dialog />
+
+<!-- New Account dialog -->
+<new-account-dialog
+    [isOpen]="isAddDialogOpen()"
+    (closed)="isAddDialogOpen.set(false)"
+    (accountCreated)="handleAccountCreated($event)"
 />

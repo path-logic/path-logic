@@ -30,7 +30,7 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <div class="flex flex-col items-end">
+            <div class="flex flex-col items-end mr-4">
                 <span class="text-xs text-surface-500 font-medium"> Net Position </span>
                 <span
                     class="text-sm font-semibold leading-none"
@@ -40,6 +40,24 @@
                     {{ formattedNetBalance() }}
                 </span>
             </div>
+
+            <!-- Theme Switcher & Divider -->
+            <div class="h-8 w-px bg-surface-200 mr-2"></div>
+            <button
+                (click)="toggleTheme()"
+                [title]="
+                    themeService.resolvedTheme() === 'dark'
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode'
+                "
+                class="w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
+            >
+                <i
+                    class="pi text-lg"
+                    [class.pi-moon]="themeService.resolvedTheme() === 'dark'"
+                    [class.pi-sun]="themeService.resolvedTheme() !== 'dark'"
+                ></i>
+            </button>
 
             <!-- User avatar / dropdown -->
             <div class="relative">

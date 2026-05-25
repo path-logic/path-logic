@@ -5,6 +5,7 @@ import type { ISODateString, ITransaction } from '@core';
 import {
     type IDetectedPattern,
     type IRecurringSchedule,
+    Frequency,
     KnownCategory,
     Money,
     PaymentMethod,
@@ -20,6 +21,7 @@ import { TagModule } from 'primeng/tag';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { RecurringPaymentFormComponent } from '../../components/recurring/recurring-form/recurring-form.component';
+import { LocalDatePipe } from '../../pipes/local-date.pipe';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
 @Component({
@@ -33,7 +35,8 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
         TagModule,
         DialogModule,
         RecurringPaymentFormComponent,
-        AppShellComponent
+        AppShellComponent,
+        LocalDatePipe
     ],
     templateUrl: './recurring-dashboard.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -101,8 +104,16 @@ export class RecurringDashboardComponent {
 
     // Actions
     openNew(): void {
+        const today = new Date().toISOString().slice(0, 10) as ISODateString;
         this.selectedSchedule.set({
             type: ScheduleType.Debit,
+            frequency: Frequency.Monthly,
+            paymentMethod: PaymentMethod.ElectronicTransfer,
+            startDate: today,
+            nextDueDate: today,
+            autoPost: false,
+            isActive: true,
+            memo: '',
             splits: []
         });
         this.isDialogVisible.set(true);

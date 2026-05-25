@@ -1,3 +1,4 @@
+import { CommonModule, NgTemplateOutlet } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -13,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import type { ISplit } from '@core';
 import { KnownCategory, Money } from '@core';
+import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
@@ -27,7 +29,7 @@ import { PostHogService } from '../../../services/posthog/posthog.service';
 @Component({
     selector: 'split-entry-dialog',
     standalone: true,
-    imports: [FormsModule, Dialog, Button, Select],
+    imports: [CommonModule, FormsModule, Dialog, Button, Select, NgTemplateOutlet, PrimeTemplate],
     templateUrl: './split-entry-dialog.component.html',
     styleUrls: ['./split-entry-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,12 +42,17 @@ export class SplitEntryDialogComponent {
     readonly isOpen = model<boolean>(false);
     readonly totalAmount = input.required<number>(); // in cents
     readonly initialSplits = input<Array<ISplit>>(new Array<ISplit>());
+    readonly payee = input<string>('');
+    readonly date = input<string>('');
+    readonly memo = input<string>('');
 
     // Outputs
     readonly saved = output<{ splits: Array<ISplit>; newTotal?: number }>();
 
     // State
     readonly splits = signal<Array<ISplit>>(new Array<ISplit>());
+    readonly layoutMode = signal<'standard' | 'vertical' | 'tabs'>('standard');
+    readonly activeTab = signal<'wages' | 'taxes' | 'deductions'>('wages');
 
     // Computed
     readonly categories = this.ledgerStore.categories;
@@ -62,14 +69,75 @@ export class SplitEntryDialogComponent {
         return this.difference() === 0;
     });
 
+    readonly transactionType = computed(() => {
+        const total = this.totalAmount();
+        const p = this.payee().toLowerCase();
+
+        if (total > 0) {
+            if (p.includes('payroll') || p.includes('salary') || p.includes('paycheck')) {
+                return 'Payroll Deposit';
+            }
+            return 'Deposit';
+        } else {
+            return 'Debit';
+        }
+    });
+
+    readonly isPaycheck = computed(() => {
+        if (this.layoutMode() === 'vertical' || this.layoutMode() === 'tabs') return true;
+        return this.transactionType() === 'Payroll Deposit';
+    });
+
+    // Grouping
+    readonly taxCategoryIds: Array<string> = [
+        KnownCategory.Taxes,
+        KnownCategory.FederalTax,
+        KnownCategory.StateTax,
+        KnownCategory.LocalTax,
+        KnownCategory.SocialSecurity,
+        KnownCategory.Medicare
+    ];
+
+    readonly earningsSplits = computed(() => {
+        return this.splits().filter(s => s.amount >= 0);
+    });
+
+    readonly taxSplits = computed(() => {
+        return this.splits().filter(
+            s => s.amount < 0 && s.categoryId && this.taxCategoryIds.includes(s.categoryId)
+        );
+    });
+
+    readonly deductionSplits = computed(() => {
+        return this.splits().filter(
+            s => s.amount < 0 && (!s.categoryId || !this.taxCategoryIds.includes(s.categoryId))
+        );
+    });
+
+    readonly sumEarnings = computed(() =>
+        this.earningsSplits().reduce((sum, s) => sum + s.amount, 0)
+    );
+    readonly sumTaxes = computed(() => this.taxSplits().reduce((sum, s) => sum + s.amount, 0));
+    readonly sumDeductions = computed(() =>
+        this.deductionSplits().reduce((sum, s) => sum + s.amount, 0)
+    );
+
     constructor() {
         // Sync initialSplits to splits signal when initialSplits changes
         effect(() => {
             const initial = this.initialSplits();
             const total = this.totalAmount();
+            const txType = this.transactionType();
 
             untracked(() => {
                 this.splits.set([...initial]);
+
+                // Default layout mode based on transaction type
+                if (txType === 'Payroll Deposit') {
+                    this.layoutMode.set('vertical');
+                } else {
+                    this.layoutMode.set('standard');
+                }
 
                 // If empty, add a default balanced split
                 if (this.splits().length === 0) {
@@ -103,13 +171,38 @@ export class SplitEntryDialogComponent {
     }
 
     handleAddSplit(): void {
-        this.splits.update(current => [
-            ...current,
+        this.splits.update(splits => [
+            ...splits,
             {
-                id: `split-${Date.now()}`,
+                id: `split-${Date.now()}-${Math.random()}`,
                 amount: 0,
                 memo: '',
                 categoryId: KnownCategory.Uncategorized
+            }
+        ]);
+    }
+
+    handleAddSplitByType(type: 'earnings' | 'taxes' | 'deductions'): void {
+        const categoryId =
+            type === 'taxes'
+                ? KnownCategory.FederalTax
+                : type === 'earnings'
+                  ? KnownCategory.GrossPay
+                  : KnownCategory.Uncategorized;
+
+        // Ensure amount sign reflects type
+        let amount = 0;
+        if (type === 'earnings' && this.difference() > 0) amount = this.difference();
+        else if (type !== 'earnings' && this.difference() < 0) amount = this.difference();
+        else amount = type === 'earnings' ? 100 : -100; // placeholder cents
+
+        this.splits.update(splits => [
+            ...splits,
+            {
+                id: `split-${Date.now()}-${Math.random()}`,
+                amount,
+                memo: '',
+                categoryId
             }
         ]);
     }

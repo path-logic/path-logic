@@ -136,6 +136,40 @@ export interface ITransaction {
     createdAt: ISODateString;
     /** ISO timestamp when the record was last modified. */
     updatedAt: ISODateString;
+    /** Optional ID of a linked transfer record if this transaction is part of a cross-account transfer. */
+    linkedTransferId?: EntityId;
+}
+
+/**
+ * A cross-account transfer connecting two transactions.
+ */
+export interface ITransfer {
+    /** Unique ID for the transfer record. */
+    id: EntityId;
+    /** Date the transfer occurred. */
+    date: ISODateString;
+    /** Amount of the transfer (positive absolute value). */
+    amount: Cents;
+    /** ID of the source account. */
+    fromAccountId: EntityId;
+    /** ID of the destination account. */
+    toAccountId: EntityId;
+    /** ID of the transaction recorded in the source account. */
+    fromTransactionId: EntityId;
+    /** ID of the transaction recorded in the destination account. */
+    toTransactionId: EntityId;
+    /** Snapshot of the source account name in case it is deleted. */
+    fromAccountNameSnapshot: string;
+    /** Snapshot of the destination account name in case it is deleted. */
+    toAccountNameSnapshot: string;
+    /** Optional memo for the transfer. */
+    memo: string;
+    /** ISO timestamp when the record was created. */
+    createdAt: ISODateString;
+    /** ISO timestamp when the record was last modified. */
+    updatedAt: ISODateString;
+    /** ISO timestamp when the record was soft-deleted (null if active). */
+    deletedAt: ISODateString | null;
 }
 
 /**

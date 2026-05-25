@@ -1,5 +1,13 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, DestroyRef, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    effect,
+    inject,
+    PLATFORM_ID,
+    signal
+} from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 
@@ -55,7 +63,8 @@ const AUTO_SAVE_DEBOUNCE_MS = 3_000;
             display: block;
             min-height: 100vh;
         }
-    `
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
     readonly title = 'Path Logic';
@@ -103,9 +112,18 @@ export class AppComponent {
             this.initStarted = true;
 
             if (environment.e2e) {
-                this.ledgerStore
-                    .initialize()
-                    .catch((e: unknown) => console.error('[AppComponent] E2E DB init failed:', e));
+                this.syncService
+                    .initFromLocal('e2e-user')
+                    .then((loaded: boolean) => {
+                        if (!loaded) {
+                            return this.ledgerStore.initialize();
+                        }
+                        return;
+                    })
+                    .catch((e: unknown) => {
+                        console.error('[AppComponent] E2E DB init failed:', e);
+                        this.ledgerStore.initialize().catch(console.error);
+                    });
                 return;
             }
 

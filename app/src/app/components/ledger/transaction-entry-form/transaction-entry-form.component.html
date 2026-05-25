@@ -1,0 +1,348 @@
+<div class="flex flex-col gap-3 relative z-10 w-full font-sans">
+    <!-- Mode Selection Tabs -->
+    <div
+        class="flex items-center gap-1 self-start bg-surface-100 p-1 rounded-md shadow-inner border border-surface-200/50"
+    >
+        <button
+            (click)="mode.set('expense')"
+            class="p-button px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
+            [class]="
+                mode() === 'expense'
+                    ? 'bg-surface-0 shadow-sm text-surface-900 dark:bg-surface-800 dark:text-surface-100 border border-surface-200/50'
+                    : 'pl-btn-text'
+            "
+        >
+            Expense
+        </button>
+        <button
+            (click)="mode.set('deposit')"
+            class="p-button px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
+            [class]="
+                mode() === 'deposit'
+                    ? 'bg-surface-0 shadow-sm text-surface-900 dark:bg-surface-800 dark:text-surface-100 border border-surface-200/50'
+                    : 'pl-btn-text'
+            "
+        >
+            Deposit
+        </button>
+        <button
+            (click)="mode.set('transfer')"
+            class="p-button px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
+            [class]="
+                mode() === 'transfer'
+                    ? 'bg-surface-0 shadow-sm text-surface-900 dark:bg-surface-800 dark:text-surface-100 border border-surface-200/50'
+                    : 'pl-btn-text'
+            "
+        >
+            Transfer
+        </button>
+    </div>
+
+    <!-- The Form Container -->
+    <div [class]="formThemeClass()">
+        <!-- Check Background Details -->
+        @if (mode() === 'expense') {
+            <!-- Watermark / Security Pattern simulation -->
+            <div
+                class="absolute inset-0 opacity-[0.03] pointer-events-none rounded-sm"
+                style="
+                    background-image: repeating-linear-gradient(
+                        45deg,
+                        #000 0,
+                        #000 1px,
+                        transparent 0,
+                        transparent 50%
+                    );
+                    background-size: 10px 10px;
+                "
+            ></div>
+        }
+        @if (mode() === 'deposit') {
+            <div
+                class="absolute inset-0 opacity-[0.03] pointer-events-none rounded-sm"
+                style="
+                    background-image: repeating-linear-gradient(
+                        -45deg,
+                        #000 0,
+                        #000 1px,
+                        transparent 0,
+                        transparent 50%
+                    );
+                    background-size: 10px 10px;
+                "
+            ></div>
+        }
+
+        @if (mode() === 'transfer' && accounts().length <= 1) {
+            <!-- Empty state for transfers when only 1 account exists -->
+            <div
+                class="flex flex-col items-center justify-center gap-4 relative z-10 w-full min-h-[196px]"
+            >
+                <div
+                    class="w-12 h-12 rounded-full bg-surface-100 flex items-center justify-center shadow-inner border border-surface-200/50"
+                >
+                    <i class="pi pi-arrow-right-arrow-left text-xl text-surface-400"></i>
+                </div>
+                <p class="text-sm font-medium text-surface-500 text-center max-w-sm">
+                    Transfers are only possible when you have more than one account.
+                </p>
+                <button
+                    type="button"
+                    class="p-button pl-btn-primary px-8 text-xs font-black uppercase tracking-widest"
+                    (click)="requestAddAccount.emit()"
+                >
+                    Add Account
+                </button>
+            </div>
+        } @else {
+            <form
+                (submit)="$event.preventDefault(); submit()"
+                class="flex gap-6 items-start relative z-10 w-full min-h-[196px]"
+            >
+                <!-- Left Column: Payee, Category, Memo -->
+                <div class="flex-1 flex flex-col gap-3">
+                    <!-- Transfer To -->
+                    @if (mode() === 'transfer') {
+                        <div class="flex gap-4 items-center">
+                            <label
+                                for="transfer-to-select"
+                                class="w-24 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                                >Transfer To</label
+                            >
+                            <select
+                                id="transfer-to-select"
+                                name="transferTo"
+                                [ngModel]="transferToAccountId()"
+                                (ngModelChange)="transferToAccountId.set($event)"
+                                class="flex-1 h-9 text-sm font-medium px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow backdrop-blur-sm"
+                            >
+                                <option value="" disabled>Select destination...</option>
+                                @for (acc of accounts(); track acc.id) {
+                                    @if (acc.id !== activeAccount()?.id) {
+                                        <option [value]="acc.id">{{ acc.name }}</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    <!-- Payee -->
+                    @if (mode() !== 'transfer') {
+                        <div class="flex gap-4 items-center">
+                            <label
+                                for="payee-input"
+                                class="w-24 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                            >
+                                {{ mode() === 'expense' ? 'Pay To' : 'Rcvd From' }}
+                            </label>
+                            <div class="flex-1 h-9">
+                                <payee-autocomplete
+                                    inputId="payee-input"
+                                    name="payee"
+                                    [ngModel]="selectedPayee()"
+                                    (ngModelChange)="selectedPayee.set($event)"
+                                ></payee-autocomplete>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Category -->
+                    @if (mode() !== 'transfer') {
+                        <div class="flex gap-4 items-center">
+                            <label
+                                for="category-input"
+                                class="w-24 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                                >Category</label
+                            >
+                            <div class="flex-1 h-9">
+                                <p-autoComplete
+                                    inputId="category-input"
+                                    [ngModel]="selectedCategory()"
+                                    (ngModelChange)="selectedCategory.set($event)"
+                                    [suggestions]="filteredCategories()"
+                                    (completeMethod)="filterCategories($event)"
+                                    optionLabel="name"
+                                    name="category"
+                                    placeholder=""
+                                    styleClass="w-full h-full"
+                                    inputStyleClass="w-full h-full text-sm px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow backdrop-blur-sm"
+                                    [forceSelection]="false"
+                                    [dropdown]="true"
+                                    appendTo="body"
+                                >
+                                    <ng-template let-cat pTemplate="item">
+                                        <div
+                                            class="flex items-center gap-2 py-0.5"
+                                            [style.padding-left.px]="cat.depth * 16"
+                                        >
+                                            @if (cat.isNew || cat.isNewParent) {
+                                                <i
+                                                    class="pi pi-plus-circle text-primary text-xs"
+                                                ></i>
+                                                <span class="text-xs font-bold text-primary">{{
+                                                    cat.displayName
+                                                }}</span>
+                                            } @else {
+                                                <span class="text-xs font-bold">{{
+                                                    cat.name
+                                                }}</span>
+                                                @if (cat.description) {
+                                                    <span
+                                                        class="text-[10px] text-surface-400 truncate max-w-[150px]"
+                                                        >- {{ cat.description }}</span
+                                                    >
+                                                }
+                                            }
+                                        </div>
+                                    </ng-template>
+                                    <!-- Selected Item Template -->
+                                    <ng-template let-cat pTemplate="selectedItem">
+                                        @if (cat.parentName) {
+                                            <span class="text-surface-500"
+                                                >{{ cat.parentName }}:
+                                            </span>
+                                        }
+                                        <span class="font-bold">{{ cat.name }}</span>
+                                    </ng-template>
+                                </p-autoComplete>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Memo -->
+                    <div class="flex gap-4 items-center">
+                        <label
+                            for="memo-input"
+                            class="w-24 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                            >Memo</label
+                        >
+                        <input
+                            id="memo-input"
+                            type="text"
+                            [ngModel]="entryMemo()"
+                            (ngModelChange)="entryMemo.set($event)"
+                            name="memo"
+                            placeholder=""
+                            class="flex-1 h-9 text-sm px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary transition-colors shadow backdrop-blur-sm placeholder:text-surface-400/50"
+                        />
+                    </div>
+                </div>
+
+                <!-- Right Column: Number, Date, Amount, Buttons -->
+                <div
+                    class="w-[320px] flex flex-col gap-3 flex-shrink-0 border-l border-surface-200/50 pl-6 h-full min-h-[196px]"
+                >
+                    <!-- Number -->
+                    @if (mode() === 'expense') {
+                        <div class="flex gap-4 items-center">
+                            <label
+                                for="number-input"
+                                class="w-16 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                                >Number</label
+                            >
+                            <div class="flex-1 h-9">
+                                <p-autoComplete
+                                    inputId="number-input"
+                                    [ngModel]="entryCheckNumber()"
+                                    (ngModelChange)="entryCheckNumber.set($event)"
+                                    [suggestions]="filteredCheckNumbers()"
+                                    (completeMethod)="filterCheckNumbers($event)"
+                                    name="checkNumber"
+                                    placeholder=""
+                                    styleClass="w-full h-full"
+                                    inputStyleClass="w-full h-full text-sm font-medium px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow backdrop-blur-sm"
+                                    [forceSelection]="false"
+                                    [dropdown]="true"
+                                    appendTo="body"
+                                ></p-autoComplete>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Date -->
+                    <div class="flex gap-4 items-center">
+                        <label
+                            for="date-input"
+                            class="w-16 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                            >Date</label
+                        >
+                        <input
+                            id="date-input"
+                            type="date"
+                            [ngModel]="entryDate()"
+                            (ngModelChange)="entryDate.set($event)"
+                            name="date"
+                            class="flex-1 h-9 text-xs font-medium uppercase px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary transition-colors shadow backdrop-blur-sm"
+                        />
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="flex gap-4 items-center">
+                        <label
+                            for="amount-input"
+                            class="w-16 text-[10px] font-black text-surface-500 uppercase tracking-widest text-right flex-shrink-0"
+                            >Amount</label
+                        >
+                        <div class="flex-1 h-9 relative shadow">
+                            <calculator-input
+                                inputId="amount-input"
+                                [ngModel]="entryAmount()"
+                                (ngModelChange)="entryAmount.set($event)"
+                                name="amount"
+                                placeholder="0.00"
+                                styleClass="w-full h-9 bg-surface-0/60 border border-surface-200/60 rounded-sm shadow backdrop-blur-sm overflow-hidden focus-within:ring-1 focus-within:ring-primary"
+                                inputClass="w-full h-full text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400 px-3 bg-transparent border-none focus:ring-0 shadow-none"
+                            ></calculator-input>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end gap-4 mt-auto pt-2 border-t border-surface-200/30">
+                        @if (mode() !== 'transfer') {
+                            <button
+                                type="button"
+                                (click)="openSplitDialog()"
+                                class="p-button pl-btn-text text-xs font-black uppercase tracking-widest flex items-center gap-1.5"
+                                [class]="
+                                    manualSplits().length > 0 ? 'text-primary' : 'text-surface-500'
+                                "
+                            >
+                                <i class="pi pi-sitemap text-xs"></i>
+                                {{
+                                    manualSplits().length > 0
+                                        ? manualSplits().length + ' Splits'
+                                        : 'Split'
+                                }}
+                            </button>
+                        }
+                        <button
+                            type="button"
+                            (click)="resetForm()"
+                            [disabled]="!isFormDirty()"
+                            class="p-button pl-btn-text text-xs font-black uppercase tracking-widest"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            [disabled]="!isFormValid()"
+                            class="p-button pl-btn-primary px-8 text-xs font-black uppercase tracking-widest"
+                        >
+                            Enter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<split-entry-dialog
+    [(isOpen)]="isSplitDialogOpen"
+    [totalAmount]="currentEntryAmountCents()"
+    [initialSplits]="manualSplits()"
+    [payee]="entryPayeeString()"
+    [date]="entryDate()"
+    [memo]="entryMemo()"
+    (saved)="handleSplitsSaved($event)"
+></split-entry-dialog>

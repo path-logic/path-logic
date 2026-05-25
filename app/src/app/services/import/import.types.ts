@@ -32,6 +32,7 @@ export type ImportStage =
     | 'reading'
     | 'parsing'
     | 'reconciling'
+    | 'mapping_categories'
     | 'done'
     | 'error'
     | 'cancelled';

@@ -7,13 +7,16 @@ import type {
     IPayee,
     IRecurringSchedule,
     ISODateString,
-    ITransaction
+    ITransaction,
+    ITransfer
 } from '@core';
+import { TransactionStatus } from '@core';
 
 import { encryptDatabase } from '../../lib/crypto/encryption';
 import type { ILockStatus } from '../../lib/storage/GoogleDriveAdapter';
 import { saveLocalSnapshot } from '../../lib/storage/LocalPersistenceAdapter';
 import {
+    applyReconciliationBatch,
     deleteRecurringSchedule,
     deleteTransaction,
     exportDatabase,
@@ -22,21 +25,25 @@ import {
     getAllPayees,
     getAllRecurringSchedules,
     getAllTransactions,
+    getCategoryAlias,
     getDb,
     getPayeeByName,
     initDatabase,
     insertAccount,
+    insertCategory,
     insertPayee,
     insertRecurringSchedule,
     insertTransaction,
     insertTransactions,
+    insertTransfer,
     loadDatabase,
     resetDatabase,
     softDeleteAccountCascade,
     updateAccount,
     updatePayee,
     updateRecurringSchedule,
-    updateTransaction
+    updateTransaction,
+    upsertCategoryAlias
 } from '../../lib/storage/SQLiteAdapter';
 import type { ITransactionConflict } from '../../lib/sync/MergeEngine';
 import {
@@ -158,6 +165,116 @@ export class LedgerStore {
         this.isDirty.set(true);
     }
 
+    // --- Transfers ---
+
+    async recordTransfer(
+        fromAccountId: string,
+        toAccountId: string,
+        amount: number,
+        date: ISODateString,
+        memo: string
+    ): Promise<void> {
+        const fromAccount = this.accounts().find(a => a.id === fromAccountId);
+        const toAccount = this.accounts().find(a => a.id === toAccountId);
+        if (!fromAccount || !toAccount) throw new Error('Transfer accounts not found');
+
+        const now = new Date().toISOString() as ISODateString;
+        const transferId = `transfer-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        const fromTxId = `tx-${Date.now()}-1`;
+        const toTxId = `tx-${Date.now()}-2`;
+
+        // Ensure transfer payee exists
+        const payeeName = 'Transfer';
+        let transferPayee = this.payees().find(p => p.name === payeeName);
+        if (!transferPayee) {
+            transferPayee = await this.getOrCreatePayee(payeeName);
+        }
+
+        const fromTx: ITransaction = {
+            id: fromTxId,
+            accountId: fromAccountId,
+            payeeId: transferPayee.id,
+            date,
+            payee: `Transfer to ${toAccount.name}`,
+            memo,
+            totalAmount: -amount,
+            status: TransactionStatus.Cleared,
+            splits: [
+                {
+                    id: `split-${fromTxId}`,
+                    categoryId: null,
+                    memo,
+                    amount: -amount
+                }
+            ],
+            checkNumber: null,
+            importHash: `manual-transfer-${fromTxId}`,
+            linkedTransferId: transferId,
+            createdAt: now,
+            updatedAt: now
+        };
+
+        const toTx: ITransaction = {
+            id: toTxId,
+            accountId: toAccountId,
+            payeeId: transferPayee.id,
+            date,
+            payee: `Transfer from ${fromAccount.name}`,
+            memo,
+            totalAmount: amount,
+            status: TransactionStatus.Cleared,
+            splits: [
+                {
+                    id: `split-${toTxId}`,
+                    categoryId: null,
+                    memo,
+                    amount: amount
+                }
+            ],
+            checkNumber: null,
+            importHash: `manual-transfer-${toTxId}`,
+            linkedTransferId: transferId,
+            createdAt: now,
+            updatedAt: now
+        };
+
+        const transferRecord: ITransfer = {
+            id: transferId,
+            date,
+            amount,
+            fromAccountId,
+            toAccountId,
+            fromTransactionId: fromTxId,
+            toTransactionId: toTxId,
+            fromAccountNameSnapshot: fromAccount.name,
+            toAccountNameSnapshot: toAccount.name,
+            memo,
+            createdAt: now,
+            updatedAt: now,
+            deletedAt: null
+        };
+
+        insertTransaction(fromTx);
+        insertTransaction(toTx);
+        insertTransfer(transferRecord);
+
+        this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
+    async applyReconciliationBatch(
+        newPayees: Array<IPayee>,
+        txsToImport: Array<ITransaction>,
+        txsToUpdate: Array<ITransaction>
+    ): Promise<void> {
+        applyReconciliationBatch(newPayees, txsToImport, txsToUpdate);
+        this.payees.set(getAllPayees());
+        this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
     // --- Account CRUD ---
 
     async addAccount(account: IAccount): Promise<void> {
@@ -221,6 +338,39 @@ export class LedgerStore {
         this.payees.set(getAllPayees());
         this.isDirty.set(true);
         return newPayee;
+    }
+
+    // --- Category ---
+
+    async createCategory(name: string, parentId: string | null = null): Promise<ICategory> {
+        const now = new Date().toISOString() as ISODateString;
+        const newCat: ICategory = {
+            id: `category-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            parentId,
+            name,
+            description: null,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now
+        };
+
+        insertCategory(newCat);
+        this.categories.set(getAllCategories());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+        return newCat;
+    }
+
+    // --- Category Aliases ---
+
+    getCategoryAlias(alias: string): string | null {
+        return getCategoryAlias(alias);
+    }
+
+    async upsertCategoryAlias(alias: string, categoryId: string): Promise<void> {
+        upsertCategoryAlias(alias, categoryId);
+        await this.commitToLocal();
+        this.isDirty.set(true);
     }
 
     async updatePayee(payee: IPayee): Promise<void> {

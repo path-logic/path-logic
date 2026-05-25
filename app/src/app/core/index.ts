@@ -1,5 +1,5 @@
 // === Domain ===
-export { DEFAULT_CATEGORIES, KnownCategory } from './domain/CategoryDefaults';
+export { DEFAULT_ALIASES, DEFAULT_CATEGORIES, KnownCategory } from './domain/CategoryDefaults';
 export type { ICategorySeed } from './domain/CategoryDefaults';
 export { ErrorCode } from './domain/ErrorCode';
 export {
@@ -25,6 +25,7 @@ export type {
     ISODateString,
     ISplit,
     ITransaction,
+    ITransfer,
     TimerHandle
 } from './domain/types';
 
@@ -58,7 +59,7 @@ export type { IParseError, IParseWarning, IQIFParseResult } from './parsers/QIFP
 
 // === Utils ===
 export { cleanExpression, evalArithmetic, tokenize, tryEvalArithmetic } from './utils/arithmetic';
-export { formatLocaleDate } from './utils/dateUtils';
+export { GLOBAL_DATE_FORMAT, formatLocaleDate } from './utils/dateUtils';
 export * as LoanCalculations from './utils/loanCalculations';
 export * as TypeGuards from './utils/typeGuards';
 

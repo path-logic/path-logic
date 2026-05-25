@@ -11,11 +11,13 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import type { IAccount, ISODateString } from '@core';
 import { AccountType, TypeGuards } from '@core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
+import { CategoryMappingDialogComponent } from '../../ledger/category-mapping-dialog/category-mapping-dialog.component';
 
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { PostHogService } from '../../../services/posthog/posthog.service';
@@ -142,7 +144,8 @@ const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg:
         Step,
         StepPanel,
         Button,
-        Dialog
+        Dialog,
+        CategoryMappingDialogComponent
     ],
     templateUrl: './new-account-dialog.component.html',
     styleUrls: ['./new-account-dialog.component.css'],
@@ -174,6 +177,7 @@ export class NewAccountDialogComponent {
 
     /** Tracks drag-over state for the drop zone */
     readonly isDropZoneActive = signal<boolean>(false);
+    readonly isNavigating = signal<boolean>(false);
 
     // Computed
     readonly stepValue = computed(() => {
@@ -348,11 +352,20 @@ export class NewAccountDialogComponent {
     }
 
     finishAfterImport(): void {
+        this.isNavigating.set(true);
         const accountId = this.createdAccount()?.id;
-        if (accountId) {
-            void this.router.navigate(['/accounts', accountId]);
-        }
-        this.closed.emit();
+
+        setTimeout(() => {
+            if (accountId) {
+                void this.router.navigate(['/accounts', accountId]).then(() => {
+                    this.closed.emit();
+                    this.isNavigating.set(false);
+                });
+            } else {
+                this.closed.emit();
+                this.isNavigating.set(false);
+            }
+        }, 50);
     }
 
     handleCancel(): void {

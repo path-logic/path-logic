@@ -146,6 +146,17 @@
             "options": {
                 "command": "test-storybook -c app/.storybook --url http://localhost:6006"
             }
+        },
+        "typecheck": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": [
+                    "tsc -p tsconfig.app.json --noEmit",
+                    "tsc -p tsconfig.spec.json --noEmit"
+                ],
+                "parallel": false,
+                "cwd": "app"
+            }
         }
     }
 }

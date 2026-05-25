@@ -1,65 +1,40 @@
 import { expect, test } from '@playwright/test';
-
-import { createCheckingAccount, navigateTo, waitForAppShell } from '../helpers/test-utils';
+import { AccountsPage } from '../pages/accounts.page';
+import { DashboardPage } from '../pages/dashboard.page';
+import { WelcomeWizardPage } from '../pages/welcome-wizard.page';
 
 test.describe('First-Run Flow', () => {
     test('cold start: app loads and shows empty dashboard', async ({ page }) => {
-        await navigateTo(page, '/');
-        await waitForAppShell(page);
-        await expect(page).toHaveTitle(/Path Logic/i);
-        // Dashboard should be visible
-        await expect(page.locator('app-dashboard, [data-testid="dashboard"]').first()).toBeVisible({
-            timeout: 10_000
-        });
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.navigateTo();
+        await expect(dashboardPage.heading).toBeVisible();
     });
 
     test('welcome wizard: complete new account setup via stepper', async ({ page }) => {
-        await navigateTo(page, '/');
-        await waitForAppShell(page);
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.navigateTo();
 
-        // If wizard is shown on first run, complete it
-        const wizardEl = page.locator('app-welcome-wizard');
-        const wizardVisible = await wizardEl.isVisible().catch(() => false);
-        if (wizardVisible) {
-            await page.getByText('Checking').click();
-            await page
-                .getByRole('button', { name: /Next|Continue/i })
-                .first()
-                .click();
-            await page.getByLabel(/Account Name/i).fill('My Checking');
-            await page.getByLabel(/Opening Balance/i).fill('500');
-            await page.getByRole('button', { name: /Create|Finish/i }).click();
-            await expect(wizardEl).toBeHidden({ timeout: 10_000 });
+        const welcomeWizard = new WelcomeWizardPage(page);
+        if (await welcomeWizard.isVisible()) {
+            await welcomeWizard.selectType('Checking');
+            await welcomeWizard.fillDetails('My Checking', '500');
+            await welcomeWizard.clickCreateAccountOnly();
+            await expect(welcomeWizard.container).toBeHidden({ timeout: 10_000 });
         }
-        // Either way, the app shell is usable
-        await expect(page.locator('app-header')).toBeVisible();
+        await expect(dashboardPage.appShell.header).toBeVisible();
     });
 
     test('accounts page: create a checking account via dialog', async ({ page }) => {
-        await createCheckingAccount(page, 'E2E Checking', '2500');
-        // Account should now appear in the list
+        page.on('console', msg => console.log('BROWSER CONSOLE:', msg.type(), msg.text()));
+        page.on('pageerror', err => console.log('BROWSER EXCEPTION:', err.message, err.stack));
+        const accountsPage = new AccountsPage(page);
+        await accountsPage.createCheckingAccount('E2E Checking', '2500');
         await expect(page.getByText('E2E Checking')).toBeVisible({ timeout: 10_000 });
     });
 
     test('accounts page: create a loan account via dialog', async ({ page }) => {
-        await navigateTo(page, '/accounts');
-        await waitForAppShell(page);
-        const addBtn = page.getByRole('button', { name: /New Account|Add Account/i });
-        await addBtn.click();
-        await expect(page.locator('p-dialog')).toBeVisible({ timeout: 5_000 });
-
-        // Select Loan type
-        await page
-            .getByText(/Loan|Mortgage|Auto/i)
-            .first()
-            .click();
-        await page
-            .getByRole('button', { name: /Next|Continue/i })
-            .first()
-            .click();
-        await page.getByLabel(/Account Name/i).fill('Car Loan');
-        await page.getByRole('button', { name: /Create|Finish/i }).click();
-        await expect(page.locator('p-dialog')).toBeHidden({ timeout: 10_000 });
+        const accountsPage = new AccountsPage(page);
+        await accountsPage.createLoanAccount('Car Loan', '15000', '5.5', '60', '300');
         await expect(page.getByText('Car Loan')).toBeVisible({ timeout: 10_000 });
     });
 });

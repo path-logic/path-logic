@@ -1,62 +1,39 @@
 import { expect, test } from '@playwright/test';
-
-import { createCheckingAccount, navigateTo, waitForAppShell } from '../helpers/test-utils';
+import { AccountsPage } from '../pages/accounts.page';
+import { DashboardPage } from '../pages/dashboard.page';
+import { RecurringPage } from '../pages/recurring.page';
 
 test.describe('Recurring Schedules & Projection', () => {
+    test.beforeEach(async ({ page }) => {
+        page.on('console', msg => console.log('BROWSER CONSOLE:', msg.type(), msg.text()));
+        page.on('pageerror', err => console.log('BROWSER EXCEPTION:', err.message, err.stack));
+    });
+
     test('create a recurring schedule', async ({ page }) => {
-        await navigateTo(page, '/recurring');
-        await waitForAppShell(page);
+        const accountsPage = new AccountsPage(page);
+        await accountsPage.createCheckingAccount('Rent Account', '2000');
 
-        const addBtn = page.getByRole('button', { name: /New|Add|Create/i }).first();
-        await addBtn.click();
-
-        // Fill in the recurring form
-        await page
-            .getByLabel(/Name|Description/i)
-            .first()
-            .fill('Monthly Rent');
-        await page
-            .getByLabel(/Amount/i)
-            .first()
-            .fill('-1200');
-
-        // Save the schedule
-        await page
-            .getByRole('button', { name: /Save|Create/i })
-            .last()
-            .click();
+        const recurringPage = new RecurringPage(page);
+        await recurringPage.createRecurringSchedule('Monthly Rent', '-1200', 'Rent Account');
 
         // Verify the schedule appears in the list
-        await expect(page.getByText('Monthly Rent')).toBeVisible({ timeout: 10_000 });
+        await expect(recurringPage.page.getByText('Monthly Rent')).toBeVisible({ timeout: 10_000 });
     });
 
     test('projection chart updates after adding a recurring schedule', async ({ page }) => {
         // Set up an account first
-        await createCheckingAccount(page, 'Projection Account', '5000');
+        const accountsPage = new AccountsPage(page);
+        await accountsPage.createCheckingAccount('Projection Account', '5000');
 
         // Go to recurring and add a schedule
-        await navigateTo(page, '/recurring');
-        await waitForAppShell(page);
-        const addBtn = page.getByRole('button', { name: /New|Add|Create/i }).first();
-        await addBtn.click();
-        await page
-            .getByLabel(/Name|Description/i)
-            .first()
-            .fill('Salary');
-        await page
-            .getByLabel(/Amount/i)
-            .first()
-            .fill('3000');
-        await page
-            .getByRole('button', { name: /Save|Create/i })
-            .last()
-            .click();
-        await expect(page.getByText('Salary')).toBeVisible({ timeout: 10_000 });
+        const recurringPage = new RecurringPage(page);
+        await recurringPage.createRecurringSchedule('Salary', '3000', 'Projection Account');
+        await expect(recurringPage.page.getByText('Salary')).toBeVisible({ timeout: 10_000 });
 
         // Navigate to dashboard and verify projection chart is rendered
-        await navigateTo(page, '/');
-        await waitForAppShell(page);
-        await expect(page.locator('app-projection-chart, canvas').first()).toBeVisible({
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.navigateTo();
+        await expect(dashboardPage.projectionChart).toBeVisible({
             timeout: 10_000
         });
     });

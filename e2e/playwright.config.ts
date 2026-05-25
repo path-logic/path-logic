@@ -3,7 +3,7 @@ import { nxE2EPreset } from '@nx/playwright/preset';
 import { defineConfig, devices } from '@playwright/test';
 
 // For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://127.0.0.1:4201';
+const baseURL = process.env['BASE_URL'] || 'https://127.0.0.1:4201';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -16,12 +16,14 @@ export default defineConfig({
     use: {
         ...preset.use,
         baseURL,
+        ignoreHTTPSErrors: true,
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry'
     },
     webServer: {
         command: 'npx nx run app:serve:e2e --port=4201',
-        url: 'http://127.0.0.1:4201',
+        url: 'https://127.0.0.1:4201',
+        ignoreHTTPSErrors: true,
         reuseExistingServer: !process.env['CI'],
         cwd: workspaceRoot,
         timeout: 120_000 // Allow 2 min for Angular build + serve

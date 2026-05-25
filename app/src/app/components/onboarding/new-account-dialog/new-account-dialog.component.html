@@ -7,14 +7,16 @@
     [closable]="step() !== 'creating' && step() !== 'import-data'"
     [style]="{ width: step() === 'import-data' ? '560px' : '500px' }"
     header="Add New Account"
-    styleClass="path-logic-dialog"
+    styleClass="path-logic-dialog new-account-dialog"
 >
     <ng-template #header>
         <div class="flex items-center gap-2">
             <div class="w-5 h-5 bg-primary rounded-sm flex items-center justify-center">
                 <span class="text-white font-black text-[10px]">P</span>
             </div>
-            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-surface-800">
+            <h2
+                class="text-xs font-black uppercase tracking-[0.2em] text-surface-800 dark:text-surface-50"
+            >
                 Add <span class="text-primary">New Account</span>
             </h2>
         </div>
@@ -37,7 +39,7 @@
                                 @for (option of primaryTypes(); track option.type) {
                                     <button
                                         (click)="handleTypeSelect(option.type)"
-                                        class="group flex flex-col items-center p-4 border border-surface-200 rounded-sm hover:border-primary/50 hover:bg-primary/5 transition-all text-center outline-none focus:ring-1 focus:ring-primary"
+                                        class="group flex flex-col items-center p-4 border border-surface-200 dark:border-surface-700 rounded-sm hover:border-primary/50 dark:hover:border-primary/50 hover:bg-primary/5 transition-all text-center outline-none focus:ring-1 focus:ring-primary"
                                     >
                                         <div
                                             [class]="
@@ -59,7 +61,7 @@
                                             >{{ option.label }}</span
                                         >
                                         <span
-                                            class="text-[9px] text-surface-500 font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                            class="text-[9px] text-surface-500 dark:text-surface-400 font-bold uppercase tracking-tighter opacity-60 leading-tight"
                                         >
                                             {{ option.description }}
                                         </span>
@@ -85,7 +87,7 @@
                                         @for (option of loanTypes(); track option.type) {
                                             <button
                                                 (click)="handleTypeSelect(option.type)"
-                                                class="flex items-center gap-4 p-3 border border-surface-200 rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
+                                                class="flex items-center gap-4 p-3 border border-surface-200 dark:border-surface-700 rounded-sm hover:border-amber-500/50 hover:bg-amber-500/5 transition-all text-left group"
                                             >
                                                 <div
                                                     class="w-8 h-8 rounded-sm bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform"
@@ -103,7 +105,7 @@
                                                         >{{ option.label }}</span
                                                     >
                                                     <span
-                                                        class="text-[9px] text-surface-500 font-bold uppercase tracking-tighter opacity-60"
+                                                        class="text-[9px] text-surface-500 dark:text-surface-400 font-bold uppercase tracking-tighter opacity-60"
                                                         >{{ option.description }}</span
                                                     >
                                                 </div>
@@ -144,7 +146,7 @@
                             } @else if (selectedType()) {
                                 <div class="space-y-6">
                                     <div
-                                        class="flex gap-4 p-4 bg-surface-100/30 rounded-sm border border-surface-200"
+                                        class="flex gap-4 p-4 bg-surface-100/30 dark:bg-surface-800/40 rounded-sm border border-surface-200 dark:border-surface-700"
                                     >
                                         <div
                                             [class]="
@@ -168,7 +170,7 @@
                                                 {{ selectedOption()?.label }}
                                             </h3>
                                             <p
-                                                class="text-[10px] text-surface-500 font-bold uppercase tracking-tighter opacity-60 leading-tight"
+                                                class="text-[10px] text-surface-500 dark:text-surface-400 font-bold uppercase tracking-tighter opacity-60 leading-tight"
                                             >
                                                 {{ selectedOption()?.description }}
                                             </p>
@@ -179,7 +181,7 @@
                                         <div class="space-y-1.5">
                                             <label
                                                 for="account-name-input"
-                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500"
+                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400"
                                                 >Account Name *</label
                                             >
                                             <input
@@ -187,13 +189,13 @@
                                                 [ngModel]="accountName()"
                                                 (ngModelChange)="accountName.set($event)"
                                                 placeholder="e.g. Chase Checking"
-                                                class="w-full h-9 px-3 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                                             />
                                         </div>
                                         <div class="space-y-1.5">
                                             <label
                                                 for="institution-name-input"
-                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500"
+                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400"
                                                 >Institution (Optional)</label
                                             >
                                             <input
@@ -201,13 +203,13 @@
                                                 [ngModel]="institutionName()"
                                                 (ngModelChange)="institutionName.set($event)"
                                                 placeholder="e.g. JPMorgan Chase"
-                                                class="w-full h-9 px-3 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
                                             />
                                         </div>
                                         <div class="space-y-1.5">
                                             <label
                                                 for="starting-balance-input"
-                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500"
+                                                class="text-[10px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400"
                                                 >Starting Balance</label
                                             >
                                             <input
@@ -217,10 +219,10 @@
                                                 type="number"
                                                 step="0.01"
                                                 placeholder="0.00"
-                                                class="w-full h-9 px-3 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-data tabular-nums font-bold transition-all"
+                                                class="w-full h-9 px-3 bg-surface-100 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-data tabular-nums font-bold transition-all"
                                             />
                                             <p
-                                                class="text-[9px] text-surface-500 italic font-bold uppercase tracking-tighter opacity-50"
+                                                class="text-[9px] text-surface-500 dark:text-surface-400 italic font-bold uppercase tracking-tighter opacity-50"
                                             >
                                                 {{
                                                     selectedType() === 'credit'
@@ -267,7 +269,7 @@
                                                 label="Create Account Only"
                                                 [text]="true"
                                                 severity="secondary"
-                                                styleClass="w-full h-8 text-[9px] font-black uppercase tracking-widest text-surface-500 hover:text-surface-800"
+                                                styleClass="w-full h-8 text-[9px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:text-surface-50"
                                             ></p-button>
                                         </div>
                                     </div>
@@ -286,35 +288,62 @@
                                 <div
                                     class="flex flex-col items-center justify-center flex-1 gap-4 py-8"
                                 >
-                                    <div
-                                        class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
-                                    >
-                                        <i class="pi pi-check-circle text-5xl text-primary"></i>
-                                    </div>
-                                    <div class="text-center">
-                                        <h3 class="text-lg font-black tracking-tight mb-1">
-                                            Import Ready!
-                                        </h3>
-                                        <p class="text-sm text-surface-500">
-                                            {{ importStats()?.totalCount?.toLocaleString() }}
-                                            transactions parsed and ready to review.
-                                        </p>
-                                    </div>
-                                    <p
-                                        class="text-[9px] text-surface-400 font-bold uppercase tracking-widest"
-                                    >
-                                        Review dialog will open on the ledger page.
-                                    </p>
-                                    <div class="mt-4">
-                                        <p-button
-                                            (click)="finishAfterImport()"
-                                            label="Go to Ledger"
-                                            severity="primary"
-                                            styleClass="px-6 py-2.5 rounded-md bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                                    @if (!importStats()) {
+                                        <div
+                                            class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2"
                                         >
-                                            <i class="pi pi-bolt w-4 h-4 mr-2"></i>
-                                        </p-button>
-                                    </div>
+                                            <i
+                                                class="pi pi-spinner-dotted pi-spin text-5xl text-primary opacity-80"
+                                            ></i>
+                                        </div>
+                                        <div class="text-center">
+                                            <h3
+                                                class="text-lg font-black tracking-tight mb-1 animate-pulse text-surface-800 dark:text-surface-50"
+                                            >
+                                                Finalizing Import...
+                                            </h3>
+                                            <p
+                                                class="text-[10px] text-surface-500 dark:text-surface-400 font-mono uppercase tracking-widest mt-2"
+                                            >
+                                                analyzing transaction categories
+                                            </p>
+                                        </div>
+                                    } @else {
+                                        <div
+                                            class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
+                                        >
+                                            <i class="pi pi-check-circle text-5xl text-primary"></i>
+                                        </div>
+                                        <div class="text-center">
+                                            <h3 class="text-lg font-black tracking-tight mb-1">
+                                                Import Ready!
+                                            </h3>
+                                            <p
+                                                class="text-sm text-surface-500 dark:text-surface-400"
+                                            >
+                                                {{ importStats()?.totalCount?.toLocaleString() }}
+                                                transactions parsed and ready to review.
+                                            </p>
+                                        </div>
+                                        <p
+                                            class="text-[9px] text-surface-400 font-bold uppercase tracking-widest"
+                                        >
+                                            Review dialog will open on the ledger page.
+                                        </p>
+                                        <div class="mt-4">
+                                            <p-button
+                                                (click)="finishAfterImport()"
+                                                label="Go to Ledger"
+                                                severity="primary"
+                                                [loading]="isNavigating()"
+                                                styleClass="px-6 py-2.5 rounded-md bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                                            >
+                                                @if (!isNavigating()) {
+                                                    <i class="pi pi-bolt w-4 h-4 mr-2"></i>
+                                                }
+                                            </p-button>
+                                        </div>
+                                    }
                                 </div>
 
                                 <!-- In-progress state -->
@@ -322,6 +351,12 @@
                                 <div
                                     class="flex flex-col items-center justify-center flex-1 gap-6 py-8"
                                 >
+                                    <!-- Large Prominent Spinner -->
+                                    <div class="mb-2">
+                                        <i
+                                            class="pi pi-spinner-dotted pi-spin text-5xl text-primary opacity-80"
+                                        ></i>
+                                    </div>
                                     <!-- Stage pipeline -->
                                     <div class="flex items-center gap-3">
                                         @for (
@@ -346,22 +381,35 @@
                                                                     'reconciling'
                                                                 ].indexOf(importProgress().stage)
                                                               ? 'bg-primary text-white ring-4 ring-primary/20 animate-pulse'
-                                                              : 'bg-surface-200 text-surface-500')
+                                                              : 'bg-surface-200 text-surface-500 dark:text-surface-400')
                                                     "
                                                 >
-                                                    {{
-                                                        $index <
+                                                    @if (
+                                                        $index ===
                                                         [
                                                             'reading',
                                                             'parsing',
                                                             'reconciling'
                                                         ].indexOf(importProgress().stage)
-                                                            ? '✓'
-                                                            : $index + 1
-                                                    }}
+                                                    ) {
+                                                        <i
+                                                            class="pi pi-spinner pi-spin !text-[10px]"
+                                                        ></i>
+                                                    } @else {
+                                                        {{
+                                                            $index <
+                                                            [
+                                                                'reading',
+                                                                'parsing',
+                                                                'reconciling'
+                                                            ].indexOf(importProgress().stage)
+                                                                ? '✓'
+                                                                : $index + 1
+                                                        }}
+                                                    }
                                                 </div>
                                                 <span
-                                                    class="text-[9px] font-black uppercase tracking-widest text-surface-500"
+                                                    class="text-[9px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400"
                                                     >{{ s }}</span
                                                 >
                                                 @if ($index < 2) {
@@ -373,7 +421,7 @@
 
                                     <!-- Progress bar -->
                                     <div
-                                        class="w-64 h-1.5 bg-surface-200 rounded-full overflow-hidden"
+                                        class="w-64 h-1.5 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden"
                                     >
                                         <div
                                             class="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-300"
@@ -382,11 +430,18 @@
                                     </div>
                                     @if (importProgress().total > 0) {
                                         <p
-                                            class="text-[10px] font-mono text-surface-500 tabular-nums"
+                                            class="text-[10px] font-mono text-surface-500 dark:text-surface-400 tabular-nums"
                                         >
                                             {{ importProgress().processed.toLocaleString() }} /
                                             {{ importProgress().total.toLocaleString() }}
                                             transactions
+                                        </p>
+                                    } @else {
+                                        <p
+                                            class="text-[10px] font-mono text-surface-400 tabular-nums italic"
+                                        >
+                                            <i class="pi pi-spinner pi-spin mr-1 text-[9px]"></i>
+                                            calculating transactions...
                                         </p>
                                     }
                                 </div>
@@ -395,7 +450,7 @@
                             } @else {
                                 <div class="text-center pt-2 pb-1">
                                     <p
-                                        class="text-[10px] font-black uppercase tracking-widest text-surface-500"
+                                        class="text-[10px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400"
                                     >
                                         Account created! Import your transaction history to get
                                         started.
@@ -411,7 +466,7 @@
                                         'group flex-1 border-2 border-dashed rounded-sm flex flex-col items-center justify-center gap-4 p-8 cursor-pointer transition-all min-h-[200px] ' +
                                         (isDropZoneActive()
                                             ? 'border-primary bg-primary/5'
-                                            : 'border-surface-300 hover:border-primary/50 hover:bg-surface-50')
+                                            : 'border-surface-300 dark:border-surface-600 hover:border-primary/50 hover:bg-surface-50 dark:hover:bg-surface-800')
                                     "
                                 >
                                     <div
@@ -473,3 +528,4 @@
         </p-stepper>
     </div>
 </p-dialog>
+<category-mapping-dialog></category-mapping-dialog>

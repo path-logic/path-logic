@@ -1,3 +1,5 @@
+export const GLOBAL_DATE_FORMAT = 'MM/dd/yyyy';
+
 /**
  * Formats an ISO date string (YYYY-MM-DD) into a locale-aware long format.
  * Example: '2026-04-10' -> 'April 10, 2026' (for en-US)

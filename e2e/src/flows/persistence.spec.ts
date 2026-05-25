@@ -1,54 +1,59 @@
 import { expect, test } from '@playwright/test';
-
-import { createCheckingAccount, navigateTo, waitForAppShell } from '../helpers/test-utils';
+import { AccountLedgerPage } from '../pages/account-ledger.page';
+import { AccountsPage } from '../pages/accounts.page';
 
 test.describe('Persistence & Navigation', () => {
     test('data persists after page refresh', async ({ page }) => {
+        const accountsPage = new AccountsPage(page);
         // Create an account
-        await createCheckingAccount(page, 'Persist Account', '3000');
-        await expect(page.getByText('Persist Account')).toBeVisible({ timeout: 10_000 });
+        await accountsPage.createCheckingAccount('Persist Account', '3000');
+        await expect(accountsPage.page.getByText('Persist Account')).toBeVisible({
+            timeout: 10_000
+        });
 
         // Refresh the page
-        await page.reload();
-        await waitForAppShell(page);
+        await accountsPage.page.reload();
+        await accountsPage.appShell.waitForAppShell();
 
         // Account should still be visible after reload
-        await expect(page.getByText('Persist Account')).toBeVisible({ timeout: 10_000 });
+        await expect(accountsPage.page.getByText('Persist Account')).toBeVisible({
+            timeout: 10_000
+        });
     });
 
     test('deep-link to account ledger renders correctly', async ({ page }) => {
+        const accountsPage = new AccountsPage(page);
         // Create account to get its ID
-        await createCheckingAccount(page, 'Deeplink Account', '1500');
-        await page.getByText('Deeplink Account').click();
+        await accountsPage.createCheckingAccount('Deeplink Account', '3000');
+        await accountsPage.goToAccountLedger('Deeplink Account');
 
         // Capture the URL (contains the account ID)
-        const accountUrl = page.url();
+        const accountUrl = accountsPage.page.url();
         expect(accountUrl).toMatch(/\/accounts\/.+/);
 
         // Navigate away then deep-link back
-        await navigateTo(page, '/');
-        await page.goto(accountUrl);
-        await waitForAppShell(page);
+        await accountsPage.appShell.navigateTo('/');
+        await accountsPage.page.goto(accountUrl);
+        await accountsPage.appShell.waitForAppShell();
 
         // Ledger should render
+        const ledgerPage = new AccountLedgerPage(page);
         await expect(
-            page.locator('app-account-ledger, [data-testid="ledger"]').first()
-        ).toBeVisible({ timeout: 10_000 });
+            ledgerPage.page.locator('account-ledger, [data-testid="ledger"]').first()
+        ).toBeVisible({
+            timeout: 10_000
+        });
     });
 
     test('full navigation flow: all top-level routes render', async ({ page }) => {
-        const routes = [
-            { path: '/', label: 'Overview' },
-            { path: '/accounts', label: 'Accounts' },
-            { path: '/payees', label: 'Payees' },
-            { path: '/recurring', label: 'Recurring' }
-        ];
+        const accountsPage = new AccountsPage(page);
+        const routes = ['/', '/accounts', '/payees', '/recurring'];
 
-        for (const route of routes) {
-            await navigateTo(page, route.path);
-            await waitForAppShell(page);
+        for (const path of routes) {
+            await accountsPage.appShell.navigateTo(path);
+            await accountsPage.appShell.waitForAppShell();
             // Each page should render without crashing (header stays visible)
-            await expect(page.locator('app-header')).toBeVisible({ timeout: 10_000 });
+            await expect(accountsPage.appShell.header).toBeVisible({ timeout: 10_000 });
         }
     });
 });

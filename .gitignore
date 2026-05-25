@@ -52,6 +52,7 @@ nx
 *.tgz
 /web@*
 /path-logic@*
+qif-results
 
 # Test and Lint artifacts
 playwright-report/

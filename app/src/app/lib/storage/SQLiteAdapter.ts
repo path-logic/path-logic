@@ -8,6 +8,7 @@ import type {
     ISODateString,
     ISplit,
     ITransaction,
+    ITransfer,
     TransactionStatus
 } from '@core';
 import { TypeGuards } from '@core';
@@ -79,6 +80,12 @@ const SCHEMA_DDL = `
         FOREIGN KEY (parentId) REFERENCES categories(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS category_aliases (
+        alias TEXT PRIMARY KEY,
+        categoryId TEXT NOT NULL,
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
         accountId TEXT NOT NULL,
@@ -90,6 +97,7 @@ const SCHEMA_DDL = `
         status TEXT NOT NULL,
         checkNumber TEXT,
         importHash TEXT NOT NULL,
+            linkedTransferId TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         deletedAt TEXT,
         clientId TEXT,
@@ -177,9 +185,9 @@ export const SQL_QUERIES = {
     INSERT_TRANSACTION: `
         INSERT INTO transactions (
             id, accountId, payeeId, date, payee, memo, totalAmount, 
-            status, checkNumber, importHash, isDeleted, clientId, createdAt, updatedAt
+            status, checkNumber, importHash, linkedTransferId, isDeleted, clientId, createdAt, updatedAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_ALL_TRANSACTIONS: `
@@ -189,7 +197,7 @@ export const SQL_QUERIES = {
     UPDATE_TRANSACTION: `
         UPDATE transactions 
         SET accountId = ?, payeeId = ?, date = ?, payee = ?, memo = ?, totalAmount = ?, 
-            status = ?, checkNumber = ?, importHash = ?, isDeleted = ?, clientId = ?, updatedAt = ?
+            status = ?, checkNumber = ?, importHash = ?, linkedTransferId = ?, isDeleted = ?, clientId = ?, updatedAt = ?
         WHERE id = ?
     `,
 
@@ -199,6 +207,14 @@ export const SQL_QUERIES = {
 
     DELETE_ALL_TRANSACTIONS: `
         UPDATE transactions SET isDeleted = 1, deletedAt = ?, updatedAt = ?
+    `,
+
+    // Transfer queries
+    INSERT_TRANSFER: `
+        INSERT INTO transfers (
+            id, date, amount, fromAccountId, toAccountId, fromTransactionId, toTransactionId,
+            fromAccountNameSnapshot, toAccountNameSnapshot, memo, isDeleted, clientId, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     // Account queries
@@ -244,7 +260,18 @@ export const SQL_QUERIES = {
     `,
 
     SELECT_ALL_CATEGORIES: `
-        SELECT * FROM categories WHERE isDeleted = 0 ORDER BY name ASC
+        SELECT * FROM categories WHERE isDeleted = 0 ORDER BY parentId ASC, name ASC
+    `,
+
+    // Category Alias queries
+    UPSERT_CATEGORY_ALIAS: `
+        INSERT INTO category_aliases (alias, categoryId)
+        VALUES (?, ?)
+        ON CONFLICT(alias) DO UPDATE SET categoryId = excluded.categoryId
+    `,
+
+    SELECT_CATEGORY_ALIAS: `
+        SELECT categoryId FROM category_aliases WHERE alias = ?
     `,
 
     UPDATE_PAYEE: `
@@ -448,7 +475,7 @@ async function loadSqlJsScript(): Promise<void> {
     });
 }
 
-import { DEFAULT_CATEGORIES } from '@core';
+import { DEFAULT_ALIASES, DEFAULT_CATEGORIES } from '@core';
 
 /**
  * Ensures the database schema is up to date and seeded
@@ -541,6 +568,17 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
         }
     }
 
+    // Migration: Add linkedTransferId to transactions if missing
+    const txColumnsResult = dbInstance.exec('PRAGMA table_info(transactions)');
+    if (txColumnsResult[0]?.values) {
+        const hasLinkedTransfer = txColumnsResult[0].values.some(
+            (v: Array<SqlValue>) => v[1] === 'linkedTransferId'
+        );
+        if (!hasLinkedTransfer) {
+            dbInstance.run('ALTER TABLE transactions ADD COLUMN linkedTransferId TEXT');
+        }
+    }
+
     // Migration: Add deletedAt to transactions and splits if missing
     for (const table of ['transactions', 'splits'] as const) {
         const tableInfo: Array<QueryExecResult> = dbInstance.exec(`PRAGMA table_info(${table})`);
@@ -575,6 +613,11 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
                     now,
                     now
                 ]);
+            }
+
+            // 4. Seeding: Default Category Aliases
+            for (const [alias, categoryId] of Object.entries(DEFAULT_ALIASES)) {
+                dbInstance.run(SQL_QUERIES.UPSERT_CATEGORY_ALIAS, [alias, categoryId as string]);
             }
             dbInstance.run('COMMIT');
         } catch (e: unknown) {
@@ -665,6 +708,31 @@ export function resetDatabase(): void {
     db = null;
 }
 
+export function insertTransfer(transfer: ITransfer): void {
+    if (!db) throw new Error('Database not initialized');
+
+    db.run(
+        `INSERT INTO transfers (
+            id, date, amount, fromAccountId, toAccountId, fromTransactionId, toTransactionId, fromAccountNameSnapshot, toAccountNameSnapshot, memo, createdAt, updatedAt, deletedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            transfer.id,
+            transfer.date,
+            transfer.amount,
+            transfer.fromAccountId,
+            transfer.toAccountId,
+            transfer.fromTransactionId,
+            transfer.toTransactionId,
+            transfer.fromAccountNameSnapshot,
+            transfer.toAccountNameSnapshot,
+            transfer.memo || null,
+            transfer.createdAt,
+            transfer.updatedAt,
+            transfer.deletedAt || null
+        ]
+    );
+}
+
 export function insertTransaction(tx: ITransaction): void {
     if (!db) throw new Error('Database not initialized');
 
@@ -683,6 +751,7 @@ export function insertTransaction(tx: ITransaction): void {
         tx.status,
         tx.checkNumber || null,
         tx.importHash,
+        tx.linkedTransferId || null,
         0, // isDeleted
         clientId,
         tx.createdAt || now,
@@ -728,6 +797,7 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                 tx.status,
                 tx.checkNumber || null,
                 tx.importHash,
+                tx.linkedTransferId || null,
                 0, // isDeleted
                 clientId,
                 tx.createdAt || now,
@@ -748,6 +818,105 @@ export function insertTransactions(txs: Array<ITransaction>): void {
                 ]);
             }
         }
+        db.run('COMMIT');
+    } catch (error: unknown) {
+        db.run('ROLLBACK');
+        throw error;
+    }
+}
+
+/**
+ * Optimized atomic batch import for reconciliation.
+ * Executes all payee insertions, transaction updates, and transaction insertions in a single transaction.
+ */
+export function applyReconciliationBatch(
+    newPayees: Array<IPayee>,
+    txsToImport: Array<ITransaction>,
+    txsToUpdate: Array<ITransaction>
+): void {
+    if (!db) throw new Error('Database not initialized');
+
+    const now: string = new Date().toISOString();
+    const clientId: string = getClientId();
+
+    db.run('BEGIN TRANSACTION');
+    try {
+        // Insert new payees
+        for (const payee of newPayees) {
+            db.run(SQL_QUERIES.INSERT_PAYEE, [
+                payee.id,
+                payee.name,
+                payee.address,
+                payee.city,
+                payee.state,
+                payee.zipCode,
+                payee.latitude,
+                payee.longitude,
+                payee.website,
+                payee.phone,
+                payee.notes,
+                payee.defaultCategoryId,
+                0, // isDeleted
+                clientId,
+                payee.createdAt || now,
+                payee.updatedAt || now
+            ]);
+        }
+
+        // Update existing transactions (e.g. marking as cleared)
+        for (const tx of txsToUpdate) {
+            db.run(SQL_QUERIES.UPDATE_TRANSACTION, [
+                tx.accountId,
+                tx.payeeId,
+                tx.date,
+                tx.payee,
+                tx.memo,
+                tx.totalAmount,
+                tx.status,
+                tx.checkNumber || null,
+                tx.importHash,
+                tx.linkedTransferId || null,
+                0, // isDeleted
+                clientId,
+                tx.updatedAt || now,
+                tx.id
+            ]);
+        }
+
+        // Insert new transactions
+        for (const tx of txsToImport) {
+            db.run(SQL_QUERIES.INSERT_TRANSACTION, [
+                tx.id,
+                tx.accountId,
+                tx.payeeId,
+                tx.date,
+                tx.payee,
+                tx.memo,
+                tx.totalAmount,
+                tx.status,
+                tx.checkNumber || null,
+                tx.importHash,
+                tx.linkedTransferId || null,
+                0, // isDeleted
+                clientId,
+                tx.createdAt || now,
+                tx.updatedAt || now
+            ]);
+
+            for (const split of tx.splits) {
+                db.run(SQL_QUERIES.INSERT_SPLIT, [
+                    split.id,
+                    tx.id,
+                    split.categoryId || null,
+                    split.memo,
+                    split.amount,
+                    0, // isDeleted
+                    clientId,
+                    tx.updatedAt || now
+                ]);
+            }
+        }
+
         db.run('COMMIT');
     } catch (error: unknown) {
         db.run('ROLLBACK');
@@ -831,6 +1000,7 @@ export function updateTransaction(tx: ITransaction): void {
         tx.status,
         tx.checkNumber || null,
         tx.importHash,
+        tx.linkedTransferId || null,
         0, // isDeleted
         clientId,
         updatedAt,
@@ -1343,16 +1513,16 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
     db.run(SQL_QUERIES.INSERT_RECURRING_SCHEDULE, [
         schedule.id,
         schedule.accountId,
-        schedule.payee,
-        schedule.amount,
+        schedule.payee || '',
+        schedule.amount || 0,
         schedule.type,
-        schedule.frequency,
-        schedule.paymentMethod,
-        schedule.startDate,
+        schedule.frequency || 'Monthly',
+        schedule.paymentMethod || 'ElectronicTransfer',
+        schedule.startDate || now.slice(0, 10),
         schedule.endDate || null,
-        schedule.nextDueDate,
+        schedule.nextDueDate || now.slice(0, 10),
         schedule.lastOccurredDate || null,
-        schedule.memo,
+        schedule.memo || '',
         schedule.autoPost ? 1 : 0,
         schedule.isActive ? 1 : 0,
         0, // isDeleted
@@ -1362,17 +1532,19 @@ export function insertRecurringSchedule(schedule: IRecurringSchedule): void {
     ]);
 
     // Insert splits
-    for (const split of schedule.splits) {
-        db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
-            split.id,
-            schedule.id,
-            split.categoryId || null,
-            split.memo,
-            split.amount,
-            0, // isDeleted
-            clientId,
-            now
-        ]);
+    if (schedule.splits) {
+        for (const split of schedule.splits) {
+            db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
+                split.id,
+                schedule.id,
+                split.categoryId || null,
+                split.memo || '',
+                split.amount || 0,
+                0, // isDeleted
+                clientId,
+                now
+            ]);
+        }
     }
 }
 
@@ -1386,16 +1558,16 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
 
     db.run(SQL_QUERIES.UPDATE_RECURRING_SCHEDULE, [
         schedule.accountId,
-        schedule.payee,
-        schedule.amount,
+        schedule.payee || '',
+        schedule.amount || 0,
         schedule.type,
-        schedule.frequency,
-        schedule.paymentMethod,
-        schedule.startDate,
+        schedule.frequency || 'Monthly',
+        schedule.paymentMethod || 'ElectronicTransfer',
+        schedule.startDate || now.slice(0, 10),
         schedule.endDate || null,
-        schedule.nextDueDate,
+        schedule.nextDueDate || now.slice(0, 10),
         schedule.lastOccurredDate || null,
-        schedule.memo,
+        schedule.memo || '',
         schedule.autoPost ? 1 : 0,
         schedule.isActive ? 1 : 0,
         0, // isDeleted
@@ -1406,17 +1578,19 @@ export function updateRecurringSchedule(schedule: IRecurringSchedule): void {
 
     // Update splits (delete and re-insert)
     db.run(SQL_QUERIES.DELETE_RECURRING_SPLITS_BY_SCHEDULE, [now, schedule.id]);
-    for (const split of schedule.splits) {
-        db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
-            split.id,
-            schedule.id,
-            split.categoryId || null,
-            split.memo,
-            split.amount,
-            0, // isDeleted
-            clientId,
-            now
-        ]);
+    if (schedule.splits) {
+        for (const split of schedule.splits) {
+            db.run(SQL_QUERIES.INSERT_RECURRING_SPLIT, [
+                split.id,
+                schedule.id,
+                split.categoryId || null,
+                split.memo || '',
+                split.amount || 0,
+                0, // isDeleted
+                clientId,
+                now
+            ]);
+        }
     }
 }
 
@@ -1431,6 +1605,24 @@ export function deletePayee(payeeId: string): void {
     if (!db) throw new Error('Database not initialized');
     const now: string = new Date().toISOString();
     db.run(SQL_QUERIES.DELETE_PAYEE, [now, payeeId]);
+}
+
+/**
+ * Get the mapped categoryId for a specific QIF category alias.
+ */
+export function getCategoryAlias(alias: string): string | null {
+    if (!db) throw new Error('Database not initialized');
+    const result = db.exec(SQL_QUERIES.SELECT_CATEGORY_ALIAS, [alias]);
+    if (result.length === 0 || !result[0]) return null;
+    return result[0].values[0]?.[0] as string | null;
+}
+
+/**
+ * Upsert a category alias mapping.
+ */
+export function upsertCategoryAlias(alias: string, categoryId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    db.run(SQL_QUERIES.UPSERT_CATEGORY_ALIAS, [alias, categoryId]);
 }
 
 export function deleteCategory(categoryId: string): void {

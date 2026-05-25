@@ -18,3 +18,7 @@
 .ledger-scroll::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary) / 0.5);
 }
+
+:host ::ng-deep .hide-footer .p-dialog-footer {
+    display: none !important;
+}

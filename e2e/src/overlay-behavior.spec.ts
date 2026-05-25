@@ -18,7 +18,7 @@ test.describe('Overlay Behavior', () => {
         await page.goto('/');
 
         // Header should be rendered
-        const header = page.locator('app-header');
+        const header = page.locator('.app-header');
         await expect(header).toBeVisible();
 
         // Navigation links should be present — use role-based selectors for specificity
@@ -31,11 +31,11 @@ test.describe('Overlay Behavior', () => {
         await page.goto('/');
 
         // Footer should be rendered
-        const footer = page.locator('app-footer');
+        const footer = page.locator('footer');
         await expect(footer).toBeVisible();
 
         // Sync indicator component should be present
-        const syncIndicator = page.locator('app-sync-indicator');
+        const syncIndicator = page.locator('sync-indicator');
         await expect(syncIndicator).toBeVisible();
     });
 

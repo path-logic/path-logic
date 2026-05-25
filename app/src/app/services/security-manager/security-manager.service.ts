@@ -2,6 +2,7 @@ import type { WritableSignal } from '@angular/core';
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import type { TimerHandle } from '@core';
 
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
 
@@ -29,6 +30,7 @@ export class SecurityManagerService {
      * Call from the AppShell component's constructor to start monitoring.
      */
     startMonitoring(): void {
+        console.log('[SecurityManager] startMonitoring, environment.e2e:', environment.e2e);
         this.setupActivityListeners();
         this.setupBeforeUnloadGuard();
         this.resetTimers();
@@ -47,6 +49,11 @@ export class SecurityManagerService {
 
         if (this.isIdle()) {
             this.isIdle.set(false);
+        }
+
+        // Do not activate idle timers in E2E mode
+        if (environment.e2e) {
+            return;
         }
 
         // Warning overlay after 5 minutes

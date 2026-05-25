@@ -73,13 +73,13 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Accounts Summary -->
             <div class="lg:col-span-2 space-y-4">
-                <div class="flex justify-between items-center px-1">
+                <div class="flex justify-between items-center px-1 min-h-[44px]">
                     <h2 class="text-sm font-semibold text-surface-800 tracking-wide">
                         My Accounts
                     </h2>
                     <a
                         routerLink="/accounts"
-                        class="text-sm font-medium text-primary hover:text-primary/80 min-h-[44px] flex items-center transition-colors"
+                        class="text-sm font-medium text-primary hover:text-primary/80 flex items-center transition-colors"
                     >
                         Manage All
                     </a>
@@ -169,7 +169,7 @@
 
             <!-- Recent Activity -->
             <div class="space-y-4">
-                <div class="flex justify-between items-center px-1">
+                <div class="flex justify-between items-center px-1 min-h-[44px]">
                     <h2 class="text-sm font-semibold text-surface-800 tracking-wide">
                         Recent Activity
                     </h2>
@@ -199,7 +199,7 @@
                                                     {{ tx.payee }}
                                                 </span>
                                                 <span class="text-xs text-surface-500">
-                                                    {{ tx.date | date: 'shortDate' }}
+                                                    {{ tx.date | localDate: 'short' }}
                                                 </span>
                                             </div>
                                             <span

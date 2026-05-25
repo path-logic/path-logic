@@ -8,16 +8,21 @@ import {
     input,
     model,
     output,
-    signal
+    signal,
+    untracked
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { IReconciliationMatch } from '@core';
-import { Money } from '@core';
+import type { IReconciliationMatch, ITransaction } from '@core';
+import { GLOBAL_DATE_FORMAT, Money } from '@core';
+import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import type { IImportStats, ReconciliationDecision } from '../../../services/import/import.types';
 import { LARGE_DATASET_THRESHOLD } from '../../../services/import/import.types';
+import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
+import { PayeeAutocompleteComponent } from '../../payees/payee-autocomplete/payee-autocomplete.component';
 
 export type { IReconciliationMatch };
 
@@ -36,13 +41,24 @@ export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 @Component({
     selector: 'reconciliation-dialog',
     standalone: true,
-    imports: [CommonModule, FormsModule, Dialog, Button],
+    imports: [
+        CommonModule,
+        FormsModule,
+        Dialog,
+        Button,
+        PrimeTemplate,
+        SelectButtonModule,
+        PayeeAutocompleteComponent
+    ],
     templateUrl: './reconciliation-dialog.component.html',
     styleUrls: ['./reconciliation-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReconciliationDialogComponent {
     private readonly posthogService = inject(PostHogService);
+    private readonly ledgerStore = inject(LedgerStore);
+
+    readonly globalDateFormat = GLOBAL_DATE_FORMAT;
 
     // ── Inputs ────────────────────────────────────────────────────────────────
 
@@ -52,12 +68,24 @@ export class ReconciliationDialogComponent {
 
     // ── Outputs ───────────────────────────────────────────────────────────────
 
-    readonly confirmed = output<Record<number, ReconciliationDecision>>();
+    readonly confirmed = output<{
+        decisions: Record<number, ReconciliationDecision>;
+        done: () => void;
+    }>();
 
     // ── State ─────────────────────────────────────────────────────────────────
 
     readonly decisions = signal<Record<number, ReconciliationDecision>>({});
+    readonly payeeOverrides = signal<Record<number, unknown>>({});
+    readonly matchOverrides = signal<Record<number, string>>({});
     readonly isProcessing = signal<boolean>(false);
+    readonly editingMatchIdx = signal<number | null>(null);
+
+    readonly decisionOptions = [
+        { label: 'Import', value: 'import', icon: 'pi pi-plus' },
+        { label: 'Match', value: 'match', icon: 'pi pi-link' },
+        { label: 'Ignore', value: 'ignore', icon: 'pi pi-times' }
+    ];
 
     // Smart Review state
     readonly activeTab = signal<ReviewTab>('all');
@@ -67,17 +95,17 @@ export class ReconciliationDialogComponent {
     readonly selectedIndices = signal<Set<number>>(new Set());
     readonly smartDefaultsApplied = signal<boolean>(false);
 
-    // Express import mode (zero fuzzy matches)
-    readonly expressMode = signal<boolean>(false);
-
     // ── Computed ──────────────────────────────────────────────────────────────
 
-    readonly isLargeDataset = computed(() => this.matches().length >= LARGE_DATASET_THRESHOLD);
-
-    readonly isZeroFuzzy = computed(() => {
-        const stats = this.importStats();
-        return stats !== null && stats.fuzzyCount === 0;
+    readonly dialogWidth = computed(() => {
+        return this.isLargeDataset() ? '72rem' : '60rem';
     });
+
+    readonly dialogClasses = computed(() => {
+        return 'penny-dialog overflow-hidden ';
+    });
+
+    readonly isLargeDataset = computed(() => this.matches().length >= LARGE_DATASET_THRESHOLD);
 
     readonly tabCounts = computed(() => {
         const m = this.matches();
@@ -122,21 +150,27 @@ export class ReconciliationDialogComponent {
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     constructor() {
-        // Initialize decisions when matches change
+        // Initialize decisions when matches change and when dialog opens
         effect(() => {
             const currentMatches = this.matches();
-            const initial: Record<number, ReconciliationDecision> = {};
-            currentMatches.forEach((match, idx) => {
-                if (match.type === 'none') initial[idx] = 'import';
-                else if (match.type === 'fuzzy') initial[idx] = 'match';
-                else if (match.type === 'exact') initial[idx] = 'ignore';
-            });
-            this.decisions.set(initial);
-            this.smartDefaultsApplied.set(false);
-            this.expressMode.set(false);
-            this.activeTab.set('all');
-            this.page.set(0);
-            this.selectedIndices.set(new Set());
+            if (this.isOpen()) {
+                untracked(() => {
+                    const initial: Record<number, ReconciliationDecision> = {};
+                    currentMatches.forEach((match, idx) => {
+                        if (match.type === 'none') initial[idx] = 'import';
+                        else if (match.type === 'fuzzy') initial[idx] = 'match';
+                        else if (match.type === 'exact') initial[idx] = 'ignore';
+                    });
+                    this.decisions.set(initial);
+                    this.payeeOverrides.set({});
+                    this.matchOverrides.set({});
+                    this.editingMatchIdx.set(null);
+                    this.smartDefaultsApplied.set(false);
+                    this.activeTab.set('all');
+                    this.page.set(0);
+                    this.selectedIndices.set(new Set());
+                });
+            }
         });
     }
 
@@ -144,6 +178,15 @@ export class ReconciliationDialogComponent {
 
     setDecision(idx: number, decision: ReconciliationDecision): void {
         this.decisions.update(prev => ({ ...prev, [idx]: decision }));
+    }
+
+    setPayeeOverride(idx: number, payee: unknown): void {
+        this.payeeOverrides.update(prev => ({ ...prev, [idx]: payee }));
+    }
+
+    setMatchOverride(idx: number, txId: string): void {
+        this.matchOverrides.update(prev => ({ ...prev, [idx]: txId }));
+        this.editingMatchIdx.set(null); // Stop editing after selection
     }
 
     /**
@@ -222,18 +265,15 @@ export class ReconciliationDialogComponent {
 
     // ── Confirm ───────────────────────────────────────────────────────────────
 
-    async handleExpressImport(): Promise<void> {
-        // Apply smart defaults then immediately confirm
-        this.applySmartDefaults();
-        await this.handleApply();
-    }
-
     async handleApply(): Promise<void> {
         this.isProcessing.set(true);
+        // Yield to the event loop so the browser can paint the loading spinner
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         try {
             const decisionsSnapshot = this.decisions();
             const values = Object.values(decisionsSnapshot);
-            this.confirmed.emit(decisionsSnapshot);
+
             this.posthogService.posthog.capture('reconciliation_completed', {
                 total_matches: this.matches().length,
                 imported_count: values.filter(d => d === 'import').length,
@@ -242,10 +282,16 @@ export class ReconciliationDialogComponent {
                 is_large_dataset: this.isLargeDataset(),
                 smart_defaults_used: this.smartDefaultsApplied()
             });
-            this.isOpen.set(false);
+
+            this.confirmed.emit({
+                decisions: decisionsSnapshot,
+                done: () => {
+                    this.isProcessing.set(false);
+                    this.isOpen.set(false);
+                }
+            });
         } catch (err: unknown) {
             console.error('Failed to apply reconciliation decisions', err);
-        } finally {
             this.isProcessing.set(false);
         }
     }
@@ -286,6 +332,28 @@ export class ReconciliationDialogComponent {
             default:
                 return '';
         }
+    }
+
+    // ── Template Helpers ──────────────────────────────────────────────────────
+
+    getExistingTx(id: string | undefined): ITransaction | undefined {
+        if (!id) return undefined;
+        return this.ledgerStore.transactions().find(t => t.id === id);
+    }
+
+    getCandidateTransactions(dateStr: string): Array<ITransaction> {
+        const txs = this.ledgerStore.transactions();
+        const baseDate = new Date(dateStr).getTime();
+        const fourteenDays = 14 * 24 * 60 * 60 * 1000;
+
+        return txs.filter(t => {
+            const tDate = new Date(t.date).getTime();
+            return Math.abs(tDate - baseDate) <= fourteenDays;
+        });
+    }
+
+    getEffectiveMatchId(idx: number, originalId: string | undefined): string | undefined {
+        return this.matchOverrides()[idx] || originalId;
     }
 
     /** Template helper: safely cast a string to ReviewTab without a template `as` cast. */

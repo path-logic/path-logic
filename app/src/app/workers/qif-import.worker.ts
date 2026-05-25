@@ -101,7 +101,7 @@ self.onmessage = (event: MessageEvent<WorkerInboundMessage>): void => {
 
         post({
             type: 'progress',
-            stage: 'done',
+            stage: 'reconciling',
             pct: 100,
             processed: parsed.length,
             total: parsed.length

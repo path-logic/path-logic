@@ -1,0 +1,90 @@
+<p-dialog
+    [visible]="importService.unknownCategories().length > 0"
+    (visibleChange)="handleCancel()"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="false"
+    header="Unknown Categories Detected"
+    styleClass="w-full max-w-[600px] font-sans"
+    [contentStyle]="{ padding: '0' }"
+>
+    <div class="p-6">
+        <div class="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-md">
+            <h3 class="text-sm font-bold text-amber-500 flex items-center gap-2 mb-2">
+                <i class="pi pi-exclamation-triangle"></i>
+                Action Required
+            </h3>
+            <p class="text-xs text-surface-400">
+                The imported QIF file contains categories that Path Logic doesn't recognize. Please
+                map these to existing categories. We'll remember these mappings for future imports.
+            </p>
+        </div>
+
+        <div class="border border-surface-200 rounded-md overflow-hidden bg-surface-0">
+            <div class="grid grid-cols-2 bg-surface-100/50 p-3 border-b border-surface-200">
+                <span class="text-xs font-bold uppercase tracking-wider text-surface-500"
+                    >QIF Category String</span
+                >
+                <span
+                    class="text-xs font-bold uppercase tracking-wider text-surface-500 pl-4 border-l border-surface-200"
+                    >Path Logic Category</span
+                >
+            </div>
+
+            <div class="max-h-[300px] overflow-y-auto">
+                @for (
+                    unknownStr of importService.unknownCategories();
+                    track unknownStr;
+                    let last = $last
+                ) {
+                    <div
+                        class="grid grid-cols-2 p-3 items-center"
+                        [class.border-b]="!last"
+                        [class.border-surface-100]="!last"
+                    >
+                        <span class="font-mono text-sm text-surface-800 break-words pr-4">{{
+                            unknownStr
+                        }}</span>
+                        <div class="pl-4 border-l border-surface-100 flex-1">
+                            <p-select
+                                [ngModel]="mappings()[unknownStr] || null"
+                                (ngModelChange)="handleCategoryChange(unknownStr, $event)"
+                                [options]="ledgerStore.categories()"
+                                optionLabel="name"
+                                optionValue="id"
+                                placeholder="Select category..."
+                                styleClass="w-full text-sm h-8"
+                                appendTo="body"
+                                [filter]="true"
+                                filterPlaceholder="Search categories..."
+                            ></p-select>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div
+            class="flex justify-between items-center w-full px-4 py-3 bg-surface-50 border-t border-surface-200"
+        >
+            <p-button
+                label="Cancel Import"
+                icon="pi pi-times"
+                severity="secondary"
+                variant="text"
+                (onClick)="handleCancel()"
+                size="small"
+            />
+            <p-button
+                label="Confirm & Continue"
+                icon="pi pi-check"
+                (onClick)="handleConfirm()"
+                [disabled]="!isFullyMapped"
+                size="small"
+            />
+        </div>
+    </ng-template>
+</p-dialog>

@@ -92,6 +92,13 @@ export const appRoutes: Routes = [
                                     import(
                                         './pages/settings/dev/sync-test/sync-test.component'
                                     ).then(m => m.SyncTestComponent)
+                            },
+                            {
+                                path: 'qif-test',
+                                loadComponent: () =>
+                                    import('./pages/settings/dev/qif-test/qif-test.component').then(
+                                        m => m.QifTestComponent
+                                    )
                             }
                         ]
                     },

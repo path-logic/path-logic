@@ -5,12 +5,12 @@ test.describe('Attribute Bindings', () => {
         await page.goto('/accounts');
 
         // The app-shell layout should render
-        await expect(page.locator('app-shell')).toBeVisible();
+        await expect(page.locator('shell')).toBeVisible();
 
         // If there are accounts, the account cards should be present
         // If empty, the welcome wizard renders
         const accountCards = page.locator('a[href*="/accounts/"]');
-        const welcomeWizard = page.locator('app-welcome-wizard');
+        const welcomeWizard = page.locator('welcome-wizard');
 
         await page.waitForTimeout(1000);
 
@@ -25,14 +25,14 @@ test.describe('Attribute Bindings', () => {
         await page.goto('/settings');
 
         // The app-shell layout should render
-        await expect(page.locator('app-shell')).toBeVisible();
+        await expect(page.locator('shell')).toBeVisible();
     });
 
     test('dev maintenance page buttons respond to signal state', async ({ page }) => {
         await page.goto('/settings/dev/maintenance');
 
         // The app-shell layout should render
-        await expect(page.locator('app-shell')).toBeVisible();
+        await expect(page.locator('shell')).toBeVisible();
 
         // Find buttons — they should be either enabled or disabled based on signal state
         const buttons = page.getByRole('button');

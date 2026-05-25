@@ -12,6 +12,13 @@
                 "cwd": "e2e",
                 "command": "playwright test"
             }
+        },
+        "typecheck": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "tsc -p tsconfig.json --noEmit",
+                "cwd": "e2e"
+            }
         }
     }
 }

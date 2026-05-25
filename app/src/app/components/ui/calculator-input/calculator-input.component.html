@@ -1,10 +1,13 @@
-<p-inputGroup>
+<p-inputGroup [styleClass]="styleClass">
     @if (prefix) {
-        <p-inputGroupAddon>
+        <p-inputGroupAddon
+            styleClass="!bg-transparent !border-none !text-surface-500 font-bold px-3"
+        >
             {{ prefix }}
         </p-inputGroupAddon>
     }
     <input
+        [id]="inputId"
         pInputText
         type="text"
         [placeholder]="placeholder"
@@ -15,9 +18,17 @@
         (focus)="handleFocus()"
         (blur)="handleBlur()"
         (keydown)="handleKeydown($event)"
-        class="w-full text-right font-mono"
+        (mouseenter)="checkOverflow($event)"
+        [pTooltip]="overflowTitle"
+        tooltipPosition="top"
+        tooltipStyleClass="text-lg font-bold bg-surface-900 text-white shadow-xl px-3 py-2 rounded-md"
+        [tooltipDisabled]="!overflowTitle"
+        [ngClass]="['w-full text-right font-mono !bg-transparent !border-none', inputClass]"
     />
-    <p-inputGroupAddon (click)="op.toggle($event)" class="cursor-pointer hover:bg-surface-100">
+    <p-inputGroupAddon
+        (click)="op.toggle($event)"
+        styleClass="!bg-transparent !border-none cursor-pointer hover:!bg-surface-100/50 px-3"
+    >
         <i class="pi pi-calculator text-surface-500"></i>
     </p-inputGroupAddon>
 </p-inputGroup>

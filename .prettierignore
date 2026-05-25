@@ -20,3 +20,5 @@ coverage/
 packages/core/coverage/
 
 .angular
+
+qif-results

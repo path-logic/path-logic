@@ -50,7 +50,7 @@
                             ></p-tag>
                         </td>
                         <td class="font-medium">
-                            {{ schedule.nextDueDate | date: 'MMM d, yyyy' }}
+                            {{ schedule.nextDueDate | localDate: 'medium' }}
                         </td>
                         <td>
                             <div class="font-medium text-content-primary">{{ schedule.payee }}</div>

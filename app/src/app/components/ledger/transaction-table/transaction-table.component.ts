@@ -1,15 +1,17 @@
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
-import type { ElementRef, OnInit } from '@angular/core';
+import type { ElementRef } from '@angular/core';
 import {
     ChangeDetectionStrategy,
     Component,
     computed,
+    effect,
     HostListener,
     inject,
     input,
     model,
     output,
     signal,
+    untracked,
     viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +26,7 @@ import {
     getSortedRowModel
 } from '@tanstack/angular-table';
 import { injectVirtualizer } from '@tanstack/angular-virtual';
+import { LocalDatePipe } from '../../../pipes/local-date.pipe';
 
 /**
  * High-density transaction table component.
@@ -33,13 +36,13 @@ import { injectVirtualizer } from '@tanstack/angular-virtual';
 @Component({
     selector: 'transaction-table',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, LocalDatePipe],
     templateUrl: './transaction-table.component.html',
     styleUrls: ['./transaction-table.component.css'],
     providers: [DecimalPipe, DatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TransactionTableComponent implements OnInit {
+export class TransactionTableComponent {
     private readonly decimalPipe = inject(DecimalPipe);
     private readonly datePipe = inject(DatePipe);
 
@@ -190,13 +193,27 @@ export class TransactionTableComponent implements OnInit {
     readonly virtualizer = injectVirtualizer(() => ({
         count: this.table.getRowModel().rows.length,
         scrollElement: this.parentRef()?.nativeElement ?? undefined,
-        estimateSize: (): number => 36, // h-9
+        estimateSize: (index: number): number => {
+            return index === this.dividerRowIndex() ? 76 : 44;
+        },
         overscan: 20
     }));
 
-    ngOnInit(): void {
-        // Initial scroll to today
-        setTimeout(() => this.scrollToToday(), 100);
+    private hasScrolledInitial = false;
+
+    constructor() {
+        effect(() => {
+            const rows = this.table.getRowModel().rows;
+            // Only attempt scroll once we have data
+            if (rows.length > 0 && !this.hasScrolledInitial) {
+                // Use untracked so setting hasScrolledInitial doesn't trigger effect
+                untracked(() => {
+                    this.hasScrolledInitial = true;
+                    // Wait a tiny bit for rendering, then scroll
+                    setTimeout(() => this.scrollToToday(), 50);
+                });
+            }
+        });
     }
 
     @HostListener('keydown', ['$event'])
@@ -239,7 +256,7 @@ export class TransactionTableComponent implements OnInit {
     }
 
     getCategoryClass(_category: string): string {
-        return 'text-[9px] bg-surface-100 px-1.5 py-0.5 rounded-sm border border-surface-200 text-surface-500 whitespace-nowrap uppercase tracking-tighter font-bold';
+        return 'text-[10px] bg-surface-100 px-2 py-0.5 rounded-sm border border-surface-200 text-surface-500 whitespace-nowrap uppercase tracking-tighter font-bold';
     }
 
     getStatusIcon(status: TransactionStatus): string {
@@ -247,21 +264,24 @@ export class TransactionTableComponent implements OnInit {
     }
 
     getStatusClass(status: string): string {
-        if (status === TransactionStatus.Cleared) return 'text-emerald-900';
+        if (status === TransactionStatus.Cleared) return 'text-emerald-700 dark:text-emerald-400';
         if (status === TransactionStatus.Pending) return 'text-amber-500';
         return 'text-primary';
     }
 
     /**
-     * Returns the virtual row index of the first transaction on or after today.
-     * Returns -1 if all transactions are in the past.
-     * Used by the template to position the today-divider.
+     * Computed index of the first transaction strictly in the future.
+     * The divider will be placed immediately before this row.
      */
-    getTodayRowIndex(): number {
+    readonly dividerRowIndex = computed(() => {
         const rows = this.table.getRowModel().rows;
-        const todayMs = new Date().setHours(0, 0, 0, 0);
-        return rows.findIndex(row => new Date(row.original.date).setHours(0, 0, 0, 0) >= todayMs);
-    }
+        const tomorrowMs = new Date();
+        tomorrowMs.setHours(0, 0, 0, 0);
+        tomorrowMs.setDate(tomorrowMs.getDate() + 1);
+        return rows.findIndex(
+            row => new Date(row.original.date).setHours(0, 0, 0, 0) >= tomorrowMs.getTime()
+        );
+    });
 
     private scrollToToday(): void {
         const rows = this.table.getRowModel().rows;
@@ -277,20 +297,20 @@ export class TransactionTableComponent implements OnInit {
 
         this.activeIndex.set(targetIndex);
 
-        // Calculate scroll position so the today-row sits at 65% from the top
+        // Calculate scroll position so the today-row sits at 35% from the top
         // of the visible container, showing past context above and future below.
         const container = this.parentRef()?.nativeElement;
-        const rowHeight = 36; // matches estimateSize
-        const rowTop = targetIndex * rowHeight;
-        const containerHeight = container?.clientHeight ?? 400;
-        const offset = Math.max(0, rowTop - containerHeight * 0.65);
-
-        if (container) {
-            container.scrollTop = offset;
-        } else {
-            // Fallback: use virtualizer if container not yet measured
-            this.virtualizer.scrollToIndex(targetIndex, { align: 'center' });
+        if (!container || container.clientHeight === 0) {
+            // Container not ready, try again shortly
+            setTimeout(() => this.scrollToToday(), 50);
+            return;
         }
+
+        const rowHeight = 44; // matches estimateSize
+        const rowTop = targetIndex * rowHeight;
+        const offset = Math.max(0, rowTop - container.clientHeight * 0.35);
+
+        container.scrollTop = offset;
     }
 
     // Lucide icons

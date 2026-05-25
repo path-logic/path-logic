@@ -290,35 +290,64 @@
                                     <div
                                         class="flex flex-col items-center justify-center flex-1 gap-4 py-8"
                                     >
-                                        <div
-                                            class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
-                                        >
-                                            <i class="pi pi-check-circle text-5xl text-primary"></i>
-                                        </div>
-                                        <div class="text-center">
-                                            <h3 class="text-lg font-black tracking-tight mb-1">
-                                                Import Ready!
-                                            </h3>
-                                            <p class="text-sm text-surface-500">
-                                                {{ importStats()?.totalCount?.toLocaleString() }}
-                                                transactions parsed and ready to review.
-                                            </p>
-                                        </div>
-                                        <p
-                                            class="text-[9px] text-surface-400 font-bold uppercase tracking-widest"
-                                        >
-                                            Review dialog will open on the ledger page.
-                                        </p>
-                                        <div class="mt-4">
-                                            <p-button
-                                                (click)="finishAfterImport()"
-                                                label="Go to Ledger"
-                                                severity="primary"
-                                                styleClass="px-6 py-2.5 rounded-md bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                                        @if (!importStats()) {
+                                            <div
+                                                class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2"
                                             >
-                                                <i class="pi pi-bolt w-4 h-4 mr-2"></i>
-                                            </p-button>
-                                        </div>
+                                                <i
+                                                    class="pi pi-spinner-dotted pi-spin text-5xl text-primary opacity-80"
+                                                ></i>
+                                            </div>
+                                            <div class="text-center">
+                                                <h3
+                                                    class="text-lg font-black tracking-tight mb-1 animate-pulse text-surface-800"
+                                                >
+                                                    Finalizing Import...
+                                                </h3>
+                                                <p
+                                                    class="text-[10px] text-surface-500 font-mono uppercase tracking-widest mt-2"
+                                                >
+                                                    analyzing transaction categories
+                                                </p>
+                                            </div>
+                                        } @else {
+                                            <div
+                                                class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
+                                            >
+                                                <i
+                                                    class="pi pi-check-circle text-5xl text-primary"
+                                                ></i>
+                                            </div>
+                                            <div class="text-center">
+                                                <h3 class="text-lg font-black tracking-tight mb-1">
+                                                    Import Ready!
+                                                </h3>
+                                                <p class="text-sm text-surface-500">
+                                                    {{
+                                                        importStats()?.totalCount?.toLocaleString()
+                                                    }}
+                                                    transactions parsed and ready to review.
+                                                </p>
+                                            </div>
+                                            <p
+                                                class="text-[9px] text-surface-400 font-bold uppercase tracking-widest"
+                                            >
+                                                Review dialog will open on the ledger page.
+                                            </p>
+                                            <div class="mt-4">
+                                                <p-button
+                                                    (click)="finishAfterImport()"
+                                                    label="Go to Ledger"
+                                                    severity="primary"
+                                                    [loading]="isNavigating()"
+                                                    styleClass="px-6 py-2.5 rounded-md bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
+                                                >
+                                                    @if (!isNavigating()) {
+                                                        <i class="pi pi-bolt w-4 h-4 mr-2"></i>
+                                                    }
+                                                </p-button>
+                                            </div>
+                                        }
                                     </div>
 
                                     <!-- In-progress state -->
@@ -326,6 +355,12 @@
                                     <div
                                         class="flex flex-col items-center justify-center flex-1 gap-6 py-8"
                                     >
+                                        <!-- Large Prominent Spinner -->
+                                        <div class="mb-2">
+                                            <i
+                                                class="pi pi-spinner-dotted pi-spin text-5xl text-primary opacity-80"
+                                            ></i>
+                                        </div>
                                         <!-- Stage pipeline -->
                                         <div class="flex items-center gap-3">
                                             @for (
@@ -355,16 +390,29 @@
                                                                   : 'bg-surface-200 text-surface-500')
                                                         "
                                                     >
-                                                        {{
-                                                            $index <
+                                                        @if (
+                                                            $index ===
                                                             [
                                                                 'reading',
                                                                 'parsing',
                                                                 'reconciling'
                                                             ].indexOf(importProgress().stage)
-                                                                ? '✓'
-                                                                : $index + 1
-                                                        }}
+                                                        ) {
+                                                            <i
+                                                                class="pi pi-spinner pi-spin !text-[10px]"
+                                                            ></i>
+                                                        } @else {
+                                                            {{
+                                                                $index <
+                                                                [
+                                                                    'reading',
+                                                                    'parsing',
+                                                                    'reconciling'
+                                                                ].indexOf(importProgress().stage)
+                                                                    ? '✓'
+                                                                    : $index + 1
+                                                            }}
+                                                        }
                                                     </div>
                                                     <span
                                                         class="text-[9px] font-black uppercase tracking-widest text-surface-500"
@@ -393,6 +441,15 @@
                                                 {{ importProgress().processed.toLocaleString() }} /
                                                 {{ importProgress().total.toLocaleString() }}
                                                 transactions
+                                            </p>
+                                        } @else {
+                                            <p
+                                                class="text-[10px] font-mono text-surface-400 tabular-nums italic"
+                                            >
+                                                <i
+                                                    class="pi pi-spinner pi-spin mr-1 text-[9px]"
+                                                ></i>
+                                                calculating transactions...
                                             </p>
                                         }
                                     </div>
