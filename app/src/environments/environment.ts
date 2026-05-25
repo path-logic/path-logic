@@ -5,8 +5,16 @@ import type { IEnvironment } from '../app/models/environment.model';
 export const environment: IEnvironment = {
     production: false,
     appEnv: 'development',
-    posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
-    posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
+    posthogKey:
+        (typeof import.meta !== 'undefined' &&
+            import.meta.env &&
+            import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN']) ||
+        '',
+    posthogHost:
+        (typeof import.meta !== 'undefined' &&
+            import.meta.env &&
+            import.meta.env['NG_APP_POSTHOG_HOST']) ||
+        'https://us.i.posthog.com',
     firebase: {
         apiKey: 'AIzaSyCstrz1oBCHsXtT8RvaVqIX1nw-uwCu1sU',
         authDomain: 'path-logic-dev-93185.firebaseapp.com',

@@ -5,8 +5,8 @@ import type { IEnvironment } from '../app/models/environment.model';
 export const environment: IEnvironment = {
     production: false,
     appEnv: 'staging',
-    posthogKey: import.meta.env['NG_APP_POSTHOG_PROJECT_TOKEN'] || '',
-    posthogHost: import.meta.env['NG_APP_POSTHOG_HOST'] || 'https://us.i.posthog.com',
+    posthogKey: 'phc_BSRGbh2VAQDwaDfMikYttap4zS9RFKBw4AKH9EPYCyo7',
+    posthogHost: 'https://us.i.posthog.com',
     firebase: {
         apiKey: 'AIzaSyCkADmYT4a_XHw_QLjTpTQGzbmAsqxBKpY',
         authDomain: 'path-logic-staging.firebaseapp.com',
