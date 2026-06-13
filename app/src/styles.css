@@ -339,7 +339,6 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
 /* Ensure the stepper structures expand to fill height */
 .new-account-dialog p-stepper,
 .new-account-dialog .p-stepper,
-.new-account-dialog .p-stepper > div,
 .new-account-dialog p-step-panels,
 .new-account-dialog .p-step-panels,
 .new-account-dialog p-step-panel,
@@ -348,6 +347,16 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+}
+
+/* Keep the step header (list) at a fixed height so it acts as part of the sticky header */
+.new-account-dialog p-step-list,
+.new-account-dialog .p-step-list {
+    display: flex !important;
+    flex-direction: row !important;
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
 }
 
 /* Propagate height flex and display for custom loan-details-form component inside the dialog */
