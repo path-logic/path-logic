@@ -1,10 +1,10 @@
 <div
-    class="w-full max-w-2xl pt-10 px-8 pb-8 bg-surface-0 border border-surface-200/50 rounded-lg shadow-xl relative overflow-hidden"
+    class="w-full max-w-2xl pt-10 px-8 pb-8 bg-surface-0 border border-surface-200/50 rounded-lg shadow-xl relative overflow-hidden h-full flex flex-col min-h-0"
 >
     <!-- Accent Bar -->
     <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
 
-    <div class="flex items-center gap-4 mb-6 pb-4 border-b border-surface-200/30">
+    <div class="flex items-center gap-4 mb-6 pb-4 border-b border-surface-200/30 flex-none">
         <div
             class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-inner"
         >
@@ -18,433 +18,437 @@
         </div>
     </div>
 
-    <form [formGroup]="loanForm" (submit)="handleSubmit()" class="space-y-8">
-        <!-- Section 1: Account Info -->
-        <section class="space-y-6">
-            <div class="grid grid-cols-2 gap-6">
-                <div class="col-span-2 space-y-2">
-                    <label
-                        for="loan-acc-name"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Account Name *
-                    </label>
-                    <input
-                        id="loan-acc-name"
-                        formControlName="accountName"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
-                        placeholder="e.g. Home Mortgage"
-                        [attr.aria-invalid]="
-                            loanForm.get('accountName')?.invalid &&
-                            loanForm.get('accountName')?.touched
-                        "
-                        aria-describedby="loan-acc-name-error"
-                    />
-                    @if (
-                        loanForm.get('accountName')?.touched &&
-                        loanForm.get('accountName')?.errors?.['required']
-                    ) {
-                        <p
-                            id="loan-acc-name-error"
-                            class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1"
+    <form [formGroup]="loanForm" (submit)="handleSubmit()" class="flex-1 min-h-0 flex flex-col">
+        <div class="flex-1 overflow-y-auto pr-1 py-1 space-y-8 min-h-0">
+            <!-- Section 1: Account Info -->
+            <section class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="col-span-2 space-y-2">
+                        <label
+                            for="loan-acc-name"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            Loan name is required
-                        </p>
-                    }
-                </div>
-                <div class="col-span-2 space-y-2">
-                    <label
-                        for="loan-acc-inst"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Institution Name
-                    </label>
-                    <input
-                        id="loan-acc-inst"
-                        formControlName="institutionName"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
-                        placeholder="e.g. Wells Fargo"
-                    />
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Loan Terms -->
-        <section class="space-y-6">
-            <h3
-                class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
-            >
-                Loan Terms
-            </h3>
-            <div class="grid grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label
-                        for="loan-orig-amt"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Original Loan Amount *
-                    </label>
-                    <input
-                        id="loan-orig-amt"
-                        formControlName="originalAmount"
-                        type="number"
-                        step="0.01"
-                        (focus)="handleFocus('originalAmount')"
-                        (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
-                        placeholder="0.00"
-                    />
-                    @if (
-                        loanForm.get('originalAmount')?.touched &&
-                        loanForm.get('originalAmount')?.errors?.['required']
-                    ) {
-                        <p
-                            class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1"
-                        >
-                            Original amount is required
-                        </p>
-                    }
-                </div>
-                <div class="space-y-2">
-                    <label
-                        for="loan-cur-bal"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Current Balance
-                    </label>
-                    <input
-                        id="loan-cur-bal"
-                        formControlName="currentBalance"
-                        type="number"
-                        step="0.01"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
-                        placeholder="0.00"
-                    />
-                    <p class="text-[10px] text-surface-500 mt-2 italic leading-relaxed">
-                        Leave blank if same as original
-                    </p>
-                </div>
-                <div class="space-y-2">
-                    <label
-                        for="loan-rate"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Interest Rate (% APR)
-                    </label>
-                    <input
-                        id="loan-rate"
-                        formControlName="interestRate"
-                        type="number"
-                        step="0.001"
-                        (focus)="handleFocus('interestRate')"
-                        (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
-                        placeholder="3.5"
-                    />
-                </div>
-                <div class="space-y-2">
-                    <label
-                        for="loan-term"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Term (Months)
-                    </label>
-                    <input
-                        id="loan-term"
-                        formControlName="termMonths"
-                        type="number"
-                        (focus)="handleFocus('termMonths')"
-                        (blur)="handleBlur()"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
-                        placeholder="360"
-                    />
-                </div>
-                <div class="col-span-2 space-y-2">
-                    <label
-                        for="loan-start-date"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Start Date
-                    </label>
-                    <input
-                        id="loan-start-date"
-                        formControlName="startDate"
-                        type="date"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
-                    />
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Payments -->
-        <section class="space-y-6">
-            <h3
-                class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
-            >
-                Payments
-            </h3>
-            <div class="grid grid-cols-2 gap-6">
-                <div class="col-span-2 space-y-2">
-                    <label
-                        for="loan-monthly-pay"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Monthly Payment *
-                    </label>
-                    <div class="flex gap-3">
+                            Account Name *
+                        </label>
                         <input
-                            id="loan-monthly-pay"
-                            formControlName="monthlyPayment"
-                            type="number"
-                            step="0.01"
-                            (focus)="handleFocus('monthlyPayment')"
-                            (blur)="handleBlur()"
-                            class="flex-1 h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
-                            placeholder="0.00"
+                            id="loan-acc-name"
+                            formControlName="accountName"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                            placeholder="e.g. Home Mortgage"
+                            [attr.aria-invalid]="
+                                loanForm.get('accountName')?.invalid &&
+                                loanForm.get('accountName')?.touched
+                            "
+                            aria-describedby="loan-acc-name-error"
                         />
-                        <button
-                            type="button"
-                            (click)="handleAutoCalculate()"
-                            class="h-11 px-6 text-[10px] font-black uppercase tracking-wider border border-surface-200 hover:bg-surface-100 rounded-sm transition-all"
+                        @if (
+                            loanForm.get('accountName')?.touched &&
+                            loanForm.get('accountName')?.errors?.['required']
+                        ) {
+                            <p
+                                id="loan-acc-name-error"
+                                class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1"
+                            >
+                                Loan name is required
+                            </p>
+                        }
+                    </div>
+                    <div class="col-span-2 space-y-2">
+                        <label
+                            for="loan-acc-inst"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            Calculate
-                        </button>
+                            Institution Name
+                        </label>
+                        <input
+                            id="loan-acc-inst"
+                            formControlName="institutionName"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm font-bold uppercase transition-all"
+                            placeholder="e.g. Wells Fargo"
+                        />
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <label
-                        for="loan-due-day"
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                    >
-                        Payment Due Day
-                    </label>
-                    <input
-                        id="loan-due-day"
-                        formControlName="paymentDueDay"
-                        type="number"
-                        min="1"
-                        max="31"
-                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
-                    />
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Section 4: Specific Details -->
-        @if (type() === 'mortgage') {
+            <!-- Section 2: Loan Terms -->
             <section class="space-y-6">
                 <h3
                     class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
                 >
-                    Property Details
-                </h3>
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                        <label
-                            for="mort-address"
-                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                        >
-                            Property Address
-                        </label>
-                        <input
-                            id="mort-address"
-                            formControlName="propertyAddress"
-                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
-                        />
-                    </div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label
-                                for="mort-value"
-                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                            >
-                                Property Value
-                            </label>
-                            <input
-                                id="mort-value"
-                                formControlName="propertyValue"
-                                type="number"
-                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
-                            />
-                        </div>
-                        <div class="flex items-center gap-3 pt-6">
-                            <input
-                                type="checkbox"
-                                id="escrow"
-                                formControlName="escrowIncluded"
-                                (focus)="handleFocus('escrow')"
-                                (blur)="handleBlur()"
-                                class="w-4 h-4 rounded border-surface-200/50 bg-surface-100/30 accent-primary"
-                            />
-                            <label
-                                for="escrow"
-                                class="text-sm font-medium text-surface-800 cursor-pointer select-none"
-                            >
-                                Includes Escrow?
-                            </label>
-                        </div>
-                        @if (loanForm.get('escrowIncluded')?.value) {
-                            <div
-                                class="col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2"
-                            >
-                                <label
-                                    for="mort-escrow"
-                                    class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                                >
-                                    Escrow Amount
-                                </label>
-                                <input
-                                    id="mort-escrow"
-                                    formControlName="escrowAmount"
-                                    type="number"
-                                    class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
-                                />
-                            </div>
-                        }
-                    </div>
-                </div>
-            </section>
-        }
-
-        @if (type() === 'auto_loan') {
-            <section class="space-y-6">
-                <h3
-                    class="text-sm font-black text-surface-800 uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
-                >
-                    Vehicle Details
+                    Loan Terms
                 </h3>
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label
-                            for="auto-make"
+                            for="loan-orig-amt"
                             class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            Make
+                            Original Loan Amount *
                         </label>
                         <input
-                            id="auto-make"
-                            formControlName="vehicleMake"
-                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
-                            placeholder="e.g. Toyota"
-                        />
-                    </div>
-                    <div class="space-y-2">
-                        <label
-                            for="auto-model"
-                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                        >
-                            Model
-                        </label>
-                        <input
-                            id="auto-model"
-                            formControlName="vehicleModel"
-                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
-                            placeholder="e.g. Camry"
-                        />
-                    </div>
-                    <div class="space-y-2">
-                        <label
-                            for="auto-year"
-                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
-                        >
-                            Year
-                        </label>
-                        <input
-                            id="auto-year"
-                            formControlName="vehicleYear"
+                            id="loan-orig-amt"
+                            formControlName="originalAmount"
                             type="number"
+                            step="0.01"
+                            (focus)="handleFocus('originalAmount')"
+                            (blur)="handleBlur()"
                             class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
-                            placeholder="2023"
+                            placeholder="0.00"
+                        />
+                        @if (
+                            loanForm.get('originalAmount')?.touched &&
+                            loanForm.get('originalAmount')?.errors?.['required']
+                        ) {
+                            <p
+                                class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1"
+                            >
+                                Original amount is required
+                            </p>
+                        }
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-cur-bal"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                        >
+                            Current Balance
+                        </label>
+                        <input
+                            id="loan-cur-bal"
+                            formControlName="currentBalance"
+                            type="number"
+                            step="0.01"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
+                            placeholder="0.00"
+                        />
+                        <p class="text-[10px] text-surface-500 mt-2 italic leading-relaxed">
+                            Leave blank if same as original
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-rate"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                        >
+                            Interest Rate (% APR)
+                        </label>
+                        <input
+                            id="loan-rate"
+                            formControlName="interestRate"
+                            type="number"
+                            step="0.001"
+                            (focus)="handleFocus('interestRate')"
+                            (blur)="handleBlur()"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
+                            placeholder="3.5"
                         />
                     </div>
                     <div class="space-y-2">
                         <label
-                            for="auto-vin"
+                            for="loan-term"
                             class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            VIN
+                            Term (Months)
                         </label>
                         <input
-                            id="auto-vin"
-                            formControlName="vin"
-                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums uppercase text-base transition-all"
-                            maxLength="17"
+                            id="loan-term"
+                            formControlName="termMonths"
+                            type="number"
+                            (focus)="handleFocus('termMonths')"
+                            (blur)="handleBlur()"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
+                            placeholder="360"
+                        />
+                    </div>
+                    <div class="col-span-2 space-y-2">
+                        <label
+                            for="loan-start-date"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                        >
+                            Start Date
+                        </label>
+                        <input
+                            id="loan-start-date"
+                            formControlName="startDate"
+                            type="date"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
                         />
                     </div>
                 </div>
             </section>
-        }
 
-        @if (type() === 'personal_loan') {
+            <!-- Section 3: Payments -->
             <section class="space-y-6">
                 <h3
                     class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
                 >
-                    Loan Purpose
+                    Payments
                 </h3>
-                <div class="space-y-6">
-                    <div class="space-y-2">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="col-span-2 space-y-2">
                         <label
-                            for="pers-purpose"
+                            for="loan-monthly-pay"
                             class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            Purpose / Description
+                            Monthly Payment *
                         </label>
-                        <input
-                            id="pers-purpose"
-                            formControlName="purpose"
-                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
-                            placeholder="e.g. Debt Consolidation"
-                        />
+                        <div class="flex gap-3">
+                            <input
+                                id="loan-monthly-pay"
+                                formControlName="monthlyPayment"
+                                type="number"
+                                step="0.01"
+                                (focus)="handleFocus('monthlyPayment')"
+                                (blur)="handleBlur()"
+                                class="flex-1 h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
+                                placeholder="0.00"
+                            />
+                            <button
+                                type="button"
+                                (click)="handleAutoCalculate()"
+                                class="h-11 px-6 text-[10px] font-black uppercase tracking-wider border border-surface-200 hover:bg-surface-100 rounded-sm transition-all"
+                            >
+                                Calculate
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <input
-                            type="checkbox"
-                            id="secured"
-                            formControlName="secured"
-                            class="w-4 h-4 rounded border-surface-200/50 bg-surface-100/30 accent-primary"
-                        />
+                    <div class="space-y-2">
                         <label
-                            for="secured"
-                            class="text-sm font-medium text-surface-800 cursor-pointer select-none"
+                            for="loan-due-day"
+                            class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
                         >
-                            Secured Loan?
+                            Payment Due Day
                         </label>
+                        <input
+                            id="loan-due-day"
+                            formControlName="paymentDueDay"
+                            type="number"
+                            min="1"
+                            max="31"
+                            class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
+                        />
                     </div>
                 </div>
             </section>
-        }
 
-        @if (error()) {
-            <div
-                class="p-4 bg-red-500/10 border border-destructive/20 rounded-md animate-in slide-in-from-top-2"
-            >
-                <p class="text-xs text-red-500 font-bold uppercase tracking-widest">
-                    {{ error() }}
-                </p>
+            <!-- Section 4: Specific Details -->
+            @if (type() === 'mortgage') {
+                <section class="space-y-6">
+                    <h3
+                        class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
+                    >
+                        Property Details
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <label
+                                for="mort-address"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                Property Address
+                            </label>
+                            <input
+                                id="mort-address"
+                                formControlName="propertyAddress"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                            />
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label
+                                    for="mort-value"
+                                    class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                                >
+                                    Property Value
+                                </label>
+                                <input
+                                    id="mort-value"
+                                    formControlName="propertyValue"
+                                    type="number"
+                                    class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
+                                />
+                            </div>
+                            <div class="flex items-center gap-3 pt-6">
+                                <input
+                                    type="checkbox"
+                                    id="escrow"
+                                    formControlName="escrowIncluded"
+                                    (focus)="handleFocus('escrow')"
+                                    (blur)="handleBlur()"
+                                    class="w-4 h-4 rounded border-surface-200/50 bg-surface-100/30 accent-primary"
+                                />
+                                <label
+                                    for="escrow"
+                                    class="text-sm font-medium text-surface-800 cursor-pointer select-none"
+                                >
+                                    Includes Escrow?
+                                </label>
+                            </div>
+                            @if (loanForm.get('escrowIncluded')?.value) {
+                                <div
+                                    class="col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2"
+                                >
+                                    <label
+                                        for="mort-escrow"
+                                        class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                                    >
+                                        Escrow Amount
+                                    </label>
+                                    <input
+                                        id="mort-escrow"
+                                        formControlName="escrowAmount"
+                                        type="number"
+                                        class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-base transition-all"
+                                    />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+
+            @if (type() === 'auto_loan') {
+                <section class="space-y-6">
+                    <h3
+                        class="text-sm font-black text-surface-800 uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
+                    >
+                        Vehicle Details
+                    </h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label
+                                for="auto-make"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                Make
+                            </label>
+                            <input
+                                id="auto-make"
+                                formControlName="vehicleMake"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                                placeholder="e.g. Toyota"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                for="auto-model"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                Model
+                            </label>
+                            <input
+                                id="auto-model"
+                                formControlName="vehicleModel"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                                placeholder="e.g. Camry"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                for="auto-year"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                Year
+                            </label>
+                            <input
+                                id="auto-year"
+                                formControlName="vehicleYear"
+                                type="number"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums text-sm transition-all"
+                                placeholder="2023"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                for="auto-vin"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                VIN
+                            </label>
+                            <input
+                                id="auto-vin"
+                                formControlName="vin"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-data tabular-nums uppercase text-base transition-all"
+                                maxLength="17"
+                            />
+                        </div>
+                    </div>
+                </section>
+            }
+
+            @if (type() === 'personal_loan') {
+                <section class="space-y-6">
+                    <h3
+                        class="text-sm font-bold text-primary uppercase tracking-[0.2em] border-b border-surface-200/30 pb-3"
+                    >
+                        Loan Purpose
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label
+                                for="pers-purpose"
+                                class="text-[10px] font-black uppercase tracking-widest text-surface-800 block"
+                            >
+                                Purpose / Description
+                            </label>
+                            <input
+                                id="pers-purpose"
+                                formControlName="purpose"
+                                class="w-full h-11 px-4 bg-surface-100 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-sm transition-all"
+                                placeholder="e.g. Debt Consolidation"
+                            />
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="secured"
+                                formControlName="secured"
+                                class="w-4 h-4 rounded border-surface-200/50 bg-surface-100/30 accent-primary"
+                            />
+                            <label
+                                for="secured"
+                                class="text-sm font-medium text-surface-800 cursor-pointer select-none"
+                            >
+                                Secured Loan?
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            }
+
+            @if (error()) {
+                <div
+                    class="p-4 bg-red-500/10 border border-destructive/20 rounded-md animate-in slide-in-from-top-2"
+                >
+                    <p class="text-xs text-red-500 font-bold uppercase tracking-widest">
+                        {{ error() }}
+                    </p>
+                </div>
+            }
+        </div>
+
+        <div class="flex-none pt-4 mt-4 border-t border-surface-200/30 dark:border-surface-700">
+            <div class="flex gap-4">
+                <button
+                    type="button"
+                    (click)="backClicked.emit()"
+                    [disabled]="isSubmitting()"
+                    class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest border border-surface-200 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-surface-800 rounded-sm transition-all disabled:opacity-50 text-surface-700 dark:text-surface-300"
+                >
+                    <i class="pi pi-arrow-left text-base"></i>
+                    Back
+                </button>
+                <button
+                    type="submit"
+                    [disabled]="isSubmitting()"
+                    class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest bg-amber-700 hover:bg-amber-800 text-white rounded-sm shadow-lg shadow-amber-900/20 transition-all disabled:opacity-50"
+                >
+                    {{ isSubmitting() ? 'Creating...' : 'Create Loan Account' }}
+                    @if (!isSubmitting()) {
+                        <i class="pi pi-arrow-right text-base"></i>
+                    }
+                </button>
             </div>
-        }
-
-        <div class="flex gap-4 pt-4">
-            <button
-                type="button"
-                (click)="backClicked.emit()"
-                [disabled]="isSubmitting()"
-                class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest border border-surface-200 hover:bg-surface-100 rounded-sm transition-all disabled:opacity-50"
-            >
-                <i class="pi pi-arrow-left text-base"></i>
-                Back
-            </button>
-            <button
-                type="submit"
-                [disabled]="isSubmitting()"
-                class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest bg-amber-700 hover:bg-amber-800 text-white rounded-sm shadow-lg shadow-amber-900/20 transition-all disabled:opacity-50"
-            >
-                {{ isSubmitting() ? 'Creating...' : 'Create Loan Account' }}
-                @if (!isSubmitting()) {
-                    <i class="pi pi-arrow-right text-base"></i>
-                }
-            </button>
         </div>
     </form>
 

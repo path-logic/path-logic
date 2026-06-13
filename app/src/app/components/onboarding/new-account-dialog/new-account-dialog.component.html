@@ -145,15 +145,18 @@
                                     </p>
                                 </div>
                             } @else if (selectedType() && isLoan()) {
-                                <div class="animate-in slide-in-from-bottom-4">
+                                <div
+                                    class="animate-in slide-in-from-bottom-4 flex-1 min-h-0 flex flex-col"
+                                >
                                     <loan-details-form
                                         [type]="selectedType()!"
                                         (backClicked)="step.set('select-type')"
                                         (submitted)="accountCreated.emit($event); closed.emit()"
+                                        class="flex-1 min-h-0 flex flex-col"
                                     />
                                 </div>
                             } @else if (selectedType()) {
-                                <div class="relative pt-6">
+                                <div class="flex flex-col h-full min-h-0 relative pt-6">
                                     <!-- Accent Bar -->
                                     <div
                                         [class]="
@@ -162,7 +165,7 @@
                                         "
                                     ></div>
                                     <div
-                                        class="flex items-center gap-4 mb-6 pb-4 border-b border-surface-200/30"
+                                        class="flex-none mb-6 pb-4 border-b border-surface-200/30 flex items-center gap-4"
                                     >
                                         <div
                                             [class]="
@@ -195,7 +198,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="space-y-4">
+                                    <div class="flex-1 overflow-y-auto pr-1 py-1 space-y-4 min-h-0">
                                         <div class="space-y-1.5">
                                             <label
                                                 for="account-name-input"
@@ -249,46 +252,49 @@
                                                 }}
                                             </p>
                                         </div>
+
+                                        @if (error()) {
+                                            <div
+                                                class="p-3 bg-red-500/10 border border-destructive/20 rounded-sm mt-4"
+                                            >
+                                                <p
+                                                    class="text-[10px] font-black uppercase text-red-500 tracking-widest"
+                                                >
+                                                    {{ error() }}
+                                                </p>
+                                            </div>
+                                        }
                                     </div>
 
-                                    @if (error()) {
-                                        <div
-                                            class="p-3 bg-red-500/10 border border-destructive/20 rounded-sm mt-4"
-                                        >
-                                            <p
-                                                class="text-[10px] font-black uppercase text-red-500 tracking-widest"
+                                    <div
+                                        class="flex-none pt-4 mt-4 border-t border-surface-200/30 dark:border-surface-700"
+                                    >
+                                        <div class="flex gap-4">
+                                            <button
+                                                type="button"
+                                                (click)="step.set('select-type')"
+                                                class="flex-1 h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest border border-surface-200 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-surface-800 rounded-sm transition-all text-surface-700 dark:text-surface-300"
                                             >
-                                                {{ error() }}
-                                            </p>
-                                        </div>
-                                    }
-
-                                    <div class="flex gap-3 mt-6">
-                                        <p-button
-                                            (click)="step.set('select-type')"
-                                            label="Change Type"
-                                            [text]="true"
-                                            severity="secondary"
-                                            class="flex-1"
-                                            styleClass="w-full h-10 text-[10px] font-black uppercase tracking-widest"
-                                        ></p-button>
-                                        <!-- Two create buttons: direct close vs go-to-import -->
-                                        <div class="flex flex-col gap-2 flex-1">
-                                            <p-button
-                                                (click)="handleCreate(true)"
-                                                label="Create &amp; Import Data"
-                                                severity="primary"
-                                                styleClass="w-full h-10 bg-primary text-white hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20"
-                                            >
-                                                <i class="pi pi-upload w-4 h-4 mr-2"></i>
-                                            </p-button>
-                                            <p-button
-                                                (click)="handleCreate(false)"
-                                                label="Create Account Only"
-                                                [text]="true"
-                                                severity="secondary"
-                                                styleClass="w-full h-8 text-[9px] font-black uppercase tracking-widest text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:text-surface-50"
-                                            ></p-button>
+                                                <i class="pi pi-arrow-left text-base"></i>
+                                                Back
+                                            </button>
+                                            <div class="flex flex-col gap-2 flex-1">
+                                                <button
+                                                    type="button"
+                                                    (click)="handleCreate(true)"
+                                                    class="w-full h-11 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest bg-primary hover:bg-primary/90 text-white rounded-sm shadow-lg shadow-primary/20 transition-all"
+                                                >
+                                                    <i class="pi pi-upload w-4 h-4 mr-1"></i>
+                                                    Create &amp; Import
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    (click)="handleCreate(false)"
+                                                    class="w-full h-9 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-surface-500 hover:text-surface-800 dark:text-surface-400 dark:hover:text-surface-200 transition-colors"
+                                                >
+                                                    Create Account Only
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -320,3 +320,32 @@ app-welcome-wizard loan-details-form > div {
 app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     display: none !important;
 }
+
+/* Dialog Layout for Scrollable Content & Sticky Footer */
+.new-account-dialog {
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.new-account-dialog .p-dialog-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: hidden !important;
+}
+
+/* Ensure the stepper structures expand to fill height */
+.new-account-dialog p-stepper,
+.new-account-dialog .p-stepper,
+.new-account-dialog .p-stepper > div,
+.new-account-dialog p-step-panels,
+.new-account-dialog .p-step-panels,
+.new-account-dialog p-step-panel,
+.new-account-dialog .p-step-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
