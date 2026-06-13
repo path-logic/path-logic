@@ -333,6 +333,7 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    max-height: calc(85vh - 80px) !important;
     overflow-y: hidden !important;
 }
 
@@ -378,4 +379,5 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    max-height: 100% !important;
 }
