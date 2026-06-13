@@ -22,7 +22,7 @@
         </div>
     </ng-template>
 
-    <div class="mt-4">
+    <div class="mt-4 flex flex-col flex-1 min-h-0">
         <p-stepper [value]="stepValue()" (valueChange)="onStepValueChange($event)" [linear]="false">
             <p-step-list class="mb-6">
                 <p-step [value]="1" [disabled]="true">Type</p-step>
@@ -130,7 +130,7 @@
                 <!-- ── Step 2: Enter Details ──────────────────────────────────────── -->
                 <p-step-panel [value]="2">
                     <ng-template #content let-activateCallback="activateCallback">
-                        <div class="min-h-[300px] flex flex-col">
+                        <div class="min-h-[300px] flex-1 min-h-0 flex flex-col">
                             @if (step() === 'creating') {
                                 <div
                                     class="py-12 flex flex-col items-center justify-center gap-4 flex-1"
@@ -306,7 +306,7 @@
                 <!-- ── Step 3: Import Data (optional) ────────────────────────────── -->
                 <p-step-panel [value]="3">
                     <ng-template #content>
-                        <div class="min-h-[340px] flex flex-col gap-4">
+                        <div class="min-h-[340px] flex-1 min-h-0 flex flex-col gap-4">
                             <!-- Success state after import completes -->
                             @if (importDone()) {
                                 <div
