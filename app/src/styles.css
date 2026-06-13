@@ -219,16 +219,98 @@
         @apply underline-offset-4 hover:underline text-primary p-0 bg-transparent border-transparent hover:bg-transparent !important;
     }
 
-    /* Dialog Close Button Override */
-    .p-dialog-header-close {
-        @apply w-8 h-8 rounded-full bg-transparent border-transparent text-surface-500 hover:bg-surface-100 hover:text-surface-800 transition-colors flex items-center justify-center outline-none;
-    }
-    .p-dialog-header-close:focus-visible {
-        @apply ring-2 ring-primary ring-offset-2;
-    }
-
     /* Disabled State */
     .p-button:disabled {
         @apply opacity-50 cursor-not-allowed shadow-none active:scale-100 transform-none;
     }
+
+    /* =========================================================================
+       STEPPER BORDER REMOVAL OVERRIDES
+       Remove borders, outlines, rings, and connecting lines from onboarding steps.
+       ========================================================================= */
+    .p-stepper,
+    .p-step-list,
+    .p-step,
+    .p-step-header,
+    .p-step-number,
+    .p-stepper-number,
+    .p-step-title,
+    .p-step-panels,
+    .p-step-panel {
+        border: none !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Remove the horizontal connecting lines between stepper steps */
+    .p-step-list::before,
+    .p-step-list::after,
+    .p-step-nav::before,
+    .p-stepper-nav::before,
+    .p-step::before,
+    .p-step::after {
+        background: transparent !important;
+        border: none !important;
+        display: none !important;
+        height: 0 !important;
+        width: 0 !important;
+    }
+
+    /* Flatten nested loan details form to fit perfectly inside dialogs/wizard cards */
+    .new-account-dialog loan-details-form > div,
+    app-welcome-wizard loan-details-form > div {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        max-width: 100% !important;
+    }
+}
+
+/* =============================================================================
+   GLOBAL SPECIFIC OVERRIDES (LOADED LAST FOR MAXIMUM CASCADE PRIORITY)
+   ============================================================================= */
+
+/* dialog's X close button border/outline/box-shadow resets in all states */
+.p-dialog-header-actions button,
+.p-dialog-header-close,
+.p-dialog-close-button,
+.p-dialog-header-action,
+.p-dialog-header-actions button:focus,
+.p-dialog-header-actions button:focus-visible,
+.p-dialog-header-actions button:active,
+.p-dialog-header-actions button:hover,
+.p-dialog-header-close:focus,
+.p-dialog-header-close:focus-visible,
+.p-dialog-header-close:active,
+.p-dialog-header-close:hover,
+.p-dialog-close-button:focus,
+.p-dialog-close-button:focus-visible,
+.p-dialog-close-button:active,
+.p-dialog-close-button:hover,
+.p-dialog-header-action:focus,
+.p-dialog-header-action:focus-visible,
+.p-dialog-header-action:active,
+.p-dialog-header-action:hover {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Wizard wrapper already has pt-10, so inner form has 0 top padding to avoid double spacing */
+app-welcome-wizard loan-details-form > div {
+    padding: 0 !important;
+}
+
+/* Dialog has no outer card padding, so inner form needs top padding for spacing from stepper */
+.new-account-dialog loan-details-form > div {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    padding-top: 1.5rem !important;
+}
+
+/* Hide redundant inner accent bar when nested in welcome wizard (wizard has its own outer accent bar) */
+app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
+    display: none !important;
 }

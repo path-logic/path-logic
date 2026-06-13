@@ -90,49 +90,49 @@ const TYPE_THEMING: Record<
     [AccountType.Checking]: {
         accentBg: 'bg-teal-500',
         borderHover: 'border-teal-500/30 hover:border-teal-500',
-        iconText: 'text-teal-500',
+        iconText: 'text-teal-600 dark:text-teal-400',
         iconBg: 'bg-teal-500/10',
         iconBorder: 'border-teal-500/20'
     },
     [AccountType.Savings]: {
         accentBg: 'bg-blue-500',
         borderHover: 'border-blue-500/30 hover:border-blue-500',
-        iconText: 'text-blue-500',
+        iconText: 'text-blue-600 dark:text-blue-400',
         iconBg: 'bg-blue-500/10',
         iconBorder: 'border-blue-500/20'
     },
     [AccountType.Credit]: {
         accentBg: 'bg-purple-500',
         borderHover: 'border-purple-500/30 hover:border-purple-500',
-        iconText: 'text-purple-500',
+        iconText: 'text-purple-600 dark:text-purple-400',
         iconBg: 'bg-purple-500/10',
         iconBorder: 'border-purple-500/20'
     },
     [AccountType.Cash]: {
         accentBg: 'bg-green-500',
         borderHover: 'border-green-500/30 hover:border-green-500',
-        iconText: 'text-green-500',
+        iconText: 'text-green-600 dark:text-green-400',
         iconBg: 'bg-green-500/10',
         iconBorder: 'border-green-500/20'
     },
     [AccountType.Mortgage]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
-        iconText: 'text-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
         iconBg: 'bg-amber-500/10',
         iconBorder: 'border-amber-500/20'
     },
     [AccountType.AutoLoan]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
-        iconText: 'text-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
         iconBg: 'bg-amber-500/10',
         iconBorder: 'border-amber-500/20'
     },
     [AccountType.PersonalLoan]: {
         accentBg: 'bg-amber-500',
         borderHover: 'border-amber-500/30 hover:border-amber-500',
-        iconText: 'text-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
         iconBg: 'bg-amber-500/10',
         iconBorder: 'border-amber-500/20'
     }
@@ -382,6 +382,17 @@ export class WelcomeWizardComponent {
                 iconBorder: 'border-primary/20'
             }
         );
+    }
+
+    onStepValueChange(value: number | undefined): void {
+        if (value === undefined) return;
+        if (value === 1) {
+            this.step.set('select-type');
+        } else if (value === 2) {
+            this.step.set('enter-details');
+        } else if (value === 3) {
+            this.step.set('import-data');
+        }
     }
 
     // Lucide Icons

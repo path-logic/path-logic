@@ -89,41 +89,58 @@ const LOAN_TYPES: Array<IAccountTypeOption> = [
 /**
  * Styling and theming for account types.
  */
-const TYPE_THEMING: Record<string, { accentBg: string; iconText: string; iconBg: string }> = {
+const TYPE_THEMING: Record<
+    string,
+    { accentBg: string; borderHover: string; iconText: string; iconBg: string; iconBorder: string }
+> = {
     [AccountType.Checking]: {
         accentBg: 'bg-teal-500',
-        iconText: 'text-teal-500',
-        iconBg: 'bg-teal-500/10'
+        borderHover: 'border-teal-500/30 hover:border-teal-500',
+        iconText: 'text-teal-600 dark:text-teal-400',
+        iconBg: 'bg-teal-500/10',
+        iconBorder: 'border-teal-500/20'
     },
     [AccountType.Savings]: {
         accentBg: 'bg-blue-500',
-        iconText: 'text-blue-500',
-        iconBg: 'bg-blue-500/10'
+        borderHover: 'border-blue-500/30 hover:border-blue-500',
+        iconText: 'text-blue-600 dark:text-blue-400',
+        iconBg: 'bg-blue-500/10',
+        iconBorder: 'border-blue-500/20'
     },
     [AccountType.Credit]: {
         accentBg: 'bg-purple-500',
-        iconText: 'text-purple-500',
-        iconBg: 'bg-purple-500/10'
+        borderHover: 'border-purple-500/30 hover:border-purple-500',
+        iconText: 'text-purple-600 dark:text-purple-400',
+        iconBg: 'bg-purple-500/10',
+        iconBorder: 'border-purple-500/20'
     },
     [AccountType.Cash]: {
         accentBg: 'bg-green-500',
-        iconText: 'text-green-500',
-        iconBg: 'bg-green-500/10'
+        borderHover: 'border-green-500/30 hover:border-green-500',
+        iconText: 'text-green-600 dark:text-green-400',
+        iconBg: 'bg-green-500/10',
+        iconBorder: 'border-green-500/20'
     },
     [AccountType.Mortgage]: {
         accentBg: 'bg-amber-500',
-        iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10'
+        borderHover: 'border-amber-500/30 hover:border-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
+        iconBg: 'bg-amber-500/10',
+        iconBorder: 'border-amber-500/20'
     },
     [AccountType.AutoLoan]: {
         accentBg: 'bg-amber-500',
-        iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10'
+        borderHover: 'border-amber-500/30 hover:border-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
+        iconBg: 'bg-amber-500/10',
+        iconBorder: 'border-amber-500/20'
     },
     [AccountType.PersonalLoan]: {
         accentBg: 'bg-amber-500',
-        iconText: 'text-amber-500',
-        iconBg: 'bg-amber-500/10'
+        borderHover: 'border-amber-500/30 hover:border-amber-500',
+        iconText: 'text-amber-600 dark:text-amber-400',
+        iconBg: 'bg-amber-500/10',
+        iconBorder: 'border-amber-500/20'
     }
 };
 
@@ -207,7 +224,13 @@ export class NewAccountDialogComponent {
     readonly theming = computed(() => {
         const type = this.selectedType();
         if (!type || !TYPE_THEMING[type]) {
-            return { accentBg: 'bg-primary', iconText: 'text-primary', iconBg: 'bg-primary/10' };
+            return {
+                accentBg: 'bg-primary',
+                borderHover: 'border-primary/30',
+                iconText: 'text-primary',
+                iconBg: 'bg-primary/10',
+                iconBorder: 'border-primary/20'
+            };
         }
         return TYPE_THEMING[type];
     });
@@ -372,14 +395,33 @@ export class NewAccountDialogComponent {
         this.closed.emit();
     }
 
-    getTypeTheming(type: AccountType): { accentBg: string; iconText: string; iconBg: string } {
+    getTypeTheming(type: AccountType): {
+        accentBg: string;
+        borderHover: string;
+        iconText: string;
+        iconBg: string;
+        iconBorder: string;
+    } {
         return (
             TYPE_THEMING[type] || {
                 accentBg: 'bg-primary',
+                borderHover: 'border-primary/30',
                 iconText: 'text-primary',
-                iconBg: 'bg-primary/10'
+                iconBg: 'bg-primary/10',
+                iconBorder: 'border-primary/20'
             }
         );
+    }
+
+    onStepValueChange(value: number | undefined): void {
+        if (value === undefined) return;
+        if (value === 1) {
+            this.step.set('select-type');
+        } else if (value === 2) {
+            this.step.set('enter-details');
+        } else if (value === 3) {
+            this.step.set('import-data');
+        }
     }
 
     // Lucide Icons

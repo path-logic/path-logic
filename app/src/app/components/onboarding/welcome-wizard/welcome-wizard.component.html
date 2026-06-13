@@ -1,5 +1,5 @@
 <div class="w-full max-w-5xl mx-auto">
-    <p-stepper [value]="stepValue()">
+    <p-stepper [value]="stepValue()" (valueChange)="onStepValueChange($event)" [linear]="false">
         <p-step-list class="mb-8">
             <p-step [value]="1" [disabled]="createdAccount() !== null">Account Type</p-step>
             <p-step [value]="2" [disabled]="createdAccount() !== null">Account Details</p-step>
@@ -26,7 +26,7 @@
                     </div>
 
                     <!-- Primary Types Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 max-w-[600px] mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 max-w-2xl mx-auto">
                         @for (option of primaryTypes(); track option.type) {
                             <div
                                 (click)="handleTypeSelect(option.type)"
@@ -47,7 +47,12 @@
                                 ></div>
                                 <div class="flex flex-col items-center text-center space-y-4">
                                     <div
-                                        class="w-14 h-14 rounded-lg bg-surface-100/50 flex items-center justify-center group-hover:bg-surface-100 transition-colors"
+                                        [class]="
+                                            'w-14 h-14 rounded-2xl flex items-center justify-center border transition-all ' +
+                                            getTypeTheming(option.type).iconBg +
+                                            ' ' +
+                                            getTypeTheming(option.type).iconBorder
+                                        "
                                     >
                                         <i
                                             [class]="
@@ -100,11 +105,19 @@
                                             class="flex flex-col items-center text-center space-y-4"
                                         >
                                             <div
-                                                class="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors"
+                                                [class]="
+                                                    'w-14 h-14 rounded-2xl flex items-center justify-center border transition-all ' +
+                                                    getTypeTheming(option.type).iconBg +
+                                                    ' ' +
+                                                    getTypeTheming(option.type).iconBorder
+                                                "
                                             >
                                                 <i
                                                     [class]="
-                                                        'pi text-3xl text-amber-500 ' + option.icon
+                                                        'pi text-3xl ' +
+                                                        getTypeTheming(option.type).iconText +
+                                                        ' ' +
+                                                        option.icon
                                                     "
                                                 ></i>
                                             </div>
@@ -129,24 +142,34 @@
                     <div class="flex flex-col items-center justify-center min-h-[400px]">
                         @if (selectedType() && isLoan()) {
                             <div
-                                class="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500"
+                                class="w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500"
                             >
-                                <loan-details-form
-                                    [type]="selectedType()!"
-                                    (backClicked)="handleBack()"
-                                    (submitted)="
-                                        createdAccount.set($event);
-                                        accountCreated.emit($event);
-                                        wizardCompleted.emit()
-                                    "
-                                />
+                                <div
+                                    class="bg-surface-0 border border-surface-200/50 rounded-lg shadow-2xl overflow-hidden relative pt-10 px-8 pb-8"
+                                >
+                                    <div
+                                        [class]="
+                                            'absolute top-0 left-0 right-0 h-1 ' +
+                                            theming().accentBg
+                                        "
+                                    ></div>
+                                    <loan-details-form
+                                        [type]="selectedType()!"
+                                        (backClicked)="handleBack()"
+                                        (submitted)="
+                                            createdAccount.set($event);
+                                            accountCreated.emit($event);
+                                            wizardCompleted.emit()
+                                        "
+                                    />
+                                </div>
                             </div>
                         } @else if (selectedType()) {
                             <div
-                                class="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
+                                class="w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500"
                             >
                                 <div
-                                    class="bg-surface-0 border border-surface-200/50 rounded-lg shadow-2xl overflow-hidden relative p-8"
+                                    class="bg-surface-0 border border-surface-200/50 rounded-lg shadow-2xl overflow-hidden relative pt-10 px-8 pb-8"
                                 >
                                     <div
                                         [class]="
@@ -159,7 +182,7 @@
                                     >
                                         <div
                                             [class]="
-                                                'w-14 h-14 rounded-lg flex items-center justify-center border ' +
+                                                'w-14 h-14 rounded-2xl flex items-center justify-center border ' +
                                                 theming().iconBg +
                                                 ' ' +
                                                 theming().iconBorder
@@ -278,10 +301,10 @@
                 <ng-template #content>
                     <div class="flex flex-col items-center justify-center min-h-[400px]">
                         <div
-                            class="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500"
+                            class="w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500"
                         >
                             <div
-                                class="bg-surface-0 border border-surface-200/50 rounded-lg shadow-2xl overflow-hidden relative p-8 min-h-[340px] flex flex-col gap-4"
+                                class="bg-surface-0 border border-surface-200/50 rounded-lg shadow-2xl overflow-hidden relative pt-10 px-8 pb-8 min-h-[340px] flex flex-col gap-4"
                             >
                                 <div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
 
