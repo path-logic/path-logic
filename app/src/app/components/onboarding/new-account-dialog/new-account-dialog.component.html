@@ -153,7 +153,7 @@
                                     />
                                 </div>
                             } @else if (selectedType()) {
-                                <div class="space-y-6 relative pt-6">
+                                <div class="relative pt-6">
                                     <!-- Accent Bar -->
                                     <div
                                         [class]="
@@ -162,7 +162,7 @@
                                         "
                                     ></div>
                                     <div
-                                        class="flex items-center gap-4 mb-8 pb-4 border-b border-surface-200/30"
+                                        class="flex items-center gap-4 mb-6 pb-4 border-b border-surface-200/30"
                                     >
                                         <div
                                             [class]="
@@ -253,7 +253,7 @@
 
                                     @if (error()) {
                                         <div
-                                            class="p-3 bg-red-500/10 border border-destructive/20 rounded-sm"
+                                            class="p-3 bg-red-500/10 border border-destructive/20 rounded-sm mt-4"
                                         >
                                             <p
                                                 class="text-[10px] font-black uppercase text-red-500 tracking-widest"
@@ -263,7 +263,7 @@
                                         </div>
                                     }
 
-                                    <div class="flex gap-3 pt-4">
+                                    <div class="flex gap-3 mt-6">
                                         <p-button
                                             (click)="step.set('select-type')"
                                             label="Change Type"
