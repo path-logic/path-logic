@@ -265,6 +265,12 @@
         background: transparent !important;
         max-width: 100% !important;
     }
+
+    /* Disable direct mouse/click interactions on onboarding stepper headers */
+    .new-account-dialog .p-step-list,
+    app-welcome-wizard .p-step-list {
+        pointer-events: none !important;
+    }
 }
 
 /* =============================================================================

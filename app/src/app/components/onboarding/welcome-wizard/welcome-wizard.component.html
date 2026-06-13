@@ -1,9 +1,9 @@
 <div class="w-full max-w-5xl mx-auto">
     <p-stepper [value]="stepValue()" (valueChange)="onStepValueChange($event)" [linear]="false">
         <p-step-list class="mb-8">
-            <p-step [value]="1" [disabled]="createdAccount() !== null">Account Type</p-step>
-            <p-step [value]="2" [disabled]="createdAccount() !== null">Account Details</p-step>
-            <p-step [value]="3">Import Data</p-step>
+            <p-step [value]="1" [disabled]="true">Account Type</p-step>
+            <p-step [value]="2" [disabled]="true">Account Details</p-step>
+            <p-step [value]="3" [disabled]="true">Import Data</p-step>
         </p-step-list>
 
         <p-step-panels>

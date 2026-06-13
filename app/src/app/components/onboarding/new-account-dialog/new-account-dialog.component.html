@@ -25,9 +25,9 @@
     <div class="mt-4">
         <p-stepper [value]="stepValue()" (valueChange)="onStepValueChange($event)" [linear]="false">
             <p-step-list class="mb-6">
-                <p-step [value]="1" [disabled]="createdAccount() !== null">Type</p-step>
-                <p-step [value]="2" [disabled]="createdAccount() !== null">Details</p-step>
-                <p-step [value]="3">Import</p-step>
+                <p-step [value]="1" [disabled]="true">Type</p-step>
+                <p-step [value]="2" [disabled]="true">Details</p-step>
+                <p-step [value]="3" [disabled]="true">Import</p-step>
             </p-step-list>
 
             <p-step-panels>
