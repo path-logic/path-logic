@@ -344,6 +344,9 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     max-height: var(--dialog-max-h) !important;
     display: flex !important;
     flex-direction: column !important;
+    transition:
+        height 400ms cubic-bezier(0.4, 0, 0.2, 1),
+        max-height 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Header zone ──────────────────────────────────────────────────────────── */
@@ -366,6 +369,7 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     overflow: hidden !important; /* content area itself never scrolls */
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    transition: height 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Footer zone ──────────────────────────────────────────────────────────── */
@@ -410,7 +414,7 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow-y: auto !important;
-    /* Subtle inset shadow to hint at scrollability */
+    transition: height 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .new-account-dialog p-step-panel,
