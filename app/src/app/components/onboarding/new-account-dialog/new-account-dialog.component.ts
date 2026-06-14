@@ -199,6 +199,7 @@ export class NewAccountDialogComponent {
     /** Tracks drag-over state for the drop zone */
     readonly isDropZoneActive = signal<boolean>(false);
     readonly isNavigating = signal<boolean>(false);
+    readonly loanShouldImport = signal<boolean>(false);
 
     // Computed
     readonly stepValue = computed(() => {
@@ -436,6 +437,29 @@ export class NewAccountDialogComponent {
             this.step.set('enter-details');
         } else if (value === 3) {
             this.step.set('import-data');
+        }
+    }
+
+    submitLoanForm(shouldImport: boolean): void {
+        this.loanShouldImport.set(shouldImport);
+        void this.loanFormRef()?.handleSubmit();
+    }
+
+    handleLoanSubmitted(newAccount: IAccount): void {
+        this.createdAccount.set(newAccount);
+        this.accountCreated.emit(newAccount);
+        this.posthogService.posthog.capture('account_created', {
+            account_type: newAccount.type,
+            has_institution_name: !!newAccount.institutionName?.trim(),
+            has_initial_balance: true,
+            will_import: this.loanShouldImport()
+        });
+
+        if (this.loanShouldImport()) {
+            this.importService.reset();
+            this.step.set('import-data');
+        } else {
+            this.closed.emit();
         }
     }
 

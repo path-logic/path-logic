@@ -47,10 +47,10 @@ export class LoanDetailsFormComponent implements OnInit {
     readonly backClicked = output();
     readonly submitted = output<IAccount>();
 
-    // State
     readonly error = signal<string | null>(null);
     readonly isSubmitting = signal<boolean>(false);
     readonly focusedField = signal<string | null>(null);
+    readonly isValid = signal<boolean>(false);
 
     // Form
     loanForm!: FormGroup;
@@ -150,6 +150,11 @@ export class LoanDetailsFormComponent implements OnInit {
             vin: [''],
             purpose: [''],
             secured: [false]
+        });
+
+        this.isValid.set(this.loanForm.valid);
+        this.loanForm.statusChanges.subscribe(() => {
+            this.isValid.set(this.loanForm.valid);
         });
     }
 
