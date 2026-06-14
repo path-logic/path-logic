@@ -456,3 +456,31 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex: 1 1 auto !important;
     min-height: 0 !important;
 }
+
+/* ── Step transition animations ──────────────────────────────────────────── */
+/* Smooth fade+slide entrance when step content appears */
+@keyframes stepFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Each step panel content container animates in on render */
+.new-account-dialog .p-step-panel-content-container {
+    animation: stepFadeIn 0.25s ease-out both;
+}
+
+/* Smooth dialog height changes between steps */
+.new-account-dialog {
+    transition: height 0.3s ease;
+}
+
+/* Footer also fades in smoothly when it appears/disappears between steps */
+.new-account-dialog .p-dialog-footer > * {
+    animation: stepFadeIn 0.2s ease-out 0.05s both;
+}
