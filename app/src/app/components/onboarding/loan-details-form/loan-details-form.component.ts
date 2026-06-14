@@ -40,6 +40,8 @@ export class LoanDetailsFormComponent implements OnInit {
 
     // Inputs
     readonly type = input.required<AccountType>();
+    /** When false, hides the built-in Back/Submit footer (used when dialog provides its own footer). */
+    readonly showFooter = input(true);
 
     // Outputs
     readonly backClicked = output();

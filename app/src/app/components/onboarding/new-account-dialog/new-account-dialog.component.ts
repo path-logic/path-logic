@@ -7,7 +7,8 @@ import {
     inject,
     input,
     output,
-    signal
+    signal,
+    viewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -172,6 +173,9 @@ export class NewAccountDialogComponent {
     private readonly posthogService = inject(PostHogService);
     readonly importService = inject(ImportOrchestrationService);
     private readonly router = inject(Router);
+
+    /** Reference to the embedded loan-details-form for triggering submit from the dialog footer. */
+    readonly loanFormRef = viewChild(LoanDetailsFormComponent);
 
     // Inputs
     readonly isOpen = input.required<boolean>();

@@ -321,83 +321,123 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     display: none !important;
 }
 
-/* Dialog Layout for Scrollable Content & Sticky Footer */
+/* =============================================================================
+   DIALOG: 3-ZONE LAYOUT (Header / Scrollable Content / Sticky Footer)
+
+   The dialog is constrained to 80vh. It uses PrimeNG's native #header,
+   content, and #footer template slots. CSS custom properties define the
+   known heights of the header and footer so the content area can be
+   calculated as the remainder.
+
+   --dialog-max-h   : overall dialog cap
+   --dialog-header-h: header zone (title + step-list)
+   --dialog-footer-h: footer zone (action buttons) — 0 when no footer
+   ============================================================================= */
 .new-account-dialog {
-    max-height: 85vh !important;
+    --dialog-max-h: 80vh;
+    --dialog-header-h: 110px; /* title row ~44px + step-list ~50px + padding */
+    --dialog-footer-h: 120px; /* buttons row + padding; 0 when no footer */
+
+    max-height: var(--dialog-max-h) !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
+/* Header: fixed height, never scrolls */
+.new-account-dialog .p-dialog-header {
+    flex: 0 0 auto !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+/* Content: fills remaining space, scrolls when content overflows */
 .new-account-dialog .p-dialog-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    max-height: calc(
+        var(--dialog-max-h) - var(--dialog-header-h) - var(--dialog-footer-h)
+    ) !important;
+}
+
+/* Footer: fixed height, always visible at the bottom, never scrolls */
+.new-account-dialog .p-dialog-footer {
+    flex: 0 0 auto !important;
+    border-top: none !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 1rem !important;
+}
+
+/* ── Stepper internals inside content ─────────────────────────────────────── */
+/* Step-list acts as a sub-header: fixed at top of the content scroll area */
+.new-account-dialog p-step-list,
+.new-account-dialog .p-step-list {
+    flex: 0 0 auto !important;
+    position: sticky;
+    top: -1.25rem; /* offset the p-dialog-content padding */
+    z-index: 1;
+    background: var(--p-surface-0, #fff);
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Step panels fill remaining space */
+.new-account-dialog p-stepper,
+.new-account-dialog .p-stepper {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    max-height: calc(85vh - 80px) !important;
-    overflow-y: hidden !important;
 }
 
-/* Ensure the stepper structures expand to fill height */
-.new-account-dialog p-stepper,
-.new-account-dialog .p-stepper,
 .new-account-dialog p-step-panels,
-.new-account-dialog .p-step-panels,
+.new-account-dialog .p-step-panels {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
+
 .new-account-dialog p-step-panel,
 .new-account-dialog .p-step-panel {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
 }
 
-/* The rendered ng-template content wrapper inside p-step-panel needs to flex and allow scrolling */
+/* The ng-template rendered wrapper inside p-step-panel */
 .new-account-dialog .p-step-panel > .p-step-panel-content-container,
 .new-account-dialog .p-step-panel > div {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
 }
 
-/* Keep the step header (list) at a fixed height so it acts as part of the sticky header */
-.new-account-dialog p-step-list,
-.new-account-dialog .p-step-list {
-    display: flex !important;
-    flex-direction: row !important;
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-}
-
-/* Propagate height flex and display for custom loan-details-form component inside the dialog */
+/* ── Loan details form: strip card chrome when nested in dialog ───────────── */
 .new-account-dialog loan-details-form {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
 }
 
-/* Propagate flex into the form element inside loan-details-form */
-.new-account-dialog loan-details-form form {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-}
-
-/* Remove default card background, border, shadow and extra padding of loan-details-form when nested in the dialog */
 .new-account-dialog loan-details-form > div {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    padding: 1.5rem 0 0 0 !important; /* pt-6 px-0 pb-0 */
+    padding: 1.5rem 0 0 0 !important;
     max-width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
+}
+
+.new-account-dialog loan-details-form form {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
 }
