@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountType, type IAccount, Money } from '@core';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -29,6 +29,8 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 })
 export class AccountsPageComponent {
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
 
     // State
     readonly expandedId = signal<string | null>(null);
@@ -52,6 +54,19 @@ export class AccountsPageComponent {
             },
             { allowSignalWrites: true }
         );
+
+        // Auto-open the Add Account dialog when navigated with ?openDialog=true
+        this.route.queryParams.subscribe(params => {
+            if (params['openDialog'] === 'true') {
+                this.isAddDialogOpen.set(true);
+                // Consume the query param so it doesn't re-trigger on refresh
+                void this.router.navigate([], {
+                    relativeTo: this.route,
+                    queryParams: {},
+                    replaceUrl: true
+                });
+            }
+        });
     }
 
     handleOnboardingCompleted(): void {

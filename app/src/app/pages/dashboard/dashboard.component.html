@@ -10,13 +10,12 @@
                     Snapshot of your net worth and future outlook
                 </p>
             </div>
-            <a routerLink="/accounts">
-                <button
-                    class="hidden md:flex items-center bg-primary text-white hover:bg-primary/90 min-h-[44px] px-4 rounded-xl font-semibold text-sm shadow-premium gap-2 transition-all"
-                >
-                    <i class="pi pi-plus text-base"></i> Add Account
-                </button>
-            </a>
+            <button
+                (click)="navigateToAddAccount()"
+                class="hidden md:flex items-center bg-primary text-white hover:bg-primary/90 min-h-[44px] px-4 rounded-xl font-semibold text-sm shadow-premium gap-2 transition-all"
+            >
+                <i class="pi pi-plus text-base"></i> Add Account
+            </button>
         </div>
 
         <!-- KPI Grid -->

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import type { CashflowProjection, IAccount, IRecurringSchedule, ITransaction } from '@core';
 import { AccountType, generateProjection, Money, TransactionStatus } from '@core';
 import { LocalDatePipe } from '../../pipes/local-date.pipe';
@@ -21,6 +21,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 })
 export class DashboardComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
+    private readonly router = inject(Router);
 
     readonly transactions = this.ledgerStore.transactions;
     readonly accounts = this.ledgerStore.accounts;
@@ -92,6 +93,18 @@ export class DashboardComponent {
             recurringSchedules: new Array<IRecurringSchedule>() // To be implemented
         });
     });
+
+    /**
+     * Navigates to the accounts page.
+     * When accounts already exist (user is past onboarding), appends a query
+     * param so the accounts page auto-opens the "Add Account" dialog.
+     */
+    navigateToAddAccount(): void {
+        const hasAccounts = this.accounts().length > 0;
+        void this.router.navigate(['/accounts'], {
+            queryParams: hasAccounts ? { openDialog: 'true' } : null
+        });
+    }
 
     /**
      * Formats a raw amount as currency.
