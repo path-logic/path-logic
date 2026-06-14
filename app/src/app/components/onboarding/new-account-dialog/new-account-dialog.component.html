@@ -41,7 +41,7 @@
                 <!-- ── Step 1: Select Type ─────────────────────────────────────────── -->
                 <p-step-panel [value]="1">
                     <ng-template #content let-activateCallback="activateCallback">
-                        <div @fadeSlide class="space-y-6">
+                        <div class="space-y-6">
                             <div class="grid grid-cols-2 gap-3">
                                 @for (option of primaryTypes(); track option.type) {
                                     <button
@@ -137,7 +137,7 @@
                 <!-- ── Step 2: Enter Details ──────────────────────────────────────── -->
                 <p-step-panel [value]="2">
                     <ng-template #content let-activateCallback="activateCallback">
-                        <div @fadeSlide class="flex-1 min-h-0 flex flex-col">
+                        <div class="flex-1 min-h-0 flex flex-col">
                             @if (step() === 'creating') {
                                 <div
                                     class="py-12 flex flex-col items-center justify-center gap-4 flex-1"
@@ -282,7 +282,7 @@
                 <!-- ── Step 3: Import Data (optional) ────────────────────────────── -->
                 <p-step-panel [value]="3">
                     <ng-template #content>
-                        <div @fadeSlide class="flex-1 min-h-0 flex flex-col gap-4">
+                        <div class="flex-1 min-h-0 flex flex-col gap-4">
                             <!-- Success state after import completes -->
                             @if (importDone()) {
                                 <div
@@ -554,7 +554,7 @@
                         type="button"
                         (click)="handleCreate(false)"
                         [disabled]="!isFormValid()"
-                        class="h-7 px-2 flex items-center justify-center text-[9px] font-bold uppercase tracking-[0.15em] text-surface-400 hover:text-surface-600 dark:text-surface-500 dark:hover:text-surface-300 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                        class="h-10 px-6 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 rounded-md hover:bg-surface-100 dark:hover:bg-surface-800 transition-all active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none"
                     >
                         Create Only
                     </button>
