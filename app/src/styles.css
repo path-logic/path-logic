@@ -462,16 +462,32 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
 }
 
 /* ── Step panel transition animations ────────────────────────────────────── */
-/* PrimeNG marks the active panel with [data-p-active="true"].
-   Toggling animation-name from none→dialogStepIn guarantees restart.
-   350ms with Material standard easing for obvious but smooth transitions. */
+/* Content fades in AFTER dialog begins resizing (150ms delay) to avoid
+   the flash-then-snap effect. 450ms duration makes the motion obvious. */
 @keyframes dialogStepIn {
     0% {
         opacity: 0;
-        transform: translateY(16px);
+        transform: translateY(12px);
     }
     100% {
         opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth expand for sections that toggle open (e.g. Loan/Liability accordion) */
+@keyframes expandIn {
+    0% {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-8px);
+    }
+    40% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+        max-height: 500px;
         transform: translateY(0);
     }
 }
@@ -481,11 +497,18 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     animation: none !important;
 }
 
+/* Delayed entrance: wait 150ms for dialog resize to begin, then 450ms fade+slide */
 .new-account-dialog p-step-panel[data-p-active='true'] .p-steppanel-content-wrapper {
-    animation: dialogStepIn 350ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    animation: dialogStepIn 450ms cubic-bezier(0.25, 0.1, 0.25, 1) 150ms both;
 }
 
-/* Footer contents also animate in */
+/* Footer syncs with content: slightly longer delay, same easing */
 .new-account-dialog .p-dialog-footer > * {
-    animation: dialogStepIn 300ms cubic-bezier(0.4, 0, 0.2, 1) 50ms both;
+    animation: dialogStepIn 400ms cubic-bezier(0.25, 0.1, 0.25, 1) 200ms both;
+}
+
+/* Loan/Liability accordion expansion: smooth height + fade */
+.new-account-dialog .loan-expand-section {
+    animation: expandIn 400ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+    overflow: hidden;
 }

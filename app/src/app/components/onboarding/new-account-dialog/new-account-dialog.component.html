@@ -90,9 +90,7 @@
                                 ></p-button>
 
                                 @if (showLoans()) {
-                                    <div
-                                        class="grid grid-cols-1 gap-2 mt-2 animate-in slide-in-from-top-2"
-                                    >
+                                    <div class="grid grid-cols-1 gap-2 mt-2 loan-expand-section">
                                         @for (option of loanTypes(); track option.type) {
                                             <button
                                                 (click)="handleTypeSelect(option.type)"
