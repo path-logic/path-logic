@@ -325,63 +325,60 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
    DIALOG: 3-ZONE LAYOUT (Header / Scrollable Content / Sticky Footer)
 
    The dialog is constrained to 80vh. It uses PrimeNG's native #header,
-   content, and #footer template slots. CSS custom properties define the
-   known heights of the header and footer so the content area can be
-   calculated as the remainder.
+   content, and #footer template slots.
+
+   The stepper step-list is INSIDE p-dialog-content but must NOT scroll.
+   We achieve this by making p-dialog-content a non-scrolling flex column,
+   with the step-list as flex:none and the step-panels as the sole scrollable
+   child (overflow-y: auto).
 
    --dialog-max-h   : overall dialog cap
-   --dialog-header-h: header zone (title + step-list)
-   --dialog-footer-h: footer zone (action buttons) — 0 when no footer
+   --dialog-header-h: PrimeNG header zone (title row only)
+   --dialog-footer-h: footer zone (action buttons)
    ============================================================================= */
 .new-account-dialog {
     --dialog-max-h: 80vh;
-    --dialog-header-h: 110px; /* title row ~44px + step-list ~50px + padding */
-    --dialog-footer-h: 120px; /* buttons row + padding; 0 when no footer */
+    --dialog-header-h: 56px; /* title row + close button */
+    --dialog-footer-h: 120px; /* buttons + padding; 0 when empty */
 
     max-height: var(--dialog-max-h) !important;
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Header: fixed height, never scrolls */
+/* ── Header zone ──────────────────────────────────────────────────────────── */
+/* Fixed height, never scrolls. Bottom margin for breathing room. */
 .new-account-dialog .p-dialog-header {
     flex: 0 0 auto !important;
     border-bottom: none !important;
+    padding-bottom: 0.25rem !important;
+    margin-bottom: 0 !important;
+}
+
+/* ── Content zone ─────────────────────────────────────────────────────────── */
+/* Does NOT scroll itself — it's a flex column that holds the step-list
+   (fixed) and step-panels (scrollable). */
+.new-account-dialog .p-dialog-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important; /* content area itself never scrolls */
+    padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
 
-/* Content: fills remaining space, scrolls when content overflows */
-.new-account-dialog .p-dialog-content {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    max-height: calc(
-        var(--dialog-max-h) - var(--dialog-header-h) - var(--dialog-footer-h)
-    ) !important;
-}
-
-/* Footer: fixed height, always visible at the bottom, never scrolls */
+/* ── Footer zone ──────────────────────────────────────────────────────────── */
+/* Fixed at bottom, always visible. Proper spacing from content. */
 .new-account-dialog .p-dialog-footer {
     flex: 0 0 auto !important;
     border-top: none !important;
-    padding-top: 0.5rem !important;
-    padding-bottom: 1rem !important;
+    padding: 1rem 1.5rem 1.25rem 1.5rem !important;
+    margin-top: 0 !important;
 }
 
-/* ── Stepper internals inside content ─────────────────────────────────────── */
-/* Step-list acts as a sub-header: fixed at top of the content scroll area */
-.new-account-dialog p-step-list,
-.new-account-dialog .p-step-list {
-    flex: 0 0 auto !important;
-    position: sticky;
-    top: -1.25rem; /* offset the p-dialog-content padding */
-    z-index: 1;
-    background: var(--p-surface-0, #fff);
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-}
-
-/* Step panels fill remaining space */
+/* ── Stepper layout ───────────────────────────────────────────────────────── */
+/* The p-stepper is a flex column that holds step-list + step-panels */
 .new-account-dialog p-stepper,
 .new-account-dialog .p-stepper {
     display: flex !important;
@@ -390,12 +387,26 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     min-height: 0 !important;
 }
 
+/* Step-list: FIXED at top, never scrolls, never moves */
+.new-account-dialog p-step-list,
+.new-account-dialog .p-step-list {
+    flex: 0 0 auto !important;
+    z-index: 1;
+    background: var(--p-surface-0, #fff);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--p-surface-200, #e5e7eb) 50%, transparent);
+}
+
+/* Step-panels: the ONLY scrollable area — this is where form content scrolls */
 .new-account-dialog p-step-panels,
 .new-account-dialog .p-step-panels {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    overflow-y: auto !important;
+    /* Subtle inset shadow to hint at scrollability */
 }
 
 .new-account-dialog p-step-panel,
@@ -427,7 +438,7 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    padding: 1.5rem 0 0 0 !important;
+    padding: 1rem 0 0 0 !important;
     max-width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
