@@ -1,3 +1,4 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -167,7 +168,24 @@ const TYPE_THEMING: Record<
     ],
     templateUrl: './new-account-dialog.component.html',
     styleUrls: ['./new-account-dialog.component.css'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('fadeSlide', [
+            transition(':enter', [
+                style({ opacity: 0, transform: 'translateY(12px)' }),
+                animate(
+                    '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    style({ opacity: 1, transform: 'translateY(0)' })
+                )
+            ]),
+            transition(':leave', [
+                animate(
+                    '200ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    style({ opacity: 0, transform: 'translateY(-8px)' })
+                )
+            ])
+        ])
+    ]
 })
 export class NewAccountDialogComponent {
     private readonly posthogService = inject(PostHogService);
@@ -247,6 +265,17 @@ export class NewAccountDialogComponent {
     readonly importProgress = this.importService.progress;
     readonly importStats = this.importService.stats;
     readonly importDone = computed(() => this.importService.progress().stage === 'done');
+
+    /** Whether the standard (non-loan) form has enough data to create an account. */
+    readonly isFormValid = computed(() => {
+        return this.accountName().trim().length > 0;
+    });
+
+    /** Whether the loan form is valid — bridges to the child loanForm's FormGroup validity. */
+    readonly isLoanFormValid = computed(() => {
+        const ref = this.loanFormRef();
+        return ref?.loanForm ? ref.loanForm.valid : false;
+    });
 
     constructor() {
         // Reset state when closing
