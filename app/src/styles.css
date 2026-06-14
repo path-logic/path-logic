@@ -348,6 +348,17 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* The rendered ng-template content wrapper inside p-step-panel needs to flex and allow scrolling */
+.new-account-dialog .p-step-panel > .p-step-panel-content-container,
+.new-account-dialog .p-step-panel > div {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
 }
 
 /* Keep the step header (list) at a fixed height so it acts as part of the sticky header */
@@ -366,6 +377,15 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Propagate flex into the form element inside loan-details-form */
+.new-account-dialog loan-details-form form {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
 }
 
 /* Remove default card background, border, shadow and extra padding of loan-details-form when nested in the dialog */
@@ -379,5 +399,5 @@ app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    max-height: 100% !important;
+    overflow: hidden !important;
 }
