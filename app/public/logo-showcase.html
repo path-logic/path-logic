@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Path Logic — Logo & Wordmark Showcase</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@300;400;600;800&display=swap"
+            rel="stylesheet"
+        />
+        <!-- Tailwind CSS CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Three.js and Add-ons -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/FontLoader.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/geometries/TextGeometry.js"></script>
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#8B5CF6', // Electric Violet
+                            surface: {
+                                50: '#F8F9FA',
+                                100: '#F1F3F5',
+                                800: '#1A1A24',
+                                900: '#0E0E12'
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
+                            outfit: ['Outfit', 'sans-serif']
+                        }
+                    }
+                }
+            };
+        </script>
+        <style>
+            body {
+                background-color: #08080a;
+                color: #f8f9fa;
+                font-family: 'Inter', sans-serif;
+                overflow-x: hidden;
+            }
+            .neon-border {
+                box-shadow:
+                    0 0 15px rgba(139, 92, 246, 0.15),
+                    inset 0 0 15px rgba(139, 92, 246, 0.05);
+                border: 1px solid rgba(139, 92, 246, 0.25);
+            }
+            .glassmorphism {
+                background: rgba(14, 14, 18, 0.6);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
+    </head>
+    <body class="min-h-screen flex flex-col justify-between p-4 md:p-8 no-scrollbar">
+        <!-- Header -->
+        <header class="w-full max-w-7xl mx-auto flex items-center justify-between mb-8 z-10">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 bg-primary rounded-sm flex items-center justify-center shadow-lg shadow-primary/30"
+                >
+                    <span class="text-white font-outfit font-black text-sm">P</span>
+                </div>
+                <span class="font-outfit font-black text-lg tracking-tighter uppercase text-white">
+                    PATH <span class="text-primary">LOGIC</span>
+                </span>
+            </div>
+            <div class="text-xs uppercase font-bold tracking-[0.2em] text-slate-500">
+                Visual Assets &amp; WebGL Showcase
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main
+            class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch flex-grow z-10 mb-8"
+        >
+            <!-- Left column: WebGL 3D Logo Viewport (No Containing Canvas / Transparent style) -->
+            <div
+                class="lg:col-span-7 overflow-hidden flex flex-col relative min-h-[400px] lg:min-h-0"
+            >
+                <!-- 3D Canvas Container - set to transparent with no borders -->
+                <div
+                    id="canvas-container"
+                    class="w-full flex-grow cursor-grab active:cursor-grabbing bg-transparent"
+                ></div>
+
+                <!-- Overlaid details -->
+                <div
+                    class="absolute bottom-4 left-4 right-4 flex justify-between items-end pointer-events-none"
+                >
+                    <div class="space-y-1">
+                        <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-primary">
+                            Interactive 3D Experience
+                        </p>
+                        <h2 class="text-sm font-bold uppercase font-outfit text-white">
+                            Interactive 3D Combined Wordmark
+                        </h2>
+                        <p class="text-[10px] text-slate-400">
+                            Drag to rotate entire lockup • 1/2 Depth Wordmark • Spaced out logo
+                        </p>
+                    </div>
+                    <div
+                        class="bg-black/40 px-2 py-1 rounded text-[9px] font-mono text-primary border border-primary/20"
+                    >
+                        WebGL 2.0
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column: Wordmark Details & Downloads -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <!-- SVG Selector and Preview Container -->
+                <div
+                    class="p-6 rounded-lg glassmorphism border border-slate-800 flex-grow flex flex-col justify-between"
+                >
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3
+                                class="text-xs font-bold uppercase tracking-widest text-primary font-outfit"
+                            >
+                                Asset Hub
+                            </h3>
+                            <span
+                                class="text-[8px] px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30 uppercase font-bold"
+                                >2026 Edition</span
+                            >
+                        </div>
+
+                        <!-- Tab selector -->
+                        <div
+                            class="grid grid-cols-3 gap-2 bg-slate-950 p-1 rounded-sm mb-6 border border-slate-800/60"
+                        >
+                            <button
+                                onclick="setTab('dark')"
+                                id="btn-dark"
+                                class="py-2 text-[10px] uppercase font-bold tracking-wider rounded-sm text-center transition-all bg-primary text-white"
+                            >
+                                Dark Lockup
+                            </button>
+                            <button
+                                onclick="setTab('light')"
+                                id="btn-light"
+                                class="py-2 text-[10px] uppercase font-bold tracking-wider rounded-sm text-center transition-all text-slate-400 hover:text-white"
+                            >
+                                Light Lockup
+                            </button>
+                            <button
+                                onclick="setTab('symbol')"
+                                id="btn-symbol"
+                                class="py-2 text-[10px] uppercase font-bold tracking-wider rounded-sm text-center transition-all text-slate-400 hover:text-white"
+                            >
+                                Logo Icon
+                            </button>
+                        </div>
+
+                        <!-- Preview Area -->
+                        <div class="space-y-2 mb-6">
+                            <p
+                                class="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500"
+                            >
+                                Vector Preview
+                            </p>
+                            <div
+                                id="preview-box"
+                                class="h-32 w-full rounded-sm flex items-center justify-center transition-all border border-slate-800 bg-[#08080A]"
+                            >
+                                <!-- SVG elements injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Spec Details -->
+                        <div
+                            class="space-y-3 mb-6 bg-slate-950/50 p-4 border border-slate-800/40 rounded-sm"
+                        >
+                            <h4
+                                class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400"
+                            >
+                                Identity Guidelines
+                            </h4>
+                            <div
+                                id="spec-details"
+                                class="text-[11px] text-slate-300 space-y-1.5 font-sans"
+                            >
+                                <!-- Content changed dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download & Code copy buttons -->
+                    <div class="space-y-2 pt-4 border-t border-slate-800">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button
+                                onclick="copySVGCode()"
+                                class="h-10 px-4 flex items-center justify-center border border-slate-700 text-slate-300 hover:bg-slate-800/50 text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all"
+                            >
+                                Copy XML Code
+                            </button>
+                            <a
+                                id="download-link"
+                                href="#"
+                                download=""
+                                class="h-10 px-4 flex items-center justify-center bg-primary hover:bg-opacity-90 text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all text-center"
+                            >
+                                Download SVG
+                            </a>
+                        </div>
+                        <button
+                            onclick="downloadPNG()"
+                            class="w-full h-10 px-4 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] uppercase font-bold tracking-widest rounded-sm transition-all"
+                        >
+                            Download High-Res PNG (Transparent)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Info / Architecture Rule -->
+                <div class="p-5 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary font-outfit"
+                            >Visual Constitution Rule § 1.1</span
+                        >
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        The
+                        <span class="font-outfit font-black text-white"
+                            >PATH <span class="text-primary">LOGIC</span></span
+                        >
+                        wordmark uses the geometric typeface
+                        <strong class="text-white">Outfit</strong> at weight 900 (Black) in
+                        uppercase. The split typography uses standard foreground for
+                        <span class="text-white">PATH</span>, and Electric Violet (<span
+                            class="font-mono text-primary"
+                            >#8B5CF6</span
+                        >) for <span class="text-primary font-bold">LOGIC</span>.
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer
+            class="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between mt-8 pt-4 border-t border-slate-900 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 z-10 gap-4"
+        >
+            <div>© 2026 Path Logic. All rights reserved.</div>
+            <div class="flex gap-4">
+                <a
+                    href="path-logic-wordmark-dark.svg"
+                    target="_blank"
+                    class="hover:text-primary transition-colors"
+                    >Dark SVG</a
+                >
+                <span>•</span>
+                <a
+                    href="path-logic-wordmark-light.svg"
+                    target="_blank"
+                    class="hover:text-primary transition-colors"
+                    >Light SVG</a
+                >
+                <span>•</span>
+                <a
+                    href="path-logic-logo.svg"
+                    target="_blank"
+                    class="hover:text-primary transition-colors"
+                    >Icon SVG</a
+                >
+            </div>
+        </footer>
+
+        <!-- WebGL Render Scripts -->
+        <script>
+            // Three.js Code
+            let scene, camera, renderer, particles, wordmarkGroup;
+            const container = document.getElementById('canvas-container');
+            let mouseX = 0,
+                mouseY = 0;
+
+            function initThree() {
+                // 1. Scene setup
+                scene = new THREE.Scene();
+
+                // 2. Camera setup
+                camera = new THREE.PerspectiveCamera(
+                    45,
+                    container.clientWidth / container.clientHeight,
+                    0.1,
+                    100
+                );
+                camera.position.z = 7;
+
+                // 3. Renderer setup - set alpha to true for transparency ("no containing canvas" style)
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.shadowMap.enabled = true;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = 1.35;
+                container.appendChild(renderer.domElement);
+
+                // 4. Lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+                scene.add(ambientLight);
+
+                const pointLight1 = new THREE.PointLight(0x8b5cf6, 8, 25); // Electric Violet
+                pointLight1.position.set(4, 4, 4);
+                scene.add(pointLight1);
+
+                const pointLight2 = new THREE.PointLight(0x06b6d4, 6, 20); // Cyan
+                pointLight2.position.set(-4, -4, 3);
+                scene.add(pointLight2);
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                dirLight.position.set(0, 5, 5);
+                scene.add(dirLight);
+
+                // 5. Creating a single unified wordmark group (contains Logo Cube + Text meshes)
+                wordmarkGroup = new THREE.Group();
+                scene.add(wordmarkGroup);
+
+                const fontLoader = new THREE.FontLoader();
+                fontLoader.load(
+                    'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/optimer_bold.typeface.json',
+                    function (font) {
+                        // Define sizes
+                        const textHeight = 0.135; // 1/2 of previous depth (0.27) or depth = 0.135
+                        const textSize = 0.42;
+                        const cubeSize = 0.55; // Smaller cube size matching text scale
+
+                        // A. 3D Text configurations
+                        const textOptions = {
+                            font: font,
+                            size: textSize,
+                            height: textHeight,
+                            curveSegments: 5,
+                            bevelEnabled: true,
+                            bevelThickness: 0.01,
+                            bevelSize: 0.005,
+                            bevelSegments: 3
+                        };
+
+                        const pathGeo = new THREE.TextGeometry('PATH', textOptions);
+                        pathGeo.computeBoundingBox();
+                        const pathWidth = pathGeo.boundingBox.max.x - pathGeo.boundingBox.min.x;
+
+                        const logicGeo = new THREE.TextGeometry('LOGIC', textOptions);
+                        logicGeo.computeBoundingBox();
+                        const logicWidth = logicGeo.boundingBox.max.x - logicGeo.boundingBox.min.x;
+
+                        // B. Create Logo Cube (rounded corners & different themes on each of its 6 faces)
+                        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                        const materials = [
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('high-contrast'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.2,
+                                clearcoat: 1.0
+                            }),
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('low-contrast'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.1,
+                                clearcoat: 1.0
+                            }),
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('alt-color'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.2,
+                                clearcoat: 1.0
+                            }),
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('cyberpunk'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.3,
+                                clearcoat: 1.0
+                            }),
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('dark'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.2,
+                                clearcoat: 1.0
+                            }),
+                            new THREE.MeshPhysicalMaterial({
+                                map: createLogoTexture('light'),
+                                transparent: true,
+                                roughness: 0.1,
+                                metalness: 0.1,
+                                clearcoat: 1.0
+                            })
+                        ];
+
+                        const cubeMesh = new THREE.Mesh(cubeGeo, materials);
+
+                        // Inner solid backing box for cube
+                        const innerSize = cubeSize - 0.02;
+                        const innerGeo = new THREE.BoxGeometry(innerSize, innerSize, innerSize);
+                        const innerMat = new THREE.MeshBasicMaterial({ color: 0x08080a });
+                        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+                        cubeMesh.add(innerMesh);
+
+                        // C. Combine & align into one horizontal wordmark group
+                        const pathMat = new THREE.MeshPhysicalMaterial({
+                            color: 0xffffff,
+                            roughness: 0.2,
+                            metalness: 0.8,
+                            clearcoat: 1.0
+                        });
+
+                        const logicMat = new THREE.MeshPhysicalMaterial({
+                            color: 0x8b5cf6,
+                            roughness: 0.2,
+                            metalness: 0.8,
+                            clearcoat: 1.0
+                        });
+
+                        const pathMesh = new THREE.Mesh(pathGeo, pathMat);
+                        const logicMesh = new THREE.Mesh(logicGeo, logicMat);
+
+                        // Spacings
+                        const gapLogo = 0.45; // Spaced out logo from wordmark
+                        const gapWords = 0.15; // Spacing between PATH and LOGIC
+                        const totalWidth = cubeSize + gapLogo + pathWidth + gapWords + logicWidth;
+
+                        // Position items horizontally relative to group center
+                        cubeMesh.position.x = -totalWidth / 2 + cubeSize / 2;
+                        cubeMesh.position.y = 0; // Vertical alignment
+
+                        // Text vertical offset to align baseline center with cube center
+                        const textYOffset = -textSize / 2.5;
+
+                        pathMesh.position.x = -totalWidth / 2 + cubeSize + gapLogo;
+                        pathMesh.position.y = textYOffset;
+
+                        logicMesh.position.x =
+                            -totalWidth / 2 + cubeSize + gapLogo + pathWidth + gapWords;
+                        logicMesh.position.y = textYOffset;
+
+                        // Add to group
+                        wordmarkGroup.add(cubeMesh);
+                        wordmarkGroup.add(pathMesh);
+                        wordmarkGroup.add(logicMesh);
+
+                        // Scale/rotation defaults
+                        wordmarkGroup.position.set(0, 0, 0);
+                    }
+                );
+
+                // 6. Ambient Particle System
+                const particlesGeo = new THREE.BufferGeometry();
+                const count = 300;
+                const positions = new Float32Array(count * 3);
+                const colors = new Float32Array(count * 3);
+
+                for (let i = 0; i < count * 3; i += 3) {
+                    positions[i] = (Math.random() - 0.5) * 14;
+                    positions[i + 1] = (Math.random() - 0.5) * 14;
+                    positions[i + 2] = (Math.random() - 0.5) * 10 - 2;
+
+                    const mix = Math.random();
+                    colors[i] = mix * 0.54 + 0.1;
+                    colors[i + 1] = mix * 0.36 + 0.5;
+                    colors[i + 2] = 0.96;
+                }
+
+                particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                particlesGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const particlesMat = new THREE.PointsMaterial({
+                    size: 0.05,
+                    sizeAttenuation: true,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.65,
+                    blending: THREE.AdditiveBlending
+                });
+
+                particles = new THREE.Points(particlesGeo, particlesMat);
+                scene.add(particles);
+
+                // Event listeners
+                container.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('resize', onWindowResize);
+
+                // Dragging physics - now rotates the ENTIRE wordmarkGroup (making the wordmark draggable)
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+
+                container.addEventListener('mousedown', () => {
+                    isDragging = true;
+                });
+                container.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                container.addEventListener('mousemove', e => {
+                    const deltaMove = {
+                        x: e.offsetX - previousMousePosition.x,
+                        y: e.offsetY - previousMousePosition.y
+                    };
+
+                    if (isDragging && wordmarkGroup) {
+                        wordmarkGroup.rotation.y += deltaMove.x * 0.006;
+                        wordmarkGroup.rotation.x += deltaMove.y * 0.006;
+                    }
+
+                    previousMousePosition = {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
+                });
+
+                animate();
+            }
+
+            // Draw canvas textures with rounded corners
+            function createLogoTexture(theme) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                ctx.clearRect(0, 0, 512, 512);
+
+                let bg, text, border;
+                switch (theme) {
+                    case 'dark':
+                        bg = '#8B5CF6';
+                        text = '#FFFFFF';
+                        border = 'rgba(255, 255, 255, 0.2)';
+                        break;
+                    case 'light':
+                        bg = '#F8F9FA';
+                        text = '#8B5CF6';
+                        border = 'rgba(139, 92, 246, 0.15)';
+                        break;
+                    case 'high-contrast':
+                        bg = '#000000';
+                        text = '#FFFFFF';
+                        border = '#FFFFFF';
+                        break;
+                    case 'low-contrast':
+                        bg = '#1E1E28';
+                        text = '#4B5563';
+                        border = '#374151';
+                        break;
+                    case 'alt-color':
+                        bg = '#EA580C';
+                        text = '#FFFFFF';
+                        border = 'rgba(255, 255, 255, 0.25)';
+                        break;
+                    case 'cyberpunk':
+                        bg = '#06B6D4';
+                        text = '#EC4899';
+                        border = '#EC4899';
+                        break;
+                }
+
+                const rectSize = 480;
+                const pad = (512 - rectSize) / 2;
+                const radius = 90;
+
+                ctx.fillStyle = bg;
+                ctx.beginPath();
+                ctx.roundRect(pad, pad, rectSize, rectSize, radius);
+                ctx.fill();
+
+                if (border) {
+                    ctx.strokeStyle = border;
+                    ctx.lineWidth = 14;
+                    ctx.stroke();
+                }
+
+                ctx.font = '900 320px Outfit, Arial Black, sans-serif';
+                ctx.fillStyle = text;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('P', 256, 260);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                return texture;
+            }
+
+            function onMouseMove(e) {
+                const rect = container.getBoundingClientRect();
+                mouseX = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+                mouseY = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+            }
+
+            function onWindowResize() {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Auto rotate entire combined wordmark Group slightly
+                if (wordmarkGroup) {
+                    wordmarkGroup.rotation.y += 0.003;
+                    // Soft floating/bobbing effect
+                    wordmarkGroup.position.y = Math.sin(Date.now() * 0.001) * 0.08;
+                }
+
+                // Particles movement
+                if (particles) {
+                    particles.rotation.x = mouseY * 0.08;
+                    particles.rotation.y = mouseX * 0.08;
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            // SVG Assets Data
+            const svgAssets = {
+                dark: {
+                    bg: '#08080A',
+                    filename: 'path-logic-wordmark-dark.svg',
+                    desc: 'Optimized for high-contrast dark interfaces. Features a clean white "PATH" segment, purple "LOGIC" segment, and the Electric Violet logo mark on the left.',
+                    code: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&amp;display=swap');
+      .brand-text {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 28px;
+        text-transform: uppercase;
+        letter-spacing: -0.06em;
+      }
+      .brand-path {
+        fill: #FFFFFF;
+      }
+      .brand-logic {
+        fill: #8B5CF6;
+      }
+      .logo-bg {
+        fill: #8B5CF6;
+      }
+      .logo-letter {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 24px;
+        fill: #FFFFFF;
+      }
+    </style>
+  </defs>
+  <!-- Logo Icon -->
+  <rect x="10" y="10" width="40" height="40" rx="7" ry="7" class="logo-bg" />
+  <text x="30" y="38" text-anchor="middle" class="logo-letter">P</text>
+  
+  <!-- Wordmark -->
+  <text x="62" y="39" class="brand-text">
+    <tspan class="brand-path">PATH</tspan><tspan class="brand-logic" dx="4">LOGIC</tspan>
+  </text>
+</svg>`
+                },
+                light: {
+                    bg: '#F8F9FA',
+                    filename: 'path-logic-wordmark-light.svg',
+                    desc: 'Optimized for clean light backgrounds. Features a deep slate-gray "PATH" segment (#0F172A), purple "LOGIC" segment, and the Electric Violet logo mark.',
+                    code: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&amp;display=swap');
+      .brand-text {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 28px;
+        text-transform: uppercase;
+        letter-spacing: -0.06em;
+      }
+      .brand-path {
+        fill: #0F172A;
+      }
+      .brand-logic {
+        fill: #8B5CF6;
+      }
+      .logo-bg {
+        fill: #8B5CF6;
+      }
+      .logo-letter {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 24px;
+        fill: #FFFFFF;
+      }
+    </style>
+  </defs>
+  <!-- Logo Icon -->
+  <rect x="10" y="10" width="40" height="40" rx="7" ry="7" class="logo-bg" />
+  <text x="30" y="38" text-anchor="middle" class="logo-letter">P</text>
+  
+  <!-- Wordmark -->
+  <text x="62" y="39" class="brand-text">
+    <tspan class="brand-path">PATH</tspan><tspan class="brand-logic" dx="4">LOGIC</tspan>
+  </text>
+</svg>`
+                },
+                symbol: {
+                    bg: '#0F0F13',
+                    filename: 'path-logic-logo.svg',
+                    desc: 'The standalone logo mark. Square base with rounded corners (15% rounding), filled with Electric Violet, containing the white letter "P" in Outfit Black.',
+                    code: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="100%" height="100%">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@900&amp;display=swap');
+      .logo-bg {
+        fill: #8B5CF6;
+      }
+      .logo-letter {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 900;
+        font-size: 36px;
+        fill: #FFFFFF;
+      }
+    </style>
+  </defs>
+  <rect x="5" y="5" width="50" height="50" rx="9" ry="9" class="logo-bg" />
+  <text x="30" y="42" text-anchor="middle" class="logo-letter">P</text>
+</svg>`
+                }
+            };
+
+            let activeTab = 'dark';
+
+            function setTab(tabName) {
+                activeTab = tabName;
+
+                // Update buttons
+                ['dark', 'light', 'symbol'].forEach(t => {
+                    const btn = document.getElementById(`btn-${t}`);
+                    if (t === tabName) {
+                        btn.className =
+                            'py-2 text-[10px] uppercase font-bold tracking-wider rounded-sm text-center transition-all bg-primary text-white';
+                    } else {
+                        btn.className =
+                            'py-2 text-[10px] uppercase font-bold tracking-wider rounded-sm text-center transition-all text-slate-400 hover:text-white';
+                    }
+                });
+
+                // Update Preview Box
+                const pBox = document.getElementById('preview-box');
+                pBox.style.backgroundColor = svgAssets[tabName].bg;
+                pBox.innerHTML = svgAssets[tabName].code;
+
+                // Update Specs Text
+                const specs = document.getElementById('spec-details');
+                specs.innerHTML = `
+        <p><span class="opacity-50 uppercase text-[9px] tracking-widest block mb-0.5">Asset File</span> ${svgAssets[tabName].filename}</p>
+        <p class="pt-2 leading-relaxed text-[11px] text-slate-400">${svgAssets[tabName].desc}</p>
+      `;
+
+                // Update Download Link
+                const dlLink = document.getElementById('download-link');
+                dlLink.href =
+                    'data:image/svg+xml;utf8,' + encodeURIComponent(svgAssets[tabName].code);
+                dlLink.download = svgAssets[tabName].filename;
+            }
+
+            function copySVGCode() {
+                navigator.clipboard
+                    .writeText(svgAssets[activeTab].code)
+                    .then(() => {
+                        alert('SVG XML code copied to clipboard!');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+            }
+
+            // High-Resolution PNG Exporter
+            function downloadPNG() {
+                const svgString = svgAssets[activeTab].code;
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const DOMURL = window.URL || window.webkitURL || window;
+                const url = DOMURL.createObjectURL(svgBlob);
+
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    let width = 1120; // 280 * 4
+                    let height = 240; // 60 * 4
+
+                    if (activeTab === 'symbol') {
+                        width = 240;
+                        height = 240;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const pngUrl = canvas.toDataURL('image/png');
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = pngUrl;
+                    downloadLink.download = svgAssets[activeTab].filename.replace('.svg', '.png');
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+
+                    DOMURL.revokeObjectURL(url);
+                };
+                img.src = url;
+            }
+
+            window.onload = () => {
+                setTab('dark');
+                initThree();
+            };
+        </script>
+    </body>
+</html>

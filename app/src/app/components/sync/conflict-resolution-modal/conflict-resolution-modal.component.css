@@ -8,7 +8,7 @@
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(4px);
     z-index: 8000;
-    animation: fadeIn 0.25s ease both;
+    animation: pl-fade-in 0.25s ease both;
 }
 
 .modal-container {
@@ -27,7 +27,7 @@
     box-shadow:
         0 24px 64px -12px rgba(0, 0, 0, 0.8),
         0 0 0 1px color-mix(in srgb, var(--pl-text-primary) 4%, transparent) inset;
-    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
     overflow: hidden;
 }
 
@@ -308,28 +308,6 @@
 .bulk-btn--theirs:hover {
     background: color-mix(in srgb, var(--pl-status-pos) 18%, transparent);
     border-color: color-mix(in srgb, var(--pl-status-pos) 50%, transparent);
-}
-
-/* ── Animations ───────────────────────────────────────────────────────────── */
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -48%) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

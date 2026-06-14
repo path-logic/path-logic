@@ -114,25 +114,3 @@
     animation: progress 6s linear forwards;
     transform-origin: left;
 }
-
-/* ── Animations ───────────────────────────────────────────────────────── */
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100%) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
-
-@keyframes progress {
-    from {
-        width: 100%;
-    }
-    to {
-        width: 0%;
-    }
-}

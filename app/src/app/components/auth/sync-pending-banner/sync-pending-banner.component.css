@@ -16,7 +16,7 @@
     align-items: center;
     overflow: hidden;
     box-shadow: 0 4px 24px -4px rgba(79, 70, 229, 0.5);
-    animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: bannerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Animated background shimmer */
@@ -139,40 +139,6 @@
 .btn-icon {
     width: 14px;
     height: 14px;
-}
-
-/* ── Animations ───────────────────────────────────────────────────────────── */
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--pl-status-warn) 70%, transparent);
-    }
-    70% {
-        box-shadow: 0 0 0 10px color-mix(in srgb, var(--pl-status-warn) 0%, transparent);
-    }
-    100% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--pl-status-warn) 0%, transparent);
-    }
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

@@ -119,17 +119,6 @@ const GLOSSARY: Record<string, string> = {
             border: 5px solid transparent;
             border-top-color: var(--pl-border-subtle);
         }
-
-        @keyframes tooltipIn {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(4px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
     `
 })
 export class GlossaryTermComponent {

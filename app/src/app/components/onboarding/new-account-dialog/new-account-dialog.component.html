@@ -529,7 +529,7 @@
     <ng-template #footer>
         <!-- Step 2 (standard account): Back | stacked Create & Import / Create Only -->
         @if (step() === 'enter-details' && selectedType() && !isLoan()) {
-            <div @fadeSlide class="flex items-start justify-between gap-3 w-full">
+            <div class="flex items-start justify-between gap-3 w-full">
                 <button
                     type="button"
                     (click)="step.set('select-type')"
@@ -562,7 +562,7 @@
 
         <!-- Step 2 (loan/liability): Back | Create Loan Account -->
         @if (step() === 'enter-details' && selectedType() && isLoan()) {
-            <div @fadeSlide class="flex items-center justify-between gap-3 w-full">
+            <div class="flex items-center justify-between gap-3 w-full">
                 <button
                     type="button"
                     (click)="step.set('select-type')"
