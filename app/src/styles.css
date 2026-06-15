@@ -261,7 +261,7 @@
 
     /* Flatten nested loan details form to fit perfectly inside dialogs/wizard cards */
     .new-account-dialog loan-details-form > div,
-    app-welcome-wizard loan-details-form > div {
+    welcome-wizard loan-details-form > div {
         border: none !important;
         box-shadow: none !important;
         background: transparent !important;
@@ -270,7 +270,7 @@
 
     /* Disable direct mouse/click interactions on onboarding stepper headers */
     .new-account-dialog .p-step-list,
-    app-welcome-wizard .p-step-list {
+    welcome-wizard .p-step-list {
         pointer-events: none !important;
     }
 }
@@ -306,7 +306,7 @@
 }
 
 /* Wizard wrapper already has pt-10, so inner form has 0 top padding to avoid double spacing */
-app-welcome-wizard loan-details-form > div {
+welcome-wizard loan-details-form > div {
     padding: 0 !important;
 }
 
@@ -319,7 +319,7 @@ app-welcome-wizard loan-details-form > div {
 }
 
 /* Hide redundant inner accent bar when nested in welcome wizard (wizard has its own outer accent bar) */
-app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
+welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     display: none !important;
 }
 
