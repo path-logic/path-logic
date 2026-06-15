@@ -322,3 +322,22 @@ app-welcome-wizard loan-details-form > div {
 app-welcome-wizard loan-details-form div.absolute.top-0.h-1 {
     display: none !important;
 }
+
+/* Remove all borders, shadows, outlines and focus rings from the loan types toggle buttons */
+.pl-toggle-loan-types-btn,
+.pl-toggle-loan-types-btn.p-button,
+.pl-toggle-loan-types-btn.p-button:focus,
+.pl-toggle-loan-types-btn.p-button:focus-visible,
+.pl-toggle-loan-types-btn.p-button:hover,
+.pl-toggle-loan-types-btn.p-button:active,
+.p-button.pl-toggle-loan-types-btn,
+.p-button.pl-toggle-loan-types-btn:focus,
+.p-button.pl-toggle-loan-types-btn:focus-visible,
+.p-button.pl-toggle-loan-types-btn:hover,
+.p-button.pl-toggle-loan-types-btn:active {
+    border: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
