@@ -257,7 +257,7 @@ export class NewAccountDialogComponent {
     /** Whether the loan form is valid — bridges to the child loanForm's FormGroup validity. */
     readonly isLoanFormValid = computed(() => {
         const ref = this.loanFormRef();
-        return ref?.loanForm ? ref.loanForm.valid : false;
+        return ref ? ref.isValid() : false;
     });
 
     constructor() {

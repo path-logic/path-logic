@@ -1,6 +1,10 @@
 import { workspaceRoot } from '@nx/devkit';
 import { nxE2EPreset } from '@nx/playwright/preset';
 import { defineConfig, devices } from '@playwright/test';
+import * as path from 'path';
+
+// Force compatibility library preload on Ubuntu 24.04 noble WSL2 to bypass dynamic loader reloc bug
+process.env['LD_PRELOAD'] = path.join(__dirname, 'lib', 'libblkid.so.1');
 
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'https://127.0.0.1:4201';
@@ -30,8 +34,20 @@ export default defineConfig({
     },
     projects: [
         {
-            name: 'chromium',
-            use: { ...devices['Desktop Chrome'] }
+            name: 'chrome',
+            use: {
+                ...devices['Desktop Chrome'],
+                launchOptions: {
+                    executablePath: path.join(
+                        __dirname,
+                        'chrome-extracted',
+                        'opt',
+                        'google',
+                        'chrome',
+                        'google-chrome'
+                    )
+                }
+            }
         }
     ]
 });

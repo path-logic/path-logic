@@ -18,6 +18,7 @@ export class AccountsPage {
     readonly loanLiabilityTypesBtn;
 
     // Loan Details Form Inputs
+    readonly loanAccountNameInput;
     readonly originalLoanAmountInput;
     readonly interestRateInput;
     readonly termMonthsInput;
@@ -33,22 +34,23 @@ export class AccountsPage {
         this.dialog = page.locator('.new-account-dialog');
 
         // Dialog Controls
-        this.accountNameInput = this.dialog.getByLabel(/Account Name/i);
+        this.accountNameInput = this.dialog.locator('#account-name-input');
         this.startingBalanceInput = this.dialog.getByLabel(/Starting Balance/i);
         this.createAccountOnlyBtn = this.dialog.getByRole('button', {
-            name: /Create Account Only/i
+            name: /Create Only|Create Account Only/i
         });
         this.loanLiabilityTypesBtn = this.dialog.getByRole('button', {
             name: /Loan \/ Liability Types/i
         });
 
         // Loan Form Controls
+        this.loanAccountNameInput = this.dialog.locator('#loan-acc-name');
         this.originalLoanAmountInput = this.dialog.getByLabel(/Original Loan Amount/i);
         this.interestRateInput = this.dialog.getByLabel(/Interest Rate/i);
         this.termMonthsInput = this.dialog.getByLabel(/Term/i);
         this.monthlyPaymentInput = this.dialog.getByLabel(/Monthly Payment/i);
         this.createLoanAccountBtn = this.dialog.getByRole('button', {
-            name: /Create Loan Account/i
+            name: /Create Only|Create Account Only/i
         });
     }
 
@@ -104,7 +106,7 @@ export class AccountsPage {
         await this.selectType('Auto Loan'); // clicks Auto Loan button
 
         // Step 2: fill details & create
-        await this.accountNameInput.fill(name);
+        await this.loanAccountNameInput.fill(name);
         await this.originalLoanAmountInput.fill(amount);
         await this.interestRateInput.fill(interestRate);
         await this.termMonthsInput.fill(term);

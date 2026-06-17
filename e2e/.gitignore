@@ -1,2 +1,4 @@
 ux-screenshots/
 !src/fixtures/**/*.qif
+/chrome-extracted/
+/lib/

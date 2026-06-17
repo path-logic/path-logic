@@ -14,7 +14,7 @@ export class WelcomeWizardPage {
     constructor(page: Page) {
         this.page = page;
         this.container = page.locator('welcome-wizard');
-        this.accountNameInput = this.container.getByLabel(/Account Name/i);
+        this.accountNameInput = this.container.locator('#wizard-account-name');
         this.initialBalanceInput = this.container.getByLabel(/Initial Balance/i);
         this.createAccountOnlyBtn = this.container.getByRole('button', {
             name: /Create Account Only/i
