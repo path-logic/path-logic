@@ -390,9 +390,17 @@ export class NewAccountDialogComponent {
         this.closed.emit();
     }
 
-    finishAfterImport(): void {
+    async finishAfterImport(): Promise<void> {
         this.isNavigating.set(true);
         const accountId = this.createdAccount()?.id;
+
+        if (accountId) {
+            try {
+                await this.importService.commitImport(accountId);
+            } catch (err) {
+                console.error('Failed to commit imported transactions:', err);
+            }
+        }
 
         setTimeout(() => {
             if (accountId) {

@@ -348,9 +348,17 @@ export class WelcomeWizardComponent {
         this.wizardCompleted.emit();
     }
 
-    finishAfterImport(): void {
+    async finishAfterImport(): Promise<void> {
         this.isNavigating.set(true);
         const accountId = this.createdAccount()?.id;
+
+        if (accountId) {
+            try {
+                await this.importService.commitImport(accountId);
+            } catch (err) {
+                console.error('Failed to commit imported transactions:', err);
+            }
+        }
 
         // Yield to let the spinner render before heavy routing
         setTimeout(() => {

@@ -98,7 +98,7 @@
                         [options]="categories()"
                         optionLabel="name"
                         optionValue="id"
-                        [ngModel]="split.categoryId ?? 'uncategorized'"
+                        [ngModel]="split.categoryId ?? 'cat-uncategorized'"
                         (ngModelChange)="handleUpdateSplit(split.id, { categoryId: $event })"
                         styleClass="text-[10px] uppercase font-bold w-full"
                     ></p-select>

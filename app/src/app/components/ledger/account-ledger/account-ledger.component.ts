@@ -273,7 +273,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                         parsed.splits && parsed.splits.length > 0
                             ? parsed.splits.map((s, sIdx) => ({
                                   id: `split-import-${Date.now()}-${idx}-${sIdx}`,
-                                  amount: s.amount || parsed.amount,
+                                  amount: s.amount,
                                   memo: s.memo || '',
                                   categoryId: this.mapQifCategory(s.category ?? undefined)
                               }))
@@ -282,7 +282,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                                       id: `split-import-${Date.now()}-${idx}`,
                                       amount: parsed.amount,
                                       memo: parsed.memo,
-                                      categoryId: KnownCategory.Uncategorized
+                                      categoryId: this.mapQifCategory(parsed.category ?? undefined)
                                   }
                               ],
                     createdAt: now,
@@ -347,6 +347,12 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     private mapQifCategory(qifCategory: string | undefined): string {
         if (!qifCategory) return KnownCategory.Uncategorized;
 
+        // If it's already a valid category ID, use it directly
+        const categories = this.ledgerStore.categories();
+        if (categories.some(c => c.id === qifCategory)) {
+            return qifCategory;
+        }
+
         // Clean: remove brackets and take the last part after ':'
         const cleanNameRaw = qifCategory.replace(/[[\]]/g, '').trim();
         let cleanName = cleanNameRaw;
@@ -358,7 +364,6 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
             }
         }
 
-        const categories = this.ledgerStore.categories();
         const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());
 
         return match ? match.id : KnownCategory.Uncategorized;

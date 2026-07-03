@@ -1,6 +1,6 @@
 import { Injectable, NgZone, inject, signal } from '@angular/core';
-import type { IReconciliationMatch } from '@core';
-import { KnownCategory } from '@core';
+import type { IPayee, IReconciliationMatch, ISODateString, ITransaction } from '@core';
+import { KnownCategory, TransactionStatus } from '@core';
 import { ReconciliationEngine } from '../../core/engine/ReconciliationEngine';
 import { QIFParser } from '../../core/parsers/QIFParser';
 import { LedgerStore } from '../ledger-store/ledger.store';
@@ -418,6 +418,107 @@ export class ImportOrchestrationService {
         });
 
         this.applyMappingsAndComplete(mappedMatches, tier, stats);
+    }
+
+    /**
+     * Commits all matched/parsed transactions directly.
+     * Used primarily by onboarding wizards (new accounts) where no reconciliation is needed.
+     */
+    async commitImport(accountId: string): Promise<void> {
+        const matches = this.matches();
+        if (matches.length === 0) return;
+
+        const now = new Date().toISOString() as ISODateString;
+        const txsToImport: Array<ITransaction> = [];
+        const newPayees = new Map<string, IPayee>();
+        const currentPayees = new Map(this.ledgerStore.payees().map(p => [p.name, p]));
+
+        const categories = this.ledgerStore.categories();
+        const mapCategory = (cat: string | null | undefined): string => {
+            if (!cat) return KnownCategory.Uncategorized;
+
+            // If already a valid category ID in our store, return it
+            if (categories.some(c => c.id === cat)) {
+                return cat;
+            }
+
+            // Clean: remove brackets and take the last part after ':'
+            const cleanNameRaw = cat.replace(/[[\]]/g, '').trim();
+            let cleanName = cleanNameRaw;
+            if (cleanNameRaw.includes(':')) {
+                const parts = cleanNameRaw.split(':');
+                const lastPart = parts[parts.length - 1];
+                if (lastPart) {
+                    cleanName = lastPart.trim();
+                }
+            }
+
+            const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());
+            return match ? match.id : KnownCategory.Uncategorized;
+        };
+
+        matches.forEach((match, idx) => {
+            const parsed = match.parsedTx;
+            let payee = currentPayees.get(parsed.payee) || newPayees.get(parsed.payee);
+            if (!payee) {
+                payee = {
+                    id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    name: parsed.payee,
+                    address: null,
+                    city: null,
+                    state: null,
+                    zipCode: null,
+                    latitude: null,
+                    longitude: null,
+                    website: null,
+                    phone: null,
+                    notes: null,
+                    defaultCategoryId: null,
+                    createdAt: now,
+                    updatedAt: now
+                };
+                newPayees.set(parsed.payee, payee);
+            }
+
+            txsToImport.push({
+                id: `tx-import-${Date.now()}-${idx}`,
+                accountId,
+                payeeId: payee.id,
+                date: parsed.date,
+                payee: parsed.payee,
+                memo: parsed.memo,
+                totalAmount: parsed.amount,
+                status: TransactionStatus.Cleared,
+                checkNumber: parsed.checkNumber,
+                importHash: parsed.importHash,
+                splits:
+                    parsed.splits && parsed.splits.length > 0
+                        ? parsed.splits.map((s, sIdx) => ({
+                              id: `split-import-${Date.now()}-${idx}-${sIdx}`,
+                              amount: s.amount,
+                              memo: s.memo || '',
+                              categoryId: mapCategory(s.category)
+                          }))
+                        : [
+                              {
+                                  id: `split-import-${Date.now()}-${idx}`,
+                                  amount: parsed.amount,
+                                  memo: parsed.memo,
+                                  categoryId: mapCategory(parsed.category)
+                              }
+                          ],
+                createdAt: now,
+                updatedAt: now
+            });
+        });
+
+        if (newPayees.size > 0 || txsToImport.length > 0) {
+            await this.ledgerStore.applyReconciliationBatch(
+                Array.from(newPayees.values()),
+                txsToImport,
+                []
+            );
+        }
     }
 
     private applyMappingsAndComplete(
