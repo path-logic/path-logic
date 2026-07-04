@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -25,6 +25,7 @@ export class SettingsPageComponent {
     private readonly userSettingsStore = inject(UserSettingsStore);
 
     readonly geminiApiKey = computed(() => this.userSettingsStore.getSetting('geminiApiKey') ?? '');
+    readonly showGuide = signal(false);
 
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
     readonly currentTheme = this.themeService.preference;
