@@ -48,12 +48,24 @@ jobs:
             # Deploy Web App
             - name: Deploy Web App
               run: firebase deploy --only hosting:web --project ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
+              env:
+                  GCP_PROJECT: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
+                  GOOGLE_CLOUD_PROJECT: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
+                  GCLOUD_PROJECT: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
 
             # Deploy Storybook — staging on develop, production on main
             - name: Deploy Storybook (Staging)
               if: github.ref == 'refs/heads/develop'
               run: firebase deploy --only hosting:storybook-staging --project path-logic-staging
+              env:
+                  GCP_PROJECT: path-logic-staging
+                  GOOGLE_CLOUD_PROJECT: path-logic-staging
+                  GCLOUD_PROJECT: path-logic-staging
 
             - name: Deploy Storybook (Production)
               if: github.ref == 'refs/heads/main'
               run: firebase deploy --only hosting:storybook --project path-logic
+              env:
+                  GCP_PROJECT: path-logic
+                  GOOGLE_CLOUD_PROJECT: path-logic
+                  GCLOUD_PROJECT: path-logic
