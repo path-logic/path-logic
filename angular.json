@@ -1,0 +1,122 @@
+{
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "newProjectRoot": "",
+    "projects": {
+        "app": {
+            "projectType": "application",
+            "root": "app",
+            "sourceRoot": "app/src",
+            "prefix": "",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:application",
+                    "options": {
+                        "outputPath": "dist/app",
+                        "index": "app/src/index.html",
+                        "browser": "app/src/main.ts",
+                        "tsConfig": "app/tsconfig.app.json",
+                        "polyfills": [],
+                        "assets": [
+                            {
+                                "glob": "**/*",
+                                "input": "app/public"
+                            }
+                        ],
+                        "styles": ["app/src/styles.css"],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "1.5mb",
+                                    "maximumError": "2mb"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "4kb",
+                                    "maximumError": "8kb"
+                                }
+                            ],
+                            "outputHashing": "all",
+                            "fileReplacements": [
+                                {
+                                    "replace": "app/src/environments/environment.ts",
+                                    "with": "app/src/environments/environment.prod.ts"
+                                }
+                            ]
+                        },
+                        "staging": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "1.5mb",
+                                    "maximumError": "2mb"
+                                },
+                                {
+                                    "type": "anyComponentStyle",
+                                    "maximumWarning": "4kb",
+                                    "maximumError": "8kb"
+                                }
+                            ],
+                            "outputHashing": "all",
+                            "fileReplacements": [
+                                {
+                                    "replace": "app/src/environments/environment.ts",
+                                    "with": "app/src/environments/environment.staging.ts"
+                                }
+                            ]
+                        },
+                        "development": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true
+                        },
+                        "e2e": {
+                            "optimization": false,
+                            "extractLicenses": false,
+                            "sourceMap": true,
+                            "fileReplacements": [
+                                {
+                                    "replace": "app/src/environments/environment.ts",
+                                    "with": "app/src/environments/environment.e2e.ts"
+                                }
+                            ]
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular/build:dev-server",
+                    "options": {
+                        "ssl": true,
+                        "sslKey": "app/ssl/localhost.key",
+                        "sslCert": "app/ssl/localhost.crt",
+                        "headers": {
+                            "Cross-Origin-Opener-Policy": "unsafe-none",
+                            "Cross-Origin-Embedder-Policy": "unsafe-none"
+                        }
+                    },
+                    "configurations": {
+                        "production": {
+                            "buildTarget": "app:build:production"
+                        },
+                        "development": {
+                            "buildTarget": "app:build:development"
+                        },
+                        "e2e": {
+                            "buildTarget": "app:build:e2e"
+                        }
+                    },
+                    "defaultConfiguration": "development"
+                },
+                "test": {
+                    "builder": "@angular/build:unit-test",
+                    "options": {}
+                }
+            }
+        }
+    }
+}

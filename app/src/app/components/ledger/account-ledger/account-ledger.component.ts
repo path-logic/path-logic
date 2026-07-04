@@ -211,9 +211,18 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     async handleReconciliationConfirmed(event: {
         decisions: Record<number, ReconciliationDecision>;
+        payeeOverrides?: Record<number, string>;
+        categoryOverrides?: Record<number, string>;
+        matchOverrides?: Record<number, string>;
         done: () => void;
     }): Promise<void> {
-        const { decisions, done } = event;
+        const {
+            decisions,
+            payeeOverrides = {},
+            categoryOverrides = {},
+            matchOverrides = {},
+            done
+        } = event;
         const matches = this.importService.matches();
         const accountId = this.activeAccountId() ?? 'default';
         const now = new Date().toISOString() as ISODateString;
@@ -233,15 +242,16 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
             if (decision === 'import') {
                 const parsed = match.parsedTx;
+                const overriddenPayeeName = payeeOverrides[idx] || parsed.payee;
 
-                let payee = currentPayees.get(parsed.payee);
-                if (!payee && newPayees.has(parsed.payee)) {
-                    payee = newPayees.get(parsed.payee);
+                let payee = currentPayees.get(overriddenPayeeName);
+                if (!payee && newPayees.has(overriddenPayeeName)) {
+                    payee = newPayees.get(overriddenPayeeName);
                 }
                 if (!payee) {
                     payee = {
                         id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                        name: parsed.payee,
+                        name: overriddenPayeeName,
                         address: null,
                         city: null,
                         state: null,
@@ -255,7 +265,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                         createdAt: now,
                         updatedAt: now
                     };
-                    newPayees.set(parsed.payee, payee);
+                    newPayees.set(overriddenPayeeName, payee);
                 }
 
                 txsToImport.push({
@@ -263,7 +273,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                     accountId,
                     payeeId: payee.id,
                     date: parsed.date,
-                    payee: parsed.payee,
+                    payee: overriddenPayeeName,
                     memo: parsed.memo,
                     totalAmount: parsed.amount,
                     status: TransactionStatus.Cleared,
@@ -275,28 +285,35 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                                   id: `split-import-${Date.now()}-${idx}-${sIdx}`,
                                   amount: s.amount,
                                   memo: s.memo || '',
-                                  categoryId: this.mapQifCategory(s.category ?? undefined)
+                                  categoryId:
+                                      categoryOverrides[idx] ||
+                                      this.mapQifCategory(s.category ?? undefined)
                               }))
                             : [
                                   {
                                       id: `split-import-${Date.now()}-${idx}`,
                                       amount: parsed.amount,
                                       memo: parsed.memo,
-                                      categoryId: this.mapQifCategory(parsed.category ?? undefined)
+                                      categoryId:
+                                          categoryOverrides[idx] ||
+                                          this.mapQifCategory(parsed.category ?? undefined)
                                   }
                               ],
                     createdAt: now,
                     updatedAt: now
                 });
-            } else if (decision === 'match' && match.existingTxId) {
-                const existingTx = this.transactions().find(t => t.id === match.existingTxId);
-                if (existingTx) {
-                    txsToUpdate.push({
-                        ...existingTx,
-                        status: TransactionStatus.Cleared,
-                        updatedAt: now
-                    });
-                    matchedCount++;
+            } else if (decision === 'match') {
+                const targetMatchId = matchOverrides[idx] || match.existingTxId;
+                if (targetMatchId) {
+                    const existingTx = this.transactions().find(t => t.id === targetMatchId);
+                    if (existingTx) {
+                        txsToUpdate.push({
+                            ...existingTx,
+                            status: TransactionStatus.Cleared,
+                            updatedAt: now
+                        });
+                        matchedCount++;
+                    }
                 }
             } else {
                 ignoredCount++;

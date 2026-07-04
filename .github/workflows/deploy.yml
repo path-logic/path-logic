@@ -9,16 +9,11 @@ on:
 jobs:
     deploy:
         runs-on: ubuntu-latest
-        env:
-            NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-            NX_CLOUD_NO_TIMEOUTS: true
         permissions:
             contents: read
             id-token: write
         steps:
             - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
 
             - uses: actions/setup-node@v4
               with:
@@ -31,14 +26,14 @@ jobs:
             - name: Build Web App
               run: |
                   if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-                    npx nx run app:build:production
+                    npm run build
                   else
-                    npx nx run app:build:staging
+                    npm run build-staging
                   fi
 
             # Build Storybook static site (both branches)
             - name: Build Storybook
-              run: npx nx run app:build-storybook
+              run: npm run build-storybook
 
             - name: Authenticate to Google Cloud
               id: auth

@@ -92,7 +92,6 @@ import { ButtonModule } from 'primeng/button';
         </div>
     `
 })
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 class ButtonDemoComponent {}
 
 const meta: Meta<ButtonDemoComponent> = {

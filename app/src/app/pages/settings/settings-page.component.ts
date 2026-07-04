@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { FeatureFlagToggleComponent } from '../../components/settings/feature-flag-toggle/feature-flag-toggle.component';
 import { FLAG_CONFIGS } from '../../constants/feature-flags';
 import { type ThemePreference, ThemeService } from '../../services/theme/theme.service';
+import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 
 /**
  * Main Settings page for configuring the application.
@@ -21,6 +22,9 @@ import { type ThemePreference, ThemeService } from '../../services/theme/theme.s
 })
 export class SettingsPageComponent {
     private readonly themeService = inject(ThemeService);
+    private readonly userSettingsStore = inject(UserSettingsStore);
+
+    readonly geminiApiKey = computed(() => this.userSettingsStore.getSetting('geminiApiKey') ?? '');
 
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
     readonly currentTheme = this.themeService.preference;
@@ -39,5 +43,9 @@ export class SettingsPageComponent {
 
     setTheme(pref: ThemePreference): void {
         this.themeService.setTheme(pref);
+    }
+
+    updateGeminiApiKey(key: string): void {
+        this.userSettingsStore.updateSetting('geminiApiKey', key.trim());
     }
 }

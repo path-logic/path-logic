@@ -17,6 +17,7 @@ import { GLOBAL_DATE_FORMAT, Money } from '@core';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { Select } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import type { IImportStats, ReconciliationDecision } from '../../../services/import/import.types';
 import { LARGE_DATASET_THRESHOLD } from '../../../services/import/import.types';
@@ -47,6 +48,7 @@ export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
         Dialog,
         Button,
         PrimeTemplate,
+        Select,
         SelectButtonModule,
         PayeeAutocompleteComponent
     ],
@@ -70,6 +72,9 @@ export class ReconciliationDialogComponent {
 
     readonly confirmed = output<{
         decisions: Record<number, ReconciliationDecision>;
+        payeeOverrides: Record<number, string>;
+        categoryOverrides: Record<number, string>;
+        matchOverrides: Record<number, string>;
         done: () => void;
     }>();
 
@@ -77,9 +82,12 @@ export class ReconciliationDialogComponent {
 
     readonly decisions = signal<Record<number, ReconciliationDecision>>({});
     readonly payeeOverrides = signal<Record<number, unknown>>({});
+    readonly categoryOverrides = signal<Record<number, string>>({});
     readonly matchOverrides = signal<Record<number, string>>({});
     readonly isProcessing = signal<boolean>(false);
     readonly editingMatchIdx = signal<number | null>(null);
+
+    readonly categories = this.ledgerStore.categories;
 
     readonly decisionOptions = [
         { label: 'Import', value: 'import', icon: 'pi pi-plus' },
@@ -163,6 +171,7 @@ export class ReconciliationDialogComponent {
                     });
                     this.decisions.set(initial);
                     this.payeeOverrides.set({});
+                    this.categoryOverrides.set({});
                     this.matchOverrides.set({});
                     this.editingMatchIdx.set(null);
                     this.smartDefaultsApplied.set(false);
@@ -182,6 +191,10 @@ export class ReconciliationDialogComponent {
 
     setPayeeOverride(idx: number, payee: unknown): void {
         this.payeeOverrides.update(prev => ({ ...prev, [idx]: payee }));
+    }
+
+    setCategoryOverride(idx: number, categoryId: string): void {
+        this.categoryOverrides.update(prev => ({ ...prev, [idx]: categoryId }));
     }
 
     setMatchOverride(idx: number, txId: string): void {
@@ -283,8 +296,23 @@ export class ReconciliationDialogComponent {
                 smart_defaults_used: this.smartDefaultsApplied()
             });
 
+            // Normalize payeeOverrides to strings
+            const normalizedPayees: Record<number, string> = {};
+            for (const [kStr, val] of Object.entries(this.payeeOverrides())) {
+                const k = parseInt(kStr, 10);
+                if (val) {
+                    normalizedPayees[k] =
+                        typeof val === 'object' && val !== null && 'name' in val
+                            ? String((val as { name: unknown }).name)
+                            : String(val);
+                }
+            }
+
             this.confirmed.emit({
                 decisions: decisionsSnapshot,
+                payeeOverrides: normalizedPayees,
+                categoryOverrides: this.categoryOverrides(),
+                matchOverrides: this.matchOverrides(),
                 done: () => {
                     this.isProcessing.set(false);
                     this.isOpen.set(false);

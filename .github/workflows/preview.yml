@@ -20,7 +20,7 @@ jobs:
             - run: npm ci --force
 
             # Build production web app
-            - run: npx nx run web:build:production
+            - run: npm run build
 
             # Deploy to preview channel (auto-generates preview URL)
             - uses: FirebaseExtended/action-hosting-deploy@v0

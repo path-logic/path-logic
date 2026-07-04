@@ -4,6 +4,7 @@
     [closable]="!isProcessing()"
     [style]="{ width: dialogWidth() }"
     styleClass="penny-dialog reconciliation-dialog"
+    appendTo="body"
 >
     <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════ -->
     <ng-template pTemplate="header">
@@ -96,27 +97,27 @@
             <!-- Bulk action bar -->
             @if (selectedCount() > 0) {
                 <div
-                    class="flex items-center gap-3 px-4 py-2 bg-surface-800 text-white text-[10px]"
+                    class="flex items-center gap-3 px-4 py-2 bg-brand-elevated text-content-primary border-b border-brand-border text-[10px]"
                 >
                     <span class="font-black uppercase tracking-widest"
                         >{{ selectedCount() }} selected</span
                     >
-                    <div class="h-4 w-px bg-surface-600"></div>
+                    <div class="h-4 w-px bg-brand-border"></div>
                     <button
                         (click)="bulkSetDecision('import')"
-                        class="px-3 py-1 rounded-sm bg-primary text-white font-black uppercase tracking-widest hover:bg-primary/80 transition-colors"
+                        class="px-3 py-1 rounded-sm bg-primary text-white font-black uppercase tracking-widest hover:bg-primary/90 active:scale-[0.98] transition-all"
                     >
                         Import All
                     </button>
                     <button
                         (click)="bulkSetDecision('match')"
-                        class="px-3 py-1 rounded-sm bg-amber-600 text-white font-black uppercase tracking-widest hover:bg-amber-700 transition-colors"
+                        class="px-3 py-1 rounded-sm bg-amber-600 text-white font-black uppercase tracking-widest hover:bg-amber-700/90 active:scale-[0.98] transition-all"
                     >
                         Match All
                     </button>
                     <button
                         (click)="bulkSetDecision('ignore')"
-                        class="px-3 py-1 rounded-sm bg-surface-600 text-white font-black uppercase tracking-widest hover:bg-surface-500 transition-colors"
+                        class="px-3 py-1 rounded-sm bg-surface-600 text-white font-black uppercase tracking-widest hover:bg-surface-500/90 active:scale-[0.98] transition-all"
                     >
                         Skip All
                     </button>
@@ -147,6 +148,11 @@
                                 Payee
                             </th>
                             <th
+                                class="px-3 py-2 text-left font-black uppercase tracking-widest text-surface-500 w-44"
+                            >
+                                Category
+                            </th>
+                            <th
                                 class="px-3 py-2 text-right font-black uppercase tracking-widest text-surface-500"
                             >
                                 Amount
@@ -166,7 +172,7 @@
                     <tbody>
                         @if (pagedMatches().length === 0) {
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="7" class="px-6 py-12 text-center">
                                     <div
                                         class="flex flex-col items-center justify-center text-surface-400"
                                     >
@@ -204,9 +210,26 @@
                                         {{ item.match.parsedTx.date | date: globalDateFormat }}
                                     </td>
                                     <td
-                                        class="px-3 py-2 font-bold text-surface-800 max-w-[200px] truncate"
+                                        class="px-3 py-2 font-bold text-surface-800 max-w-[150px] truncate"
                                     >
                                         {{ item.match.parsedTx.payee }}
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <p-select
+                                            [options]="categories()"
+                                            optionLabel="name"
+                                            optionValue="id"
+                                            [ngModel]="
+                                                categoryOverrides()[item.globalIdx] ||
+                                                item.match.parsedTx.category ||
+                                                'cat-uncategorized'
+                                            "
+                                            (ngModelChange)="
+                                                setCategoryOverride(item.globalIdx, $event)
+                                            "
+                                            styleClass="text-[10px] w-full"
+                                            [disabled]="d === 'ignore' || d === 'match'"
+                                        ></p-select>
                                     </td>
                                     <td
                                         class="px-3 py-2 text-right font-mono font-bold tabular-nums"
@@ -372,8 +395,24 @@
                                     inputStyleClass="w-full h-8 text-sm font-black text-surface-800 uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
                                 ></payee-autocomplete>
                             </div>
+                            <div class="h-9 w-full mt-2">
+                                <p-select
+                                    [options]="categories()"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    [ngModel]="
+                                        categoryOverrides()[idx] ||
+                                        match.parsedTx.category ||
+                                        'cat-uncategorized'
+                                    "
+                                    (ngModelChange)="setCategoryOverride(idx, $event)"
+                                    styleClass="text-xs w-full h-8 font-black uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                    placeholder="Select Category"
+                                    [disabled]="decision === 'ignore' || decision === 'match'"
+                                ></p-select>
+                            </div>
                             @if (match.parsedTx.memo) {
-                                <div class="text-[10px] text-surface-800 italic truncate mt-1">
+                                <div class="text-[10px] text-surface-800 italic truncate mt-2">
                                     {{ match.parsedTx.memo }}
                                 </div>
                             }

@@ -59,6 +59,49 @@
                     </div>
                 </section>
 
+                <!-- ── AI Integration ────────────────────────────────────── -->
+                <section class="space-y-6">
+                    <div class="flex items-center gap-2 px-1">
+                        <i class="pi pi-sparkles text-base text-primary"></i>
+                        <h2 class="text-[11px] font-black uppercase tracking-widest">
+                            AI Integration
+                        </h2>
+                    </div>
+                    <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
+                        <div class="flex justify-between items-center gap-6">
+                            <div class="flex-1">
+                                <span
+                                    class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
+                                >
+                                    Google Gemini API Key
+                                </span>
+                                <p
+                                    class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5"
+                                >
+                                    Bring Your Own Key (BYOK) — Billed/credited directly to your
+                                    Google AI Studio account
+                                </p>
+                                <div class="mt-3 flex gap-2">
+                                    <input
+                                        type="password"
+                                        [value]="geminiApiKey()"
+                                        #keyInput
+                                        placeholder="AIzaSy..."
+                                        class="flex-1 h-9 text-xs px-3 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow"
+                                    />
+                                    <button
+                                        type="button"
+                                        (click)="updateGeminiApiKey(keyInput.value)"
+                                        class="h-9 px-4 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white active:scale-[0.98] transition-all text-[10px] font-black uppercase tracking-widest shadow"
+                                    >
+                                        Save Key
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- ── Feature Flags ──────────────────────────────────────── -->
                 <section class="space-y-6">
                     <div class="flex items-center gap-2 px-1">

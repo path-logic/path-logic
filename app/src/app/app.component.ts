@@ -14,6 +14,7 @@ import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
 import { EnvBannerComponent } from './components/ui/env-banner/env-banner.component';
 import { AuthService } from './services/auth/auth.service';
+import { FaviconService } from './services/favicon/favicon.service';
 import { LedgerStore } from './services/ledger-store/ledger.store';
 import { PostHogService } from './services/posthog/posthog.service';
 import { SyncService } from './services/sync/sync.service';
@@ -86,6 +87,9 @@ export class AppComponent {
         // Initialize theme before first paint — reads OS/saved preference and
         // sets data-theme on <html>, activating the CSS custom property system.
         inject(ThemeService);
+
+        // Initialize dynamic favicon based on active theme and environment
+        inject(FaviconService);
 
         // Set document title — include env label on non-production builds
         const titleService = inject(Title);

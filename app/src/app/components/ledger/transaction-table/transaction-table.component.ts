@@ -27,6 +27,7 @@ import {
 } from '@tanstack/angular-table';
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 import { LocalDatePipe } from '../../../pipes/local-date.pipe';
+import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 
 /**
  * High-density transaction table component.
@@ -45,6 +46,7 @@ import { LocalDatePipe } from '../../../pipes/local-date.pipe';
 export class TransactionTableComponent {
     private readonly decimalPipe = inject(DecimalPipe);
     private readonly datePipe = inject(DatePipe);
+    private readonly ledgerStore = inject(LedgerStore);
 
     // Inputs
     readonly data = input.required<Array<ITransaction>>();
@@ -95,10 +97,22 @@ export class TransactionTableComponent {
             }
         ),
         this.columnHelper.accessor(
-            row =>
-                row.splits.length > 1
-                    ? 'SPLIT'
-                    : (row.splits[0]?.categoryId ?? KnownCategory.Uncategorized),
+            row => {
+                if (row.splits.length > 1) return 'SPLIT';
+                const catId = row.splits[0]?.categoryId ?? KnownCategory.Uncategorized;
+                const match = this.ledgerStore.categories().find(c => c.id === catId);
+                if (match) return match.name;
+
+                // Friendly fallback for cat- prefixed category IDs
+                if (catId && catId.startsWith('cat-')) {
+                    return catId
+                        .substring(4)
+                        .split('-')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ');
+                }
+                return catId;
+            },
             {
                 id: 'category',
                 header: () => 'Category'
