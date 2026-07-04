@@ -41,6 +41,7 @@ jobs:
               with:
                   workload_identity_provider: projects/48071364929/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
                   service_account: ${{ github.ref == 'refs/heads/main' && 'firebase-adminsdk-fbsvc@path-logic.iam.gserviceaccount.com' || 'firebase-adminsdk-fbsvc@path-logic-staging.iam.gserviceaccount.com' }}
+                  project_id: ${{ github.ref == 'refs/heads/main' && 'path-logic' || 'path-logic-staging' }}
 
             - name: Install Firebase CLI
               run: npm install -g firebase-tools
