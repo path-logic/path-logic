@@ -42,7 +42,12 @@ const meta: Meta<FeatureFlagToggleComponent> = {
                 { provide: UserSettingsStore, useValue: mockSettingsStore }
             ]
         })
-    ]
+    ],
+    args: {
+        flag: 'enable_multi_user',
+        label: 'Enable Multi-User Mode',
+        description: 'Allows sharing ledgers with family members.'
+    }
 };
 
 export default meta;

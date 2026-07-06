@@ -22,7 +22,10 @@ const meta: Meta<LoanDetailsFormComponent> = {
         applicationConfig({
             providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
         })
-    ]
+    ],
+    args: {
+        type: AccountType.Mortgage
+    }
 };
 
 export default meta;
@@ -45,6 +48,7 @@ export const InteractiveValidation: Story = {
         type: AccountType.AutoLoan
     },
     play: async ({ canvasElement }) => {
+        await new Promise(resolve => setTimeout(resolve, 500));
         const canvas = within(canvasElement);
 
         // Clear the default account name to trigger validation

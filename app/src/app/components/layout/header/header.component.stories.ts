@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withDisabledInitialNavigation } from '@angular/router';
 import { TransactionStatus } from '@core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
@@ -35,7 +35,7 @@ const meta: Meta<HeaderComponent> = {
     tags: ['autodocs'],
     decorators: [
         applicationConfig({
-            providers: [provideRouter([{ path: 'iframe.html', redirectTo: '' }])]
+            providers: [provideRouter([], withDisabledInitialNavigation())]
         })
     ],
     parameters: {

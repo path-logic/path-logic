@@ -1,5 +1,4 @@
 import { Component, signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
 import { SignInComponent } from '../../pages/sign-in/sign-in.component';
@@ -53,7 +52,6 @@ const meta: Meta<ComboAuthFlowComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideRouter([]),
                 { provide: AuthService, useClass: MockAuthService },
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: FirebaseService, useValue: {} }

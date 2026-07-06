@@ -82,15 +82,15 @@ export const OpenBalanced: Story = {
         ]
     },
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
+        const body = within(canvasElement.ownerDocument.body);
         // Wait for signals to settle
         await new Promise(resolve => setTimeout(resolve, 100));
 
         // Verify balance indicator shows 0 difference
-        await expect(canvas.getByText(/\$0\.00/)).toBeInTheDocument();
+        await expect(body.getByText(/\$0\.00/)).toBeInTheDocument();
 
         // Verify save button is enabled
-        const saveBtn = canvas.getByRole('button', { name: /confirm splits/i });
+        const saveBtn = body.getByRole('button', { name: /confirm splits/i });
         await expect(saveBtn).not.toBeDisabled();
     }
 };
@@ -105,20 +105,20 @@ export const InteractiveAddAndBalance: Story = {
         initialSplits: [{ id: 's1', amount: 10000, categoryId: 'cat-1', memo: 'Partial' }]
     },
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
+        const body = within(canvasElement.ownerDocument.body);
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Total 200, current split is 100. Diff is 100. Let's add another split.
-        const addBtn = canvas.getByRole('button', { name: /add split/i });
+        const addBtn = body.getByRole('button', { name: /add split/i });
         await userEvent.click(addBtn);
 
         // Click quick balance on the new split (it should appear after Add Split)
-        const quickBalanceBtn = canvas.getByRole('button', {
+        const quickBalanceBtn = body.getByRole('button', {
             name: /quick balance/i
         });
         await userEvent.click(quickBalanceBtn);
 
         // Expect difference to be 0
-        await expect(canvas.getByText(/\$0\.00/)).toBeInTheDocument();
+        await expect(body.getByText(/\$0\.00/)).toBeInTheDocument();
     }
 };

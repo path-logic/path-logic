@@ -44,20 +44,22 @@ export const InteractiveStandardAccountFlow: Story = {
         isOpen: true
     },
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
+        // Wait for render
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const body = within(canvasElement.ownerDocument.body);
 
         // Select Checking
-        const checkingBtn = canvas.getByText(/Checking/i);
+        const checkingBtn = await body.findByText(/Checking/i);
         await userEvent.click(checkingBtn);
 
         // Now we should be on the details step
-        await expect(canvas.getByText(/Configure Checking/i)).toBeInTheDocument();
+        await expect(await body.findByText(/Daily spending & income/i)).toBeInTheDocument();
 
         // 3. Fill details (Account Name is auto-filled to 'Main Checking')
-        await userEvent.type(canvas.getByLabelText(/starting balance/i), '1500');
+        await userEvent.type(await body.findByLabelText(/starting balance/i), '1500');
 
         // 4. Click Create
-        const createBtn = canvas.getByRole('button', { name: /create account/i });
+        const createBtn = await body.findByRole('button', { name: /create only/i });
         await expect(createBtn).not.toBeDisabled();
         // userEvent.click(createBtn); // Would fire angular output
     }

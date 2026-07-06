@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+import { APP_INITIALIZER, inject, signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
@@ -37,18 +37,16 @@ const withMockUrl = (url: string) => {
     return applicationConfig({
         providers: [
             {
-                provide: Router,
-                // Partial mock that satisfies the component's needs and Angular's internal calls
-                useValue: {
-                    url,
-                    events: signal({}).asReadonly(),
-                    serializeUrl: (url: any) => url,
-                    createUrlTree: () => ({}),
-                    initialNavigation: () => {},
-                    navigate: async () => true,
-                    navigateByUrl: async () => true,
-                    resetRootComponentType: () => {}
-                }
+                provide: APP_INITIALIZER,
+                useFactory: () => {
+                    const router = inject(Router);
+                    Object.defineProperty(router, 'url', {
+                        get: () => url,
+                        configurable: true
+                    });
+                    return () => {};
+                },
+                multi: true
             }
         ]
     });

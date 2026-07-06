@@ -3,7 +3,7 @@ const { join } = require('path');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     darkMode: ['class', '[data-theme="dark"]'],
-    content: [join(__dirname, 'src/**/!(*.stories|*.spec).{ts,html}')],
+    content: [join(__dirname, 'src/**/*.{html,ts}')],
     theme: {
         extend: {
             fontFamily: {

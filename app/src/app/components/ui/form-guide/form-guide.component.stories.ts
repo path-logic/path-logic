@@ -32,7 +32,17 @@ const meta: Meta<FormGuideComponent> = {
         applicationConfig({
             providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
         })
-    ]
+    ],
+    args: {
+        guideId: 'form-guide-1',
+        targetFieldId: 'interestRate',
+        content: {
+            interestRate: {
+                title: 'Default Guide Title',
+                description: 'Default guide description.'
+            }
+        }
+    }
 };
 
 export default meta;

@@ -35,6 +35,26 @@ const MOCK_TRANSACTIONS: Array<ITransaction> = [
 
 const mockLedgerStore = {
     transactions: signal(MOCK_TRANSACTIONS),
+    categories: signal([
+        {
+            id: 'cat-1',
+            name: 'Groceries',
+            parentId: null,
+            isActive: true,
+            description: '',
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01'
+        },
+        {
+            id: 'cat-2',
+            name: 'Salary',
+            parentId: null,
+            isActive: true,
+            description: '',
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01'
+        }
+    ] as any),
     addTransactions: async () => {},
     updateTransactions: async () => {}
 };
@@ -50,6 +70,10 @@ const meta: Meta<ReconciliationDialogComponent> = {
     ],
     parameters: {
         layout: 'fullscreen'
+    },
+    args: {
+        isOpen: true,
+        matches: []
     }
 };
 
@@ -109,23 +133,23 @@ export const InteractiveReconciliation: Story = {
         ] as any
     },
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
-        await new Promise(resolve => setTimeout(resolve, 100)); // Allow computed signals to run
+        await new Promise(resolve => setTimeout(resolve, 500)); // Allow computed signals to run
+        const body = within(canvasElement.ownerDocument.body);
 
-        // Initial match should be selected by default (bg-primary class)
-        const matchBtn = canvas.getByRole('button', { name: /confirm match/i });
-        await expect(matchBtn).toHaveClass('bg-primary');
+        // Initial match should be selected by default
+        const matchBtn = body.getByRole('button', { name: /^match$/i });
+        await expect(matchBtn).toHaveAttribute('aria-pressed', 'true');
 
-        // Click Add as Separate
-        const addBtn = canvas.getByRole('button', { name: /add as separate/i });
+        // Click Add as Separate (Import)
+        const addBtn = body.getByRole('button', { name: /^import$/i });
         await userEvent.click(addBtn);
 
-        // Verify it now has bg-primary
-        await expect(addBtn).toHaveClass('bg-primary');
-        await expect(matchBtn).not.toHaveClass('bg-primary');
+        // Verify it now has active state
+        await expect(addBtn).toHaveAttribute('aria-pressed', 'true');
+        await expect(matchBtn).not.toHaveAttribute('aria-pressed', 'true');
 
         // Verify submit button is enabled
-        const submitBtn = canvas.getByRole('button', { name: /commit all decisions/i });
+        const submitBtn = body.getByRole('button', { name: /commit all decisions/i });
         await expect(submitBtn).not.toBeDisabled();
     }
 };

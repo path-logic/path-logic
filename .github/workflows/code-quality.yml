@@ -37,6 +37,18 @@ jobs:
             - name: Run all tests with coverage
               run: npm run test -- --coverage
 
+            - name: Install Playwright Browsers
+              run: npx playwright install --with-deps chromium
+
+            - name: Build Storybook
+              run: npm run build-storybook
+
+            - name: Run Storybook tests
+              run: |
+                  python3 -m http.server 6006 --directory dist/app/storybook &
+                  for i in {1..30}; do curl -I http://127.0.0.1:6006 && break || sleep 1; done
+                  npm run test-storybook
+
             - name: Report Coverage to DeepSource
               if: always()
               uses: deepsourcelabs/test-coverage-action@master

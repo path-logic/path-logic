@@ -45,7 +45,10 @@ const MOCK_AUTO_LOAN: IAccount = {
 const meta: Meta<AccountEditFormComponent> = {
     title: 'Accounts/AccountEditFormComponent',
     component: AccountEditFormComponent,
-    tags: ['autodocs']
+    tags: ['autodocs'],
+    args: {
+        accountData: MOCK_CHECKING_ACCOUNT
+    }
 };
 
 export default meta;

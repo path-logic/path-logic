@@ -1,5 +1,4 @@
 import { Component, signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
 import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
@@ -44,10 +43,7 @@ const meta: Meta<ComboOnboardingComponent> = {
     },
     decorators: [
         applicationConfig({
-            providers: [
-                provideRouter([]),
-                { provide: UserSettingsStore, useValue: mockSettingsStore }
-            ]
+            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
         })
     ]
 };

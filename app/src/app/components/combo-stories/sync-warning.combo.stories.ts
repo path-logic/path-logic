@@ -1,5 +1,4 @@
 import { Component, signal } from '@angular/core';
-import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 
 import { AuthService } from '../../services/auth/auth.service';
@@ -79,7 +78,6 @@ const meta: Meta<ComboSyncWarningComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
                 { provide: SyncService, useValue: mockSyncService }

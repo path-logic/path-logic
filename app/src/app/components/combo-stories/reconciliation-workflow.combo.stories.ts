@@ -120,19 +120,28 @@ export const StackedDialogFlow: Story = {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // 1. Open Recon Dialog
-        await userEvent.click(canvas.getByRole('button', { name: /1\. open reconciliation/i }));
+        const openReconBtn = await canvas.findByRole('button', {
+            name: /1\. open reconciliation/i
+        });
+        await userEvent.click(openReconBtn);
+
         // Using body scope because dialogs are rendered in portals/overlays outside the canvas root sometimes
-        const bodyContext = within(document.body);
+        const bodyContext = within(canvasElement.ownerDocument.body);
         await expect(
-            await bodyContext.findByText(/reviewing 2 bank statement entries/i)
+            await bodyContext.findByText(/2 transactions from bank statement/i)
         ).toBeInTheDocument();
 
         // 2. Open Split Dialog
-        await userEvent.click(canvas.getByRole('button', { name: /2\. simulate split action/i }));
-        await expect(bodyContext.getByText(/split transaction/i)).toBeInTheDocument();
+        const openSplitBtn = await canvas.findByRole('button', {
+            name: /2\. simulate split action/i
+        });
+        await userEvent.click(openSplitBtn);
+
+        await expect(await bodyContext.findByText(/split transaction/i)).toBeInTheDocument();
 
         // Both dialogs should be technically in the DOM, but split dialog is focused/on top
         // Use a more specific selector to avoid ambiguity with the background total
-        await expect(bodyContext.getAllByText(/\$150\.00/)[0]).toBeInTheDocument();
+        const matches = await bodyContext.findAllByText(/\$150\.00/);
+        await expect(matches[0]).toBeInTheDocument();
     }
 };

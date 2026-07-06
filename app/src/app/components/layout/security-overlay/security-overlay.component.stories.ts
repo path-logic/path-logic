@@ -9,6 +9,9 @@ const meta: Meta<SecurityOverlayComponent> = {
     tags: ['autodocs'],
     parameters: {
         layout: 'fullscreen'
+    },
+    args: {
+        isVisible: false
     }
 };
 
@@ -24,6 +27,7 @@ export const Visible: Story = {
         isVisible: true
     },
     play: async ({ canvasElement, args }) => {
+        await new Promise(resolve => setTimeout(resolve, 500));
         const canvas = within(canvasElement);
         // Verify the user can click resume
         const resumeBtn = canvas.getByRole('button', { name: /resume session/i });

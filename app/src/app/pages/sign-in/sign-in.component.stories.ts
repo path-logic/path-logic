@@ -1,4 +1,3 @@
-import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
 
@@ -43,7 +42,6 @@ const meta: Meta<SignInComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideRouter([]),
                 // Provide a dummy FirebaseService just in case
                 { provide: FirebaseService, useValue: {} }
             ]
