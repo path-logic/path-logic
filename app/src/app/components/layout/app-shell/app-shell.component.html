@@ -5,6 +5,7 @@
     <security-overlay [isVisible]="isIdle()" (unlocked)="resetTimers()" />
     <auth-overlay />
     <sync-pending-banner />
+    <model-upgrade-banner />
     <!-- Background Drive sync notifications -->
     <merge-sync-toast />
     <conflict-resolution-modal />
@@ -36,4 +37,7 @@
     </main>
 
     <footer></footer>
+
+    <!-- AI Assistant Sidebar -->
+    <ai-assistant-sidebar />
 </div>

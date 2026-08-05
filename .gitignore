@@ -4,10 +4,6 @@ node_modules/
 # Build outputs
 dist/
 
-# Nx cache
-.nx/
-
-
 # Environment secrets
 .env
 .env.local
@@ -29,6 +25,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Dev Logging
+tmp/
 # TypeScript cache
 *.tsbuildinfo
 

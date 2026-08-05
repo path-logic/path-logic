@@ -5,9 +5,11 @@ import { AuthOverlayComponent } from '../../auth/auth-overlay/auth-overlay.compo
 import { SyncPendingBannerComponent } from '../../auth/sync-pending-banner/sync-pending-banner.component';
 import { ConflictResolutionModalComponent } from '../../sync/conflict-resolution-modal/conflict-resolution-modal.component';
 import { MergeSyncToastComponent } from '../../sync/merge-sync-toast/merge-sync-toast.component';
+import { AiAssistantSidebarComponent } from '../ai-assistant-sidebar/ai-assistant-sidebar.component';
 import { BreadcrumbNavComponent } from '../breadcrumb-nav/breadcrumb-nav.component';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
+import { ModelUpgradeBannerComponent } from '../model-upgrade-banner/model-upgrade-banner.component';
 import { SecurityOverlayComponent } from '../security-overlay/security-overlay.component';
 
 /**
@@ -24,8 +26,10 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
         SecurityOverlayComponent,
         AuthOverlayComponent,
         SyncPendingBannerComponent,
+        ModelUpgradeBannerComponent,
         MergeSyncToastComponent,
-        ConflictResolutionModalComponent
+        ConflictResolutionModalComponent,
+        AiAssistantSidebarComponent
     ],
     templateUrl: './app-shell.component.html',
     styleUrl: './app-shell.component.css',

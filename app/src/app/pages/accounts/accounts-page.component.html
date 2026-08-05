@@ -27,13 +27,27 @@
                         Configure institutions and starting balances
                     </p>
                 </div>
-                <button
-                    (click)="isAddDialogOpen.set(true)"
-                    class="min-h-[44px] px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all"
-                >
-                    <i class="pi pi-plus text-base"></i>
-                    Add Account
-                </button>
+                <div class="flex items-center gap-3">
+                    <button
+                        type="button"
+                        (click)="toggleTrash()"
+                        class="min-h-[44px] px-4 flex items-center gap-2 border border-surface-200/60 hover:bg-surface-100 text-surface-600 rounded-xl text-sm font-semibold transition-all shadow-sm"
+                        aria-label="View trashed accounts"
+                    >
+                        <i class="pi pi-trash text-base text-red-500"></i>
+                        Trash
+                        @if (trashedAccounts().length > 0) {
+                            ({{ trashedAccounts().length }})
+                        }
+                    </button>
+                    <button
+                        (click)="isAddDialogOpen.set(true)"
+                        class="min-h-[44px] px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all"
+                    >
+                        <i class="pi pi-plus text-base"></i>
+                        Add Account
+                    </button>
+                </div>
             </header>
 
             <div
@@ -224,7 +238,7 @@
         (accountCreated)="handleAccountCreated($event)"
     />
 
-    <!-- Delete Account Confirmation Modal -->
+    <!-- Delete Account Confirmation Modal (Move to Trash) -->
     @if (isDeleteConfirmOpen()) {
         <div
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
@@ -246,18 +260,18 @@
                             id="delete-confirm-title"
                             class="text-[13px] font-black uppercase tracking-widest text-surface-800"
                         >
-                            Archive Account
+                            Move Account to Trash
                         </h2>
                         <p class="text-[11px] text-surface-500 mt-0.5">
-                            This action cannot be undone from the UI.
+                            You can restore or empty it at any time.
                         </p>
                     </div>
                 </div>
 
                 <p class="text-[12px] text-surface-600 leading-relaxed">
-                    This will archive the account and hide
-                    <strong>all of its transactions</strong> from your ledger. Your data is
-                    soft-deleted and remains in the encrypted database file.
+                    This will move the account and <strong>all of its transactions</strong> to your
+                    Trash. Trashed items are hidden from your active ledger but can be restored
+                    whenever you need.
                 </p>
 
                 <div class="flex gap-2 pt-2">
@@ -272,9 +286,241 @@
                         type="button"
                         id="confirm-delete-account-btn"
                         (click)="confirmDeleteAccount()"
-                        class="flex-1 h-9 text-[11px] font-bold uppercase tracking-wider bg-red-500 hover:bg-red-600 text-white rounded-sm transition-colors"
+                        class="flex-1 h-9 text-[11px] font-bold uppercase tracking-wider bg-red-500 hover:bg-red-600 text-white rounded-sm transition-colors flex items-center justify-center gap-1.5"
                     >
-                        Archive Account
+                        <i class="pi pi-trash text-xs"></i>
+                        Move to Trash
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Account Trash Drawer / Modal -->
+    @if (isTrashOpen()) {
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trash-dialog-title"
+        >
+            <div
+                class="bg-surface-0 border border-surface-200 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh]"
+            >
+                <div
+                    class="p-5 border-b border-surface-200/60 flex items-center justify-between bg-surface-50/50"
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500"
+                        >
+                            <i class="pi pi-trash text-lg"></i>
+                        </div>
+                        <div>
+                            <h2
+                                id="trash-dialog-title"
+                                class="text-base font-bold text-surface-800"
+                            >
+                                Account Trash
+                            </h2>
+                            <p class="text-xs text-surface-500 font-medium">
+                                Manage trashed accounts, restore them, or purge them permanently
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        (click)="toggleTrash()"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-surface-700 hover:bg-surface-200/50 transition-colors"
+                        aria-label="Close Trash"
+                    >
+                        <i class="pi pi-times text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 overflow-y-auto space-y-3 flex-1">
+                    @if (trashedAccounts().length === 0) {
+                        <div class="py-12 text-center flex flex-col items-center justify-center">
+                            <i class="pi pi-check-circle text-4xl text-surface-300 mb-2"></i>
+                            <p class="text-sm font-semibold text-surface-600">
+                                Your Trash is empty
+                            </p>
+                            <p class="text-xs text-surface-400 mt-1">
+                                No deleted accounts currently exist
+                            </p>
+                        </div>
+                    } @else {
+                        @for (acc of trashedAccounts(); track acc.id) {
+                            <div
+                                class="p-4 border border-surface-200/70 rounded-xl bg-surface-0 hover:border-surface-300 transition-all flex items-center justify-between gap-4"
+                            >
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div
+                                        class="w-9 h-9 rounded-lg bg-surface-100 flex items-center justify-center text-surface-500 flex-shrink-0"
+                                    >
+                                        <i [class]="'pi text-base ' + getAccountIcon(acc.type)"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h4 class="text-sm font-bold text-surface-800 truncate">
+                                            {{ acc.name }}
+                                        </h4>
+                                        <p
+                                            class="text-[11px] text-surface-500 font-medium truncate uppercase tracking-wider"
+                                        >
+                                            {{ acc.institutionName }} • Trashed
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                        type="button"
+                                        (click)="handleRestoreAccount(acc.id)"
+                                        class="px-3 h-8 text-xs font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors border border-primary/20 flex items-center gap-1.5"
+                                        title="Restore this account to active ledger"
+                                    >
+                                        <i class="pi pi-refresh text-xs"></i>
+                                        Restore
+                                    </button>
+                                    <button
+                                        type="button"
+                                        (click)="requestPurgeAccount(acc.id)"
+                                        class="px-3 h-8 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-red-200 flex items-center gap-1.5"
+                                        title="Permanently purge this account"
+                                    >
+                                        <i class="pi pi-times text-xs"></i>
+                                        Purge
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (trashedAccounts().length > 0) {
+                    <div
+                        class="p-4 border-t border-surface-200/60 bg-surface-50/50 flex items-center justify-between"
+                    >
+                        <span class="text-xs font-medium text-surface-500">
+                            {{ trashedAccounts().length }}
+                            {{ trashedAccounts().length === 1 ? 'account' : 'accounts' }} in Trash
+                        </span>
+                        <button
+                            type="button"
+                            (click)="requestEmptyTrash()"
+                            class="px-4 h-9 text-xs font-bold text-red-600 hover:bg-red-100/60 border border-red-200/80 rounded-xl transition-all flex items-center gap-2"
+                        >
+                            <i class="pi pi-trash text-xs"></i>
+                            Empty Trash
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Permanently Purge Account Modal -->
+    @if (isPurgeConfirmOpen()) {
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="purge-confirm-title"
+        >
+            <div
+                class="bg-surface-0 border border-surface-200 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-4"
+            >
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0 text-red-500"
+                    >
+                        <i class="pi pi-exclamation-triangle text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 id="purge-confirm-title" class="text-sm font-bold text-surface-800">
+                            Permanently Delete Account?
+                        </h2>
+                        <p class="text-xs text-red-500 font-semibold mt-0.5">
+                            This action CANNOT be undone.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-surface-600 leading-relaxed">
+                    This account and
+                    <strong>all of its historical transactions and splits</strong> will be
+                    permanently erased from your encrypted database.
+                </p>
+
+                <div class="flex gap-2 pt-2">
+                    <button
+                        type="button"
+                        (click)="cancelPurge()"
+                        class="flex-1 h-9 text-xs font-semibold border border-surface-200 rounded-xl hover:bg-surface-100 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        (click)="confirmPurgeAccount()"
+                        class="flex-1 h-9 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors shadow-sm"
+                    >
+                        Purge Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Empty Trash Confirmation Modal -->
+    @if (isEmptyTrashConfirmOpen()) {
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="empty-trash-confirm-title"
+        >
+            <div
+                class="bg-surface-0 border border-surface-200 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 space-y-4"
+            >
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0 text-red-500"
+                    >
+                        <i class="pi pi-trash text-lg"></i>
+                    </div>
+                    <div>
+                        <h2
+                            id="empty-trash-confirm-title"
+                            class="text-sm font-bold text-surface-800"
+                        >
+                            Empty Trash?
+                        </h2>
+                        <p class="text-xs text-red-500 font-semibold mt-0.5">
+                            This action CANNOT be undone.
+                        </p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-surface-600 leading-relaxed">
+                    All accounts currently in your Trash will be
+                    <strong>permanently purged</strong> along with all associated transaction
+                    records.
+                </p>
+
+                <div class="flex gap-2 pt-2">
+                    <button
+                        type="button"
+                        (click)="cancelEmptyTrash()"
+                        class="flex-1 h-9 text-xs font-semibold border border-surface-200 rounded-xl hover:bg-surface-100 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        (click)="confirmEmptyTrash()"
+                        class="flex-1 h-9 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors shadow-sm"
+                    >
+                        Empty Trash Now
                     </button>
                 </div>
             </div>

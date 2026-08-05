@@ -152,48 +152,80 @@ export class ImportOrchestrationService {
     /**
      * Resolves pending unknown categories, saves them to aliases,
      * applies them to the pending matches, and completes the import.
+     * If allowUnmapped is true, any unmapped categories/payees default to KnownCategory.Uncategorized.
      */
-    async resolveUnknownCategories(mappings: Record<string, string>): Promise<void> {
+    async resolveUnknownCategories(
+        mappings: Record<string, string>,
+        allowUnmapped = false
+    ): Promise<void> {
         if (!this.pendingMatches) return;
 
-        // Save aliases to DB
-        for (const [alias, categoryId] of Object.entries(mappings)) {
-            if (categoryId) {
-                await this.ledgerStore.upsertCategoryAlias(alias, categoryId);
+        // Process payee mappings and category alias mappings in memory
+        const payeeMappings = new Map<string, string>();
+        const payeeCategoryMappings = new Map<string, string>();
+        const aliasMappings = new Map<string, string>();
+
+        for (const [key, categoryId] of Object.entries(mappings)) {
+            if (!categoryId || categoryId === KnownCategory.Uncategorized) continue;
+
+            if (key.startsWith('Payee: ')) {
+                const payeeName = key.replace(/^Payee:\s*/, '').trim();
+                payeeMappings.set(payeeName.toLowerCase(), categoryId);
+                payeeCategoryMappings.set(payeeName, categoryId);
+            } else {
+                aliasMappings.set(key, categoryId);
             }
         }
 
+        // Bulk upsert payees and aliases in a single IndexedDB transaction
+        await this.ledgerStore.bulkUpsertPayeesAndAliases(payeeCategoryMappings, aliasMappings);
+
         // Apply mappings to pending matches
         const mappedMatches = this.pendingMatches.map(match => {
-            const applyCat = (catStr: string | null): string | null => {
-                if (!catStr) return null;
-                const paths = this.getCategorySearchPaths(catStr);
+            const applyCat = (catStr: string | null, payeeName: string): string | null => {
+                if (catStr) {
+                    const paths = this.getCategorySearchPaths(catStr);
+                    for (const path of paths) {
+                        if (path === '[TRANSFER]') return KnownCategory.InternalTransfer;
 
-                for (const path of paths) {
-                    if (path === '[TRANSFER]') return KnownCategory.InternalTransfer;
+                        const exact = this.ledgerStore
+                            .categories()
+                            .find(c => c.name.toLowerCase() === path.toLowerCase());
+                        if (exact && exact.id !== KnownCategory.Uncategorized) return exact.id;
 
-                    // Exact match
-                    const exact = this.ledgerStore
-                        .categories()
-                        .find(c => c.name.toLowerCase() === path.toLowerCase());
-                    if (exact) return exact.id;
-
-                    // Alias match (including the ones we just saved)
-                    const mappedId = mappings[path] || this.ledgerStore.getCategoryAlias(path);
-                    if (mappedId) return mappedId;
+                        const mappedId = mappings[path] || this.ledgerStore.getCategoryAlias(path);
+                        if (mappedId && mappedId !== KnownCategory.Uncategorized) return mappedId;
+                    }
                 }
 
-                return null;
+                // Try Payee mapping
+                const pMappedId =
+                    payeeMappings.get(payeeName.toLowerCase()) || mappings[`Payee: ${payeeName}`];
+                if (pMappedId && pMappedId !== KnownCategory.Uncategorized) return pMappedId;
+
+                const payee = this.ledgerStore
+                    .payees()
+                    .find(p => p.name.toLowerCase() === payeeName.toLowerCase());
+                if (
+                    payee?.defaultCategoryId &&
+                    payee.defaultCategoryId !== KnownCategory.Uncategorized
+                ) {
+                    return payee.defaultCategoryId;
+                }
+
+                return allowUnmapped ? KnownCategory.Uncategorized : null;
             };
+
+            const catId = applyCat(match.parsedTx.category, match.parsedTx.payee);
 
             return {
                 ...match,
                 parsedTx: {
                     ...match.parsedTx,
-                    category: applyCat(match.parsedTx.category),
+                    category: catId,
                     splits: (match.parsedTx.splits || []).map(s => ({
                         ...s,
-                        category: applyCat(s.category)
+                        category: applyCat(s.category, match.parsedTx.payee)
                     }))
                 }
             };
@@ -335,27 +367,37 @@ export class ImportOrchestrationService {
 
             const lowerPath = path.toLowerCase();
             const catId = categoryMap.get(lowerPath);
-            if (catId) return catId;
+            if (catId && catId !== KnownCategory.Uncategorized) return catId;
 
             const cachedAlias = aliasCache.get(path);
             if (cachedAlias !== undefined) return cachedAlias;
 
             const aliasMatch = this.ledgerStore.getCategoryAlias(path);
-            aliasCache.set(path, aliasMatch);
-            return aliasMatch;
+            if (aliasMatch && aliasMatch !== KnownCategory.Uncategorized) {
+                aliasCache.set(path, aliasMatch);
+                return aliasMatch;
+            }
+
+            aliasCache.set(path, null);
+            return null;
         };
 
-        // Scan for unknown categories
+        // Scan for unknown categories and uncategorized payees
         const unknowns = new Set<string>();
+        const existingPayeeMap = new Map<string, IPayee>(
+            this.ledgerStore.payees().map(p => [p.name.toLowerCase(), p])
+        );
 
         for (const match of matches) {
-            const scanCategory = (cat: string | null): void => {
-                if (!cat) return;
+            let hasValidCategory = false;
+
+            const scanCategory = (cat: string | null): boolean => {
+                if (!cat) return false;
                 const paths = this.getCategorySearchPaths(cat);
 
                 for (const path of paths) {
                     const mappedId = resolveCategoryPath(path);
-                    if (mappedId) return; // Found a match!
+                    if (mappedId) return true; // Found a valid non-uncategorized match!
                 }
 
                 // Unknown! Use the fully qualified path
@@ -363,11 +405,30 @@ export class ImportOrchestrationService {
                 if (firstPath) {
                     unknowns.add(firstPath);
                 }
+                return false;
             };
 
-            scanCategory(match.parsedTx.category);
+            if (match.parsedTx.category) {
+                hasValidCategory = scanCategory(match.parsedTx.category);
+            }
             for (const split of match.parsedTx.splits || []) {
-                scanCategory(split.category);
+                if (split.category) {
+                    scanCategory(split.category);
+                }
+            }
+
+            // If transaction has no valid category tag, check payee auto-categorization!
+            if (!hasValidCategory && match.parsedTx.payee) {
+                const pName = match.parsedTx.payee.trim();
+                if (pName && pName.toLowerCase() !== 'opening balance') {
+                    const existingPayee = existingPayeeMap.get(pName.toLowerCase());
+                    const hasDefaultCat =
+                        existingPayee?.defaultCategoryId &&
+                        existingPayee.defaultCategoryId !== KnownCategory.Uncategorized;
+                    if (!hasDefaultCat) {
+                        unknowns.add(`Payee: ${pName}`);
+                    }
+                }
             }
         }
 
@@ -438,7 +499,7 @@ export class ImportOrchestrationService {
             if (!cat) return KnownCategory.Uncategorized;
 
             // If already a valid category ID in our store, return it
-            if (categories.some(c => c.id === cat)) {
+            if (categories.some(c => c.id === cat && c.id !== KnownCategory.Uncategorized)) {
                 return cat;
             }
 
@@ -453,7 +514,11 @@ export class ImportOrchestrationService {
                 }
             }
 
-            const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());
+            const match = categories.find(
+                c =>
+                    c.name.toLowerCase() === cleanName.toLowerCase() &&
+                    c.id !== KnownCategory.Uncategorized
+            );
             return match ? match.id : KnownCategory.Uncategorized;
         };
 

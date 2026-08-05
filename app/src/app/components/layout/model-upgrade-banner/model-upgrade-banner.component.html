@@ -1,0 +1,37 @@
+@if (alert()) {
+    <div
+        class="bg-gradient-to-r from-primary/10 via-primary/5 to-surface-0 border-b border-primary/20 px-4 py-2.5 flex items-center justify-between gap-4 animate-fade-in shadow-sm"
+        role="alert"
+    >
+        <div class="flex items-center gap-2.5 min-w-0">
+            <i class="pi pi-sparkles text-primary text-xs flex-none"></i>
+            <p class="text-[11px] font-semibold text-surface-800 truncate">
+                A newer AI model generation (<strong class="text-primary font-bold">{{
+                    alert()?.newestLabel
+                }}</strong
+                >) is available. Currently using
+                <span class="text-surface-500 font-mono text-[10px]">{{
+                    alert()?.currentModel
+                }}</span
+                >.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-none">
+            <button
+                type="button"
+                (click)="upgrade()"
+                class="px-3 py-1 bg-primary hover:bg-primary/95 text-white text-[10px] font-black uppercase tracking-wider rounded-sm shadow active:scale-[0.98] transition-all"
+            >
+                Upgrade Model
+            </button>
+            <button
+                type="button"
+                (click)="dismiss()"
+                class="px-2.5 py-1 bg-transparent hover:bg-surface-200/50 text-surface-500 hover:text-surface-800 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all"
+            >
+                Dismiss
+            </button>
+        </div>
+    </div>
+}

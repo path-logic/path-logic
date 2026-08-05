@@ -41,8 +41,15 @@
                 </span>
             </div>
 
-            <!-- Theme Switcher & Divider -->
+            <!-- Theme Switcher, AI Assistant & Divider -->
             <div class="h-8 w-px bg-surface-200 mr-2"></div>
+            <button
+                (click)="toggleAiAssistant()"
+                title="AI Financial Assistant"
+                class="ai-assistant-toggle w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0 mr-1"
+            >
+                <i class="pi pi-sparkles text-lg text-primary animate-pulse"></i>
+            </button>
             <button
                 (click)="toggleTheme()"
                 [title]="

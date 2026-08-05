@@ -28,6 +28,7 @@ import {
     getCategoryAlias,
     getDb,
     getPayeeByName,
+    getTrashedAccounts,
     initDatabase,
     insertAccount,
     insertCategory,
@@ -37,7 +38,10 @@ import {
     insertTransactions,
     insertTransfer,
     loadDatabase,
+    purgeAccountCascade,
+    purgeAllTrashedAccounts,
     resetDatabase,
+    restoreAccountCascade,
     softDeleteAccountCascade,
     updateAccount,
     updatePayee,
@@ -81,6 +85,7 @@ export class LedgerStore {
     // --- State signals ---
     readonly transactions: WritableSignal<Array<ITransaction>> = signal<Array<ITransaction>>([]);
     readonly accounts: WritableSignal<Array<IAccount>> = signal<Array<IAccount>>([]);
+    readonly trashedAccounts: WritableSignal<Array<IAccount>> = signal<Array<IAccount>>([]);
     readonly payees: WritableSignal<Array<IPayee>> = signal<Array<IPayee>>([]);
     readonly categories: WritableSignal<Array<ICategory>> = signal<Array<ICategory>>([]);
     readonly schedules: WritableSignal<Array<IRecurringSchedule>> = signal<
@@ -294,6 +299,34 @@ export class LedgerStore {
     async removeAccount(accountId: string): Promise<void> {
         softDeleteAccountCascade(accountId);
         this.accounts.set(getAllAccounts());
+        this.trashedAccounts.set(getTrashedAccounts());
+        this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
+    async restoreAccount(accountId: string): Promise<void> {
+        restoreAccountCascade(accountId);
+        this.accounts.set(getAllAccounts());
+        this.trashedAccounts.set(getTrashedAccounts());
+        this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
+    async purgeAccount(accountId: string): Promise<void> {
+        purgeAccountCascade(accountId);
+        this.accounts.set(getAllAccounts());
+        this.trashedAccounts.set(getTrashedAccounts());
+        this.transactions.set(getAllTransactions());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
+    async emptyTrash(): Promise<void> {
+        purgeAllTrashedAccounts();
+        this.accounts.set(getAllAccounts());
+        this.trashedAccounts.set(getTrashedAccounts());
         this.transactions.set(getAllTransactions());
         await this.commitToLocal();
         this.isDirty.set(true);
@@ -375,6 +408,53 @@ export class LedgerStore {
 
     async updatePayee(payee: IPayee): Promise<void> {
         updatePayee(payee);
+        this.payees.set(getAllPayees());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+    }
+
+    async bulkUpsertPayeesAndAliases(
+        payeeCategoryMappings: Map<string, string>,
+        aliasMappings: Map<string, string>
+    ): Promise<void> {
+        const now = new Date().toISOString() as ISODateString;
+        const currentPayees = [...this.payees()];
+        const payeeMap = new Map<string, IPayee>(currentPayees.map(p => [p.name.toLowerCase(), p]));
+
+        for (const [payeeName, categoryId] of payeeCategoryMappings) {
+            const existing = payeeMap.get(payeeName.toLowerCase());
+            if (existing) {
+                if (existing.defaultCategoryId !== categoryId) {
+                    existing.defaultCategoryId = categoryId;
+                    existing.updatedAt = now;
+                    updatePayee(existing);
+                }
+            } else {
+                const newPayee: IPayee = {
+                    id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    name: payeeName,
+                    address: null,
+                    city: null,
+                    state: null,
+                    zipCode: null,
+                    latitude: null,
+                    longitude: null,
+                    website: null,
+                    phone: null,
+                    notes: null,
+                    defaultCategoryId: categoryId,
+                    createdAt: now,
+                    updatedAt: now
+                };
+                insertPayee(newPayee);
+                payeeMap.set(payeeName.toLowerCase(), newPayee);
+            }
+        }
+
+        for (const [alias, categoryId] of aliasMappings) {
+            upsertCategoryAlias(alias, categoryId);
+        }
+
         this.payees.set(getAllPayees());
         await this.commitToLocal();
         this.isDirty.set(true);
@@ -478,7 +558,7 @@ export class LedgerStore {
      * Non-fatal: if encryption or IndexedDB fails, we log and continue
      * (the SQL.js in-memory state is still correct).
      */
-    private async commitToLocal(): Promise<void> {
+    async commitToLocal(): Promise<void> {
         if (!this.userId) return; // not yet initialized with auth context
         try {
             const dbExport = exportDatabase();
@@ -492,6 +572,7 @@ export class LedgerStore {
     private refreshAllFromDb(): void {
         this.transactions.set(getAllTransactions());
         this.accounts.set(getAllAccounts());
+        this.trashedAccounts.set(getTrashedAccounts());
         this.payees.set(getAllPayees());
         this.categories.set(getAllCategories());
         this.schedules.set(getAllRecurringSchedules());

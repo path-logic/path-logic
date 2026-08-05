@@ -18,13 +18,12 @@ export class FaviconService {
         // Automatically update the favicon when resolvedTheme changes
         effect(() => {
             const theme = this.themeService.resolvedTheme();
-            const env = environment.appEnv;
-            this.updateFavicon(theme, env);
+            this.updateFavicon(theme);
         });
     }
 
-    private updateFavicon(theme: ResolvedTheme, env: string): void {
-        const color = this.getFaviconColor(theme, env);
+    private updateFavicon(theme: ResolvedTheme): void {
+        const color = this.getFaviconColor(theme);
         const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect x="2" y="2" width="28" height="28" rx="6" fill="${color}" />
@@ -48,30 +47,7 @@ export class FaviconService {
         link.href = dataUrl;
     }
 
-    private getFaviconColor(theme: ResolvedTheme, env: string): string {
-        const envNormalized = (env || 'development').toLowerCase();
-
-        if (theme === 'dark') {
-            switch (envNormalized) {
-                case 'production':
-                    return '#818cf8'; // Vibrant Light Indigo
-                case 'staging':
-                    return '#fb923c'; // Orange
-                case 'development':
-                default:
-                    return '#34d399'; // Mint Green
-            }
-        } else {
-            // Light theme
-            switch (envNormalized) {
-                case 'production':
-                    return '#4f46e5'; // Deep Indigo
-                case 'staging':
-                    return '#d97706'; // Amber/Dark Orange
-                case 'development':
-                default:
-                    return '#059669'; // Emerald Green
-            }
-        }
+    private getFaviconColor(theme: ResolvedTheme): string {
+        return theme === 'dark' ? environment.theme.faviconDark : environment.theme.faviconLight;
     }
 }

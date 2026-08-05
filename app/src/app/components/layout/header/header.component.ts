@@ -13,6 +13,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { type ITransaction, Money, TransactionStatus } from '@core';
 import { filter } from 'rxjs';
 
+import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { ThemeService } from '../../../services/theme/theme.service';
@@ -44,8 +45,13 @@ export class HeaderComponent {
     private readonly destroyRef: DestroyRef = inject(DestroyRef);
     private readonly router: Router = inject(Router);
     readonly themeService: ThemeService = inject(ThemeService);
+    readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
 
     readonly showUserMenu = signal<boolean>(false);
+
+    toggleAiAssistant(): void {
+        this.aiAssistantService.toggle();
+    }
 
     constructor() {
         // Close menu on any navigation

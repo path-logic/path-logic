@@ -1171,6 +1171,84 @@ export function softDeleteAccountCascade(accountId: string): void {
 }
 
 /**
+ * Cascade restore an account: un-deletes account, its transactions, and splits.
+ */
+export function restoreAccountCascade(accountId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    const now = new Date().toISOString();
+    db.run('BEGIN');
+    try {
+        // 1. Un-delete all splits for this account's transactions
+        db.run(
+            `UPDATE splits
+             SET isDeleted = 0, deletedAt = NULL, updatedAt = ?
+             WHERE transactionId IN (
+                 SELECT id FROM transactions WHERE accountId = ?
+             )`,
+            [now, accountId]
+        );
+        // 2. Un-delete all transactions for this account
+        db.run(
+            `UPDATE transactions
+             SET isDeleted = 0, deletedAt = NULL, updatedAt = ?
+             WHERE accountId = ?`,
+            [now, accountId]
+        );
+        // 3. Un-delete the account itself (set isDeleted=0, deletedAt=NULL, isActive=1)
+        db.run(
+            `UPDATE accounts
+             SET isDeleted = 0, deletedAt = NULL, isActive = 1, updatedAt = ?
+             WHERE id = ?`,
+            [now, accountId]
+        );
+        db.run('COMMIT');
+    } catch (err) {
+        db.run('ROLLBACK');
+        throw err;
+    }
+}
+
+/**
+ * Permanently purge (hard delete) an account and all its associated data from SQLite.
+ */
+export function purgeAccountCascade(accountId: string): void {
+    if (!db) throw new Error('Database not initialized');
+    db.run('BEGIN');
+    try {
+        db.run(
+            `DELETE FROM splits
+             WHERE transactionId IN (SELECT id FROM transactions WHERE accountId = ?)`,
+            [accountId]
+        );
+        db.run('DELETE FROM transactions WHERE accountId = ?', [accountId]);
+        db.run('DELETE FROM loan_details WHERE account_id = ?', [accountId]);
+        db.run('DELETE FROM accounts WHERE id = ?', [accountId]);
+        db.run('COMMIT');
+    } catch (err) {
+        db.run('ROLLBACK');
+        throw err;
+    }
+}
+
+/**
+ * Get all trashed (soft-deleted) accounts.
+ */
+export function getTrashedAccounts(): Array<IAccount> {
+    return getAllAccounts(true).filter(acc => !!acc.deletedAt);
+}
+
+/**
+ * Permanently purge all trashed accounts.
+ */
+export function purgeAllTrashedAccounts(): void {
+    if (!db) throw new Error('Database not initialized');
+    const trashed = getTrashedAccounts();
+    for (const acc of trashed) {
+        purgeAccountCascade(acc.id);
+    }
+}
+
+/**
  * Insert loan details for an account
  */
 export function insertLoanDetails(accountId: string, details: ILoanDetails): void {
@@ -1385,15 +1463,29 @@ export function getAllCategories(): Array<ICategory> {
     );
 }
 
-/**
- * Get a user setting by key
- */
 export function getUserSetting(key: string): string | null {
     if (!db) throw new Error('Database not initialized');
     const result: Array<QueryExecResult> = db.exec(SQL_QUERIES.SELECT_USER_SETTING, [key]);
 
     if (result.length === 0 || !result[0] || result[0].values.length === 0) return null;
     return (result[0].values[0]?.[0] as string) || null;
+}
+
+/**
+ * Get all user settings as key-value pairs
+ */
+export function getAllUserSettings(): Record<string, string> {
+    if (!db) return {};
+    const result: Array<QueryExecResult> = db.exec('SELECT key, value FROM user_settings');
+    if (result.length === 0 || !result[0]) return {};
+
+    const settings: Record<string, string> = {};
+    for (const row of result[0].values) {
+        if (row[0] !== null && row[0] !== undefined) {
+            settings[row[0] as string] = (row[1] as string) || '';
+        }
+    }
+    return settings;
 }
 
 /**

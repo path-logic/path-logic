@@ -21,8 +21,8 @@ const ENV_LABELS: Record<string, string> = {
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (!isProd) {
-            <div class="env-ribbon" [attr.data-env]="envLabel">
-                <span>{{ envLabel }}</span>
+            <div class="env-ribbon">
+                <span [style.background]="bannerBg" [style.color]="bannerText">{{ envLabel }}</span>
             </div>
         }
     `,
@@ -54,27 +54,11 @@ const ENV_LABELS: Record<string, string> = {
             transform: rotate(45deg);
             transform-origin: center;
         }
-
-        /* DEV — amber */
-        .env-ribbon[data-env='DEV'] span {
-            background: #f59e0b;
-            color: #1c1410;
-        }
-
-        /* STG — violet */
-        .env-ribbon[data-env='STG'] span {
-            background: #7c3aed;
-            color: #fff;
-        }
-
-        /* E2E — rose */
-        .env-ribbon[data-env='E2E'] span {
-            background: #e11d48;
-            color: #fff;
-        }
     `
 })
 export class EnvBannerComponent {
     readonly isProd = environment.production || environment.appEnv === 'production';
     readonly envLabel = ENV_LABELS[environment.appEnv] ?? environment.appEnv.toUpperCase();
+    readonly bannerBg = environment.theme.bannerBg;
+    readonly bannerText = environment.theme.bannerText;
 }

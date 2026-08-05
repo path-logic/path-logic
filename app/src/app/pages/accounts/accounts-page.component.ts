@@ -41,19 +41,23 @@ export class AccountsPageComponent {
 
     // Store Signals
     readonly accounts = this.ledgerStore.accounts;
+    readonly trashedAccounts = this.ledgerStore.trashedAccounts;
     readonly isDbReady = this.ledgerStore.isInitialized;
 
+    // Trash View & Purge Modal State
+    readonly isTrashOpen = signal<boolean>(false);
+    readonly pendingPurgeId = signal<string | null>(null);
+    readonly isPurgeConfirmOpen = signal<boolean>(false);
+    readonly isEmptyTrashConfirmOpen = signal<boolean>(false);
+
     constructor() {
-        effect(
-            () => {
-                if (this.isDbReady()) {
-                    if (this.accounts().length === 0 && !this.isOnboarding()) {
-                        this.isOnboarding.set(true);
-                    }
+        effect(() => {
+            if (this.isDbReady()) {
+                if (this.accounts().length === 0 && !this.isOnboarding()) {
+                    this.isOnboarding.set(true);
                 }
-            },
-            { allowSignalWrites: true }
-        );
+            }
+        });
 
         // Auto-open the Add Account dialog when navigated with ?openDialog=true
         this.route.queryParams.subscribe(params => {
@@ -127,5 +131,43 @@ export class AccountsPageComponent {
         this.pendingDeleteId.set(null);
     }
 
-    // Lucide Icons
+    toggleTrash(): void {
+        this.isTrashOpen.update(v => !v);
+    }
+
+    async handleRestoreAccount(accountId: string): Promise<void> {
+        await this.ledgerStore.restoreAccount(accountId);
+    }
+
+    requestPurgeAccount(accountId: string): void {
+        this.pendingPurgeId.set(accountId);
+        this.isPurgeConfirmOpen.set(true);
+    }
+
+    async confirmPurgeAccount(): Promise<void> {
+        const id = this.pendingPurgeId();
+        if (id) {
+            await this.ledgerStore.purgeAccount(id);
+        }
+        this.isPurgeConfirmOpen.set(false);
+        this.pendingPurgeId.set(null);
+    }
+
+    cancelPurge(): void {
+        this.isPurgeConfirmOpen.set(false);
+        this.pendingPurgeId.set(null);
+    }
+
+    requestEmptyTrash(): void {
+        this.isEmptyTrashConfirmOpen.set(true);
+    }
+
+    async confirmEmptyTrash(): Promise<void> {
+        await this.ledgerStore.emptyTrash();
+        this.isEmptyTrashConfirmOpen.set(false);
+    }
+
+    cancelEmptyTrash(): void {
+        this.isEmptyTrashConfirmOpen.set(false);
+    }
 }

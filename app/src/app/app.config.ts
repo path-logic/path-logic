@@ -14,6 +14,7 @@ import { providePrimeNG } from 'primeng/config';
 import { firstValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
+import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
 import { AuthService } from './services/auth/auth.service';
 
@@ -21,33 +22,9 @@ import { definePreset } from '@primeuix/themes';
 
 const PremiumPreset = definePreset(Lara, {
     semantic: {
-        primary: {
-            50: '#eff6ff',
-            100: '#dbeafe',
-            200: '#bfdbfe',
-            300: '#93c5fd',
-            400: '#60a5fa',
-            500: '#3b82f6', // A premium solid blue
-            600: '#2563eb',
-            700: '#1d4ed8',
-            800: '#1e40af',
-            900: '#1e3a8a',
-            950: '#172554'
-        },
+        primary: environment.theme.primary,
         // Override PrimeNG's default emerald success color to use our brand palette instead
-        success: {
-            50: '#eff6ff',
-            100: '#dbeafe',
-            200: '#bfdbfe',
-            300: '#93c5fd',
-            400: '#60a5fa',
-            500: '#3b82f6',
-            600: '#2563eb',
-            700: '#1d4ed8',
-            800: '#1e40af',
-            900: '#1e3a8a',
-            950: '#172554'
-        },
+        success: environment.theme.success,
         colorScheme: {
             light: {
                 surface: {
@@ -85,6 +62,8 @@ const PremiumPreset = definePreset(Lara, {
     }
 });
 
+import { GlobalErrorHandler } from './core/errors/global-error-handler';
+
 export const appConfig: ApplicationConfig = {
     providers: [
         provideAppInitializer(() => {
@@ -93,7 +72,7 @@ export const appConfig: ApplicationConfig = {
                 toObservable(auth.isInitializing).pipe(filter(isInit => !isInit))
             );
         }),
-        { provide: ErrorHandler, useValue: { handleError: console.error } },
+        { provide: ErrorHandler, useClass: GlobalErrorHandler },
         provideBrowserGlobalErrorListeners(),
         provideZonelessChangeDetection(),
         provideRouter(appRoutes, withComponentInputBinding()),
