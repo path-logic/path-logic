@@ -106,7 +106,7 @@ export class HeaderComponent {
         (): string | null => this.authService.currentUser()?.photoURL ?? null
     );
 
-    readonly userInitial = computed((): string => this.userName().charAt(0).toUpperCase());
+    readonly userInitial = computed((): string => (this.userName().charAt(0) || 'U').toUpperCase());
 
     /**
      * Toggles the visibility of the user profile dropdown menu.

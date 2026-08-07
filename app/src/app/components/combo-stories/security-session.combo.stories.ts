@@ -66,6 +66,7 @@ const mockLedgerStore = {
     accounts: signal([]),
     syncStatus: signal('idle'),
     authError: signal(false),
+    isInitialized: signal(true),
     hasLocalFallback: signal(true)
 };
 const mockAuthService = {

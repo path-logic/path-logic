@@ -56,6 +56,7 @@ const mockLedgerStore = {
     syncStatus: signal('pending-local'),
     authError: signal(true),
     isDirty: signal(true),
+    isInitialized: signal(true),
     hasLocalFallback: signal(true)
 };
 
