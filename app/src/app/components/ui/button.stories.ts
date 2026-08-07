@@ -86,7 +86,9 @@ import { ButtonModule } from 'primeng/button';
                     <p-button label="Loading" [loading]="true" />
                     <p-button label="Icon Left" icon="pi pi-check" />
                     <p-button label="Icon Right" icon="pi pi-arrow-right" iconPos="right" />
-                    <p-button icon="pi pi-search" ariaLabel="Search" />
+                    <p-button icon="pi pi-search" ariaLabel="Search" [attr.aria-label]="'Search'">
+                        <span class="sr-only">Search</span>
+                    </p-button>
                 </div>
             </section>
         </div>

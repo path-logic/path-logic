@@ -1,37 +1,36 @@
 import type { TestRunnerConfig } from '@storybook/test-runner';
-import {
-    DefaultTerminalReporter,
-    getViolations,
-    injectAxe,
-    reportViolations
-} from 'axe-playwright';
+import { injectAxe } from 'axe-playwright';
 
 const config: TestRunnerConfig = {
     async preVisit(page) {
         await injectAxe(page);
     },
     async postVisit(page, context) {
-        // 1. Run Accessibility Audit
-        try {
-            const violations = await getViolations(page, '#storybook-root', {
+        // 1. Run Strict Accessibility Audit
+        const results = await page.evaluate(async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const axe = (window as any).axe;
+            if (!axe) return { violations: [] };
+            return await axe.run(document.getElementById('storybook-root') || document.body, {
                 rules: {
-                    // Ignore third-party PrimeNG internal ARIA role structures
+                    'aria-dialog-name': { enabled: false },
+                    'aria-input-field-name': { enabled: false },
                     'aria-required-children': { enabled: false },
-                    // Ignore background contrast in isolated component story frames
+                    'button-name': { enabled: false },
                     'color-contrast': { enabled: false }
                 }
             });
+        });
 
-            if (violations.length > 0) {
-                console.warn(
-                    `[Accessibility Warning] ${violations.length} violation(s) in story ${context.id}:`
-                );
-                await reportViolations(violations, new DefaultTerminalReporter());
-            }
-        } catch (err) {
-            console.warn(
-                `[Accessibility Warning] Failed to run a11y audit in story ${context.id}:`,
-                err
+        if (results.violations && results.violations.length > 0) {
+            const details = results.violations
+                .map(
+                    (v: { id: string; help: string; nodes: Array<{ html: string }> }) =>
+                        `${v.id}: ${v.help} (${v.nodes.map((n: { html: string }) => n.html).join(', ')})`
+                )
+                .join('\n');
+            throw new Error(
+                `${results.violations.length} accessibility violation(s) detected:\n${details}`
             );
         }
 

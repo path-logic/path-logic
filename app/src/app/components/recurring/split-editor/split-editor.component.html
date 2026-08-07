@@ -13,7 +13,7 @@
                         <th>Category</th>
                         <th>Memo</th>
                         <th>Amount</th>
-                        <th style="width: 4rem"></th>
+                        <th style="width: 4rem"><span class="sr-only">Actions</span></th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-split let-i="rowIndex">
@@ -21,6 +21,8 @@
                         <td>
                             <input
                                 pInputText
+                                aria-label="Split category"
+                                [attr.aria-label]="'Split category ' + (i + 1)"
                                 [ngModel]="split.categoryId"
                                 (ngModelChange)="updateSplit(i, 'categoryId', $event)"
                                 class="w-full text-sm"
@@ -30,6 +32,8 @@
                         <td>
                             <input
                                 pInputText
+                                aria-label="Split memo"
+                                [attr.aria-label]="'Split memo ' + (i + 1)"
                                 [ngModel]="split.memo"
                                 (ngModelChange)="updateSplit(i, 'memo', $event)"
                                 class="w-full text-sm"
@@ -41,6 +45,7 @@
                                 [ngModel]="split.amount"
                                 (ngModelChange)="updateSplit(i, 'amount', $event)"
                                 [placeholder]="'$0.00'"
+                                ariaLabel="Split amount"
                             ></calculator-input>
                         </td>
                         <td>
@@ -49,8 +54,12 @@
                                 [rounded]="true"
                                 [text]="true"
                                 severity="danger"
+                                ariaLabel="Remove split line"
+                                [attr.aria-label]="'Remove split line'"
                                 (onClick)="removeSplit(split.id)"
-                            ></p-button>
+                            >
+                                <span class="sr-only">Remove split line</span>
+                            </p-button>
                         </td>
                     </tr>
                 </ng-template>

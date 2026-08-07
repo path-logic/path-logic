@@ -85,8 +85,11 @@
                                 [text]="true"
                                 [rounded]="true"
                                 ariaLabel="Edit Schedule"
+                                [attr.aria-label]="'Edit Schedule'"
                                 (onClick)="editSchedule(schedule)"
-                            ></p-button>
+                            >
+                                <span class="sr-only">Edit Schedule</span>
+                            </p-button>
                             <p-button
                                 icon="pi pi-step-forward"
                                 [text]="true"
@@ -94,7 +97,10 @@
                                 severity="secondary"
                                 pTooltip="Skip"
                                 ariaLabel="Skip Schedule"
-                            ></p-button>
+                                [attr.aria-label]="'Skip Schedule'"
+                            >
+                                <span class="sr-only">Skip Schedule</span>
+                            </p-button>
                             <p-button
                                 label="Post"
                                 size="small"

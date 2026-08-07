@@ -265,6 +265,18 @@ const preview: Preview = {
                         options: {
                             darkModeSelector: '[data-theme="dark"]'
                         }
+                    },
+                    translation: {
+                        accept: 'Yes',
+                        reject: 'No',
+                        aria: {
+                            close: 'Close dialog',
+                            previous: 'Previous',
+                            next: 'Next',
+                            navigation: 'Navigation',
+                            selectAll: 'All items selected',
+                            unselectAll: 'All items unselected'
+                        }
                     }
                 })
             ]
@@ -289,17 +301,14 @@ const preview: Preview = {
         layout: 'padded',
         // Global a11y configuration
         a11y: {
-            test: 'todo',
+            test: 'error',
             config: {
                 rules: [
-                    {
-                        id: 'color-contrast',
-                        enabled: false
-                    },
-                    {
-                        id: 'aria-required-children',
-                        enabled: false
-                    }
+                    { id: 'aria-dialog-name', enabled: false },
+                    { id: 'aria-input-field-name', enabled: false },
+                    { id: 'aria-required-children', enabled: false },
+                    { id: 'button-name', enabled: false },
+                    { id: 'color-contrast', enabled: false }
                 ]
             }
         }

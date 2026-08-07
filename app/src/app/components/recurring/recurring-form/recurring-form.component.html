@@ -9,6 +9,8 @@
             (ngModelChange)="onTypeChange($event)"
             optionLabel="label"
             optionValue="value"
+            ariaLabel="Schedule Type"
+            [attr.aria-label]="'Schedule Type'"
             styleClass="w-full max-w-lg shadow-sm"
         >
         </p-selectbutton>
@@ -42,6 +44,8 @@
                         id="recurring-payee"
                         pInputText
                         type="text"
+                        aria-label="Payee / Description"
+                        [attr.aria-label]="'Payee / Description'"
                         [(ngModel)]="schedule.payee"
                         placeholder="e.g. Acme Corp"
                         class="w-full"
@@ -58,6 +62,8 @@
                     >
                     <p-select
                         inputId="recurring-account"
+                        ariaLabel="Post to Account"
+                        [attr.aria-label]="'Post to Account'"
                         [options]="accounts"
                         [(ngModel)]="schedule.accountId"
                         optionLabel="name"
@@ -126,7 +132,11 @@
         <!-- Footer / Automation Options -->
         <div class="flex items-center justify-between mt-6">
             <div class="flex items-center gap-3">
-                <p-toggleswitch [(ngModel)]="schedule.autoPost"></p-toggleswitch>
+                <p-toggleswitch
+                    [(ngModel)]="schedule.autoPost"
+                    ariaLabel="Automatic Entry"
+                    [attr.aria-label]="'Automatic Entry'"
+                ></p-toggleswitch>
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-surface-800">Automatic Entry</span>
                     <span class="text-xs text-surface-500"

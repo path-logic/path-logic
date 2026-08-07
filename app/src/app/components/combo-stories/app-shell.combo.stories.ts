@@ -29,7 +29,7 @@ import { HeaderComponent } from '../layout/header/header.component';
             <breadcrumb-nav class="shrink-0"></breadcrumb-nav>
 
             <!-- Main Content Area -->
-            <main class="flex-1 overflow-auto relative">
+            <main class="flex-1 overflow-auto relative" tabindex="0" aria-label="Main content">
                 <div class="p-6 max-w-7xl mx-auto">
                     <h1 class="text-3xl font-bold tracking-tight mb-4">Dashboard</h1>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

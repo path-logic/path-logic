@@ -19,6 +19,8 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
     imports: [CommonModule, FormsModule, AutoCompleteModule],
     template: `
         <p-autoComplete
+            [ariaLabel]="ariaLabel()"
+            [attr.aria-label]="ariaLabel()"
             [inputId]="inputId()"
             [(ngModel)]="value"
             (ngModelChange)="onValueChange($event)"
@@ -58,6 +60,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 export class PayeeAutocompleteComponent implements ControlValueAccessor {
     private ledgerStore = inject(LedgerStore);
 
+    readonly ariaLabel = input<string>('Payee');
     readonly name = input<string>('payee');
     readonly inputId = input<string>('');
     readonly placeholder = input<string>('');

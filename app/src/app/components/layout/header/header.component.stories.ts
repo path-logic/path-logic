@@ -13,7 +13,8 @@ const createMockLedgerStore = (clearedTotal: number, pendingTotal: number) => {
         transactions: signal([
             { status: TransactionStatus.Cleared, totalAmount: clearedTotal },
             { status: TransactionStatus.Pending, totalAmount: pendingTotal }
-        ])
+        ]),
+        isInitialized: signal(true)
     };
 };
 

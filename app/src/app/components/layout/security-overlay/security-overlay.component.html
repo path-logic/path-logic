@@ -18,23 +18,25 @@
         </div>
 
         <h2 class="text-2xl font-bold tracking-tight mb-2">Session Paused</h2>
-        <p class="text-surface-500 text-sm mb-8 px-4 leading-relaxed">
+        <p class="text-surface-600 text-sm mb-8 px-4 leading-relaxed">
             Your session has been paused due to inactivity to protect your financial data.
         </p>
 
         <div class="space-y-3">
             <button
                 (click)="unlocked.emit()"
+                aria-label="Resume Session"
                 class="w-full h-12 rounded-xl text-md font-semibold group flex items-center justify-center gap-2 transition-transform active:scale-[0.98] bg-primary text-white hover:bg-primary/90"
             >
                 Resume Session
                 <i
                     class="pi pi-arrow-right text-base transition-transform group-hover:translate-x-1"
+                    aria-hidden="true"
                 ></i>
             </button>
 
             <div
-                class="pt-2 flex items-center justify-center gap-2 text-[10px] text-surface-500 uppercase tracking-widest font-medium"
+                class="pt-2 flex items-center justify-center gap-2 text-[10px] text-surface-600 uppercase tracking-widest font-medium"
             >
                 <i class="pi pi-shield text-xs"></i>
                 Secure Local-First Environment

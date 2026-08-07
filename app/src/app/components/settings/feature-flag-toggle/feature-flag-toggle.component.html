@@ -1,7 +1,9 @@
 <div class="flex items-center justify-between p-4 px-5">
     <div class="flex-1">
         <div class="flex items-center gap-3">
-            <p class="text-sm font-bold text-surface-800 uppercase tracking-tight">
+            <p
+                class="text-sm font-bold text-surface-800 dark:text-surface-100 uppercase tracking-tight"
+            >
                 {{ label() }}
             </p>
             @if (enabled() && config()?.route; as route) {
@@ -15,7 +17,7 @@
         </div>
         @if (description(); as desc) {
             <p
-                class="mt-1 text-[10px] font-bold uppercase tracking-wider text-surface-800 leading-relaxed italic line-clamp-1"
+                class="mt-1 text-[10px] font-bold uppercase tracking-wider text-surface-600 dark:text-surface-300 leading-relaxed italic line-clamp-1"
             >
                 {{ desc }}
             </p>
@@ -26,7 +28,9 @@
         <span
             [class]="
                 'text-[9px] font-black uppercase tracking-[0.2em] ' +
-                (enabled() ? 'text-emerald-700 dark:text-emerald-400' : 'text-surface-800/90')
+                (enabled()
+                    ? 'text-emerald-700 dark:text-emerald-400'
+                    : 'text-surface-600 dark:text-surface-400')
             "
         >
             {{ enabled() ? 'Active' : 'Offline' }}
@@ -36,6 +40,7 @@
             [ngModel]="enabled()"
             (ngModelChange)="toggle()"
             [ariaLabel]="'Toggle ' + label()"
+            [attr.aria-label]="'Toggle ' + label()"
         ></p-toggleswitch>
     </div>
 </div>

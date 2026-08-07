@@ -1,6 +1,7 @@
 <p-dialog
     [(visible)]="isOpen"
     header="Split Transaction Detail"
+    ariaLabel="Split Transaction Detail"
     [modal]="true"
     [closable]="true"
     [style]="{ width: '40rem' }"
@@ -135,8 +136,11 @@
                     severity="danger"
                     [text]="true"
                     size="small"
-                    aria-label="Remove split line"
-                ></p-button>
+                    ariaLabel="Remove split line"
+                    [attr.aria-label]="'Remove split line'"
+                >
+                    <span class="sr-only">Remove split line</span>
+                </p-button>
             </div>
         </ng-template>
 

@@ -4,6 +4,7 @@
     [closable]="!isProcessing()"
     [style]="{ width: dialogWidth() }"
     styleClass="penny-dialog reconciliation-dialog"
+    ariaLabel="Import Review"
     appendTo="body"
 >
     <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════ -->
@@ -134,6 +135,7 @@
                                     type="checkbox"
                                     [checked]="allVisibleSelected()"
                                     (change)="toggleSelectAll()"
+                                    aria-label="Select all transactions"
                                     class="rounded-sm accent-primary"
                                 />
                             </th>
@@ -203,6 +205,7 @@
                                             type="checkbox"
                                             [checked]="selectedIndices().has(item.globalIdx)"
                                             (change)="toggleSelected(item.globalIdx)"
+                                            aria-label="Select transaction"
                                             class="rounded-sm accent-primary"
                                         />
                                     </td>
@@ -219,6 +222,7 @@
                                             [options]="categories()"
                                             optionLabel="name"
                                             optionValue="id"
+                                            ariaLabel="Category"
                                             [ngModel]="
                                                 categoryOverrides()[item.globalIdx] ||
                                                 item.match.parsedTx.category ||
@@ -400,6 +404,7 @@
                                     [options]="categories()"
                                     optionLabel="name"
                                     optionValue="id"
+                                    ariaLabel="Select Category"
                                     [ngModel]="
                                         categoryOverrides()[idx] ||
                                         match.parsedTx.category ||

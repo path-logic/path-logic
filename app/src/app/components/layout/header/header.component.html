@@ -11,7 +11,8 @@
                 <span
                     class="font-black text-sm tracking-tighter uppercase text-surface-900"
                     aria-label="Path Logic"
-                    >PATH <span class="text-primary">LOGIC</span></span
+                    >PATH
+                    <span class="text-blue-700 dark:text-blue-400 font-black">LOGIC</span></span
                 >
             </a>
 
@@ -63,6 +64,7 @@
                         ? 'Switch to Light Mode'
                         : 'Switch to Dark Mode'
                 "
+                aria-label="Toggle theme"
                 class="w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
             >
                 <i
@@ -77,9 +79,11 @@
                 <button
                     (click)="toggleUserMenu()"
                     aria-label="User menu"
+                    [attr.aria-label]="'User menu'"
                     [attr.aria-expanded]="showUserMenu()"
                     class="w-[44px] h-[44px] rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
                 >
+                    <span class="sr-only">User menu</span>
                     <div
                         class="w-8 h-8 rounded-full overflow-hidden border-2 border-surface-300 hover:border-primary transition-colors"
                     >
