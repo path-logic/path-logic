@@ -393,3 +393,232 @@ export async function forceReleaseLock(accessToken: string): Promise<void> {
         }
     }
 }
+
+// ── Export Package GDrive Management Functions ──────────────────────────────────────────
+
+const EXPORTS_ROOT_FOLDER_NAME = `Path Logic Exports${getEnvSuffix()}`;
+
+/**
+ * Ensures the parent "Path Logic Exports" folder exists in appDataFolder scope and returns its file ID.
+ */
+export async function ensureExportsParentFolder(accessToken: string): Promise<string> {
+    const q = `mimeType='application/vnd.google-apps.folder' and name='${EXPORTS_ROOT_FOLDER_NAME}' and trashed=false and 'appDataFolder' in parents`;
+    const response = await driveApiFetch(
+        `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=${encodeURIComponent(q)}`,
+        {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        }
+    );
+
+    if (!response.ok) {
+        await handleResponseError(response, 'Failed to find export parent folder');
+    }
+
+    const data = (await response.json()) as { files?: Array<{ id: string }> };
+    if (data.files && data.files.length > 0 && data.files[0]?.id) {
+        return data.files[0].id;
+    }
+
+    // Create root folder in appDataFolder
+    const createResponse = await driveApiFetch(`${DRIVE_API_BASE}/files`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: EXPORTS_ROOT_FOLDER_NAME,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: ['appDataFolder']
+        })
+    });
+
+    if (!createResponse.ok) {
+        await handleResponseError(createResponse, 'Failed to create export parent folder');
+    }
+
+    const created = (await createResponse.json()) as { id: string };
+    return created.id;
+}
+
+/**
+ * Creates a unique export package folder (e.g. "20260808" or "20260808_01") inside "Path Logic Exports".
+ */
+export async function createExportPackageFolder(
+    accessToken: string,
+    baseFolderName: string
+): Promise<{ id: string; name: string }> {
+    const parentId = await ensureExportsParentFolder(accessToken);
+
+    // List existing subfolders to avoid overwriting and compute non-conflicting suffix if needed
+    const q = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const listRes = await driveApiFetch(
+        `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=${encodeURIComponent(q)}`,
+        {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        }
+    );
+
+    let finalFolderName = baseFolderName;
+    if (listRes.ok) {
+        const data = (await listRes.json()) as { files?: Array<{ name: string }> };
+        const existingNames = new Set((data.files || []).map(f => f.name));
+
+        if (existingNames.has(baseFolderName)) {
+            let counter = 1;
+            while (existingNames.has(`${baseFolderName}_${String(counter).padStart(2, '0')}`)) {
+                counter++;
+            }
+            finalFolderName = `${baseFolderName}_${String(counter).padStart(2, '0')}`;
+        }
+    }
+
+    const createResponse = await driveApiFetch(`${DRIVE_API_BASE}/files`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: finalFolderName,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentId]
+        })
+    });
+
+    if (!createResponse.ok) {
+        await handleResponseError(createResponse, 'Failed to create export package folder');
+    }
+
+    const created = (await createResponse.json()) as { id: string };
+    return { id: created.id, name: finalFolderName };
+}
+
+/**
+ * Lists all export package folders inside "Path Logic Exports".
+ */
+export async function listExportPackageFolders(accessToken: string): Promise<Array<IDriveFile>> {
+    const parentId = await ensureExportsParentFolder(accessToken);
+    const q = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+
+    const response = await driveApiFetch(
+        `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime)`,
+        {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        }
+    );
+
+    if (!response.ok) {
+        await handleResponseError(response, 'Failed to list export package folders');
+    }
+
+    const data = (await response.json()) as { files?: Array<IDriveFile> };
+    return data.files || [];
+}
+
+/**
+ * Lists all files inside a specific export package folder.
+ */
+export async function listFilesInPackageFolder(
+    accessToken: string,
+    folderId: string
+): Promise<Array<IDriveFile>> {
+    const q = `'${folderId}' in parents and trashed=false`;
+
+    const response = await driveApiFetch(
+        `${DRIVE_API_BASE}/files?spaces=appDataFolder&q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime)`,
+        {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        }
+    );
+
+    if (!response.ok) {
+        await handleResponseError(response, 'Failed to list files in package folder');
+    }
+
+    const data = (await response.json()) as { files?: Array<IDriveFile> };
+    return data.files || [];
+}
+
+/**
+ * Uploads a text or JSON file into an export package folder.
+ */
+export async function uploadExportFileToFolder(
+    accessToken: string,
+    folderId: string,
+    name: string,
+    mimeType: string,
+    content: string
+): Promise<IDriveFile> {
+    const metadata = {
+        name,
+        mimeType,
+        parents: [folderId]
+    };
+
+    const boundary = '-------314159265358979323846';
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelimiter = `\r\n--${boundary}--`;
+
+    const multipartRequestBody =
+        delimiter +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        JSON.stringify(metadata) +
+        delimiter +
+        `Content-Type: ${mimeType}\r\n\r\n` +
+        content +
+        closeDelimiter;
+
+    const response = await driveApiFetch(
+        `${UPLOAD_API_BASE}/files?uploadType=multipart&spaces=appDataFolder`,
+        {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': `multipart/related; boundary=${boundary}`
+            },
+            body: multipartRequestBody
+        }
+    );
+
+    if (!response.ok) {
+        await handleResponseError(response, `Failed to upload export file ${name}`);
+    }
+
+    return (await response.json()) as IDriveFile;
+}
+
+/**
+ * Downloads file text content by file ID.
+ */
+export async function downloadExportFileContent(
+    accessToken: string,
+    fileId: string
+): Promise<string> {
+    const response = await driveApiFetch(`${DRIVE_API_BASE}/files/${fileId}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) {
+        await handleResponseError(response, `Failed to download file content ${fileId}`);
+    }
+
+    return await response.text();
+}
+
+/**
+ * Deletes an export package folder (and all files inside it) by folder ID.
+ */
+export async function deleteExportPackageFolder(
+    accessToken: string,
+    folderId: string
+): Promise<void> {
+    const response = await driveApiFetch(`${DRIVE_API_BASE}/files/${folderId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok && response.status !== 404) {
+        await handleResponseError(response, `Failed to delete export folder ${folderId}`);
+    }
+}

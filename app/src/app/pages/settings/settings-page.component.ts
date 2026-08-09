@@ -17,6 +17,10 @@ import { LlmProvider, LlmService } from '../../services/llm/llm.service';
 import { type ThemePreference, ThemeService } from '../../services/theme/theme.service';
 import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 
+import { ExportDialogComponent } from '../../components/export-import/export-dialog/export-dialog.component';
+import { ExportManagerDialogComponent } from '../../components/export-import/export-manager-dialog/export-manager-dialog.component';
+import { ImportDialogComponent } from '../../components/export-import/import-dialog/import-dialog.component';
+
 /**
  * Main Settings page for configuring the application.
  * Supports Multi-Provider BYOK AI (Google Gemini, Anthropic Claude, OpenAI)
@@ -25,12 +29,22 @@ import { UserSettingsStore } from '../../services/user-settings-store/user-setti
 @Component({
     selector: 'settings-page',
     standalone: true,
-    imports: [CommonModule, AppShellComponent, FeatureFlagToggleComponent],
+    imports: [
+        CommonModule,
+        AppShellComponent,
+        FeatureFlagToggleComponent,
+        ExportDialogComponent,
+        ImportDialogComponent,
+        ExportManagerDialogComponent
+    ],
     templateUrl: './settings-page.component.html',
     styleUrls: ['./settings-page.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsPageComponent {
+    readonly showExportDialog = signal<boolean>(false);
+    readonly showImportDialog = signal<boolean>(false);
+    readonly showExportManagerDialog = signal<boolean>(false);
     private readonly themeService = inject(ThemeService);
     private readonly userSettingsStore = inject(UserSettingsStore);
     private readonly llmService = inject(LlmService);
@@ -107,6 +121,44 @@ export class SettingsPageComponent {
     readonly storybookUrl = environment.production
         ? 'https://storybook.pathlogicfinance.com'
         : 'http://localhost:6006';
+
+    readonly devKeySet = signal<boolean>(this.checkDevKey());
+    private versionClickCount = signal<number>(0);
+
+    private checkDevKey(): boolean {
+        try {
+            return (
+                localStorage.getItem('path_logic_dev') === 'true' ||
+                localStorage.getItem('path_logic_dev_mode') === 'true' ||
+                localStorage.getItem('dev_mode') === 'true' ||
+                localStorage.getItem('path-logic-dev') === 'true'
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    onVersionClick(): void {
+        const next = this.versionClickCount() + 1;
+        this.versionClickCount.set(next);
+        if (next >= 5) {
+            try {
+                const isSet = this.checkDevKey();
+                if (isSet) {
+                    localStorage.removeItem('path_logic_dev');
+                    localStorage.removeItem('path_logic_dev_mode');
+                    localStorage.removeItem('dev_mode');
+                    localStorage.removeItem('path-logic-dev');
+                } else {
+                    localStorage.setItem('path_logic_dev', 'true');
+                }
+            } catch {
+                // ignore storage error
+            }
+            this.devKeySet.set(this.checkDevKey());
+            this.versionClickCount.set(0);
+        }
+    }
 
     constructor() {
         effect(() => {

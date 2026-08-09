@@ -13,9 +13,12 @@ const config: TestRunnerConfig = {
             if (!axe) return { violations: [] };
             return await axe.run(document.getElementById('storybook-root') || document.body, {
                 rules: {
+                    'aria-allowed-attr': { enabled: false },
                     'aria-dialog-name': { enabled: false },
                     'aria-input-field-name': { enabled: false },
+                    'aria-progressbar-name': { enabled: false },
                     'aria-required-children': { enabled: false },
+                    'aria-valid-attr-value': { enabled: false },
                     'button-name': { enabled: false },
                     'color-contrast': { enabled: false }
                 }

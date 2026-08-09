@@ -56,264 +56,289 @@
         </section>
 
         <!-- ── AI Integration ────────────────────────────────────── -->
-        <section class="space-y-6">
+        <section class="space-y-4">
             <div class="flex items-center gap-2 px-1">
                 <i class="pi pi-sparkles text-base text-primary"></i>
                 <h2 class="text-[11px] font-black uppercase tracking-widest">AI Integration</h2>
             </div>
-            <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
-                <div class="flex justify-between items-center gap-6">
-                    <div class="flex-1 space-y-5">
-                        <!-- Provider Selection Dropdown -->
-                        <div>
-                            <span
-                                class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block mb-1"
-                            >
-                                AI Provider
-                            </span>
-                            <p class="text-[9px] text-surface-500/60 uppercase font-bold mb-2">
-                                Select your preferred AI provider (Defaults to Google Gemini)
-                            </p>
-                            <select
-                                [value]="selectedProvider()"
-                                (change)="updateProvider($any($event.target).value)"
-                                class="h-9 text-xs px-3 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow max-w-xs w-full outline-none"
-                            >
-                                @for (p of providerOptions; track p.value) {
-                                    <option
-                                        [value]="p.value"
-                                        [selected]="p.value === selectedProvider()"
-                                    >
-                                        {{ p.label }}
-                                    </option>
-                                }
-                            </select>
-                        </div>
-
-                        <!-- Provider API Key Input -->
-                        <div class="pt-2 border-t border-surface-100">
-                            <span
-                                class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
-                            >
-                                {{ apiKeyLabel() }}
-                            </span>
-                            <p class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5">
-                                Bring Your Own Key (BYOK) — Private client-side execution directly
-                                to provider API
-                            </p>
-                            <div class="mt-3 flex gap-2">
-                                <input
-                                    type="password"
-                                    [value]="apiKey()"
-                                    #keyInput
-                                    [placeholder]="apiKeyPlaceholder()"
-                                    class="flex-1 h-9 text-xs px-3 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow"
-                                />
-                                <button
-                                    type="button"
-                                    (click)="updateApiKey(keyInput.value)"
-                                    class="h-9 px-4 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white active:scale-[0.98] transition-all text-[10px] font-black uppercase tracking-widest shadow"
+            <div class="bg-surface-0 border border-surface-200 rounded-sm p-4 shadow-sm space-y-4">
+                <!-- 2-Column Row for Provider & Model -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Provider Selection Dropdown -->
+                    <div class="space-y-1">
+                        <label
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block"
+                        >
+                            AI Provider
+                        </label>
+                        <select
+                            [value]="selectedProvider()"
+                            (change)="updateProvider($any($event.target).value)"
+                            class="h-8 text-xs px-2.5 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow w-full outline-none"
+                        >
+                            @for (p of providerOptions; track p.value) {
+                                <option
+                                    [value]="p.value"
+                                    [selected]="p.value === selectedProvider()"
                                 >
-                                    Save Key
-                                </button>
-                            </div>
-                        </div>
+                                    {{ p.label }}
+                                </option>
+                            }
+                        </select>
+                    </div>
 
-                        <!-- Dynamic Model Dropdown (Disabled until Key Saved) -->
-                        <div class="pt-4 border-t border-surface-100 max-w-md">
-                            <span
-                                class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block mb-1"
-                            >
-                                {{
-                                    selectedProvider() === LlmProvider.Anthropic
-                                        ? 'Claude Model'
-                                        : selectedProvider() === LlmProvider.OpenAI
-                                          ? 'OpenAI Model'
-                                          : 'Gemini Model'
-                                }}
-                            </span>
-                            <p class="text-[9px] text-surface-500/60 uppercase font-bold mb-3">
-                                Select the model for assistant chats and category mappings (Enter &
-                                save a key to enable)
-                            </p>
-                            <select
-                                [value]="isCustomModel() ? 'custom' : selectedModel()"
-                                (change)="onModelDropdownChange($any($event.target).value)"
-                                [disabled]="!hasKey()"
-                                [class]="
-                                    hasKey()
-                                        ? 'h-9 text-xs px-3 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow w-full outline-none'
-                                        : 'h-9 text-xs px-3 bg-surface-100 border border-surface-200 text-surface-400 rounded-sm shadow w-full outline-none cursor-not-allowed opacity-60'
-                                "
-                            >
-                                @for (opt of modelOptions(); track opt.value) {
-                                    <option
-                                        [value]="opt.value"
-                                        [selected]="
-                                            opt.value ===
-                                            (isCustomModel() ? 'custom' : selectedModel())
-                                        "
-                                    >
-                                        {{ opt.label }}
-                                    </option>
-                                }
-                            </select>
-                        </div>
-
-                        @if (isCustomModel() && hasKey()) {
-                            <div class="mt-3 flex gap-2 max-w-md animate-fade-in">
-                                <input
-                                    type="text"
-                                    [value]="selectedModel()"
-                                    #customModelInput
-                                    placeholder="Enter custom model name"
-                                    class="flex-1 h-9 text-xs px-3 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow"
-                                />
-                                <button
-                                    type="button"
-                                    (click)="updateModel(customModelInput.value)"
-                                    class="h-9 px-4 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white active:scale-[0.98] transition-all text-[10px] font-black uppercase tracking-widest shadow"
+                    <!-- Dynamic Model Dropdown -->
+                    <div class="space-y-1">
+                        <label
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block"
+                        >
+                            {{
+                                selectedProvider() === LlmProvider.Anthropic
+                                    ? 'Claude Model'
+                                    : selectedProvider() === LlmProvider.OpenAI
+                                      ? 'OpenAI Model'
+                                      : 'Gemini Model'
+                            }}
+                        </label>
+                        <select
+                            [value]="isCustomModel() ? 'custom' : selectedModel()"
+                            (change)="onModelDropdownChange($any($event.target).value)"
+                            [disabled]="!hasKey()"
+                            [class]="
+                                hasKey()
+                                    ? 'h-8 text-xs px-2.5 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow w-full outline-none'
+                                    : 'h-8 text-xs px-2.5 bg-surface-100 border border-surface-200 text-surface-400 rounded-sm shadow w-full outline-none cursor-not-allowed opacity-60'
+                            "
+                        >
+                            @for (opt of modelOptions(); track opt.value) {
+                                <option
+                                    [value]="opt.value"
+                                    [selected]="
+                                        opt.value === (isCustomModel() ? 'custom' : selectedModel())
+                                    "
                                 >
-                                    Apply
-                                </button>
-                            </div>
-                        }
-
-                        <!-- Toggle Link -->
-                        <div class="mt-4">
-                            <button
-                                type="button"
-                                (click)="showGuide.set(!showGuide())"
-                                class="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline focus:outline-none"
-                            >
-                                {{ showGuide() ? 'Hide Setup Guide' : 'How do I get an API Key?' }}
-                            </button>
-                        </div>
-
-                        <!-- Setup Guide content -->
-                        @if (showGuide()) {
-                            <div
-                                class="mt-4 p-4 border border-surface-200 bg-surface-50/50 rounded-sm space-y-4 animate-fade-in text-left"
-                            >
-                                <div>
-                                    <h4
-                                        class="text-[10px] font-black uppercase tracking-wider text-surface-700"
-                                    >
-                                        Setup Guide
-                                    </h4>
-                                    <p
-                                        class="text-[9px] text-surface-500 uppercase font-bold mt-0.5"
-                                    >
-                                        Obtaining an API Key for your preferred provider:
-                                    </p>
-                                </div>
-
-                                <ul class="space-y-3 text-[10px] text-surface-600 font-medium">
-                                    <li class="flex gap-2">
-                                        <span
-                                            class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
-                                            >G</span
-                                        >
-                                        <span
-                                            ><strong>Google Gemini:</strong> Visit
-                                            <a
-                                                href="https://aistudio.google.com/"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="text-primary hover:underline"
-                                                >Google AI Studio</a
-                                            >
-                                            to get a free API Key.</span
-                                        >
-                                    </li>
-                                    <li class="flex gap-2">
-                                        <span
-                                            class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
-                                            >C</span
-                                        >
-                                        <span
-                                            ><strong>Anthropic Claude:</strong> Visit
-                                            <a
-                                                href="https://console.anthropic.com/"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="text-primary hover:underline"
-                                                >Anthropic Console</a
-                                            >
-                                            to create an API key.</span
-                                        >
-                                    </li>
-                                    <li class="flex gap-2">
-                                        <span
-                                            class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
-                                            >O</span
-                                        >
-                                        <span
-                                            ><strong>OpenAI:</strong> Visit
-                                            <a
-                                                href="https://platform.openai.com/api-keys"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="text-primary hover:underline"
-                                                >OpenAI Platform</a
-                                            >
-                                            to generate an API key.</span
-                                        >
-                                    </li>
-                                </ul>
-
-                                <div class="pt-2 border-t border-surface-200/50 space-y-2">
-                                    <div class="flex items-start gap-2">
-                                        <i
-                                            class="pi pi-lock text-[10px] text-emerald-600 mt-0.5"
-                                        ></i>
-                                        <div class="text-[9px] text-surface-500">
-                                            <strong class="uppercase text-emerald-800"
-                                                >Privacy & Security:</strong
-                                            >
-                                            Your API keys are stored locally on your device in the
-                                            encrypted SQLite database. Requests are dispatched
-                                            directly from your browser to provider servers.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
+                                    {{ opt.label }}
+                                </option>
+                            }
+                        </select>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- ── Feature Flags ──────────────────────────────────────── -->
-        <section class="space-y-6">
-            <div class="flex items-center gap-2 px-1">
-                <i class="pi pi-flag text-base text-primary"></i>
-                <h2 class="text-[11px] font-black uppercase tracking-widest">Feature Flags</h2>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (config of FLAG_CONFIGS; track config.key) {
-                    <div
-                        class="bg-surface-0 border border-surface-200/40 rounded-sm overflow-hidden shadow-sm"
-                    >
-                        <feature-flag-toggle
-                            [flag]="config.key"
-                            [label]="config.name"
-                            [description]="config.description"
+                @if (isCustomModel() && hasKey()) {
+                    <div class="flex gap-2 max-w-md animate-fade-in">
+                        <input
+                            type="text"
+                            [value]="selectedModel()"
+                            #customModelInput
+                            placeholder="Enter custom model name"
+                            class="flex-1 h-8 text-xs px-2.5 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow"
                         />
+                        <button
+                            type="button"
+                            (click)="updateModel(customModelInput.value)"
+                            class="h-8 px-3 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white active:scale-[0.98] transition-all text-[10px] font-black uppercase tracking-widest shadow"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                }
+
+                <!-- Provider API Key Input Row -->
+                <div class="space-y-1.5 pt-2 border-t border-surface-100">
+                    <div class="flex justify-between items-center flex-wrap gap-1">
+                        <label
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
+                        >
+                            {{ apiKeyLabel() }}
+                        </label>
+                        <span class="text-[9px] text-surface-400 font-mono">
+                            Bring Your Own Key (BYOK) — Private client-side execution
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input
+                            type="password"
+                            [value]="apiKey()"
+                            #keyInput
+                            [placeholder]="apiKeyPlaceholder()"
+                            class="flex-1 h-8 text-xs px-2.5 bg-surface-0 border border-surface-200 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow"
+                        />
+                        <button
+                            type="button"
+                            (click)="updateApiKey(keyInput.value)"
+                            class="h-8 px-3 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white active:scale-[0.98] transition-all text-[10px] font-black uppercase tracking-widest shadow"
+                        >
+                            Save Key
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Setup Guide Toggle -->
+                <div class="pt-1 flex items-center justify-between">
+                    <button
+                        type="button"
+                        (click)="showGuide.set(!showGuide())"
+                        class="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline focus:outline-none"
+                    >
+                        {{ showGuide() ? 'Hide Setup Guide' : 'How do I get an API Key?' }}
+                    </button>
+                </div>
+
+                <!-- Setup Guide content -->
+                @if (showGuide()) {
+                    <div
+                        class="p-3 border border-surface-200 bg-surface-50/50 rounded-sm space-y-3 animate-fade-in text-left"
+                    >
+                        <ul class="space-y-2 text-[10px] text-surface-600 font-medium">
+                            <li class="flex gap-2">
+                                <span
+                                    class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
+                                    >G</span
+                                >
+                                <span
+                                    ><strong>Google Gemini:</strong> Visit
+                                    <a
+                                        href="https://aistudio.google.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-primary hover:underline"
+                                        >Google AI Studio</a
+                                    >
+                                    for a free API key.</span
+                                >
+                            </li>
+                            <li class="flex gap-2">
+                                <span
+                                    class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
+                                    >C</span
+                                >
+                                <span
+                                    ><strong>Anthropic Claude:</strong> Visit
+                                    <a
+                                        href="https://console.anthropic.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-primary hover:underline"
+                                        >Anthropic Console</a
+                                    >
+                                    to create an API key.</span
+                                >
+                            </li>
+                            <li class="flex gap-2">
+                                <span
+                                    class="flex-none w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-black flex items-center justify-center"
+                                    >O</span
+                                >
+                                <span
+                                    ><strong>OpenAI:</strong> Visit
+                                    <a
+                                        href="https://platform.openai.com/api-keys"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-primary hover:underline"
+                                        >OpenAI Platform</a
+                                    >
+                                    to generate an API key.</span
+                                >
+                            </li>
+                        </ul>
                     </div>
                 }
             </div>
         </section>
 
+        <!-- ── Data Management ──────────────────────────────────── -->
         <section class="space-y-6">
             <div class="flex items-center gap-2 px-1">
-                <i class="pi pi-bolt text-base text-primary"></i>
+                <i class="pi pi-cloud text-base text-primary"></i>
+                <h2 class="text-[11px] font-black uppercase tracking-widest">
+                    Data Backup & Restore
+                </h2>
+            </div>
+            <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm space-y-4">
+                <div
+                    class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-surface-200/30"
+                >
+                    <div>
+                        <span
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block"
+                        >
+                            Export Data Backup
+                        </span>
+                        <span
+                            class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5 block"
+                        >
+                            Back up your financial accounts and settings to secure storage
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        (click)="showExportDialog.set(true)"
+                        class="h-9 px-4 rounded-sm border border-primary/20 bg-primary hover:bg-primary/95 text-white text-[10px] font-black uppercase tracking-widest shadow"
+                    >
+                        Export Data Backup
+                    </button>
+                </div>
+
+                <div
+                    class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-surface-200/30"
+                >
+                    <div>
+                        <span
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block"
+                        >
+                            Restore Data Backup
+                        </span>
+                        <span
+                            class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5 block"
+                        >
+                            Restore accounts and settings from backup storage
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        (click)="showImportDialog.set(true)"
+                        class="h-9 px-4 rounded-sm border border-surface-300 bg-surface-100 hover:bg-surface-200 text-surface-900 text-[10px] font-black uppercase tracking-widest shadow"
+                    >
+                        Restore Data Backup
+                    </button>
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
+                    <div>
+                        <span
+                            class="text-[10px] font-bold uppercase text-surface-500 tracking-widest block"
+                        >
+                            Manage Data Backups
+                        </span>
+                        <span
+                            class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5 block"
+                        >
+                            Consolidate same-day backups & prune old backup files
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        (click)="showExportManagerDialog.set(true)"
+                        class="h-9 px-4 rounded-sm border border-surface-300 bg-surface-0 hover:bg-surface-50 text-surface-800 text-[10px] font-black uppercase tracking-widest shadow"
+                    >
+                        Manage Backups
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Application Info ────────────────────────────────────── -->
+        <section class="space-y-6">
+            <div class="flex items-center gap-2 px-1">
+                <i class="pi pi-info-circle text-base text-primary"></i>
                 <h2 class="text-[11px] font-black uppercase tracking-widest">Application Info</h2>
             </div>
             <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
                 <div class="space-y-4">
                     <div
-                        class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
+                        class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0 cursor-pointer select-none"
+                        (click)="onVersionClick()"
                     >
                         <span
                             class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
@@ -352,37 +377,75 @@
             </div>
         </section>
 
-        <section class="space-y-6">
-            <div class="flex items-center gap-2 px-1">
-                <i class="pi pi-bolt text-base text-primary"></i>
-                <h2 class="text-[11px] font-black uppercase tracking-widest">Developer Tools</h2>
-            </div>
-            <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
-                <div class="space-y-4">
-                    <div
-                        class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
-                    >
-                        <div class="flex flex-col">
-                            <span
-                                class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
-                            >
-                                Storybook
-                            </span>
-                            <span class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5">
-                                Component Documentation & Testing
-                            </span>
-                        </div>
-                        <a
-                            [href]="storybookUrl"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-[11px] font-black uppercase text-primary hover:text-primary/80 transition-colors"
+        <!-- ── Developer Sections (Bottom - Only when local storage key is set) ── -->
+        @if (devKeySet()) {
+            <!-- ── Feature Flags ──────────────────────────────────────── -->
+            <section class="space-y-6 animate-fade-in">
+                <div class="flex items-center gap-2 px-1">
+                    <i class="pi pi-flag text-base text-primary"></i>
+                    <h2 class="text-[11px] font-black uppercase tracking-widest">Feature Flags</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @for (config of FLAG_CONFIGS; track config.key) {
+                        <div
+                            class="bg-surface-0 border border-surface-200/40 rounded-sm overflow-hidden shadow-sm"
                         >
-                            Open Storybook
-                        </a>
+                            <feature-flag-toggle
+                                [flag]="config.key"
+                                [label]="config.name"
+                                [description]="config.description"
+                            />
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <!-- ── Developer Tools ────────────────────────────────────── -->
+            <section class="space-y-6 animate-fade-in">
+                <div class="flex items-center gap-2 px-1">
+                    <i class="pi pi-bolt text-base text-primary"></i>
+                    <h2 class="text-[11px] font-black uppercase tracking-widest">
+                        Developer Tools
+                    </h2>
+                </div>
+                <div class="bg-surface-0 border border-surface-200 rounded-sm p-6 shadow-sm">
+                    <div class="space-y-4">
+                        <div
+                            class="flex justify-between items-center py-2 border-b border-surface-200/30 last:border-0"
+                        >
+                            <div class="flex flex-col">
+                                <span
+                                    class="text-[10px] font-bold uppercase text-surface-500 tracking-widest"
+                                >
+                                    Storybook
+                                </span>
+                                <span
+                                    class="text-[9px] text-surface-500/60 uppercase font-bold mt-0.5"
+                                >
+                                    Component Documentation & Testing
+                                </span>
+                            </div>
+                            <a
+                                [href]="storybookUrl"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-[11px] font-black uppercase text-primary hover:text-primary/80 transition-colors"
+                            >
+                                Open Storybook
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        }
+
+        <!-- Export/Import Modals -->
+        <app-export-dialog [(visible)]="showExportDialog"></app-export-dialog>
+
+        <app-import-dialog [(visible)]="showImportDialog"></app-import-dialog>
+
+        <app-export-manager-dialog
+            [(visible)]="showExportManagerDialog"
+        ></app-export-manager-dialog>
     </div>
 </shell>

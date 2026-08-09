@@ -1,0 +1,377 @@
+<p-toast />
+
+<p-dialog
+    [(visible)]="visible"
+    (onShow)="openAndScan()"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Restore Data Backup"
+    styleClass="w-full max-w-2xl p-0 overflow-hidden path-logic-dialog"
+    ariaLabel="Restore Data Backup"
+    appendTo="body"
+>
+    <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto bg-surface-0 dark:bg-surface-950">
+        <!-- Status Progress (Top scanning indicator for folder search) -->
+        @if (importExportService.isScanning() && step() === 'scan') {
+            <div class="space-y-2 py-4">
+                <p class="text-xs font-mono text-primary font-semibold animate-pulse">
+                    {{ statusMessage() }}
+                </p>
+                <p-progressBar
+                    mode="indeterminate"
+                    aria-hidden="true"
+                    [style]="{ height: '6px' }"
+                ></p-progressBar>
+            </div>
+        }
+
+        <!-- Step 1: Choose the export package to import -->
+        @if (step() === 'scan' && !importExportService.isScanning()) {
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <p
+                        class="text-xs font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
+                    >
+                        Available Export Packages
+                    </p>
+                    <button
+                        pButton
+                        label="Scan Storage"
+                        icon="pi pi-refresh"
+                        class="p-button-outlined p-button-sm border-surface-300 dark:border-surface-700 text-surface-800 dark:text-surface-200"
+                        (click)="openAndScan()"
+                        aria-label="Scan backup storage for exports"
+                    ></button>
+                </div>
+
+                @if (availableFolders().length === 0) {
+                    <div
+                        class="p-8 text-center rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400 space-y-2"
+                    >
+                        <i
+                            class="pi pi-folder-open text-3xl text-surface-400 dark:text-surface-500"
+                            aria-hidden="true"
+                        ></i>
+                        <p class="text-sm">No export packages found in backup storage.</p>
+                    </div>
+                } @else {
+                    <div class="space-y-3">
+                        @for (folder of availableFolders(); track folder.folderId) {
+                            <div
+                                class="p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 flex items-center justify-between hover:border-primary/50 transition-colors"
+                            >
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2">
+                                        <i
+                                            class="pi pi-box text-primary text-base"
+                                            aria-hidden="true"
+                                        ></i>
+                                        <span
+                                            class="font-mono text-sm font-bold text-surface-900 dark:text-surface-100"
+                                            >{{ folder.folderName }}</span
+                                        >
+                                    </div>
+                                    <p class="text-xs text-surface-600 dark:text-surface-400">
+                                        Created: {{ folder.createdAt | date: 'medium' }}
+                                    </p>
+                                </div>
+                                <button
+                                    pButton
+                                    label="Inspect & Import"
+                                    icon="pi pi-arrow-right"
+                                    class="p-button-primary p-button-sm"
+                                    (click)="selectFolder(folder)"
+                                    aria-label="Inspect & Import package"
+                                ></button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Step 1.5: Corruption Recovery Mode (if integrity issues detected) -->
+        @if (step() === 'recovery' && selectedFolder() && corruptionReport()) {
+            <app-corruption-recovery-dialog
+                [folderName]="selectedFolder()!.folderName"
+                [report]="corruptionReport()!"
+                (recoveryResolved)="onRecoveryResolved($event)"
+            ></app-corruption-recovery-dialog>
+        }
+
+        <!-- Step 2: Select what to import from that export package -->
+        @if (step() === 'inspect' && selectedMetadata()) {
+            <div class="space-y-6">
+                <!-- Package Overview Header -->
+                <div
+                    class="p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 flex items-center justify-between"
+                >
+                    <div>
+                        <p class="text-xs text-surface-500 uppercase font-bold">Selected Package</p>
+                        <p
+                            class="font-mono text-sm font-bold text-surface-900 dark:text-surface-100"
+                        >
+                            {{ selectedFolder()?.folderName }}
+                        </p>
+                    </div>
+                    <span
+                        class="px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center"
+                    >
+                        <i class="pi pi-check-circle mr-1" aria-hidden="true"></i> Binary Integrity
+                        Passed
+                    </span>
+                </div>
+
+                <!-- Package Decryption Passphrase Entry -->
+                <div
+                    class="space-y-2 p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+                >
+                    <label
+                        for="import-passphrase"
+                        class="block text-[10px] font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
+                    >
+                        Package Decryption Key
+                    </label>
+                    <p-password
+                        inputId="import-passphrase"
+                        [ngModel]="passphrase()"
+                        (ngModelChange)="passphrase.set($event)"
+                        [toggleMask]="true"
+                        [feedback]="false"
+                        styleClass="w-full"
+                        inputStyleClass="w-full p-inputtext-sm font-mono"
+                        placeholder="Enter the encryption key for this backup"
+                        ariaLabel="Package Decryption Key"
+                    ></p-password>
+                    <p class="text-[11px] text-surface-500 dark:text-surface-400">
+                        Enter the key used to encrypt this backup package when it was exported.
+                    </p>
+                </div>
+
+                <!-- Settings Granularity Section -->
+                <div
+                    class="space-y-3 p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+                >
+                    <div
+                        class="flex items-center justify-between pb-2 border-b border-surface-200 dark:border-surface-800"
+                    >
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
+                            >Ancillary Settings Import</span
+                        >
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="select-all-settings"
+                                [binary]="true"
+                                [ngModel]="settingsSelectAll"
+                                (onChange)="toggleSelectAllSettings($event.checked)"
+                                ariaLabel="Select All Settings"
+                            ></p-checkbox>
+                            <label
+                                for="select-all-settings"
+                                class="text-xs text-surface-800 dark:text-surface-200 font-medium cursor-pointer select-none"
+                            >
+                                Select All Settings
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="import-opt-categories"
+                                [binary]="true"
+                                [(ngModel)]="options.settings.categories"
+                                ariaLabel="Import Categories and Tax Codes"
+                            ></p-checkbox>
+                            <label
+                                for="import-opt-categories"
+                                class="text-xs text-surface-700 dark:text-surface-300 font-medium cursor-pointer select-none"
+                            >
+                                Categories & Tax Codes
+                            </label>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="import-opt-payees"
+                                [binary]="true"
+                                [(ngModel)]="options.settings.payees"
+                                ariaLabel="Import Payee Directory"
+                            ></p-checkbox>
+                            <label
+                                for="import-opt-payees"
+                                class="text-xs text-surface-700 dark:text-surface-300 font-medium cursor-pointer select-none"
+                            >
+                                Payee Directory
+                            </label>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="import-opt-recurring"
+                                [binary]="true"
+                                [(ngModel)]="options.settings.recurringSchedules"
+                                ariaLabel="Import Recurring Schedules"
+                            ></p-checkbox>
+                            <label
+                                for="import-opt-recurring"
+                                class="text-xs text-surface-700 dark:text-surface-300 font-medium cursor-pointer select-none"
+                            >
+                                Recurring Schedules
+                            </label>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="import-opt-flags"
+                                [binary]="true"
+                                [(ngModel)]="options.settings.featureFlags"
+                                ariaLabel="Import Feature Flags"
+                            ></p-checkbox>
+                            <label
+                                for="import-opt-flags"
+                                class="text-xs text-surface-700 dark:text-surface-300 font-medium cursor-pointer select-none"
+                            >
+                                Feature Flags
+                            </label>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <p-checkbox
+                                inputId="import-opt-preferences"
+                                [binary]="true"
+                                [(ngModel)]="options.settings.userSettings"
+                                ariaLabel="Import UI Preferences"
+                            ></p-checkbox>
+                            <label
+                                for="import-opt-preferences"
+                                class="text-xs text-surface-700 dark:text-surface-300 font-medium cursor-pointer select-none"
+                            >
+                                UI Preferences
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Selection & Mode -->
+                <div
+                    class="space-y-3 p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+                >
+                    <div
+                        class="flex items-center justify-between pb-2 border-b border-surface-200 dark:border-surface-800"
+                    >
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
+                            >Account Ledgers to Import</span
+                        >
+                        <p-selectButton
+                            [options]="modeOptions"
+                            [(ngModel)]="options.accountImportMode"
+                            optionLabel="label"
+                            optionValue="value"
+                            styleClass="p-button-sm text-xs"
+                            ariaLabel="Account Import Mode"
+                        ></p-selectButton>
+                    </div>
+
+                    <div class="space-y-2">
+                        @for (acc of selectedMetadata()?.accounts || []; track acc.id) {
+                            <div
+                                class="flex items-center justify-between p-3 rounded bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-800"
+                            >
+                                <div class="flex items-center space-x-3">
+                                    <p-checkbox
+                                        [inputId]="'account-check-' + acc.id"
+                                        [binary]="true"
+                                        [ngModel]="
+                                            options.selectedAccountIdsToImport.includes(acc.id)
+                                        "
+                                        (onChange)="toggleAccountSelection(acc.id, $event.checked)"
+                                        [ariaLabel]="'Import account ' + acc.name"
+                                    ></p-checkbox>
+                                    <label [for]="'account-check-' + acc.id" class="cursor-pointer">
+                                        <p
+                                            class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                        >
+                                            {{ acc.name }}
+                                        </p>
+                                        <p
+                                            class="text-[11px] text-surface-500 dark:text-surface-400 font-mono"
+                                        >
+                                            {{ acc.type }} • {{ acc.transactionCount }} transactions
+                                        </p>
+                                    </label>
+                                </div>
+                                <span
+                                    class="font-mono text-xs font-bold text-surface-800 dark:text-surface-200"
+                                >
+                                    ${{ (acc.balanceCents / 100).toFixed(2) }}
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Step 3: The import process -->
+        @if (step() === 'importing') {
+            <div class="space-y-4 py-8 text-center">
+                <i
+                    class="pi pi-cloud-download text-4xl text-primary animate-bounce"
+                    aria-hidden="true"
+                ></i>
+                <div class="space-y-2">
+                    <p class="text-sm font-mono text-primary font-semibold animate-pulse">
+                        {{ statusMessage() }}
+                    </p>
+                    <p-progressBar
+                        mode="indeterminate"
+                        aria-hidden="true"
+                        [style]="{ height: '6px' }"
+                    ></p-progressBar>
+                </div>
+            </div>
+        }
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex items-center justify-end gap-3 w-full pt-2">
+            @if (step() === 'inspect') {
+                <button
+                    pButton
+                    label="Back"
+                    icon="pi pi-chevron-left"
+                    class="p-button-outlined p-button-secondary border-surface-300 text-surface-700 dark:text-surface-200"
+                    (click)="step.set('scan')"
+                    aria-label="Back to package selection"
+                ></button>
+                <button
+                    pButton
+                    label="Execute Import"
+                    icon="pi pi-cloud-download"
+                    class="p-button-primary font-bold"
+                    (click)="executeImport()"
+                    [disabled]="
+                        options.selectedAccountIdsToImport.length === 0 ||
+                        !passphrase() ||
+                        passphrase().trim().length === 0
+                    "
+                    aria-label="Execute Import"
+                ></button>
+            } @else if (step() === 'importing') {
+                <!-- No footer buttons while importing process runs -->
+            } @else {
+                <button
+                    pButton
+                    label="Cancel"
+                    class="p-button-outlined p-button-secondary border-surface-300 text-surface-700 dark:text-surface-200"
+                    (click)="close()"
+                    aria-label="Cancel Import"
+                ></button>
+            }
+        </div>
+    </ng-template>
+</p-dialog>

@@ -1,0 +1,141 @@
+<p-toast />
+
+<p-dialog
+    [(visible)]="visible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    header="Export Data Backup"
+    styleClass="w-full max-w-xl p-0 overflow-hidden path-logic-dialog"
+    ariaLabel="Export Data Backup"
+    appendTo="body"
+>
+    <form
+        (ngSubmit)="startExport()"
+        id="export-form"
+        class="p-6 space-y-6 bg-surface-0 dark:bg-surface-950"
+    >
+        <!-- Visually hidden username field required for Chrome Password Manager discovery -->
+        <input
+            type="text"
+            name="username"
+            id="export-username"
+            autocomplete="username"
+            value="Path Logic Encryption Key"
+            class="sr-only"
+            aria-hidden="true"
+            tabindex="-1"
+            readonly
+        />
+
+        <!-- Security Notice Banner -->
+        <div
+            class="p-4 rounded-md bg-primary/5 border border-primary/20 flex items-start space-x-3"
+        >
+            <i class="pi pi-shield text-xl text-primary mt-0.5" aria-hidden="true"></i>
+            <div class="text-xs space-y-1.5">
+                <p class="font-bold text-surface-900 dark:text-surface-100 text-sm">
+                    Secure Encrypted Backup
+                </p>
+                <p class="text-surface-600 dark:text-surface-300 leading-relaxed">
+                    All accounts and preferences will be encrypted with your key and saved to your
+                    private storage space.
+                </p>
+                <p
+                    class="text-emerald-700 dark:text-emerald-400 text-xs font-bold pt-1 flex items-center"
+                >
+                    <i class="pi pi-check-circle mr-1 text-sm" aria-hidden="true"></i>
+                    AI keys and sensitive credentials are never included in exports.
+                </p>
+            </div>
+        </div>
+
+        <!-- Encryption Key Input -->
+        <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+                <label
+                    for="export-passphrase"
+                    class="block text-[10px] font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
+                >
+                    Encryption Key / Passphrase
+                </label>
+                <span class="text-[10px] font-medium text-surface-500 dark:text-surface-400">
+                    Minimum 8 characters
+                </span>
+            </div>
+
+            <p-password
+                id="export-passphrase"
+                name="password"
+                [ngModel]="passphrase()"
+                (ngModelChange)="passphrase.set($event)"
+                [toggleMask]="true"
+                [feedback]="false"
+                styleClass="w-full"
+                inputStyleClass="w-full font-mono text-sm bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-700 text-surface-900 dark:text-surface-0 rounded-sm focus:border-primary px-3 py-2"
+                ariaLabel="Encryption Key Passphrase"
+                autocomplete="current-password"
+            ></p-password>
+
+            @if (passphrase() && passphrase().trim().length > 0 && passphrase().trim().length < 8) {
+                <p
+                    class="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1"
+                >
+                    <i class="pi pi-exclamation-triangle text-xs" aria-hidden="true"></i>
+                    Key must be at least 8 characters long (currently
+                    {{ passphrase().trim().length }} characters).
+                </p>
+            } @else {
+                <p class="text-xs text-surface-500 dark:text-surface-400">
+                    This key is required to restore your backup. Save this key in Google Password
+                    Manager.
+                </p>
+            }
+        </div>
+
+        <!-- Status Progress / Error Display -->
+        @if (isProcessing()) {
+            <div class="space-y-2">
+                <p class="text-xs font-mono text-primary font-semibold animate-pulse">
+                    {{ statusMessage() }}
+                </p>
+                <p-progressBar
+                    mode="indeterminate"
+                    aria-hidden="true"
+                    [style]="{ height: '6px' }"
+                ></p-progressBar>
+            </div>
+        } @else if (statusMessage()) {
+            <div
+                class="p-4 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs"
+            >
+                {{ statusMessage() }}
+            </div>
+        }
+    </form>
+
+    <ng-template pTemplate="footer">
+        <div class="flex items-center justify-end gap-3 w-full pt-2">
+            <button
+                pButton
+                type="button"
+                label="Cancel"
+                class="p-button-outlined p-button-secondary border-surface-300 text-surface-700 dark:text-surface-200"
+                (click)="close()"
+                [disabled]="isProcessing()"
+                aria-label="Cancel Export"
+            ></button>
+            <button
+                pButton
+                type="submit"
+                form="export-form"
+                label="Export Data Backup"
+                icon="pi pi-cloud-upload"
+                class="p-button-primary font-bold"
+                [disabled]="!isPassphraseValid() || isProcessing()"
+                [loading]="isProcessing()"
+                aria-label="Export Data Backup"
+            ></button>
+        </div>
+    </ng-template>
+</p-dialog>
