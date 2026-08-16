@@ -1,4 +1,9 @@
-/* Header styles using component-specific rules if needed. */
 :host {
     display: block;
+}
+
+@media (min-width: 1024px) {
+    :host {
+        display: none !important;
+    }
 }
