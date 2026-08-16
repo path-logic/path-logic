@@ -6,9 +6,18 @@
     animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Mobile: slide up smoothly from the bottom as a bottom sheet */
 .quick-entry-modal {
-    animation: modalPopSpring 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    transform-origin: center center;
+    animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: bottom center;
+}
+
+/* Desktop / Tablet (sm+): centered spring popup modal */
+@media (min-width: 640px) {
+    .quick-entry-modal {
+        animation: modalPopSpring 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transform-origin: center center;
+    }
 }
 
 @keyframes backdropFadeIn {
@@ -17,6 +26,17 @@
     }
     to {
         opacity: 1;
+    }
+}
+
+@keyframes sheetSlideUp {
+    0% {
+        opacity: 0.8;
+        transform: translateY(100%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
