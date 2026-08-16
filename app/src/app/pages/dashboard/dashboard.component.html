@@ -44,8 +44,8 @@
             <div class="lg:col-span-7 space-y-6">
                 <!-- Account Portfolio Section -->
                 <section class="space-y-4">
-                    <div class="flex items-center justify-between px-1 flex-wrap gap-2">
-                        <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-between px-1">
+                        <div class="flex items-center gap-2.5">
                             <h2 class="text-sm font-bold text-surface-900 uppercase tracking-wider">
                                 Account Portfolio
                             </h2>
@@ -55,22 +55,14 @@
                                 {{ accounts().length }} Total
                             </span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <button
-                                type="button"
-                                (click)="openQuickEntry()"
-                                class="min-h-[44px] sm:min-h-[36px] px-4 py-2 sm:py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
-                            >
-                                <i class="pi pi-bolt text-xs"></i>
-                                <span>+ Quick Entry</span>
-                            </button>
-                            <a
-                                routerLink="/accounts"
-                                class="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline transition-colors"
-                            >
-                                Manage Accounts &rarr;
-                            </a>
-                        </div>
+
+                        <a
+                            routerLink="/accounts"
+                            class="min-h-[44px] sm:min-h-[32px] inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:underline transition-colors cursor-pointer"
+                        >
+                            <span>Manage Accounts</span>
+                            <i class="pi pi-arrow-right text-[10px]" aria-hidden="true"></i>
+                        </a>
                     </div>
 
                     @if (accounts().length === 0) {
