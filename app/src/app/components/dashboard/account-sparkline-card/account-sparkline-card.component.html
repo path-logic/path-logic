@@ -97,7 +97,7 @@
             type="button"
             (click)="quickEntryRequested.emit(account().id)"
             [attr.aria-label]="'Quick Entry for ' + account().name"
-            class="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer group/btn"
+            class="min-h-[44px] sm:min-h-[36px] px-4 py-2 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer group/btn"
         >
             <i class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"></i>
             <span>+ Quick Entry</span>
@@ -105,7 +105,7 @@
 
         <a
             [routerLink]="['/accounts', account().id]"
-            class="min-h-[36px] px-3 py-1.5 rounded-xl text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-semibold flex items-center gap-1 transition-colors"
+            class="min-h-[44px] sm:min-h-[36px] px-3.5 py-2 sm:py-1.5 rounded-xl text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-semibold flex items-center gap-1 transition-colors"
         >
             <span>Ledger</span>
             <i class="pi pi-arrow-right text-[10px]"></i>

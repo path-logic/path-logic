@@ -19,7 +19,7 @@
                 <button
                     type="button"
                     (click)="close()"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-content-muted hover:text-content-primary hover:bg-brand-elevated transition-colors min-h-[38px] flex items-center gap-1.5 cursor-pointer border border-brand-border bg-brand-base"
+                    class="px-4 py-2 rounded-xl text-xs font-bold text-content-muted hover:text-content-primary hover:bg-brand-elevated transition-colors min-h-[44px] flex items-center gap-1.5 cursor-pointer border border-brand-border bg-brand-base"
                     aria-label="Cancel transaction editing"
                 >
                     <i class="pi pi-times text-xs"></i>
@@ -37,7 +37,7 @@
                     type="button"
                     (click)="save()"
                     [disabled]="!isFormValid()"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-primary text-white disabled:opacity-40 hover:bg-primary/90 transition-colors min-h-[38px] flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-xs"
+                    class="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white disabled:opacity-40 hover:bg-primary/90 transition-colors min-h-[44px] flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-xs"
                     aria-label="Save transaction"
                 >
                     <i class="pi pi-check text-xs"></i>
@@ -53,7 +53,7 @@
     >
         <!-- Segmented Mode Pills -->
         <div
-            class="grid grid-cols-3 p-1 rounded-2xl bg-brand-base border border-brand-border"
+            class="grid grid-cols-3 p-1 rounded-2xl bg-brand-base border border-brand-border gap-1"
             role="radiogroup"
             aria-label="Transaction type"
         >
@@ -64,8 +64,8 @@
                 (click)="setMode('expense')"
                 [class]="
                     mode() === 'expense'
-                        ? 'h-10 rounded-xl font-bold text-xs bg-primary text-white shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer'
-                        : 'h-10 rounded-xl font-semibold text-xs text-content-muted hover:text-content-primary transition-colors flex items-center justify-center gap-1.5 cursor-pointer'
+                        ? 'min-h-[44px] h-11 rounded-xl font-bold text-xs bg-primary text-white shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer'
+                        : 'min-h-[44px] h-11 rounded-xl font-semibold text-xs text-content-muted hover:text-content-primary transition-colors flex items-center justify-center gap-1.5 cursor-pointer'
                 "
             >
                 <i class="pi pi-arrow-down-right text-xs"></i>
@@ -186,7 +186,7 @@
                         <button
                             type="button"
                             (click)="openSplitDialog()"
-                            class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition flex items-center gap-1 border min-h-[32px] cursor-pointer"
+                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border min-h-[40px] cursor-pointer"
                             [class]="
                                 manualSplits().length > 0
                                     ? 'bg-primary/10 text-primary border-primary/30'

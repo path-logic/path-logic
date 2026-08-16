@@ -52,7 +52,7 @@
                     type="button"
                     (click)="close()"
                     aria-label="Close Quick Entry"
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+                    class="w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer shrink-0"
                 >
                     <i class="pi pi-times text-sm"></i>
                 </button>
@@ -68,7 +68,7 @@
                     type="button"
                     (click)="isExpense.set(true)"
                     [attr.aria-pressed]="isExpense()"
-                    class="py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    class="py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                     [class.bg-surface-0]="isExpense()"
                     [class.dark:bg-surface-900]="isExpense()"
                     [class.text-red-600]="isExpense()"
@@ -84,7 +84,7 @@
                     type="button"
                     (click)="isExpense.set(false)"
                     [attr.aria-pressed]="!isExpense()"
-                    class="py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    class="py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                     [class.bg-surface-0]="!isExpense()"
                     [class.dark:bg-surface-900]="!isExpense()"
                     [class.text-emerald-700]="!isExpense()"

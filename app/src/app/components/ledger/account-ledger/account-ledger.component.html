@@ -77,7 +77,7 @@
                 >
                 <a
                     routerLink="/recurring"
-                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
+                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
                 >
                     <i class="pi pi-bolt text-primary"></i>
                     Recurring Bills
@@ -85,14 +85,14 @@
                 <button
                     type="button"
                     (click)="openReconciliation()"
-                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left"
+                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left cursor-pointer"
                 >
                     <i class="pi pi-balance-scale text-primary"></i>
                     Reconcile Account
                 </button>
                 <a
                     routerLink="/settings"
-                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
+                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
                 >
                     <i class="pi pi-cog text-content-muted"></i>
                     Account Rules
@@ -115,7 +115,7 @@
                         importProgress().stage !== 'done' &&
                         importProgress().stage !== 'error'
                     "
-                    class="min-h-[38px] px-4 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                    class="min-h-[44px] px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
                 >
                     Import QIF/CSV
                 </button>
@@ -137,7 +137,7 @@
                     id="account-selector-tablet"
                     [ngModel]="activeAccountId()"
                     (ngModelChange)="activeAccountId.set($event)"
-                    class="w-full min-h-[40px] px-3 py-2 bg-brand-base border border-brand-border rounded-xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+                    class="w-full min-h-[44px] px-3 py-2 bg-brand-base border border-brand-border rounded-xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
                 >
                     @if (accounts().length === 0) {
                         <option value="" disabled selected>No accounts available</option>
