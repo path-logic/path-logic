@@ -1,57 +1,86 @@
 <div
-    class="quick-entry-widget p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm relative overflow-hidden space-y-4"
+    class="quick-entry-widget p-5 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/80 dark:border-surface-800 shadow-sm relative overflow-hidden space-y-4"
+    role="region"
+    aria-label="Quick Transaction Entry"
 >
     <!-- Header -->
-    <div class="flex items-center justify-between gap-3 pb-3 border-b border-surface-100">
-        <div class="flex items-center gap-2">
+    <div
+        class="flex items-center justify-between gap-3 pb-3 border-b border-surface-100 dark:border-surface-800"
+    >
+        <div class="flex items-center gap-2.5">
             <div
-                class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+                class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20"
             >
                 <i class="pi pi-bolt text-sm"></i>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-surface-900">Quick Entry</h3>
-                <p class="text-[11px] text-surface-500 font-medium">Instant ledger capture</p>
+                <h3 class="text-sm font-bold text-surface-900 dark:text-surface-100 leading-tight">
+                    Quick Entry
+                </h3>
+                <p class="text-[11px] text-surface-500 font-medium">
+                    Instant ledger capture • Today
+                </p>
             </div>
         </div>
 
-        <!-- Expense / Income Toggle -->
-        <button
-            type="button"
-            (click)="toggleType()"
-            [attr.aria-label]="isExpense() ? 'Switch to Income' : 'Switch to Expense'"
-            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer"
-            [class.bg-red-500-10]="isExpense()"
-            [class.text-red-500]="isExpense()"
-            [class.border-red-500-20]="isExpense()"
-            [class.bg-emerald-500-10]="!isExpense()"
-            [class.text-emerald-700]="!isExpense()"
-            [class.dark:text-emerald-400]="!isExpense()"
-            [class.border-emerald-500-20]="!isExpense()"
+        <!-- Expense / Income Toggle Group -->
+        <div
+            role="group"
+            aria-label="Transaction Type"
+            class="flex items-center p-0.5 rounded-xl bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700"
         >
-            <i [class]="'pi ' + (isExpense() ? 'pi-arrow-down-left' : 'pi-arrow-up-right')"></i>
-            {{ isExpense() ? 'Expense' : 'Income' }}
-        </button>
+            <button
+                type="button"
+                (click)="isExpense.set(true)"
+                [attr.aria-pressed]="isExpense()"
+                class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                [class.bg-surface-0]="isExpense()"
+                [class.dark:bg-surface-900]="isExpense()"
+                [class.text-red-500]="isExpense()"
+                [class.shadow-xs]="isExpense()"
+                [class.text-surface-500]="!isExpense()"
+            >
+                <i class="pi pi-arrow-down-left text-[10px]"></i>
+                Expense
+            </button>
+            <button
+                type="button"
+                (click)="isExpense.set(false)"
+                [attr.aria-pressed]="!isExpense()"
+                class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                [class.bg-surface-0]="!isExpense()"
+                [class.dark:bg-surface-900]="!isExpense()"
+                [class.text-emerald-500]="!isExpense()"
+                [class.shadow-xs]="!isExpense()"
+                [class.text-surface-500]="isExpense()"
+            >
+                <i class="pi pi-arrow-up-right text-[10px]"></i>
+                Income
+            </button>
+        </div>
     </div>
 
-    <!-- Feedback Alerts -->
-    @if (showSuccess()) {
-        <div
-            class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-in fade-in"
-        >
-            <i class="pi pi-check-circle text-sm"></i>
-            <span>Transaction captured successfully!</span>
-        </div>
-    }
+    <!-- Feedback Alerts with Live Regions for A11y -->
+    <div aria-live="polite" aria-atomic="true">
+        @if (showSuccess()) {
+            <div
+                class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-in fade-in"
+            >
+                <i class="pi pi-check-circle text-sm"></i>
+                <span>Transaction captured successfully!</span>
+            </div>
+        }
 
-    @if (errorMessage()) {
-        <div
-            class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-2 animate-in fade-in"
-        >
-            <i class="pi pi-exclamation-triangle text-sm"></i>
-            <span>{{ errorMessage() }}</span>
-        </div>
-    }
+        @if (errorMessage()) {
+            <div
+                id="quick-entry-error"
+                class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-2 animate-in fade-in"
+            >
+                <i class="pi pi-exclamation-triangle text-sm"></i>
+                <span>{{ errorMessage() }}</span>
+            </div>
+        }
+    </div>
 
     <!-- Form Fields Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -61,13 +90,14 @@
                 for="quick-entry-account"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Account
+                Account <span class="text-red-500">*</span>
             </label>
             <select
                 id="quick-entry-account"
                 [ngModel]="selectedAccountId()"
                 (ngModelChange)="selectedAccountId.set($event)"
-                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                aria-required="true"
+                class="w-full px-3 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer"
             >
                 @for (acc of accounts(); track acc.id) {
                     <option [value]="acc.id">{{ acc.name }} ({{ acc.institutionName }})</option>
@@ -81,7 +111,7 @@
                 for="quick-entry-payee"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Payee
+                Payee <span class="text-red-500">*</span>
             </label>
             <input
                 id="quick-entry-payee"
@@ -89,8 +119,10 @@
                 list="quick-entry-payees-list"
                 [ngModel]="payee()"
                 (ngModelChange)="payee.set($event)"
+                (keyup.enter)="saveTransaction()"
+                aria-required="true"
                 placeholder="e.g. Netflix, Trader Joe's"
-                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                class="w-full px-3 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             />
             <datalist id="quick-entry-payees-list">
                 @for (p of payees(); track p.id) {
@@ -105,15 +137,16 @@
                 for="quick-entry-category"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Category
+                Category / Memo
             </label>
             <input
                 id="quick-entry-category"
                 type="text"
                 [ngModel]="category()"
                 (ngModelChange)="category.set($event)"
-                placeholder="e.g. Subscriptions, Food"
-                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                (keyup.enter)="saveTransaction()"
+                placeholder="e.g. Subscriptions, Groceries"
+                class="w-full px-3 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             />
         </div>
 
@@ -123,41 +156,53 @@
                 for="quick-entry-amount"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Amount
+                Amount <span class="text-red-500">*</span>
             </label>
             <div class="relative">
                 <span
                     class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-surface-400"
+                    aria-hidden="true"
                 >
                     $
                 </span>
                 <input
                     id="quick-entry-amount"
                     type="text"
+                    inputmode="decimal"
                     [ngModel]="amountString()"
                     (ngModelChange)="amountString.set($event)"
                     (keyup.enter)="saveTransaction()"
+                    aria-required="true"
                     placeholder="0.00"
-                    class="w-full pl-7 pr-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-bold font-mono text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    class="w-full pl-7 pr-3 py-2 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-bold font-mono text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
             </div>
         </div>
     </div>
 
     <!-- Actions Row -->
-    <div class="flex items-center justify-end pt-1">
+    <div class="flex items-center justify-between pt-1">
+        <div class="text-[11px] text-surface-400 font-medium hidden sm:block">
+            Press
+            <kbd
+                class="px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 font-mono text-[10px]"
+                >Enter</kbd
+            >
+            to quickly save
+        </div>
         <button
             type="button"
             (click)="saveTransaction()"
             [disabled]="isSubmitting()"
-            class="min-h-[38px] px-5 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer"
+            aria-label="Save transaction to ledger"
+            class="min-h-[38px] px-5 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-auto sm:ml-0"
         >
             @if (isSubmitting()) {
-                <i class="pi pi-spin pi-spinner text-xs"></i>
-                Saving...
+                <i class="pi pi-spin pi-spinner text-xs" aria-hidden="true"></i>
+                <span>Saving...</span>
             } @else {
-                <i class="pi pi-check text-xs"></i>
-                Save Transaction
+                <i class="pi pi-check text-xs" aria-hidden="true"></i>
+                <span>Save Transaction</span>
             }
         </button>
     </div>

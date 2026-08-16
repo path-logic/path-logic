@@ -105,7 +105,28 @@ describe('SidebarNavComponent', () => {
         expect(compiled.textContent).toContain('Accounts');
         expect(compiled.textContent).toContain('Recurring');
         expect(compiled.textContent).toContain('Payees');
+    });
+
+    it('should show Settings link in user popup menu', () => {
+        component.showUserMenu.set(true);
+        fixture.detectChanges();
+        const compiled = fixture.nativeElement as HTMLElement;
         expect(compiled.textContent).toContain('Settings');
+    });
+
+    it('should toggle collapsed state when toggleCollapse is called', () => {
+        expect(component.isCollapsed()).toBe(false);
+        component.toggleCollapse();
+        expect(component.isCollapsed()).toBe(true);
+        fixture.detectChanges();
+
+        const aside = fixture.nativeElement.querySelector('aside');
+        expect(aside.classList).toContain('w-20');
+
+        component.toggleCollapse();
+        expect(component.isCollapsed()).toBe(false);
+        fixture.detectChanges();
+        expect(aside.classList).toContain('w-64');
     });
 
     it('should display the computed net position correctly', () => {

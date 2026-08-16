@@ -102,15 +102,31 @@ export const Default: Story = {
         await expect(canvas.getByText(/Accounts/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Recurring/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Payees/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Settings/i)).toBeInTheDocument();
 
         // Verify User Profile
         await expect(canvas.getByText(/Alex Mercer/i)).toBeInTheDocument();
 
-        // Test user menu dropdown
+        // Test user menu dropdown contains Settings and Sign Out
         const userMenuBtn = canvas.getByRole('button', { name: /User Account Menu/i });
         await userEvent.click(userMenuBtn);
+        await expect(canvas.getByText(/Settings/i)).toBeInTheDocument();
         await expect(canvas.getByRole('button', { name: /Sign Out/i })).toBeInTheDocument();
+    }
+};
+
+export const Collapsed: Story = {
+    render: () => ({
+        template: `
+            <div class="h-screen w-20 bg-surface-50">
+                <sidebar-nav></sidebar-nav>
+            </div>
+        `
+    }),
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        const collapseBtn = canvas.getByRole('button', { name: /Collapse Sidebar/i });
+        await userEvent.click(collapseBtn);
+        await expect(canvas.getByRole('button', { name: /Expand Sidebar/i })).toBeInTheDocument();
     }
 };
 

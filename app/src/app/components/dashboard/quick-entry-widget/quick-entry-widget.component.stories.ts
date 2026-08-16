@@ -57,9 +57,22 @@ export const Default: Story = {
         await expect(canvas.getByText(/Quick Entry/i)).toBeInTheDocument();
         await expect(canvas.getByRole('button', { name: /Save Transaction/i })).toBeInTheDocument();
 
-        // Toggle type
-        const toggleBtn = canvas.getByRole('button', { name: /Switch to Income/i });
-        await userEvent.click(toggleBtn);
-        await expect(canvas.getByText(/Income/i)).toBeInTheDocument();
+        // Toggle type to Income
+        const incomeBtn = canvas.getByRole('button', { name: /Income/i });
+        await userEvent.click(incomeBtn);
+        await expect(incomeBtn).toHaveAttribute('aria-pressed', 'true');
     }
+};
+
+export const DarkMode: Story = {
+    parameters: {
+        theme: 'dark'
+    },
+    render: () => ({
+        template: `
+            <div class="p-6 bg-surface-950 dark">
+                <quick-entry-widget></quick-entry-widget>
+            </div>
+        `
+    })
 };

@@ -47,6 +47,7 @@ export class SidebarNavComponent {
     readonly themeService: ThemeService = inject(ThemeService);
     readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
 
+    readonly isCollapsed = signal<boolean>(false);
     readonly showUserMenu = signal<boolean>(false);
 
     readonly navItems = new Array<ISidebarNavItem>(
@@ -75,8 +76,7 @@ export class SidebarNavComponent {
                 return count > 0 ? count : null;
             }
         } satisfies ISidebarNavItem,
-        { name: 'Payees', href: '/payees', icon: 'pi-users' } satisfies ISidebarNavItem,
-        { name: 'Settings', href: '/settings', icon: 'pi-cog' } satisfies ISidebarNavItem
+        { name: 'Payees', href: '/payees', icon: 'pi-users' } satisfies ISidebarNavItem
     );
 
     readonly netBalance = computed((): number => {
@@ -108,6 +108,13 @@ export class SidebarNavComponent {
     readonly userInitial = computed((): string => (this.userName().charAt(0) || 'U').toUpperCase());
 
     constructor() {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            const savedState = localStorage.getItem('path-logic-sidebar-collapsed');
+            if (savedState !== null) {
+                this.isCollapsed.set(savedState === 'true');
+            }
+        }
+
         this.router.events
             .pipe(
                 filter(e => e instanceof NavigationEnd),
@@ -116,6 +123,13 @@ export class SidebarNavComponent {
             .subscribe(() => {
                 this.showUserMenu.set(false);
             });
+    }
+
+    toggleCollapse(): void {
+        this.isCollapsed.update(v => !v);
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem('path-logic-sidebar-collapsed', String(this.isCollapsed()));
+        }
     }
 
     @HostListener('document:click', ['$event?.target'])

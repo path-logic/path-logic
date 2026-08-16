@@ -1,31 +1,88 @@
 <aside
-    class="sidebar-nav h-full flex flex-col justify-between p-4 bg-surface-0 border-r border-surface-200 select-none overflow-y-auto"
+    class="sidebar-nav h-full flex flex-col justify-between p-3 bg-surface-0 border-r border-surface-200 select-none overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out"
+    [class.w-64]="!isCollapsed()"
+    [class.w-20]="isCollapsed()"
     aria-label="Main navigation"
 >
     <!-- Top Section: Brand Logo & Navigation -->
-    <div class="space-y-6">
-        <!-- Brand Header -->
-        <div class="px-2 pt-2 flex items-center justify-between">
+    <div class="space-y-4">
+        <!-- Brand Header & Collapse Toggle -->
+        <div
+            class="pt-1 flex items-center transition-all"
+            [class.justify-between]="!isCollapsed()"
+            [class.justify-center]="isCollapsed()"
+            [class.px-2]="!isCollapsed()"
+        >
             <a routerLink="/" class="flex items-center group min-h-[44px]">
-                <brand-logo [size]="'md'" [variant]="'full'" />
+                @if (isCollapsed()) {
+                    <brand-logo [size]="'sm'" [variant]="'icon-only'" />
+                } @else {
+                    <brand-logo [size]="'md'" [variant]="'full'" />
+                }
             </a>
+
+            <button
+                type="button"
+                (click)="toggleCollapse()"
+                [attr.aria-label]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                [title]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                class="w-7 h-7 rounded-lg flex items-center justify-center text-surface-400 hover:text-surface-900 hover:bg-surface-100 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                [class.hidden]="isCollapsed()"
+            >
+                <i class="pi pi-chevron-left text-xs"></i>
+            </button>
         </div>
 
-        <!-- Net Position Quick Pill -->
-        <div
-            class="mx-1 p-3 rounded-xl bg-surface-50 border border-surface-200/80 flex flex-col gap-1 shadow-xs"
-        >
-            <span class="text-[10px] font-bold uppercase tracking-wider text-surface-500">
-                Net Position
-            </span>
-            <span
-                class="text-base font-black tracking-tight"
-                [class.text-red-500]="netBalance() < 0"
-                [class.text-surface-900]="netBalance() >= 0"
+        @if (isCollapsed()) {
+            <!-- Collapsed Expand Button -->
+            <div class="flex justify-center">
+                <button
+                    type="button"
+                    (click)="toggleCollapse()"
+                    aria-label="Expand Sidebar"
+                    title="Expand Sidebar"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-surface-900 hover:bg-surface-100 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                    <i class="pi pi-chevron-right text-xs"></i>
+                </button>
+            </div>
+        }
+
+        <!-- Net Position Pill -->
+        @if (!isCollapsed()) {
+            <div
+                class="p-3 rounded-xl bg-surface-50 border border-surface-200/80 flex flex-col gap-1 shadow-xs transition-all animate-in fade-in duration-200"
             >
-                {{ formattedNetBalance() }}
-            </span>
-        </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-surface-500">
+                    Net Position
+                </span>
+                <span
+                    class="text-base font-black tracking-tight"
+                    [class.text-red-500]="netBalance() < 0"
+                    [class.text-surface-900]="netBalance() >= 0"
+                >
+                    {{ formattedNetBalance() }}
+                </span>
+            </div>
+        } @else {
+            <div
+                class="flex flex-col items-center justify-center p-2 rounded-xl bg-surface-50 border border-surface-200/80 transition-all"
+                [title]="'Net Position: ' + formattedNetBalance()"
+            >
+                <i
+                    class="pi pi-wallet text-xs mb-0.5"
+                    [class.text-red-500]="netBalance() < 0"
+                    [class.text-primary]="netBalance() >= 0"
+                ></i>
+                <span
+                    class="text-[9px] font-black leading-tight truncate max-w-[56px]"
+                    [class.text-red-500]="netBalance() < 0"
+                    [class.text-surface-900]="netBalance() >= 0"
+                >
+                    {{ formattedNetBalance() }}
+                </span>
+            </div>
+        }
 
         <!-- Navigation Links -->
         <nav class="space-y-1.5" aria-label="Primary Navigation">
@@ -34,9 +91,19 @@
                     [routerLink]="item.href"
                     routerLinkActive="active-nav-link text-primary bg-primary/10 border-primary font-bold shadow-xs"
                     [routerLinkActiveOptions]="{ exact: item.href === '/' }"
-                    class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 border border-transparent"
+                    [title]="item.name"
+                    class="group flex items-center rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 border border-transparent"
+                    [class.px-3.5]="!isCollapsed()"
+                    [class.py-2.5]="!isCollapsed()"
+                    [class.justify-between]="!isCollapsed()"
+                    [class.p-2.5]="isCollapsed()"
+                    [class.justify-center]="isCollapsed()"
                 >
-                    <div class="flex items-center gap-3">
+                    <div
+                        class="flex items-center"
+                        [class.gap-3]="!isCollapsed()"
+                        [class.justify-center]="isCollapsed()"
+                    >
                         <i
                             [class]="
                                 'pi ' +
@@ -44,15 +111,23 @@
                                 ' text-base group-hover:text-primary transition-colors'
                             "
                         ></i>
-                        <span>{{ item.name }}</span>
+                        @if (!isCollapsed()) {
+                            <span class="truncate">{{ item.name }}</span>
+                        }
                     </div>
 
                     @if (item.badge && item.badge()) {
-                        <span
-                            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-200 text-surface-700 group-hover:bg-primary/20 group-hover:text-primary transition-colors"
-                        >
-                            {{ item.badge!() }}
-                        </span>
+                        @if (!isCollapsed()) {
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-200 text-surface-700 group-hover:bg-primary/20 group-hover:text-primary transition-colors"
+                            >
+                                {{ item.badge!() }}
+                            </span>
+                        } @else {
+                            <span
+                                class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary"
+                            ></span>
+                        }
                     }
                 </a>
             }
@@ -60,10 +135,17 @@
     </div>
 
     <!-- Bottom Utility Zone -->
-    <div class="pt-4 border-t border-surface-200 space-y-3">
+    <div class="pt-3 border-t border-surface-200 space-y-3">
         <!-- Quick Action Tools: Theme, AI Assistant, Sync -->
-        <div class="flex items-center justify-between px-2">
-            <div class="flex items-center gap-1.5">
+        <div
+            class="flex items-center transition-all"
+            [class.justify-between]="!isCollapsed()"
+            [class.px-2]="!isCollapsed()"
+            [class.flex-col]="isCollapsed()"
+            [class.gap-2]="isCollapsed()"
+            [class.justify-center]="isCollapsed()"
+        >
+            <div class="flex items-center gap-1.5" [class.flex-col]="isCollapsed()">
                 <!-- Theme Toggle -->
                 <button
                     type="button"
@@ -109,8 +191,13 @@
                 type="button"
                 (click)="toggleUserMenu()"
                 aria-label="User Account Menu"
+                [title]="userName()"
                 [attr.aria-expanded]="showUserMenu()"
-                class="w-full p-2 rounded-xl flex items-center gap-3 hover:bg-surface-100 transition-all text-left cursor-pointer border border-transparent hover:border-surface-200"
+                class="w-full rounded-xl flex items-center hover:bg-surface-100 transition-all text-left cursor-pointer border border-transparent hover:border-surface-200"
+                [class.p-2]="!isCollapsed()"
+                [class.gap-3]="!isCollapsed()"
+                [class.p-1.5]="isCollapsed()"
+                [class.justify-center]="isCollapsed()"
             >
                 <div
                     class="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0"
@@ -126,25 +213,34 @@
                     }
                 </div>
 
-                <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold text-surface-900 truncate">
-                        {{ userName() }}
-                    </p>
-                    <p class="text-[10px] text-surface-500 truncate">
-                        {{ userEmail() || 'Encrypted Vault' }}
-                    </p>
-                </div>
+                @if (!isCollapsed()) {
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-surface-900 truncate">
+                            {{ userName() }}
+                        </p>
+                        <p class="text-[10px] text-surface-500 truncate">
+                            {{ userEmail() || 'Encrypted Vault' }}
+                        </p>
+                    </div>
 
-                <i
-                    class="pi pi-ellipsis-v text-xs text-surface-400"
-                    [class.text-primary]="showUserMenu()"
-                ></i>
+                    <i
+                        class="pi pi-ellipsis-v text-xs text-surface-400"
+                        [class.text-primary]="showUserMenu()"
+                    ></i>
+                }
             </button>
 
             <!-- User Menu Popup -->
             @if (showUserMenu()) {
                 <div
-                    class="absolute bottom-full left-0 mb-2 w-full bg-surface-0 border border-surface-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    class="absolute bottom-full mb-2 bg-surface-0 border border-surface-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    [class.left-0]="!isCollapsed()"
+                    [class.w-full]="!isCollapsed()"
+                    [class.left-full]="isCollapsed()"
+                    [class.ml-2]="isCollapsed()"
+                    [class.bottom-0]="isCollapsed()"
+                    [class.mb-0]="isCollapsed()"
+                    [class.w-48]="isCollapsed()"
                 >
                     <div class="px-3 py-2 border-b border-surface-100">
                         <p class="text-xs font-bold text-surface-900 truncate">{{ userName() }}</p>

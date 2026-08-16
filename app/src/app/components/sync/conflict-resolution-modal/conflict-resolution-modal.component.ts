@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Dialog } from 'primeng/dialog';
 
 import type { ITransactionConflict } from '../../../lib/sync/MergeEngine';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -14,7 +15,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'conflict-resolution-modal',
     standalone: true,
-    imports: [],
+    imports: [Dialog],
     templateUrl: './conflict-resolution-modal.component.html',
     styleUrl: './conflict-resolution-modal.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush

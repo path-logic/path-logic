@@ -1,129 +1,168 @@
-@if (showModal()) {
-    <!-- Backdrop -->
-    <div class="modal-backdrop" aria-hidden="true"></div>
-
-    <!-- Modal -->
-    <div
-        class="modal-container"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="conflict-modal-title"
-    >
-        <!-- Header -->
-        <div class="modal-header">
-            <div class="header-left">
-                <div class="header-icon">
-                    <i class="pi pi-exclamation-triangle header-icon-svg"></i>
-                </div>
-                <div>
-                    <h2 id="conflict-modal-title" class="modal-title">Sync Conflicts Detected</h2>
-                    <p class="modal-subtitle">
-                        {{ conflicts().length }}
-                        {{ conflicts().length === 1 ? 'transaction was' : 'transactions were' }}
-                        edited on multiple devices. Choose which version to keep.
-                    </p>
-                </div>
+<p-dialog
+    [visible]="showModal()"
+    [modal]="true"
+    [closable]="false"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="penny-dialog conflict-resolution-dialog mobile-bottom-sheet w-full sm:max-w-2xl"
+    ariaLabel="Sync Conflicts Detected"
+>
+    <!-- Header Template -->
+    <ng-template #header>
+        <div class="flex items-start gap-3 w-full">
+            <div
+                class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0"
+            >
+                <i class="pi pi-exclamation-triangle text-amber-500 text-lg"></i>
+            </div>
+            <div>
+                <h2
+                    id="conflict-modal-title"
+                    class="text-base font-bold text-surface-900 leading-tight"
+                >
+                    Sync Conflicts Detected
+                </h2>
+                <p class="text-xs text-surface-500 font-medium mt-0.5">
+                    {{ conflicts().length }}
+                    {{ conflicts().length === 1 ? 'transaction was' : 'transactions were' }}
+                    edited on multiple devices. Choose which version to keep.
+                </p>
             </div>
         </div>
+    </ng-template>
 
-        <!-- Conflict list -->
-        <div class="modal-body">
-            @for (conflict of conflicts(); track conflict.id) {
-                <div class="conflict-card">
-                    <!-- Transaction label -->
-                    <div class="conflict-label">
-                        <span class="conflict-payee">{{
-                            conflict.mine.payee || conflict.theirs.payee
-                        }}</span>
-                        <span class="conflict-date">
-                            {{ formatDate(conflict.mine.date) }}
-                        </span>
-                    </div>
+    <!-- Conflict list Body -->
+    <div class="space-y-3 py-2">
+        @for (conflict of conflicts(); track conflict.id) {
+            <div
+                class="p-3 rounded-xl bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 space-y-2.5"
+            >
+                <!-- Transaction label -->
+                <div class="flex items-center justify-between text-xs font-bold">
+                    <span class="text-surface-900 truncate">{{
+                        conflict.mine.payee || conflict.theirs.payee
+                    }}</span>
+                    <span class="text-surface-500 font-mono text-[11px]">
+                        {{ formatDate(conflict.mine.date) }}
+                    </span>
+                </div>
 
-                    <!-- Side-by-side comparison -->
-                    <div class="conflict-sides">
-                        <!-- Mine -->
-                        <div class="conflict-side conflict-side--mine">
-                            <div class="side-header">
-                                <i class="pi pi-desktop side-icon"></i>
-                                <span class="side-label">This Device</span>
-                                <span class="side-time">{{
+                <!-- Side-by-side comparison -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <!-- Mine -->
+                    <div
+                        class="p-2.5 rounded-lg bg-surface-0 dark:bg-surface-950 border border-surface-200/80 dark:border-surface-800 space-y-1.5 flex flex-col justify-between"
+                    >
+                        <div>
+                            <div
+                                class="flex items-center justify-between text-[10px] text-surface-500 font-semibold mb-1"
+                            >
+                                <span class="flex items-center gap-1">
+                                    <i class="pi pi-desktop text-xs"></i>
+                                    This Device
+                                </span>
+                                <span class="font-mono">{{
                                     formatTimestamp(conflict.mine.updatedAt)
                                 }}</span>
                             </div>
                             <div
-                                class="side-amount"
-                                [class.negative]="conflict.mine.totalAmount < 0"
+                                class="text-sm font-black font-mono"
+                                [class.text-red-500]="conflict.mine.totalAmount < 0"
+                                [class.text-surface-900]="conflict.mine.totalAmount >= 0"
                             >
                                 {{ formatAmount(conflict.mine.totalAmount) }}
                             </div>
                             @if (conflict.mine.memo) {
-                                <div class="side-memo">{{ conflict.mine.memo }}</div>
+                                <div class="text-[11px] text-surface-600 truncate">
+                                    {{ conflict.mine.memo }}
+                                </div>
                             }
                             @if (conflict.mine.status !== conflict.theirs.status) {
-                                <div class="side-status">Status: {{ conflict.mine.status }}</div>
+                                <div class="text-[10px] text-surface-500 font-medium">
+                                    Status: {{ conflict.mine.status }}
+                                </div>
                             }
-                            <button
-                                class="side-btn side-btn--mine"
-                                (click)="keepMine(conflict)"
-                                type="button"
-                            >
-                                <i class="pi pi-check btn-icon"></i>
-                                Keep Mine
-                            </button>
                         </div>
+                        <button
+                            class="w-full mt-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                            (click)="keepMine(conflict)"
+                            type="button"
+                        >
+                            <i class="pi pi-check text-xs"></i>
+                            Keep Mine
+                        </button>
+                    </div>
 
-                        <!-- VS divider -->
-                        <div class="conflict-vs" aria-hidden="true">vs</div>
-
-                        <!-- Theirs -->
-                        <div class="conflict-side conflict-side--theirs">
-                            <div class="side-header">
-                                <i class="pi pi-cloud side-icon"></i>
-                                <span class="side-label">Other Device</span>
-                                <span class="side-time">{{
+                    <!-- Theirs -->
+                    <div
+                        class="p-2.5 rounded-lg bg-surface-0 dark:bg-surface-950 border border-surface-200/80 dark:border-surface-800 space-y-1.5 flex flex-col justify-between"
+                    >
+                        <div>
+                            <div
+                                class="flex items-center justify-between text-[10px] text-surface-500 font-semibold mb-1"
+                            >
+                                <span class="flex items-center gap-1">
+                                    <i class="pi pi-cloud text-xs"></i>
+                                    Other Device
+                                </span>
+                                <span class="font-mono">{{
                                     formatTimestamp(conflict.theirs.updatedAt)
                                 }}</span>
                             </div>
                             <div
-                                class="side-amount"
-                                [class.negative]="conflict.theirs.totalAmount < 0"
+                                class="text-sm font-black font-mono"
+                                [class.text-red-500]="conflict.theirs.totalAmount < 0"
+                                [class.text-surface-900]="conflict.theirs.totalAmount >= 0"
                             >
                                 {{ formatAmount(conflict.theirs.totalAmount) }}
                             </div>
                             @if (conflict.theirs.memo) {
-                                <div class="side-memo">{{ conflict.theirs.memo }}</div>
+                                <div class="text-[11px] text-surface-600 truncate">
+                                    {{ conflict.theirs.memo }}
+                                </div>
                             }
                             @if (conflict.mine.status !== conflict.theirs.status) {
-                                <div class="side-status">Status: {{ conflict.theirs.status }}</div>
+                                <div class="text-[10px] text-surface-500 font-medium">
+                                    Status: {{ conflict.theirs.status }}
+                                </div>
                             }
-                            <button
-                                class="side-btn side-btn--theirs"
-                                (click)="keepTheirs(conflict)"
-                                type="button"
-                            >
-                                <i class="pi pi-check btn-icon"></i>
-                                Keep Theirs
-                            </button>
                         </div>
+                        <button
+                            class="w-full mt-2 py-1.5 px-3 rounded-lg text-xs font-bold bg-surface-200 dark:bg-surface-800 text-surface-800 dark:text-surface-200 hover:bg-surface-300 dark:hover:bg-surface-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                            (click)="keepTheirs(conflict)"
+                            type="button"
+                        >
+                            <i class="pi pi-check text-xs"></i>
+                            Keep Theirs
+                        </button>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
+        }
+    </div>
 
-        <!-- Footer bulk actions -->
-        <div class="modal-footer">
-            <span class="footer-hint">Or resolve all at once:</span>
-            <div class="footer-actions">
-                <button class="bulk-btn bulk-btn--mine" (click)="keepAllMine()" type="button">
-                    <i class="pi pi-save btn-icon"></i>
+    <!-- Footer Template -->
+    <ng-template #footer>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-2 w-full pt-1">
+            <span class="text-xs text-surface-500 font-medium">Bulk resolve:</span>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                    class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    (click)="keepAllMine()"
+                    type="button"
+                >
+                    <i class="pi pi-save text-xs"></i>
                     Keep All Mine
                 </button>
-                <button class="bulk-btn bulk-btn--theirs" (click)="keepAllTheirs()" type="button">
-                    <i class="pi pi-cloud-download btn-icon"></i>
+                <button
+                    class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold bg-surface-200 dark:bg-surface-800 text-surface-800 dark:text-surface-200 hover:bg-surface-300 dark:hover:bg-surface-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    (click)="keepAllTheirs()"
+                    type="button"
+                >
+                    <i class="pi pi-cloud-download text-xs"></i>
                     Keep All Theirs
                 </button>
             </div>
         </div>
-    </div>
-}
+    </ng-template>
+</p-dialog>
