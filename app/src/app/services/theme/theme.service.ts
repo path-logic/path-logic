@@ -93,7 +93,7 @@ export class ThemeService {
     }
 
     private getOsTheme(): ResolvedTheme {
-        const mq = this.document.defaultView?.matchMedia('(prefers-color-scheme: dark)');
+        const mq = this.document.defaultView?.matchMedia?.('(prefers-color-scheme: dark)');
         return mq?.matches ? 'dark' : 'light';
     }
 
@@ -104,7 +104,7 @@ export class ThemeService {
 
     private setupOsListener(): void {
         const view = this.document.defaultView;
-        if (!view) return;
+        if (!view || typeof view.matchMedia !== 'function') return;
 
         this.osMediaQuery = view.matchMedia('(prefers-color-scheme: dark)');
         this.osChangeHandler = (e: MediaQueryListEvent): void => {

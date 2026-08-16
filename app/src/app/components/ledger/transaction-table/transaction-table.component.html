@@ -1,37 +1,134 @@
 <div
-    class="w-full flex flex-col h-full overflow-hidden focus:outline-none"
+    class="w-full flex flex-col h-full overflow-hidden focus:outline-none bg-brand-base"
     (keydown)="handleKeyDown($event)"
     tabindex="0"
 >
     <!-- Toolbar -->
-    <div class="flex items-center py-2 px-1 justify-between flex-none bg-surface-50">
-        <div class="relative w-64 md:w-96">
+    <div
+        class="flex items-center py-2 px-3 justify-between flex-none bg-brand-surface border-b border-brand-border"
+    >
+        <div class="relative w-full sm:w-80 md:w-96">
+            <i
+                class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-content-muted text-xs"
+            ></i>
             <input
                 type="text"
-                placeholder="Filter ledger..."
+                placeholder="Filter transactions..."
                 aria-label="Filter ledger"
                 [ngModel]="table.getState().columnFilters[0]?.value ?? ''"
                 (ngModelChange)="table.getColumn('payee')?.setFilterValue($event)"
-                class="w-full h-8 text-xs bg-surface-50 border border-surface-200 rounded-md px-3 uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-primary"
+                class="w-full h-8 pl-8 pr-3 text-xs bg-brand-base border border-brand-border rounded-lg text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-1 focus:ring-primary uppercase tracking-wider"
             />
         </div>
-        <div
-            class="text-[11px] font-medium text-surface-600 dark:text-surface-400 px-2 translate-y-1"
-        >
+        <div class="hidden sm:block text-[11px] font-medium text-content-muted px-2">
             Showing {{ table.getRowModel().rows.length }} records • Last {{ monthsToShow() }} months
         </div>
     </div>
 
+    <!-- Mobile Card Stream View (< 640px) -->
+    <div #mobileContainer class="sm:hidden flex-1 overflow-y-auto p-3 space-y-2.5">
+        @for (row of table.getRowModel().rows; track row.original.id) {
+            @if ($index === dividerRowIndex() && dividerRowIndex() !== -1) {
+                <div
+                    class="flex items-center gap-3 py-1.5 px-1"
+                    role="separator"
+                    aria-label="Today and projected transactions marker"
+                >
+                    <div class="h-px bg-primary/40 flex-1"></div>
+                    <span
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
+                    >
+                        Today • Projected Above
+                    </span>
+                    <div class="h-px bg-primary/40 flex-1"></div>
+                </div>
+            }
+
+            <div
+                (click)="editClicked.emit(row.original)"
+                class="bg-brand-surface border border-brand-border hover:border-primary/50 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs cursor-pointer active:scale-[0.99] transition-all"
+            >
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                        class="w-10 h-10 rounded-full bg-brand-elevated border border-brand-border flex items-center justify-center text-primary shrink-0"
+                    >
+                        <i [class]="'pi ' + getCategoryIcon(row.original)"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold text-content-primary truncate">
+                            {{ row.original.payee }}
+                        </p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span
+                                class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-brand-elevated text-content-muted border border-brand-border truncate max-w-[130px]"
+                            >
+                                {{ getCategoryName(row.original) }}
+                            </span>
+                            @if (row.original.memo) {
+                                <span
+                                    class="text-[10px] text-content-muted truncate max-w-[100px]"
+                                    >{{ row.original.memo }}</span
+                                >
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                    <p class="text-[11px] font-medium text-content-muted">
+                        {{ row.original.date | localDate }}
+                    </p>
+                    <p
+                        class="text-sm font-bold font-mono tracking-tight"
+                        [class.text-emerald-700]="row.original.totalAmount >= 0"
+                        [class.dark:text-emerald-400]="row.original.totalAmount >= 0"
+                        [class.text-red-500]="row.original.totalAmount < 0"
+                        [class.dark:text-red-400]="row.original.totalAmount < 0"
+                    >
+                        {{ formatMoney(row.original.totalAmount) }}
+                    </p>
+                    @if ($any(row.original).runningBalance !== undefined) {
+                        <p class="text-[10px] font-mono text-content-muted">
+                            bal: {{ formatMoney($any(row.original).runningBalance) }}
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (table.getRowModel().rows.length === 0) {
+            <div
+                class="flex flex-col items-center justify-center text-content-muted text-xs gap-3 py-16 text-center px-4"
+            >
+                <i class="pi pi-inbox text-3xl text-content-muted opacity-40"></i>
+                @if (data().length === 0) {
+                    <p class="font-bold text-content-primary">Ledger is empty</p>
+                    <p class="text-[11px]">Add a transaction to get started</p>
+                } @else {
+                    <p class="font-bold text-content-primary">No matching transactions</p>
+                    <button
+                        type="button"
+                        (click)="table.getColumn('payee')?.setFilterValue('')"
+                        class="text-primary text-xs font-bold hover:underline"
+                    >
+                        Clear filters
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Desktop / Tablet Table View (>= 640px) -->
     <div
-        class="flex-1 border border-surface-200 rounded-sm bg-surface-50 relative flex flex-col min-h-0 overflow-hidden"
+        class="hidden sm:flex flex-1 border border-brand-border rounded-sm bg-brand-surface relative flex-col min-h-0 overflow-hidden"
     >
         <!-- Header -->
-        <div class="flex-none bg-surface-100 border-b border-surface-200 z-20">
+        <div class="flex-none bg-brand-elevated border-b border-brand-border z-20">
             @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
                 <div class="flex h-8 px-1 items-center">
                     @for (header of headerGroup.headers; track header.id) {
                         <div
-                            class="px-3 text-surface-500 font-bold text-[10px] uppercase"
+                            class="px-3 text-content-muted font-bold text-[10px] uppercase"
                             [class.flex-1]="header.id === 'payee'"
                             [class.min-w-[300px]]="header.id === 'payee'"
                             [class.w-[100px]]="header.id === 'date'"
@@ -58,7 +155,7 @@
                 table.getRowModel().rows.length > 0 &&
                 isAtTop()
             ) {
-                <div class="px-3 border-b border-surface-200 bg-surface-50 sticky top-0 z-10">
+                <div class="px-3 border-b border-brand-border bg-brand-surface sticky top-0 z-10">
                     <button
                         (click)="loadMoreHistory()"
                         class="w-full py-4 text-[9px] font-bold text-primary hover:text-primary hover:bg-primary/5 uppercase tracking-[0.2em] transition-colors"
@@ -95,26 +192,19 @@
                             }
 
                             <div
-                                class="flex items-center hover:bg-surface-100/50 border-none group/row cursor-pointer h-11 transition-colors w-full relative"
+                                class="flex items-center hover:bg-brand-elevated border-none group/row cursor-pointer h-11 transition-colors w-full relative"
                                 [class]="{
-                                    'bg-surface-100/80 outline outline-1 outline-primary z-10':
-                                        virtualRow.index === activeIndex()
+                                    'bg-brand-elevated outline outline-1 outline-primary z-10':
+                                        virtualRow.index === activeIndex(),
+                                    'border-b border-brand-border':
+                                        virtualRow.index !== activeIndex()
                                 }"
-                                (click)="
-                                    activeIndex.set(virtualRow.index);
-                                    editClicked.emit(row.original)
-                                "
-                                (keydown.enter)="
-                                    activeIndex.set(virtualRow.index);
-                                    editClicked.emit(row.original)
-                                "
-                                (keydown.space)="activeIndex.set(virtualRow.index)"
-                                tabindex="0"
-                                role="button"
+                                (click)="handleRowClick(virtualRow.index, row.original)"
+                                (dblclick)="editClicked.emit(row.original)"
                             >
                                 @for (cell of row.getVisibleCells(); track cell.id) {
                                     <div
-                                        class="px-4 h-11 flex items-center overflow-hidden"
+                                        class="px-3 text-xs truncate flex items-center"
                                         [class.flex-1]="cell.column.id === 'payee'"
                                         [class.min-w-[300px]]="cell.column.id === 'payee'"
                                         [class.w-[100px]]="cell.column.id === 'date'"
@@ -127,58 +217,60 @@
                                     >
                                         @switch (cell.column.id) {
                                             @case ('date') {
-                                                <div
-                                                    class="font-mono text-xs font-medium text-surface-600 text-nowrap"
+                                                <span
+                                                    class="font-mono text-[11px] text-content-muted"
+                                                    >{{ $any(cell.getValue()) | localDate }}</span
                                                 >
-                                                    {{ $any(cell.getValue()) | localDate: 'short' }}
-                                                </div>
                                             }
                                             @case ('payee') {
-                                                @let cellValue = $any(cell.getValue());
-                                                <div class="flex flex-col">
+                                                <div class="flex flex-col truncate">
                                                     <span
-                                                        class="font-semibold text-primary group-hover/row:text-surface-800 text-sm truncate max-w-[300px]"
+                                                        class="font-bold text-content-primary truncate text-xs"
+                                                        >{{ $any(cell.getValue()).payee }}</span
                                                     >
-                                                        {{ cellValue.payee }}
-                                                    </span>
-                                                    <span
-                                                        class="text-[10px] text-surface-600 truncate max-w-[300px]"
-                                                    >
-                                                        {{ cellValue.memo }}
-                                                    </span>
+                                                    @if ($any(cell.getValue()).memo) {
+                                                        <span
+                                                            class="text-[10px] text-content-muted truncate"
+                                                            >{{ $any(cell.getValue()).memo }}</span
+                                                        >
+                                                    }
                                                 </div>
                                             }
                                             @case ('category') {
-                                                <div class="flex items-center">
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border border-brand-border bg-brand-base text-content-muted truncate"
+                                                >
+                                                    {{ cell.getValue() }}
+                                                </span>
+                                            }
+                                            @case ('status') {
+                                                <div class="flex items-center gap-1.5">
+                                                    <div
+                                                        class="w-1.5 h-1.5 rounded-full"
+                                                        [class.bg-emerald-500]="
+                                                            cell.getValue() === 'cleared'
+                                                        "
+                                                        [class.bg-amber-500]="
+                                                            cell.getValue() === 'pending'
+                                                        "
+                                                        [class.bg-primary]="
+                                                            cell.getValue() === 'reconciled'
+                                                        "
+                                                    ></div>
                                                     <span
+                                                        class="text-[10px] uppercase font-bold tracking-wider"
                                                         [class]="
-                                                            getCategoryClass($any(cell.getValue()))
+                                                            getStatusClass($any(cell.getValue()))
                                                         "
                                                     >
                                                         {{ cell.getValue() }}
                                                     </span>
                                                 </div>
                                             }
-                                            @case ('status') {
-                                                <div
-                                                    class="text-[10px] font-bold uppercase text-nowrap flex items-center gap-1.5"
-                                                    [class]="getStatusClass($any(cell.getValue()))"
-                                                >
-                                                    <i
-                                                        [class]="
-                                                            'pi text-xs flex items-center justify-center ' +
-                                                            getStatusIcon($any(cell.getValue()))
-                                                        "
-                                                    ></i>
-                                                    <span class="mt-[1px]">{{
-                                                        cell.getValue()
-                                                    }}</span>
-                                                </div>
-                                            }
                                             @case ('totalAmount') {
                                                 <div
-                                                    class="text-right font-mono font-bold text-sm text-nowrap w-full"
-                                                    [class.text-red-600]="$any(cell.getValue()) < 0"
+                                                    class="font-mono font-bold text-xs"
+                                                    [class.text-red-500]="$any(cell.getValue()) < 0"
                                                     [class.dark:text-red-400]="
                                                         $any(cell.getValue()) < 0
                                                     "
@@ -194,8 +286,8 @@
                                             }
                                             @case ('balance') {
                                                 <div
-                                                    class="text-right font-mono font-bold text-sm text-nowrap w-full"
-                                                    [class.text-red-600]="$any(cell.getValue()) < 0"
+                                                    class="font-mono font-bold text-xs"
+                                                    [class.text-red-500]="$any(cell.getValue()) < 0"
                                                     [class.dark:text-red-400]="
                                                         $any(cell.getValue()) < 0
                                                     "
@@ -215,7 +307,7 @@
 
                                 <!-- Row action buttons (Delete) -->
                                 <div
-                                    class="absolute right-4 h-11 flex items-center justify-end opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity bg-gradient-to-l from-surface-50 via-surface-50/90 to-transparent pl-8 pointer-events-auto z-20"
+                                    class="absolute right-4 h-11 flex items-center justify-end opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity bg-gradient-to-l from-brand-surface via-brand-surface/90 to-transparent pl-8 pointer-events-auto z-20"
                                 >
                                     <button
                                         (click)="
@@ -236,7 +328,7 @@
 
             @if (table.getRowModel().rows.length === 0) {
                 <div
-                    class="flex flex-col items-center justify-center text-surface-500 text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10"
+                    class="flex flex-col items-center justify-center text-content-muted text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10"
                 >
                     @if (data().length === 0) {
                         <div class="text-primary font-bold">Ledger is empty</div>
@@ -264,7 +356,7 @@
     </div>
 
     <div
-        class="flex items-center justify-between py-2 px-3 text-[11px] font-medium text-surface-600 dark:text-surface-400 bg-surface-50 flex-none"
+        class="hidden sm:flex items-center justify-between py-2 px-3 text-[11px] font-medium text-content-muted bg-brand-surface border-t border-brand-border flex-none"
     >
         <div class="flex-1">
             Showing {{ windowedData().length }} of {{ data().length }} transactions

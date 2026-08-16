@@ -52,14 +52,15 @@ export class UserSettingsStore {
     }
 
     async updateSetting(key: string, value: string): Promise<void> {
+        this.settings.update(
+            (s: Record<string, string>): Record<string, string> => ({
+                ...s,
+                [key]: value
+            })
+        );
+
         try {
             setUserSetting(key, value);
-            this.settings.update(
-                (s: Record<string, string>): Record<string, string> => ({
-                    ...s,
-                    [key]: value
-                })
-            );
             await this.ledgerStore.commitToLocal();
         } catch (err: unknown) {
             console.error('Failed to update setting in DB:', err);

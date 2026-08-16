@@ -28,6 +28,7 @@ import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator
 import { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';
 import { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';
 import { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';
+import { MobileTransactionEntrySheetComponent } from '../mobile-transaction-entry-sheet/mobile-transaction-entry-sheet.component';
 import { ReconciliationDialogComponent } from '../reconciliation-dialog/reconciliation-dialog.component';
 import { TransactionEntryFormComponent } from '../transaction-entry-form/transaction-entry-form.component';
 import { TransactionTableComponent } from '../transaction-table/transaction-table.component';
@@ -41,6 +42,7 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         RouterLink,
         TransactionTableComponent,
         TransactionEntryFormComponent,
+        MobileTransactionEntrySheetComponent,
         SyncIndicatorComponent,
         ReconciliationDialogComponent,
         ExpressImportDialogComponent,
@@ -64,6 +66,11 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     // State
     readonly activeAccountId = signal<string | null>(null);
+    readonly statusFilter = signal<'all' | 'cleared' | 'pending'>('all');
+
+    // Mobile Entry Sheet & Edit State
+    readonly isMobileEntrySheetOpen = signal<boolean>(false);
+    readonly editingTransaction = signal<ITransaction | null>(null);
 
     // New Account Dialog
     readonly isAddDialogOpen = signal<boolean>(false);
@@ -85,8 +92,18 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     readonly filteredTransactions = computed(() => {
         const accId = this.activeAccountId();
         const allTxs = this.transactions();
-        if (!accId) return allTxs;
-        return allTxs.filter(tx => tx.accountId === accId);
+        const filter = this.statusFilter();
+        let txs = accId ? allTxs.filter(tx => tx.accountId === accId) : allTxs;
+        if (filter === 'cleared') {
+            txs = txs.filter(
+                tx =>
+                    tx.status === TransactionStatus.Cleared ||
+                    tx.status === TransactionStatus.Reconciled
+            );
+        } else if (filter === 'pending') {
+            txs = txs.filter(tx => tx.status === TransactionStatus.Pending);
+        }
+        return txs;
     });
 
     readonly clearedBalance = computed(() =>
@@ -100,6 +117,31 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
             .filter(tx => tx.status === TransactionStatus.Pending)
             .reduce((sum, tx) => sum + tx.totalAmount, 0)
     );
+
+    readonly activeAccount = computed(() => {
+        const accs = this.accounts();
+        const id = this.activeAccountId();
+        if (!id && accs.length > 0) return accs[0];
+        return accs.find(a => a.id === id) ?? null;
+    });
+
+    openReconciliation(): void {
+        this.reconciliationOpen.set(true);
+    }
+
+    openNewTransactionMobile(): void {
+        this.editingTransaction.set(null);
+        this.isMobileEntrySheetOpen.set(true);
+    }
+
+    openEditTransactionMobile(tx: ITransaction): void {
+        this.editingTransaction.set(tx);
+        this.isMobileEntrySheetOpen.set(true);
+    }
+
+    setStatusFilter(filter: 'all' | 'cleared' | 'pending'): void {
+        this.statusFilter.set(filter);
+    }
 
     /** Convenience alias so the template can read import progress reactively. */
     readonly importProgress = this.importService.progress;
@@ -391,7 +433,11 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     readonly entryForm = viewChild(TransactionEntryFormComponent);
 
     editTransaction(tx: ITransaction): void {
-        this.entryForm()?.editTransaction(tx);
+        if (typeof window !== 'undefined' && window.innerWidth < 640) {
+            this.openEditTransactionMobile(tx);
+        } else {
+            this.entryForm()?.editTransaction(tx);
+        }
     }
 
     async deleteTransaction(txId: string): Promise<void> {

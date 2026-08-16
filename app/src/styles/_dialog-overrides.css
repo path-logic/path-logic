@@ -58,115 +58,120 @@
 }
 
 /* ── Stepper layout ───────────────────────────────────────────────────────── */
-.new-account-dialog p-stepper,
-.new-account-dialog .p-stepper {
+.new-account-dialog p-stepper {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    overflow: hidden !important;
 }
 
-/* Step-list: FIXED at top, never scrolls, never moves */
+/* Step list: pinned at top of stepper, never scrolls */
 .new-account-dialog p-step-list,
-.new-account-dialog .p-step-list {
+.new-account-dialog .p-steplist {
     flex: 0 0 auto !important;
-    z-index: 1;
-    background: var(--p-surface-0, #fff);
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--p-surface-200, #e5e7eb) 50%, transparent);
+    padding: 0 1.5rem 0.5rem 1.5rem !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--p-surface-200, #e5e7eb) 40%, transparent) !important;
 }
 
-/* Step-panels: the ONLY scrollable area — this is where form content scrolls */
+/* Step panels wrapper: fills remaining space */
 .new-account-dialog p-step-panels,
-.new-account-dialog .p-step-panels {
-    display: flex !important;
-    flex-direction: column !important;
+.new-account-dialog .p-steppanels {
     flex: 1 1 auto !important;
     min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* Individual active panel: THE ONLY SCROLLABLE AREA */
+.new-account-dialog p-step-panel[data-p-active='true'],
+.new-account-dialog .p-steppanel[data-p-active='true'] {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
     overflow-y: auto !important;
-    transition: height var(--pl-duration-slow) var(--pl-ease-standard);
+    padding: 1rem 1.5rem !important;
 }
 
-.new-account-dialog p-step-panel,
-.new-account-dialog .p-step-panel {
+/* Inactive panels: completely hidden */
+.new-account-dialog p-step-panel:not([data-p-active='true']),
+.new-account-dialog .p-steppanel:not([data-p-active='true']) {
+    display: none !important;
+}
+
+/* Step content wrapper inside the active panel */
+.new-account-dialog .p-steppanel-content-wrapper {
+    flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
+    gap: 1.5rem !important;
 }
 
-/* The ng-template rendered wrapper inside p-step-panel */
-.new-account-dialog .p-step-panel > .p-step-panel-content-container,
-.new-account-dialog .p-step-panel > div {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-}
-
-/* ── Loan details form: strip card chrome when nested in dialog ───────────── */
-.new-account-dialog loan-details-form {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-}
-
-.new-account-dialog loan-details-form > div {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 1rem 0 0 0 !important;
-    max-width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-}
-
-.new-account-dialog loan-details-form form {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-}
-
-/* ── Step panel transition animations ────────────────────────────────────── */
-@keyframes dialogStepIn {
-    0% {
-        opacity: 0;
-        transform: translateY(12px);
+/* ── STEP-SPECIFIC DIALOG HEIGHTS ───────────────────────────────────────────
+   Sets ideal height per step on desktop. On mobile, falls back to 80vh.
+   Step 1: Account Type selector — compact grid, no scrolling needed
+   Step 2: Account Details form   — name, institution, balance, loan accordion
+   Step 3: Creation progress / Import — minimal, centered spinner
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 640px) {
+    .new-account-dialog[data-step='1'] {
+        --dialog-max-h: 460px;
     }
-    100% {
+    .new-account-dialog[data-step='2'] {
+        --dialog-max-h: 620px;
+    }
+    .new-account-dialog[data-step='2-loan'] {
+        --dialog-max-h: 740px;
+    }
+    .new-account-dialog[data-step='3'] {
+        --dialog-max-h: 380px;
+    }
+}
+
+/* ── STEP TRANSITION ANIMATIONS ─────────────────────────────────────────────
+   Smooth cross-fade + subtle vertical drift between wizard steps.
+   Uses tokens from _animations.css.
+   ─────────────────────────────────────────────────────────────────────────── */
+@keyframes dialogStepIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Smooth expand for sections that toggle open (e.g. Loan/Liability accordion) */
+@keyframes dialogStepOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+/* Accordion expand animation for Loan/Liability fields */
 @keyframes expandIn {
-    0% {
+    from {
         opacity: 0;
         max-height: 0;
-        transform: translateY(-8px);
+        transform: translateY(-4px);
     }
-    40% {
-        opacity: 0.5;
-    }
-    100% {
+    to {
         opacity: 1;
         max-height: 500px;
         transform: translateY(0);
     }
 }
 
-/* Reset animation on inactive panels so it re-triggers when activated */
-.new-account-dialog p-step-panel:not([data-p-active='true']) .p-steppanel-content-wrapper {
-    animation: none !important;
-}
-
-/* Delayed entrance: wait 150ms for dialog resize to begin, then 450ms fade+slide */
+/* Apply step entrance animation to the content of the active panel */
 .new-account-dialog p-step-panel[data-p-active='true'] .p-steppanel-content-wrapper {
     animation: dialogStepIn var(--pl-duration-slow) var(--pl-ease-decelerate) 150ms both;
 }
@@ -180,4 +185,137 @@
 .new-account-dialog .loan-expand-section {
     animation: expandIn var(--pl-duration-slow) var(--pl-ease-standard) both;
     overflow: hidden;
+}
+
+/* ── Export Manager Dialog Responsive & Theme overrides ──────────────────── */
+.export-manager-dialog {
+    background: var(--pl-bg-surface) !important;
+    border: 1px solid var(--pl-border-subtle) !important;
+    color: var(--pl-text-primary) !important;
+}
+
+.export-manager-dialog .p-dialog-header {
+    background: var(--pl-bg-surface) !important;
+    color: var(--pl-text-primary) !important;
+    border-bottom: 1px solid var(--pl-border-subtle) !important;
+    padding: 1.25rem 1.5rem !important;
+}
+
+.export-manager-dialog .p-dialog-header .p-dialog-title,
+.export-manager-dialog .p-dialog-header .p-dialog-header-actions button {
+    color: var(--pl-text-primary) !important;
+}
+
+.export-manager-dialog .p-dialog-content {
+    background: var(--pl-bg-surface) !important;
+    color: var(--pl-text-primary) !important;
+    padding: 0 !important;
+}
+
+.export-manager-dialog .p-dialog-footer {
+    background: var(--pl-bg-surface) !important;
+    border-top: 1px solid var(--pl-border-subtle) !important;
+    padding: 1rem 1.5rem !important;
+}
+
+@media (max-width: 640px) {
+    .export-manager-dialog {
+        max-width: 100vw !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    .export-manager-dialog .p-dialog-content {
+        flex: 1 1 auto !important;
+        max-height: none !important;
+    }
+}
+
+/* ── Mobile Bottom Sheet (Flush to bottom, 0 margins, 100% solid surface) ── */
+.p-dialog-mask.p-dialog-bottom,
+.p-dialog-mask.mobile-bottom-sheet-mask {
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.p-dialog.mobile-bottom-sheet,
+.mobile-bottom-sheet {
+    margin: 0 !important;
+    margin-bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    box-shadow: 0 -10px 30px -5px rgba(0, 0, 0, 0.3) !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme='dark'] .p-dialog.mobile-bottom-sheet,
+.dark .p-dialog.mobile-bottom-sheet,
+[data-theme='dark'] .mobile-bottom-sheet,
+.dark .mobile-bottom-sheet {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-top: 1px solid #334155 !important;
+}
+
+.p-dialog.mobile-bottom-sheet .p-dialog-header,
+.mobile-bottom-sheet .p-dialog-header {
+    padding: 0.5rem 1rem !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    color: #0f172a !important;
+}
+
+.p-dialog.mobile-bottom-sheet .p-dialog-content,
+.mobile-bottom-sheet .p-dialog-content {
+    padding: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    color: #0f172a !important;
+}
+
+.p-dialog.mobile-bottom-sheet .p-dialog-footer,
+.mobile-bottom-sheet .p-dialog-footer {
+    padding: 0.75rem 1rem !important;
+    border-top: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    opacity: 1 !important;
+    color: #0f172a !important;
+}
+
+[data-theme='dark'] .p-dialog.mobile-bottom-sheet .p-dialog-header,
+.dark .p-dialog.mobile-bottom-sheet .p-dialog-header,
+[data-theme='dark'] .p-dialog.mobile-bottom-sheet .p-dialog-content,
+.dark .p-dialog.mobile-bottom-sheet .p-dialog-content,
+[data-theme='dark'] .p-dialog.mobile-bottom-sheet .p-dialog-footer,
+.dark .p-dialog.mobile-bottom-sheet .p-dialog-footer {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+@media (min-width: 640px) {
+    .p-dialog.mobile-bottom-sheet,
+    .mobile-bottom-sheet {
+        max-width: 34rem !important;
+        margin-bottom: 1.5rem !important;
+        border-bottom-left-radius: 1.5rem !important;
+        border-bottom-right-radius: 1.5rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
 }

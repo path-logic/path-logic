@@ -18,6 +18,8 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { ThemeService } from '../../../services/theme/theme.service';
 
+import { BrandLogoComponent } from '../../ui/brand-logo/brand-logo.component';
+
 /**
  * Interface for navigation items within the header.
  */
@@ -33,7 +35,7 @@ export interface INavItem {
 @Component({
     selector: 'header',
     standalone: true,
-    imports: [RouterLink, RouterLinkActive],
+    imports: [RouterLink, RouterLinkActive, BrandLogoComponent],
     templateUrl: './header.component.html',
     styleUrl: './header.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -48,27 +50,47 @@ export class HeaderComponent {
     readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
 
     readonly showUserMenu = signal<boolean>(false);
+    readonly showMobileMenu = signal<boolean>(false);
 
     toggleAiAssistant(): void {
         this.aiAssistantService.toggle();
     }
 
+    toggleMobileMenu(): void {
+        this.showMobileMenu.update(v => !v);
+    }
+
     constructor() {
-        // Close menu on any navigation
+        // Close menus on any navigation
         this.router.events
             .pipe(
                 filter(e => e instanceof NavigationEnd),
                 takeUntilDestroyed(this.destroyRef)
             )
-            .subscribe(() => this.showUserMenu.set(false));
+            .subscribe(() => {
+                this.showUserMenu.set(false);
+                this.showMobileMenu.set(false);
+            });
     }
 
-    /** Close the menu when clicking outside the host element. */
+    /** Close any open menus when clicking outside the host element. */
     @HostListener('document:click', ['$event?.target'])
     onDocumentClick(target: EventTarget | null | undefined): void {
-        if (this.showUserMenu() && !this.elementRef.nativeElement.contains(target)) {
-            this.showUserMenu.set(false);
+        if (!this.elementRef.nativeElement.contains(target)) {
+            if (this.showUserMenu()) {
+                this.showUserMenu.set(false);
+            }
+            if (this.showMobileMenu()) {
+                this.showMobileMenu.set(false);
+            }
         }
+    }
+
+    /** Close any open menus on Escape key. */
+    @HostListener('document:keydown.escape')
+    onEscape(): void {
+        this.showUserMenu.set(false);
+        this.showMobileMenu.set(false);
     }
 
     /**
@@ -79,7 +101,6 @@ export class HeaderComponent {
         { name: 'Accounts', href: '/accounts', icon: 'pi-credit-card' } satisfies INavItem,
         { name: 'Payees', href: '/payees', icon: 'pi-users' } satisfies INavItem,
         { name: 'Recurring', href: '/recurring', icon: 'pi-calendar' } satisfies INavItem,
-        { name: 'Reports', href: '/reports', icon: 'pi-chart-bar' } satisfies INavItem,
         { name: 'Settings', href: '/settings', icon: 'pi-cog' } satisfies INavItem
     );
 

@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { AccountType, type Cents } from '../../../core/domain/types';
 import type { IExportFolderSummary, IRetentionPolicy } from '../../../core/export-import';
 import { ImportExportService } from '../../../services/import-export/import-export.service';
 
@@ -40,15 +41,102 @@ export class ExportManagerDialogComponent {
         this.statusMessage.set('Loading GDrive export packages...');
         try {
             const list = await this.importExportService.scanGDriveExports();
-            this.folders.set(list);
-            this.statusMessage.set(
-                list.length ? `Found ${list.length} export package(s)` : 'No export packages found.'
-            );
-        } catch (err: unknown) {
-            this.statusMessage.set(
-                `Failed to load packages: ${err instanceof Error ? err.message : String(err)}`
-            );
+            if (
+                list.length === 0 &&
+                typeof localStorage !== 'undefined' &&
+                localStorage.getItem('pl.dev.mode') === 'true'
+            ) {
+                this.folders.set(this.getDemoPackages());
+                this.statusMessage.set('Loaded demo backup packages for dev testing.');
+            } else {
+                this.folders.set(list);
+                this.statusMessage.set(
+                    list.length
+                        ? `Found ${list.length} export package(s)`
+                        : 'No export packages found.'
+                );
+            }
+        } catch {
+            if (
+                typeof localStorage !== 'undefined' &&
+                localStorage.getItem('pl.dev.mode') === 'true'
+            ) {
+                this.folders.set(this.getDemoPackages());
+                this.statusMessage.set('Loaded demo backup packages for dev testing.');
+            } else {
+                this.statusMessage.set('Failed to load packages: Google Drive not authenticated.');
+            }
         }
+    }
+
+    private getDemoPackages(): Array<IExportFolderSummary> {
+        return [
+            {
+                folderId: 'pkg-20260808-01',
+                folderName: '20260808_01',
+                createdAt: '2026-08-08T16:07:18.000Z',
+                metadata: {
+                    exportId: 'exp-1',
+                    createdAt: '2026-08-08T16:07:18.000Z',
+                    appVersion: '4.2-alpha',
+                    coreVersion: '1.0.0',
+                    accounts: [
+                        {
+                            id: 'acc-1',
+                            name: 'Main Checking',
+                            type: AccountType.Checking,
+                            snakeCaseFilename: 'main_checking',
+                            transactionCount: 142,
+                            balanceCents: 543210 as Cents,
+                            sha256: 'a1b2c3d4'
+                        }
+                    ],
+                    ancillaryFile: {
+                        filename: 'ancillary.json.enc',
+                        sha256: 'e5f6a7b8',
+                        algorithm: 'AES-GCM-256'
+                    },
+                    overallChecksum: 'chk123456'
+                }
+            },
+            {
+                folderId: 'pkg-20260808-02',
+                folderName: '20260808_02',
+                createdAt: '2026-08-08T12:01:42.000Z',
+                metadata: {
+                    exportId: 'exp-2',
+                    createdAt: '2026-08-08T12:01:42.000Z',
+                    appVersion: '4.2-alpha',
+                    coreVersion: '1.0.0',
+                    accounts: [
+                        {
+                            id: 'acc-1',
+                            name: 'Main Checking',
+                            type: AccountType.Checking,
+                            snakeCaseFilename: 'main_checking',
+                            transactionCount: 140,
+                            balanceCents: 530000 as Cents,
+                            sha256: 'a1b2c3d4'
+                        },
+                        {
+                            id: 'acc-2',
+                            name: 'High Yield Savings',
+                            type: AccountType.Savings,
+                            snakeCaseFilename: 'high_yield_savings',
+                            transactionCount: 28,
+                            balanceCents: 1200000 as Cents,
+                            sha256: 'c3d4e5f6'
+                        }
+                    ],
+                    ancillaryFile: {
+                        filename: 'ancillary.json.enc',
+                        sha256: 'e5f6a7b8',
+                        algorithm: 'AES-GCM-256'
+                    },
+                    overallChecksum: 'chk789012'
+                }
+            }
+        ];
     }
 
     async deletePackage(folderId: string): Promise<void> {

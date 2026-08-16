@@ -299,6 +299,50 @@ const preview: Preview = {
         },
         // We use tailwind, so applying padding to the body helps give components breathing room
         layout: 'padded',
+        viewport: {
+            viewports: {
+                pixel5: {
+                    name: 'Google Pixel 5',
+                    styles: { width: '393px', height: '851px' },
+                    type: 'mobile'
+                },
+                pixel6: {
+                    name: 'Google Pixel 6',
+                    styles: { width: '412px', height: '915px' },
+                    type: 'mobile'
+                },
+                pixel7pro: {
+                    name: 'Google Pixel 7 Pro',
+                    styles: { width: '412px', height: '892px' },
+                    type: 'mobile'
+                },
+                pixel8pro: {
+                    name: 'Google Pixel 8 Pro',
+                    styles: { width: '412px', height: '892px' },
+                    type: 'mobile'
+                },
+                pixel9proXL: {
+                    name: 'Google Pixel 9 Pro XL',
+                    styles: { width: '448px', height: '998px' },
+                    type: 'mobile'
+                },
+                pixel10proXL: {
+                    name: 'Google Pixel 10 Pro XL',
+                    styles: { width: '448px', height: '998px' },
+                    type: 'mobile'
+                },
+                pixel11proXL: {
+                    name: 'Google Pixel 11 Pro XL',
+                    styles: { width: '448px', height: '1008px' },
+                    type: 'mobile'
+                },
+                chromebookCX34Portrait: {
+                    name: 'Asus Chromebook Vibe CX34 Flip (Portrait 1080p)',
+                    styles: { width: '1080px', height: '1920px' },
+                    type: 'tablet'
+                }
+            }
+        },
         // Global a11y configuration
         a11y: {
             test: 'error',

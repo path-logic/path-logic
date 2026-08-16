@@ -17,7 +17,8 @@ export default tseslint.config(
             '**/*.config.ts',
             '**/storybook-static/**',
             '**/documentation.json',
-            '**/.angular/**'
+            '**/.angular/**',
+            '**/scratch/**'
         ]
     },
     eslint.configs.recommended,

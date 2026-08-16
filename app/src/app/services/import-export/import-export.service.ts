@@ -31,6 +31,7 @@ import {
 import { AuthService } from '../auth/auth.service';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 import { LedgerStore } from '../ledger-store/ledger.store';
+import { SyncService } from '../sync/sync.service';
 import { UserSettingsStore } from '../user-settings-store/user-settings.store';
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +40,7 @@ export class ImportExportService {
     private readonly userSettingsStore: UserSettingsStore = inject(UserSettingsStore);
     private readonly featureFlagService: FeatureFlagService = inject(FeatureFlagService);
     private readonly authService: AuthService = inject(AuthService);
+    private readonly syncService: SyncService = inject(SyncService);
 
     readonly isExporting: WritableSignal<boolean> = signal<boolean>(false);
     readonly isImporting: WritableSignal<boolean> = signal<boolean>(false);
@@ -376,6 +378,12 @@ export class ImportExportService {
                     await this.ledgerStore.addTransaction(tx);
                 }
             }
+            await this.syncService.flushPendingUpload().catch(err => {
+                console.error(
+                    '[ImportExportService] Failed to flush Drive upload post-import:',
+                    err
+                );
+            });
         } finally {
             this.isImporting.set(false);
         }

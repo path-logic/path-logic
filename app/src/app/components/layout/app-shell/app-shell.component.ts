@@ -4,6 +4,7 @@ import { SecurityManagerService } from '../../../services/security-manager/secur
 import { AuthOverlayComponent } from '../../auth/auth-overlay/auth-overlay.component';
 import { SyncPendingBannerComponent } from '../../auth/sync-pending-banner/sync-pending-banner.component';
 import { ConflictResolutionModalComponent } from '../../sync/conflict-resolution-modal/conflict-resolution-modal.component';
+import { DriveReauthBannerComponent } from '../../sync/drive-reauth-banner/drive-reauth-banner.component';
 import { MergeSyncToastComponent } from '../../sync/merge-sync-toast/merge-sync-toast.component';
 import { AiAssistantSidebarComponent } from '../ai-assistant-sidebar/ai-assistant-sidebar.component';
 import { BreadcrumbNavComponent } from '../breadcrumb-nav/breadcrumb-nav.component';
@@ -26,6 +27,7 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
         SecurityOverlayComponent,
         AuthOverlayComponent,
         SyncPendingBannerComponent,
+        DriveReauthBannerComponent,
         ModelUpgradeBannerComponent,
         MergeSyncToastComponent,
         ConflictResolutionModalComponent,

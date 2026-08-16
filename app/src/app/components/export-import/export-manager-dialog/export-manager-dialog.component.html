@@ -4,153 +4,214 @@
     [modal]="true"
     [draggable]="false"
     [resizable]="false"
-    header="Manage & Consolidate Export Packages"
-    styleClass="w-full max-w-3xl p-0 overflow-hidden path-logic-dialog"
+    [dismissableMask]="true"
+    styleClass="w-full sm:max-w-2xl p-0 overflow-hidden path-logic-dialog export-manager-dialog sm:rounded-2xl rounded-none h-full sm:h-auto max-h-[100dvh] sm:max-h-[85vh] flex flex-col bg-brand-surface text-content-primary border border-brand-border"
     ariaLabel="Manage & Consolidate Export Packages"
     appendTo="body"
 >
-    <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto bg-surface-0 dark:bg-surface-950">
-        <!-- Action Toolbar -->
-        <div class="flex items-center justify-between">
-            <p
-                class="text-xs font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
-            >
-                Export Package Storage
-            </p>
-            <div class="flex items-center space-x-2">
-                <button
-                    pButton
-                    label="Refresh"
-                    icon="pi pi-refresh"
-                    class="p-button-outlined p-button-sm border-surface-300 dark:border-surface-700 text-surface-800 dark:text-surface-200"
-                    (click)="loadPackages()"
-                    [loading]="importExportService.isScanning()"
-                    aria-label="Refresh Packages"
-                ></button>
+    <!-- Custom Header Slot -->
+    <ng-template pTemplate="header">
+        <div class="flex items-center justify-between w-full pr-1">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"
+                >
+                    <i class="pi pi-database text-lg" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h2
+                        class="text-base sm:text-lg font-bold text-content-primary tracking-tight leading-tight"
+                    >
+                        Manage Export Backups
+                    </h2>
+                    <p class="text-xs text-content-muted">
+                        Consolidate & maintain Google Drive backup archives
+                    </p>
+                </div>
             </div>
+        </div>
+    </ng-template>
+
+    <!-- Body / Content Slot -->
+    <div class="p-4 sm:p-6 space-y-6 flex-1 overflow-y-auto bg-brand-surface text-content-primary">
+        <!-- Storage Toolbar -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-content-muted">
+                    Backup Packages
+                </span>
+                <span
+                    class="px-2 py-0.5 text-[11px] font-bold font-mono rounded-full bg-brand-elevated text-content-primary border border-brand-border"
+                >
+                    {{ folders().length }} total
+                </span>
+            </div>
+            <button
+                pButton
+                label="Refresh"
+                icon="pi pi-refresh"
+                class="p-button-outlined p-button-sm rounded-xl min-h-[38px] px-3.5 border-brand-border text-content-primary hover:bg-brand-elevated text-xs font-semibold"
+                (click)="loadPackages()"
+                [loading]="importExportService.isScanning()"
+                aria-label="Refresh Packages"
+            ></button>
         </div>
 
         @if (isProcessing() || importExportService.isScanning()) {
-            <div class="space-y-2 py-4">
-                <p class="text-xs font-mono text-primary font-semibold animate-pulse">
+            <div
+                class="space-y-3 py-6 px-4 rounded-2xl bg-brand-base border border-brand-border text-center"
+            >
+                <p class="text-xs font-mono text-primary font-bold animate-pulse">
                     {{ statusMessage() }}
                 </p>
                 <p-progressBar
                     mode="indeterminate"
                     aria-hidden="true"
-                    [style]="{ height: '6px' }"
+                    [style]="{ height: '6px', borderRadius: '9999px' }"
                 ></p-progressBar>
             </div>
         } @else if (folders().length === 0) {
             <div
-                class="p-8 text-center rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400"
+                class="p-8 text-center rounded-2xl bg-brand-base border border-brand-border text-content-muted space-y-2"
             >
-                <i
-                    class="pi pi-inbox text-3xl mb-2 text-surface-400 dark:text-surface-500"
-                    aria-hidden="true"
-                ></i>
-                <p class="text-sm">No export packages found in backup storage.</p>
+                <div
+                    class="w-12 h-12 rounded-2xl bg-brand-elevated text-content-muted flex items-center justify-center mx-auto"
+                >
+                    <i class="pi pi-inbox text-xl" aria-hidden="true"></i>
+                </div>
+                <p class="text-sm font-semibold text-content-primary">No export packages found</p>
+                <p class="text-xs text-content-muted max-w-sm mx-auto">
+                    Export packages will appear here when you create manual or automatic Google
+                    Drive backups.
+                </p>
             </div>
         } @else {
             <div class="space-y-3">
                 @for (folder of folders(); track folder.folderId) {
                     <div
-                        class="p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 flex items-center justify-between"
+                        class="p-4 rounded-2xl bg-brand-base border border-brand-border space-y-3 transition hover:border-primary/40"
                     >
-                        <div class="space-y-1">
-                            <div class="flex items-center space-x-2">
-                                <i
-                                    class="pi pi-folder text-primary text-base"
-                                    aria-hidden="true"
-                                ></i>
-                                <span
-                                    class="font-mono text-sm font-bold text-surface-900 dark:text-surface-100"
-                                    >{{ folder.folderName }}</span
+                        <div
+                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        >
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5"
                                 >
+                                    <i class="pi pi-folder text-base" aria-hidden="true"></i>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span
+                                            class="font-mono text-sm font-bold text-content-primary"
+                                        >
+                                            {{ folder.folderName }}
+                                        </span>
+                                        @if (folder.metadata) {
+                                            <span
+                                                class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary border border-primary/30"
+                                            >
+                                                {{ folder.metadata.accounts.length }} Account{{
+                                                    folder.metadata.accounts.length === 1 ? '' : 's'
+                                                }}
+                                            </span>
+                                        }
+                                    </div>
+                                    <p class="text-xs text-content-muted flex items-center gap-1.5">
+                                        <i
+                                            class="pi pi-calendar text-[11px]"
+                                            aria-hidden="true"
+                                        ></i>
+                                        <span>{{ folder.createdAt | date: 'medium' }}</span>
+                                    </p>
+                                </div>
                             </div>
-                            <p class="text-xs text-surface-600 dark:text-surface-400">
-                                Created: {{ folder.createdAt | date: 'medium' }}
-                                @if (folder.metadata) {
-                                    • {{ folder.metadata.accounts.length }} Account(s)
-                                }
-                            </p>
-                        </div>
 
-                        <div class="flex items-center space-x-2">
-                            <!-- Consolidation Trigger for Same-Day Exports -->
-                            <button
-                                pButton
-                                label="Consolidate"
-                                icon="pi pi-clone"
-                                class="p-button-outlined p-button-sm border-surface-300 text-surface-700 dark:text-surface-200"
-                                (click)="
-                                    consolidateSameDay(
-                                        folder.folderName.split('_')[0] || folder.folderName
-                                    )
-                                "
-                                title="Merge all exports created on this date"
-                                aria-label="Consolidate exports for this date"
-                            ></button>
-                            <!-- Non-confirming Quick Delete -->
-                            <button
-                                pButton
-                                icon="pi pi-trash"
-                                class="p-button-danger p-button-text p-button-sm"
-                                (click)="deletePackage(folder.folderId)"
-                                title="Delete Export Package"
-                                aria-label="Delete Export Package"
-                            ></button>
+                            <!-- Actions Toolbar -->
+                            <div
+                                class="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-brand-border justify-end"
+                            >
+                                <button
+                                    pButton
+                                    label="Consolidate"
+                                    icon="pi pi-clone"
+                                    class="p-button-outlined p-button-sm rounded-xl min-h-[38px] px-3.5 border-brand-border text-content-primary hover:bg-brand-elevated text-xs font-semibold flex-1 sm:flex-none"
+                                    (click)="
+                                        consolidateSameDay(
+                                            folder.folderName.split('_')[0] || folder.folderName
+                                        )
+                                    "
+                                    title="Merge all exports created on this date"
+                                    aria-label="Consolidate exports for this date"
+                                ></button>
+                                <button
+                                    pButton
+                                    icon="pi pi-trash"
+                                    class="p-button-danger p-button-text p-button-sm rounded-xl w-10 h-10 flex items-center justify-center shrink-0 hover:bg-red-500/10 text-red-500"
+                                    (click)="deletePackage(folder.folderId)"
+                                    title="Delete Export Package"
+                                    aria-label="Delete Export Package"
+                                ></button>
+                            </div>
                         </div>
                     </div>
                 }
             </div>
         }
 
-        <!-- Retention Cleanup Settings -->
-        <div
-            class="p-4 rounded-md bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800 space-y-4"
-        >
-            <p
-                class="text-[10px] font-bold uppercase tracking-widest text-surface-600 dark:text-surface-400"
-            >
-                Automated Retention Policy Cleanup
-            </p>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-surface-700 dark:text-surface-300"
-                        >Max Age (Days)</label
-                    >
+        <!-- Automated Retention Policy Cleanup Card -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-brand-base border border-brand-border space-y-4">
+            <div class="flex items-start gap-3">
+                <div
+                    class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0"
+                >
+                    <i class="pi pi-filter-slash text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-content-primary">
+                        Automated Retention Policy Cleanup
+                    </h3>
+                    <p class="text-xs text-content-muted">
+                        Automatically purge older export packages to optimize storage space.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-content-primary">
+                        Max Age (Days)
+                    </label>
                     <p-inputNumber
                         [(ngModel)]="maxAgeDays"
                         [min]="1"
                         [max]="365"
                         styleClass="w-full"
-                        inputStyleClass="w-full text-xs font-mono bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-700 text-surface-900 dark:text-surface-0 rounded-sm px-3 py-2"
+                        inputStyleClass="w-full min-h-[42px] text-xs font-mono bg-brand-surface border border-brand-border text-content-primary rounded-xl px-3 py-2 focus:ring-2 focus:ring-primary/20"
                         ariaLabel="Max Age in Days"
                     ></p-inputNumber>
                 </div>
-                <div class="space-y-1">
-                    <label
-                        class="block text-xs font-semibold text-surface-700 dark:text-surface-300"
-                        >Keep Latest Count</label
-                    >
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-content-primary">
+                        Keep Latest Count
+                    </label>
                     <p-inputNumber
                         [(ngModel)]="keepLatestCount"
                         [min]="1"
                         [max]="50"
                         styleClass="w-full"
-                        inputStyleClass="w-full text-xs font-mono bg-surface-0 dark:bg-surface-900 border border-surface-300 dark:border-surface-700 text-surface-900 dark:text-surface-0 rounded-sm px-3 py-2"
+                        inputStyleClass="w-full min-h-[42px] text-xs font-mono bg-brand-surface border border-brand-border text-content-primary rounded-xl px-3 py-2 focus:ring-2 focus:ring-primary/20"
                         ariaLabel="Keep Latest Export Count"
                     ></p-inputNumber>
                 </div>
             </div>
-            <div class="pt-2 flex justify-end">
+
+            <div class="pt-1 flex sm:justify-end">
                 <button
                     pButton
                     label="Purge Old Exports"
                     icon="pi pi-filter-slash"
-                    class="p-button-secondary p-button-sm border-surface-300 dark:border-surface-700 text-surface-800 dark:text-surface-200 font-semibold"
+                    class="p-button-secondary p-button-sm rounded-xl min-h-[42px] w-full sm:w-auto px-4 border border-brand-border text-content-primary font-bold bg-brand-elevated hover:bg-brand-border flex items-center justify-center gap-2"
                     (click)="runRetentionCleanup()"
                     [disabled]="isProcessing()"
                     aria-label="Purge Old Exports"
@@ -159,12 +220,15 @@
         </div>
     </div>
 
+    <!-- Sticky Footer Slot -->
     <ng-template pTemplate="footer">
-        <div class="flex items-center justify-end gap-2 w-full pt-2">
+        <div
+            class="flex items-center justify-end w-full p-4 border-t border-brand-border bg-brand-surface"
+        >
             <button
                 pButton
                 label="Close"
-                class="p-button-outlined p-button-secondary border-surface-300 text-surface-700 dark:text-surface-200 font-semibold"
+                class="p-button-outlined p-button-secondary rounded-xl min-h-[44px] w-full sm:w-auto px-6 border-brand-border text-content-primary hover:bg-brand-elevated font-bold"
                 (click)="close()"
                 aria-label="Close Dialog"
             ></button>

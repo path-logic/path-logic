@@ -1,22 +1,29 @@
-<div class="border-b border-surface-200 bg-surface-0/80 backdrop-blur-md sticky top-0 z-[60]">
+<div
+    class="relative border-b border-surface-200 bg-surface-0/80 backdrop-blur-md sticky top-0 z-[60]"
+>
     <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-8">
-            <a routerLink="/" class="flex items-center gap-2 group min-h-[44px]">
-                <div
-                    class="w-6 h-6 bg-primary rounded-sm flex items-center justify-center group-hover:shadow-[0_0_10px_rgba(56,189,248,0.5)] transition-all"
-                    aria-hidden="true"
-                >
-                    <span class="text-white font-black text-xs">P</span>
-                </div>
-                <span
-                    class="font-black text-sm tracking-tighter uppercase text-surface-900"
-                    aria-label="Path Logic"
-                    >PATH
-                    <span class="text-blue-700 dark:text-blue-400 font-black">LOGIC</span></span
-                >
+        <div class="flex items-center gap-3 lg:gap-8">
+            <button
+                type="button"
+                (click)="toggleMobileMenu()"
+                aria-label="Open mobile navigation menu"
+                [attr.aria-expanded]="showMobileMenu()"
+                class="lg:hidden w-10 h-10 rounded-xl bg-surface-100 border border-surface-200 flex items-center justify-center text-surface-800 hover:bg-surface-200 transition-all shadow-xs cursor-pointer shrink-0"
+            >
+                <i
+                    [class]="
+                        showMobileMenu()
+                            ? 'pi pi-times text-xl text-primary font-bold'
+                            : 'pi pi-bars text-xl text-surface-800 font-bold'
+                    "
+                ></i>
+            </button>
+
+            <a routerLink="/" class="flex items-center group min-h-[44px]">
+                <brand-logo [size]="'md'" [variant]="'full'"></brand-logo>
             </a>
 
-            <nav class="hidden md:flex items-center gap-1">
+            <nav class="hidden lg:flex items-center gap-1">
                 @for (item of navItems; track item.name) {
                     <a
                         [routerLink]="item.href"
@@ -30,11 +37,13 @@
             </nav>
         </div>
 
-        <div class="flex items-center gap-4">
-            <div class="flex flex-col items-end mr-4">
-                <span class="text-xs text-surface-500 font-medium"> Net Position </span>
+        <div class="flex items-center gap-2 sm:gap-4">
+            <div class="flex flex-col items-end mr-1 sm:mr-4">
+                <span class="text-[10px] sm:text-xs text-surface-500 font-medium">
+                    Net Position
+                </span>
                 <span
-                    class="text-sm font-semibold leading-none"
+                    class="text-xs sm:text-sm font-semibold leading-none"
                     [class.text-red-400]="netBalance() < 0"
                     [class.text-primary]="netBalance() >= 0"
                 >
@@ -43,12 +52,12 @@
             </div>
 
             <!-- Theme Switcher, AI Assistant & Divider -->
-            <div class="h-8 w-px bg-surface-200 mr-2"></div>
+            <div class="hidden sm:block h-8 w-px bg-surface-200 mr-1"></div>
             <button
                 (click)="toggleAiAssistant()"
                 title="AI Financial Assistant"
                 aria-label="AI Financial Assistant"
-                class="ai-assistant-toggle w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0 mr-1"
+                class="ai-assistant-toggle w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
             >
                 <i class="pi pi-sparkles text-lg text-primary animate-pulse"></i>
             </button>
@@ -65,7 +74,7 @@
                         : 'Switch to Dark Mode'
                 "
                 aria-label="Toggle theme"
-                class="w-[44px] h-[44px] rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
+                class="hidden sm:flex w-[44px] h-[44px] rounded-full items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-0"
             >
                 <i
                     class="pi text-lg"
@@ -156,4 +165,58 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Navigation Drawer Overlay -->
+    @if (showMobileMenu()) {
+        <!-- Dimmed Backdrop -->
+        <div
+            class="lg:hidden fixed inset-0 top-14 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
+            (click)="showMobileMenu.set(false)"
+            aria-hidden="true"
+        ></div>
+
+        <!-- Overlay Navigation Panel -->
+        <div
+            class="lg:hidden absolute top-full left-0 right-0 border-b border-surface-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-3 z-50 shadow-2xl animate-fade-in"
+        >
+            <nav class="flex flex-col gap-1">
+                @for (item of navItems; track item.name) {
+                    <a
+                        [routerLink]="item.href"
+                        (click)="showMobileMenu.set(false)"
+                        routerLinkActive="text-primary bg-primary/10 font-bold"
+                        [routerLinkActiveOptions]="{ exact: item.href === '/' }"
+                        class="px-4 min-h-[44px] flex items-center gap-3 text-base font-medium rounded-xl text-surface-700 hover:text-surface-900 hover:bg-surface-100 transition-colors"
+                    >
+                        <i [class]="'pi ' + item.icon + ' text-lg text-primary'"></i>
+                        {{ item.name }}
+                    </a>
+                }
+            </nav>
+
+            <div class="pt-3 border-t border-surface-200 flex items-center justify-between">
+                <button
+                    type="button"
+                    (click)="toggleTheme()"
+                    class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-surface-700 rounded-lg hover:bg-surface-100 min-h-[44px]"
+                >
+                    <i
+                        class="pi"
+                        [class.pi-moon]="themeService.resolvedTheme() === 'dark'"
+                        [class.pi-sun]="themeService.resolvedTheme() !== 'dark'"
+                    ></i>
+                    {{ themeService.resolvedTheme() === 'dark' ? 'Light Mode' : 'Dark Mode' }}
+                </button>
+
+                <button
+                    type="button"
+                    (click)="handleSignOut()"
+                    class="flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-500 rounded-lg hover:bg-red-500/10 min-h-[44px]"
+                >
+                    <i class="pi pi-sign-out"></i>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    }
 </div>

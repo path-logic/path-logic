@@ -1,17 +1,26 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    signal
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountType, type IAccount, Money } from '@core';
 
+import { AccountEditFormComponent } from '../../components/accounts/account-edit-form/account-edit-form.component';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { NewAccountDialogComponent } from '../../components/onboarding/new-account-dialog/new-account-dialog.component';
 import { WelcomeWizardComponent } from '../../components/onboarding/welcome-wizard/welcome-wizard.component';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
+export type AccountCategoryFilter = 'all' | 'banking' | 'credit' | 'loans' | 'trash';
+
 /**
  * Page for managing all accounts.
- * Shows a list of accounts with basic actions and provides an onboarding flow
- * if no accounts exist.
+ * Shows a two-tier portfolio with primary hero accounts and consolidated list.
  */
 @Component({
     selector: 'accounts-page',
@@ -21,6 +30,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
         RouterLink,
         WelcomeWizardComponent,
         NewAccountDialogComponent,
+        AccountEditFormComponent,
         AppShellComponent
     ],
     templateUrl: './accounts-page.component.html',
@@ -38,14 +48,74 @@ export class AccountsPageComponent {
     readonly pendingDeleteId = signal<string | null>(null);
     readonly isDeleteConfirmOpen = signal<boolean>(false);
     readonly isOnboarding = signal<boolean>(false);
+    readonly activeFilter = signal<AccountCategoryFilter>('all');
 
     // Store Signals
     readonly accounts = this.ledgerStore.accounts;
     readonly trashedAccounts = this.ledgerStore.trashedAccounts;
     readonly isDbReady = this.ledgerStore.isInitialized;
 
+    // Counts
+    readonly bankingCount = computed(
+        () =>
+            this.accounts().filter(
+                a =>
+                    a.type === AccountType.Checking ||
+                    a.type === AccountType.Savings ||
+                    a.type === AccountType.Cash
+            ).length
+    );
+    readonly creditCount = computed(
+        () => this.accounts().filter(a => a.type === AccountType.Credit).length
+    );
+    readonly loansCount = computed(
+        () =>
+            this.accounts().filter(
+                a =>
+                    a.type === AccountType.Mortgage ||
+                    a.type === AccountType.AutoLoan ||
+                    a.type === AccountType.PersonalLoan
+            ).length
+    );
+
+    // Top Hero Primary Accounts (up to 3 primary accounts)
+    readonly primaryAccounts = computed(() => {
+        return this.accounts().slice(0, 3);
+    });
+
+    // Secondary / Consolidated Accounts (remaining accounts)
+    readonly secondaryAccounts = computed(() => {
+        return this.accounts().slice(3);
+    });
+
+    // Filtered accounts list when browsing by specific category
+    readonly filteredAccounts = computed(() => {
+        const filter = this.activeFilter();
+        const all = this.accounts();
+        if (filter === 'banking') {
+            return all.filter(
+                a =>
+                    a.type === AccountType.Checking ||
+                    a.type === AccountType.Savings ||
+                    a.type === AccountType.Cash
+            );
+        }
+        if (filter === 'credit') {
+            return all.filter(a => a.type === AccountType.Credit);
+        }
+        if (filter === 'loans') {
+            return all.filter(
+                a =>
+                    a.type === AccountType.Mortgage ||
+                    a.type === AccountType.AutoLoan ||
+                    a.type === AccountType.PersonalLoan
+            );
+        }
+        return all;
+    });
+
     // Trash View & Purge Modal State
-    readonly isTrashOpen = signal<boolean>(false);
+    readonly isTrashOpen = computed(() => this.activeFilter() === 'trash');
     readonly pendingPurgeId = signal<string | null>(null);
     readonly isPurgeConfirmOpen = signal<boolean>(false);
     readonly isEmptyTrashConfirmOpen = signal<boolean>(false);
@@ -77,6 +147,29 @@ export class AccountsPageComponent {
         this.isOnboarding.set(false);
     }
 
+    openAddAccount(type?: string): void {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/accounts/new'], {
+                queryParams: type ? { type } : {}
+            });
+        } else {
+            this.isAddDialogOpen.set(true);
+        }
+    }
+
+    getFilterLabel(filter: string): string {
+        switch (filter) {
+            case 'banking':
+                return 'Banking & Cash';
+            case 'credit':
+                return 'Credit Card';
+            case 'loans':
+                return 'Loan & Mortgage';
+            default:
+                return 'Account';
+        }
+    }
+
     /**
      * Helper to determine account icon based on type
      */
@@ -90,6 +183,12 @@ export class AccountsPageComponent {
                 return 'pi-credit-card';
             case AccountType.Cash:
                 return 'pi-wallet';
+            case AccountType.Mortgage:
+                return 'pi-home';
+            case AccountType.AutoLoan:
+                return 'pi-car';
+            case AccountType.PersonalLoan:
+                return 'pi-percentage';
             default:
                 return 'pi-building-columns';
         }
@@ -99,18 +198,40 @@ export class AccountsPageComponent {
         return Money.formatCurrency(amount);
     }
 
+    /**
+     * Formats balance for an account. Credit cards and loans are formatted as positive balance due.
+     */
+    formattedAccountBalance(account: IAccount): string {
+        const raw = account.clearedBalance + account.pendingBalance;
+        if (this.isLiability(account.type)) {
+            return Money.formatCurrency(Math.abs(raw));
+        }
+        return Money.formatCurrency(raw);
+    }
+
+    isLiability(type: AccountType): boolean {
+        return (
+            type === AccountType.Credit ||
+            type === AccountType.Mortgage ||
+            type === AccountType.AutoLoan ||
+            type === AccountType.PersonalLoan
+        );
+    }
+
+    setFilter(filter: AccountCategoryFilter): void {
+        this.activeFilter.set(filter);
+    }
+
     toggleExpand(accountId: string): void {
         this.expandedId.update(id => (id === accountId ? null : accountId));
     }
 
     handleAccountCreated(account: IAccount): void {
         this.ledgerStore.addAccount(account);
-        // Do not close the dialog here — the wizard proceeds to the import step
-        // (step 3) and will emit (closed) when the user finishes or skips.
     }
 
     requestDeleteAccount(accountId: string, event: Event): void {
-        event.stopPropagation(); // Don't toggle the expand panel
+        event.stopPropagation();
         this.pendingDeleteId.set(accountId);
         this.isDeleteConfirmOpen.set(true);
     }
@@ -119,7 +240,6 @@ export class AccountsPageComponent {
         const id = this.pendingDeleteId();
         if (id) {
             void this.ledgerStore.removeAccount(id);
-            // Collapse if this account was expanded
             if (this.expandedId() === id) this.expandedId.set(null);
         }
         this.isDeleteConfirmOpen.set(false);
@@ -132,7 +252,7 @@ export class AccountsPageComponent {
     }
 
     toggleTrash(): void {
-        this.isTrashOpen.update(v => !v);
+        this.activeFilter.update(f => (f === 'trash' ? 'all' : 'trash'));
     }
 
     async handleRestoreAccount(accountId: string): Promise<void> {

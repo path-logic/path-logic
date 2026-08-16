@@ -34,6 +34,13 @@ export const appRoutes: Routes = [
                     )
             },
             {
+                path: 'accounts/new',
+                loadComponent: () =>
+                    import('./pages/accounts/form/account-form.component').then(
+                        m => m.AccountFormComponent
+                    )
+            },
+            {
                 path: 'accounts/:accountId',
                 loadComponent: () =>
                     import('./pages/account-detail/account-detail.component').then(
@@ -49,8 +56,29 @@ export const appRoutes: Routes = [
             },
             {
                 path: 'payees',
-                loadComponent: () =>
-                    import('./pages/payees/payees-page.component').then(m => m.PayeesPageComponent)
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () =>
+                            import('./pages/payees/payees-page.component').then(
+                                m => m.PayeesPageComponent
+                            )
+                    },
+                    {
+                        path: 'new',
+                        loadComponent: () =>
+                            import('./pages/payees/form/payee-form.component').then(
+                                m => m.PayeeFormComponent
+                            )
+                    },
+                    {
+                        path: ':id/edit',
+                        loadComponent: () =>
+                            import('./pages/payees/form/payee-form.component').then(
+                                m => m.PayeeFormComponent
+                            )
+                    }
+                ]
             },
             {
                 path: 'settings',
@@ -113,17 +141,29 @@ export const appRoutes: Routes = [
             },
             {
                 path: 'recurring',
-                loadComponent: () =>
-                    import('./pages/recurring/recurring-dashboard.component').then(
-                        m => m.RecurringDashboardComponent
-                    )
-            },
-            {
-                path: 'reports',
-                loadComponent: () =>
-                    import('./pages/reports/reports-page.component').then(
-                        m => m.ReportsPageComponent
-                    )
+                children: [
+                    {
+                        path: '',
+                        loadComponent: () =>
+                            import('./pages/recurring/recurring-dashboard.component').then(
+                                m => m.RecurringDashboardComponent
+                            )
+                    },
+                    {
+                        path: 'new',
+                        loadComponent: () =>
+                            import('./pages/recurring/form/recurring-schedule-form.component').then(
+                                m => m.RecurringScheduleFormComponent
+                            )
+                    },
+                    {
+                        path: ':id/edit',
+                        loadComponent: () =>
+                            import('./pages/recurring/form/recurring-schedule-form.component').then(
+                                m => m.RecurringScheduleFormComponent
+                            )
+                    }
+                ]
             }
             // Additional routes will be added during component porting:
         ]

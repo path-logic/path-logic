@@ -69,6 +69,7 @@ export class TransactionTableComponent {
 
     // Template children
     readonly parentRef = viewChild<ElementRef<HTMLDivElement>>('parentRef');
+    readonly mobileContainerRef = viewChild<ElementRef<HTMLDivElement>>('mobileContainer');
 
     // Column Helper
     private readonly columnHelper = createColumnHelper<ITransaction>();
@@ -213,17 +214,11 @@ export class TransactionTableComponent {
         overscan: 20
     }));
 
-    private hasScrolledInitial = false;
-
     constructor() {
         effect(() => {
             const rows = this.table.getRowModel().rows;
-            // Only attempt scroll once we have data
-            if (rows.length > 0 && !this.hasScrolledInitial) {
-                // Use untracked so setting hasScrolledInitial doesn't trigger effect
+            if (rows.length > 0) {
                 untracked(() => {
-                    this.hasScrolledInitial = true;
-                    // Wait a tiny bit for rendering, then scroll
                     setTimeout(() => this.scrollToToday(), 50);
                 });
             }
@@ -283,49 +278,145 @@ export class TransactionTableComponent {
         return 'text-primary';
     }
 
+    getCategoryName(tx: ITransaction): string {
+        if (tx.splits && tx.splits.length > 1) return `${tx.splits.length} Splits`;
+        const catId =
+            tx.splits && tx.splits[0]?.categoryId
+                ? tx.splits[0].categoryId
+                : KnownCategory.Uncategorized;
+        const match = this.ledgerStore.categories().find(c => c.id === catId);
+        if (match) return match.name;
+        if (catId && catId.startsWith('cat-')) {
+            return catId
+                .substring(4)
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+        return catId || 'Uncategorized';
+    }
+
+    getCategoryIcon(tx: ITransaction): string {
+        const catName = this.getCategoryName(tx).toLowerCase();
+        if (
+            catName.includes('grocer') ||
+            catName.includes('food') ||
+            catName.includes('supermarket')
+        )
+            return 'pi-shopping-cart';
+        if (
+            catName.includes('dining') ||
+            catName.includes('coffee') ||
+            catName.includes('restaurant')
+        )
+            return 'pi-coffee';
+        if (
+            catName.includes('income') ||
+            catName.includes('salary') ||
+            catName.includes('paycheck')
+        )
+            return 'pi-building';
+        if (catName.includes('util') || catName.includes('electric') || catName.includes('water'))
+            return 'pi-bolt';
+        if (catName.includes('transport') || catName.includes('gas') || catName.includes('auto'))
+            return 'pi-car';
+        if (
+            catName.includes('subscript') ||
+            catName.includes('stream') ||
+            catName.includes('entertainment')
+        )
+            return 'pi-play';
+        if (catName.includes('transfer')) return 'pi-arrows-h';
+        return tx.totalAmount >= 0 ? 'pi-arrow-down-left' : 'pi-shopping-bag';
+    }
+
+    formatMoney(cents: number): string {
+        return Money.formatCurrency(cents);
+    }
+
+    handleRowClick(index: number, tx: ITransaction): void {
+        this.activeIndex.set(index);
+        this.editClicked.emit(tx);
+    }
+
     /**
      * Computed index of the first transaction strictly in the future.
      * The divider will be placed immediately before this row.
      */
     readonly dividerRowIndex = computed(() => {
         const rows = this.table.getRowModel().rows;
-        const tomorrowMs = new Date();
-        tomorrowMs.setHours(0, 0, 0, 0);
-        tomorrowMs.setDate(tomorrowMs.getDate() + 1);
-        return rows.findIndex(
-            row => new Date(row.original.date).setHours(0, 0, 0, 0) >= tomorrowMs.getTime()
-        );
+        if (rows.length === 0) return -1;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const localTodayStr = `${year}-${month}-${day}`;
+
+        return rows.findIndex(row => {
+            const txDate = (row.original.date || '').slice(0, 10);
+            return txDate > localTodayStr;
+        });
     });
 
-    private scrollToToday(): void {
+    scrollToToday(): void {
         const rows = this.table.getRowModel().rows;
         if (rows.length === 0) return;
 
-        const todayMs = new Date().setHours(0, 0, 0, 0);
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const localTodayStr = `${year}-${month}-${day}`;
 
         // Find the first row whose date is today or in the future
         let targetIndex = rows.findIndex(row => {
-            return new Date(row.original.date).setHours(0, 0, 0, 0) >= todayMs;
+            const txDate = (row.original.date || '').slice(0, 10);
+            return txDate >= localTodayStr;
         });
-        if (targetIndex === -1) targetIndex = rows.length - 1;
+        if (targetIndex === -1) {
+            // If all transactions are past, focus the most recent transaction
+            targetIndex = rows.length - 1;
+        }
 
         this.activeIndex.set(targetIndex);
 
-        // Calculate scroll position so the today-row sits at 35% from the top
-        // of the visible container, showing past context above and future below.
-        const container = this.parentRef()?.nativeElement;
-        if (!container || container.clientHeight === 0) {
-            // Container not ready, try again shortly
-            setTimeout(() => this.scrollToToday(), 50);
-            return;
+        // Desktop / Tablet table scroll via TanStack Virtualizer
+        try {
+            this.virtualizer.scrollToIndex(targetIndex, { align: 'center' });
+        } catch {
+            const container = this.parentRef()?.nativeElement;
+            if (container && container.clientHeight > 0) {
+                const rowHeight = 44;
+                const rowTop = targetIndex * rowHeight;
+                const offset = Math.max(0, rowTop - container.clientHeight * 0.35);
+                container.scrollTop = offset;
+            }
         }
 
-        const rowHeight = 44; // matches estimateSize
-        const rowTop = targetIndex * rowHeight;
-        const offset = Math.max(0, rowTop - container.clientHeight * 0.35);
+        // Mobile card stream scroll
+        const mobileContainer = this.mobileContainerRef()?.nativeElement;
+        if (mobileContainer && mobileContainer.clientHeight > 0) {
+            const cardElements = mobileContainer.children;
+            if (cardElements && cardElements.length > targetIndex) {
+                const targetCard = cardElements[targetIndex] as HTMLElement;
+                if (targetCard && targetCard.offsetTop !== undefined) {
+                    const mobileOffset = Math.max(
+                        0,
+                        targetCard.offsetTop - mobileContainer.clientHeight * 0.35
+                    );
+                    mobileContainer.scrollTop = mobileOffset;
+                }
+            } else {
+                const cardEstimateHeight = 76;
+                const cardTop = targetIndex * cardEstimateHeight;
+                const mobileOffset = Math.max(0, cardTop - mobileContainer.clientHeight * 0.35);
+                mobileContainer.scrollTop = mobileOffset;
+            }
+        }
 
-        container.scrollTop = offset;
+        if (!this.parentRef()?.nativeElement && !mobileContainer) {
+            // Container not ready, try again shortly
+            setTimeout(() => this.scrollToToday(), 50);
+        }
     }
-
-    // Lucide icons
 }

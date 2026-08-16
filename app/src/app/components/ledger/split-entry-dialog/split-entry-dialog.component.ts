@@ -1,4 +1,4 @@
-import { CommonModule, NgTemplateOutlet } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -15,7 +15,6 @@ import { FormsModule } from '@angular/forms';
 import type { ISplit } from '@core';
 import { KnownCategory, Money } from '@core';
 import { PrimeTemplate } from 'primeng/api';
-import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 
@@ -29,7 +28,7 @@ import { PostHogService } from '../../../services/posthog/posthog.service';
 @Component({
     selector: 'split-entry-dialog',
     standalone: true,
-    imports: [CommonModule, FormsModule, Dialog, Button, Select, NgTemplateOutlet, PrimeTemplate],
+    imports: [CommonModule, FormsModule, Dialog, Select, PrimeTemplate],
     templateUrl: './split-entry-dialog.component.html',
     styleUrls: ['./split-entry-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush

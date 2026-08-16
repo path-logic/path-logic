@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { BrandLogoComponent } from '../../components/ui/brand-logo/brand-logo.component';
 import { AuthService } from '../../services/auth/auth.service';
 import { PostHogService } from '../../services/posthog/posthog.service';
 
@@ -10,7 +11,7 @@ import { PostHogService } from '../../services/posthog/posthog.service';
 @Component({
     selector: 'sign-in',
     standalone: true,
-    imports: [],
+    imports: [BrandLogoComponent],
     templateUrl: './sign-in.component.html',
     styleUrl: './sign-in.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush

@@ -56,3 +56,6 @@ ux-screenshots/
 __screenshots__/
 
 .firebase/
+
+playwright-report/
+scratch/

@@ -15,7 +15,6 @@ import {
 } from '../../lib/storage/GoogleDriveAdapter';
 import {
     getLastDriveSyncTime,
-    getLocalVersion,
     loadLocalSnapshot,
     saveLastDriveSyncTime,
     saveLocalSnapshot
@@ -156,15 +155,15 @@ export class SyncService {
                 return;
             }
 
-            // Drive file exists — compare timestamps
-            const localVersion = await getLocalVersion();
+            // Drive file exists — compare timestamps against the last successful Drive sync time on this device
+            const lastSyncTime = getLastDriveSyncTime();
             const driveModifiedMs = new Date(driveFile.modifiedTime ?? 0).getTime();
 
-            if (driveModifiedMs > localVersion) {
-                // Drive is newer — download, decrypt, merge
+            if (driveModifiedMs > lastSyncTime) {
+                // Drive is newer than our last sync timestamp — download, decrypt, merge
                 await this.downloadAndMerge(accessToken, userId, driveFile);
             } else {
-                // Local is newer (or equal) — upload
+                // Local is up to date with or newer than Drive — upload if dirty
                 if (this.ledgerStore.isDirty()) {
                     await this.uploadToDrive(accessToken, userId, driveFile.id);
                 } else {
@@ -189,17 +188,31 @@ export class SyncService {
 
     // ── Mutations: Save dirty state to Drive ──────────────────────────────────
 
+    private debouncedSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
     /**
      * Save current database to Drive (debounced, with lock + merge).
      * Called by AppComponent's auto-save effect after mutations.
+     *
+     * @param forceImmediate If true, bypasses the SYNC_DEBOUNCE_MS rate limit check.
      */
-    async saveToDrive(): Promise<void> {
+    async saveToDrive(forceImmediate = false): Promise<void> {
         const accessToken: string | null = this.authService.accessToken();
         const userId: string | null = this.authService.userId();
         if (!accessToken || !userId) return;
 
         const now: number = Date.now();
-        if (now - this.lastSyncTime < SYNC_DEBOUNCE_MS) return;
+        if (!forceImmediate && now - this.lastSyncTime < SYNC_DEBOUNCE_MS) {
+            if (this.debouncedSaveTimer === null) {
+                const remaining = SYNC_DEBOUNCE_MS - (now - this.lastSyncTime);
+                this.debouncedSaveTimer = setTimeout(() => {
+                    this.debouncedSaveTimer = null;
+                    void this.saveToDrive(true);
+                }, remaining);
+            }
+            return;
+        }
+
         if (this.syncInProgress) return;
 
         this.syncInProgress = true;
@@ -308,6 +321,14 @@ export class SyncService {
         } catch (error) {
             console.error('[Sync] Failed to force release lock:', error);
         }
+    }
+
+    async flushPendingUpload(): Promise<void> {
+        if (this.debouncedSaveTimer !== null) {
+            clearTimeout(this.debouncedSaveTimer);
+            this.debouncedSaveTimer = null;
+        }
+        return this.saveToDrive(true);
     }
 
     getSyncStatus(): ISyncStatus {

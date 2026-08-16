@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import type { IPayee } from '@core';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
@@ -21,6 +22,7 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 })
 export class PayeesPageComponent {
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly router = inject(Router);
 
     // State
     readonly expandedId = signal<string | null>(null);
@@ -53,13 +55,21 @@ export class PayeesPageComponent {
     }
 
     openAddPayee(): void {
-        this.selectedPayee.set(null);
-        this.isDialogOpen.set(true);
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/payees/new']);
+        } else {
+            this.selectedPayee.set(null);
+            this.isDialogOpen.set(true);
+        }
     }
 
     openEditPayee(payee: IPayee): void {
-        this.selectedPayee.set(payee);
-        this.isDialogOpen.set(true);
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/payees', payee.id, 'edit']);
+        } else {
+            this.selectedPayee.set(payee);
+            this.isDialogOpen.set(true);
+        }
     }
 
     handlePayeeSaved(_payee: IPayee): void {

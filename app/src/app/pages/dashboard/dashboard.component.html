@@ -22,42 +22,41 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Net Position Card -->
             <div
-                class="p-6 bg-surface-0 border border-surface-200/50 rounded-2xl shadow-premium flex flex-col gap-2 relative overflow-hidden group"
+                class="p-6 bg-surface-0 border border-surface-200/50 rounded-2xl shadow-premium flex flex-col justify-between relative overflow-hidden group"
             >
                 <div
                     class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"
                 >
                     <i class="pi pi-wallet text-6xl"></i>
                 </div>
-                <span class="text-sm font-medium text-surface-500 tracking-wide">
-                    Net Position
-                </span>
-                <div class="flex items-baseline gap-2">
-                    <span
-                        class="text-4xl font-bold tracking-tight"
-                        [class.text-surface-800]="netPosition() >= 0"
-                        [class.text-red-500]="netPosition() < 0"
-                    >
-                        {{ formattedNetPosition() }}
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-surface-500">
+                        Total Net Position
                     </span>
-                </div>
-                <div class="flex gap-4 mt-2">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-medium text-surface-500"> Cleared </span>
-                        <span class="text-sm font-semibold text-primary">
-                            {{ formattedClearedBalance() }}
-                        </span>
-                    </div>
-                    <div class="flex flex-col">
+                    <div class="flex items-baseline gap-2 mt-1">
                         <span
-                            class="text-[8px] font-bold text-surface-500 uppercase tracking-tighter"
+                            class="text-4xl font-black tracking-tight"
+                            [class.text-surface-900]="netPosition() >= 0"
+                            [class.text-red-500]="netPosition() < 0"
                         >
-                            Pending
-                        </span>
-                        <span class="text-xs font-mono font-bold text-amber-500">
-                            {{ formattedPendingBalance() }}
+                            {{ formattedNetPosition() }}
                         </span>
                     </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Cleared: {{ formattedClearedBalance() }}
+                    </span>
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                    >
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Pending: {{ formattedPendingBalance() }}
+                    </span>
                 </div>
             </div>
 
@@ -113,49 +112,50 @@
                                     <div class="flex justify-between items-start">
                                         <div class="flex items-center gap-3">
                                             <div
-                                                class="w-8 h-8 rounded-sm bg-surface-100 flex items-center justify-center text-surface-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
+                                                class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
                                             >
                                                 <i
                                                     [class]="
-                                                        'pi text-base ' +
-                                                        getAccountIcon(account.type)
+                                                        'pi text-lg ' + getAccountIcon(account.type)
                                                     "
                                                 ></i>
                                             </div>
                                             <div>
                                                 <h3
-                                                    class="text-[11px] font-black uppercase tracking-tight truncate max-w-[120px]"
+                                                    class="text-sm font-bold text-surface-900 truncate max-w-[140px]"
                                                 >
                                                     {{ account.name }}
                                                 </h3>
                                                 <p
-                                                    class="text-[9px] text-surface-500 font-bold uppercase tracking-widest truncate max-w-[120px]"
+                                                    class="text-xs text-surface-500 font-medium truncate max-w-[140px]"
                                                 >
                                                     {{ account.institutionName }}
                                                 </p>
                                             </div>
                                         </div>
                                         <i
-                                            class="pi pi-chevron-right text-base text-surface-500/30 group-hover:text-primary transition-colors"
+                                            class="pi pi-chevron-right text-base text-surface-400 group-hover:text-primary transition-colors"
                                         ></i>
                                     </div>
                                     <div class="mt-4 flex justify-between items-end">
                                         <div class="flex flex-col">
-                                            <span
-                                                class="text-[8px] font-bold text-surface-500 uppercase tracking-tighter"
-                                            >
-                                                Current Balance
+                                            <span class="text-xs text-surface-500 font-medium">
+                                                {{
+                                                    account.type === 'credit'
+                                                        ? 'Balance Due'
+                                                        : 'Current Balance'
+                                                }}
                                             </span>
                                             <span
-                                                class="text-sm font-mono font-bold tracking-tighter"
+                                                class="text-base font-mono font-bold tracking-tight text-surface-900"
                                             >
                                                 {{ formattedAccountBalance(account) }}
                                             </span>
                                         </div>
                                         <div
-                                            class="w-1.5 h-1.5 rounded-full"
-                                            [class.bg-primary]="account.isActive"
-                                            [class.bg-surface-100]="!account.isActive"
+                                            class="w-2 h-2 rounded-full"
+                                            [class.bg-emerald-500]="account.isActive"
+                                            [class.bg-surface-300]="!account.isActive"
                                             [title]="account.isActive ? 'Active' : 'Inactive'"
                                         ></div>
                                     </div>

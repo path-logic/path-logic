@@ -2,7 +2,7 @@ const { join } = require('path');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    darkMode: ['class', '[data-theme="dark"]'],
+    darkMode: ['selector', '[data-theme="dark"]'],
     content: [join(__dirname, 'src/**/*.{html,ts}')],
     theme: {
         extend: {

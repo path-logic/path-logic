@@ -4,6 +4,7 @@ import { KnownCategory, TransactionStatus } from '@core';
 import { ReconciliationEngine } from '../../core/engine/ReconciliationEngine';
 import { QIFParser } from '../../core/parsers/QIFParser';
 import { LedgerStore } from '../ledger-store/ledger.store';
+import { SyncService } from '../sync/sync.service';
 import type {
     IImportProgress,
     IImportStats,
@@ -45,6 +46,7 @@ const IDLE_PROGRESS: IImportProgress = {
 @Injectable({ providedIn: 'root' })
 export class ImportOrchestrationService {
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly syncService = inject(SyncService);
     private readonly zone = inject(NgZone);
 
     // ── Public reactive state ────────────────────────────────────────────────
@@ -583,6 +585,12 @@ export class ImportOrchestrationService {
                 txsToImport,
                 []
             );
+            void this.syncService.flushPendingUpload().catch(err => {
+                console.error(
+                    '[ImportOrchestration] Failed to flush Drive upload post-import:',
+                    err
+                );
+            });
         }
     }
 

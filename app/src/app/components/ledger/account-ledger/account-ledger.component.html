@@ -1,4 +1,4 @@
-<div class="flex h-full w-full gap-4 overflow-hidden">
+<div class="flex flex-col lg:flex-row h-full w-full gap-4 lg:gap-6 overflow-hidden bg-brand-base">
     <input
         #fileInput
         type="file"
@@ -7,156 +7,331 @@
         class="hidden"
     />
 
-    <!-- Account Sidebar -->
-    <aside class="w-64 flex flex-col gap-4 flex-none overflow-hidden pr-2">
+    <!-- Desktop Sidebar (>= 1024px) -->
+    <aside class="hidden lg:flex w-72 flex-col gap-4 flex-none overflow-y-auto pr-1">
         <div
-            class="bg-surface-0 border border-surface-200 rounded-sm h-full flex flex-col overflow-hidden"
+            class="bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm space-y-4"
         >
-            <div
-                class="px-4 py-3 flex justify-between items-center border-b border-surface-200 bg-surface-100/30"
-            >
-                <h2 class="text-xs text-surface-500 font-bold uppercase tracking-widest">
-                    Accounts
-                </h2>
-                <button
-                    (click)="isAddDialogOpen.set(true)"
-                    class="text-primary hover:text-white transition-colors"
-                >
-                    <i class="pi pi-plus text-xs"></i>
-                </button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-2 space-y-1">
-                @for (acc of accounts(); track acc.id) {
-                    <div
-                        (click)="activeAccountId.set(acc.id)"
-                        (keydown.enter)="activeAccountId.set(acc.id)"
-                        (keydown.space)="activeAccountId.set(acc.id)"
-                        tabindex="0"
-                        role="button"
-                        class="p-2 rounded-sm cursor-pointer transition-all border outline-none focus:ring-1 focus:ring-primary"
-                        [class]="{
-                            'bg-primary/10 border-primary/30': activeAccountId() === acc.id,
-                            'bg-transparent border-transparent hover:bg-surface-100/50':
-                                activeAccountId() !== acc.id
-                        }"
+            <!-- Account Dropdown Switcher -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center">
+                    <label
+                        for="account-selector-desktop"
+                        class="text-xs font-bold uppercase tracking-wider text-content-muted"
+                        >Active Account</label
                     >
-                        <div class="flex justify-between items-start mb-1">
-                            <span
-                                class="text-sm font-bold"
-                                [class.text-primary]="activeAccountId() === acc.id"
-                                [class.text-surface-800]="activeAccountId() !== acc.id"
-                            >
-                                {{ acc.name }}
-                            </span>
-                            <span
-                                class="transition-colors"
-                                [class.text-primary]="activeAccountId() === acc.id"
-                                [class.text-surface-400]="activeAccountId() !== acc.id"
-                            >
-                                <i [class]="'pi text-base ' + getAccountIcon(acc.type)"></i>
-                            </span>
-                        </div>
-                        <div class="text-sm font-mono font-bold text-surface-500">
-                            {{ formatCurrency(getAccountBalance(acc.id)) }}
-                        </div>
-                    </div>
-                }
-            </div>
-            <div class="p-2 border-t border-surface-200 bg-surface-100/20">
-                <a
-                    routerLink="/recurring"
-                    class="flex items-center gap-2 p-2 rounded-sm hover:bg-primary/10 transition-colors group"
-                >
-                    <i class="pi pi-calendar text-sm text-surface-500 group-hover:text-primary"></i>
-                    <span
-                        class="text-[10px] font-black uppercase tracking-widest text-surface-500 group-hover:text-primary"
-                    >
-                        Bills &amp; Scheduled
-                    </span>
-                </a>
-            </div>
-        </div>
-
-        <div class="bg-surface-0 border border-surface-200 rounded-sm p-3 flex flex-col gap-3">
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-[10px] font-bold uppercase text-surface-500 tracking-wider">
-                        Sync Engine
-                    </span>
                     <sync-indicator />
                 </div>
-                <div class="flex flex-col gap-1.5">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-surface-500 uppercase font-bold tracking-tighter">
-                            Cleared
-                        </span>
-                        <span class="font-mono text-emerald-700 dark:text-emerald-400 font-bold">
-                            {{ formatCurrency(clearedBalance()) }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-surface-500 uppercase font-bold tracking-tighter">
-                            Pending
-                        </span>
-                        <span class="font-mono text-amber-500 font-bold">
-                            {{ formatCurrency(pendingBalance()) }}
-                        </span>
-                    </div>
+                <div class="relative">
+                    <select
+                        id="account-selector-desktop"
+                        [ngModel]="activeAccountId()"
+                        (ngModelChange)="activeAccountId.set($event)"
+                        class="w-full min-h-[44px] px-3.5 py-2.5 bg-brand-base border border-brand-border rounded-xl text-sm font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+                    >
+                        @if (accounts().length === 0) {
+                            <option value="" disabled selected>No accounts available</option>
+                        }
+                        @for (acc of accounts(); track acc.id) {
+                            <option [value]="acc.id">
+                                {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
+                            </option>
+                        }
+                    </select>
+                    <i
+                        class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
+                    ></i>
                 </div>
             </div>
 
-            <div class="pt-3 border-t border-surface-200 flex flex-col gap-2">
-                <!-- Import button -->
+            <!-- Cleared / Pending Balance Metrics -->
+            <div class="flex flex-col gap-2 pt-3 border-t border-brand-border">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-content-muted uppercase tracking-wider"
+                        >Cleared</span
+                    >
+                    <span
+                        class="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm"
+                    >
+                        {{ formatCurrency(clearedBalance()) }}
+                    </span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-content-muted uppercase tracking-wider"
+                        >Pending</span
+                    >
+                    <span class="font-mono font-bold text-amber-500 text-sm">
+                        {{ formatCurrency(pendingBalance()) }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="h-px bg-brand-border my-1"></div>
+
+            <!-- Account Tasks Menu -->
+            <div class="space-y-1">
+                <span
+                    class="text-xs font-bold uppercase tracking-wider text-content-muted block mb-2"
+                    >Account Actions</span
+                >
+                <a
+                    routerLink="/recurring"
+                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
+                >
+                    <i class="pi pi-bolt text-primary"></i>
+                    Recurring Bills
+                </a>
                 <button
+                    type="button"
+                    (click)="openReconciliation()"
+                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left"
+                >
+                    <i class="pi pi-balance-scale text-primary"></i>
+                    Reconcile Account
+                </button>
+                <a
+                    routerLink="/settings"
+                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
+                >
+                    <i class="pi pi-cog text-content-muted"></i>
+                    Account Rules
+                </a>
+            </div>
+
+            <!-- Divider -->
+            <div class="h-px bg-brand-border my-1"></div>
+
+            <!-- Import QIF/CSV Drag & Drop Zone with Button -->
+            <div
+                class="p-4 border-2 border-dashed border-brand-border hover:border-primary/50 rounded-xl bg-brand-base flex flex-col items-center justify-center text-center gap-2 transition-colors"
+            >
+                <i class="pi pi-upload text-xl text-primary"></i>
+                <button
+                    type="button"
                     (click)="triggerImport()"
                     [disabled]="
                         importProgress().stage !== 'idle' &&
                         importProgress().stage !== 'done' &&
                         importProgress().stage !== 'error'
                     "
-                    class="h-8 w-full text-xs font-black uppercase bg-primary/10 border border-primary/20 text-primary rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    class="min-h-[38px] px-4 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
                 >
-                    <i class="pi pi-upload text-xs"></i>
-                    Import QIF
+                    Import QIF/CSV
                 </button>
-                <button
-                    class="h-8 w-full text-xs font-black uppercase border border-surface-200 bg-surface-50 rounded-md hover:bg-surface-100 transition-colors"
+                <span class="text-xs text-content-muted font-medium"
+                    >or drag & drop files here</span
                 >
-                    Reconcile
-                </button>
-
-                <!-- Drag hint -->
-                @if (importProgress().stage === 'idle') {
-                    <div class="text-center mt-1">
-                        <span
-                            class="text-[9px] font-bold uppercase tracking-widest text-surface-400"
-                        >
-                            or drag &amp; drop anywhere
-                        </span>
-                    </div>
-                }
             </div>
         </div>
     </aside>
 
+    <!-- Tablet Portrait Toolbar (640px – 1023px) -->
+    <div
+        class="hidden sm:flex lg:hidden flex-none flex-col gap-3 p-3.5 bg-brand-surface border border-brand-border rounded-2xl shadow-xs"
+    >
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+            <!-- Account Switcher -->
+            <div class="relative flex-1 min-w-[220px]">
+                <select
+                    id="account-selector-tablet"
+                    [ngModel]="activeAccountId()"
+                    (ngModelChange)="activeAccountId.set($event)"
+                    class="w-full min-h-[40px] px-3 py-2 bg-brand-base border border-brand-border rounded-xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+                >
+                    @if (accounts().length === 0) {
+                        <option value="" disabled selected>No accounts available</option>
+                    }
+                    @for (acc of accounts(); track acc.id) {
+                        <option [value]="acc.id">
+                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
+                        </option>
+                    }
+                </select>
+                <i
+                    class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
+                ></i>
+            </div>
+
+            <!-- Cleared & Pending Balance Pills -->
+            <div class="flex items-center gap-2">
+                <span
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted"
+                >
+                    Cleared:
+                    <span class="text-emerald-700 dark:text-emerald-400 font-mono">{{
+                        formatCurrency(clearedBalance())
+                    }}</span>
+                </span>
+                <span
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted"
+                >
+                    Pending:
+                    <span class="text-amber-500 font-mono">{{
+                        formatCurrency(pendingBalance())
+                    }}</span>
+                </span>
+                <sync-indicator />
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons & Status Filters -->
+        <div
+            class="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-brand-border"
+        >
+            <!-- Status Filter Pills -->
+            <div
+                class="flex items-center gap-1 bg-brand-base p-1 rounded-xl border border-brand-border"
+            >
+                <button
+                    type="button"
+                    (click)="setStatusFilter('all')"
+                    [class]="
+                        statusFilter() === 'all'
+                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
+                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'
+                    "
+                >
+                    All
+                </button>
+                <button
+                    type="button"
+                    (click)="setStatusFilter('cleared')"
+                    [class]="
+                        statusFilter() === 'cleared'
+                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
+                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'
+                    "
+                >
+                    Cleared
+                </button>
+                <button
+                    type="button"
+                    (click)="setStatusFilter('pending')"
+                    [class]="
+                        statusFilter() === 'pending'
+                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
+                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'
+                    "
+                >
+                    Pending
+                </button>
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="flex items-center gap-2">
+                <a
+                    routerLink="/recurring"
+                    class="h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition"
+                >
+                    <i class="pi pi-bolt text-primary text-xs"></i>
+                    <span>Recurring</span>
+                </a>
+                <button
+                    type="button"
+                    (click)="openReconciliation()"
+                    class="h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition"
+                >
+                    <i class="pi pi-balance-scale text-primary text-xs"></i>
+                    <span>Reconcile</span>
+                </button>
+                <button
+                    type="button"
+                    (click)="triggerImport()"
+                    class="h-8 px-3 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1.5 transition shadow-xs"
+                >
+                    <i class="pi pi-upload text-xs"></i>
+                    <span>Import QIF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Header (< 640px) -->
+    <div class="sm:hidden flex-none flex flex-col gap-2.5 pb-1">
+        <!-- Account Switcher Pill Row -->
+        <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+                <select
+                    id="account-selector-mobile"
+                    [ngModel]="activeAccountId()"
+                    (ngModelChange)="activeAccountId.set($event)"
+                    class="w-full min-h-[44px] px-3.5 py-2.5 bg-brand-surface border border-brand-border rounded-2xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8 shadow-xs"
+                >
+                    @if (accounts().length === 0) {
+                        <option value="" disabled selected>No accounts available</option>
+                    }
+                    @for (acc of accounts(); track acc.id) {
+                        <option [value]="acc.id">
+                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
+                        </option>
+                    }
+                </select>
+                <i
+                    class="pi pi-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
+                ></i>
+            </div>
+            <sync-indicator />
+        </div>
+
+        <!-- Filter Segmented Control -->
+        <div
+            class="grid grid-cols-3 p-1 rounded-xl bg-brand-surface border border-brand-border shadow-xs"
+        >
+            <button
+                type="button"
+                (click)="setStatusFilter('all')"
+                [class]="
+                    statusFilter() === 'all'
+                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'
+                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'
+                "
+            >
+                All
+            </button>
+            <button
+                type="button"
+                (click)="setStatusFilter('cleared')"
+                [class]="
+                    statusFilter() === 'cleared'
+                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'
+                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'
+                "
+            >
+                Cleared
+            </button>
+            <button
+                type="button"
+                (click)="setStatusFilter('pending')"
+                [class]="
+                    statusFilter() === 'pending'
+                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'
+                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'
+                "
+            >
+                Pending
+            </button>
+        </div>
+    </div>
+
     <!-- Main Ledger Area -->
-    <div class="flex-1 flex flex-col gap-4 overflow-hidden">
+    <div class="flex-1 flex flex-col gap-4 overflow-hidden min-h-0 relative">
         <!-- Ledger table + overlays -->
         <div
-            class="bg-surface-0 border border-surface-200 rounded-sm flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all"
+            class="bg-brand-surface border border-brand-border rounded-2xl flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all shadow-sm"
             [class]="{
                 'border-primary ring-2 ring-primary/20 bg-primary/5': isDragOver(),
-                'border-surface-200': !isDragOver()
+                'border-brand-border': !isDragOver()
             }"
         >
             <!-- Drag-over visual target -->
             @if (isDragOver()) {
                 <div
-                    class="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none"
+                    class="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none bg-brand-surface/90 backdrop-blur-xs"
                 >
-                    <i class="pi pi-upload text-5xl text-primary/50 mb-3"></i>
+                    <i class="pi pi-upload text-5xl text-primary mb-3 animate-bounce"></i>
                     <p class="text-sm font-black uppercase tracking-[0.2em] text-primary">
-                        Drop QIF File to Import
+                        Drop QIF / CSV File to Import
                     </p>
                 </div>
             }
@@ -173,14 +348,34 @@
             }
         </div>
 
-        <!-- Transaction Entry Form -->
+        <!-- Desktop & Tablet Checkbook Dock (>= 640px) -->
         <transaction-entry-form
             [accountId]="activeAccountId() || ''"
             (requestAddAccount)="isAddDialogOpen.set(true)"
-            class="block flex-none relative z-10"
+            class="hidden sm:block flex-none relative z-10"
         />
+
+        <!-- Mobile Floating Action Button (< 640px) -->
+        <div class="sm:hidden fixed bottom-6 right-6 z-30">
+            <button
+                type="button"
+                (click)="openNewTransactionMobile()"
+                class="h-14 px-6 rounded-full bg-primary text-white font-bold text-sm shadow-2xl hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2.5 border border-white/20"
+                aria-label="Add Transaction"
+            >
+                <i class="pi pi-plus text-base font-bold"></i>
+                <span>Add Transaction</span>
+            </button>
+        </div>
     </div>
 </div>
+
+<!-- Mobile Fast-Entry Sheet -->
+<app-mobile-transaction-entry-sheet
+    [(visible)]="isMobileEntrySheetOpen"
+    [accountId]="activeAccountId() || ''"
+    [transaction]="editingTransaction()"
+/>
 
 <!-- Express Import dialog -->
 <express-import-dialog

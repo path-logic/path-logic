@@ -1,18 +1,17 @@
 <div
-    class="sign-in-page h-screen bg-brand-base text-content-primary font-sans selection:bg-brand-surface overflow-hidden flex flex-col relative"
+    class="sign-in-page min-h-screen bg-brand-base text-content-primary font-sans selection:bg-brand-surface overflow-y-auto flex flex-col justify-center items-center p-4 sm:p-6 relative"
 >
-    <div class="sign-in-container">
-        <!-- Static Logo -->
-        <div class="logo-section">
-            <div class="logo-box">
-                <span class="logo-letter">P</span>
-            </div>
+    <div class="sign-in-container max-w-md w-full my-auto">
+        <!-- Stylized Brand Logo -->
+        <div class="logo-section flex justify-center mb-6">
+            <brand-logo [size]="'lg'" [variant]="'stacked'"></brand-logo>
         </div>
 
-        <!-- Brand -->
-        <div class="brand-section">
-            <h1 class="brand-title">Path <span class="brand-accent">Logic</span></h1>
-            <p class="brand-tagline">Personal Finance · Local-First · Encrypted</p>
+        <!-- Brand Tagline -->
+        <div class="brand-section text-center mb-8">
+            <p class="brand-tagline text-surface-500 font-medium text-sm">
+                Personal Finance · Local-First · Encrypted
+            </p>
         </div>
 
         <!-- Sign In Button -->

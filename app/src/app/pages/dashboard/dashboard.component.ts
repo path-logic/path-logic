@@ -115,9 +115,14 @@ export class DashboardComponent {
 
     /**
      * Returns the formatted balance for a specific account.
+     * Credit cards and loans are formatted as positive balance due.
      */
     formattedAccountBalance(account: IAccount): string {
-        return Money.formatCurrency(account.clearedBalance + account.pendingBalance);
+        const raw = account.clearedBalance + account.pendingBalance;
+        if (account.type === AccountType.Credit) {
+            return Money.formatCurrency(Math.abs(raw));
+        }
+        return Money.formatCurrency(raw);
     }
 
     /**

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import type { ISODateString, ITransaction } from '@core';
 import {
     type IDetectedPattern,
@@ -24,6 +25,17 @@ import { RecurringPaymentFormComponent } from '../../components/recurring/recurr
 import { LocalDatePipe } from '../../pipes/local-date.pipe';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
+export interface ICalendarDayView {
+    dateStr: string;
+    dayName: string;
+    dayNumber: number;
+    isToday: boolean;
+    hasBills: boolean;
+    schedules: Array<IRecurringSchedule>;
+    startOfDayBalance: number;
+    endOfDayBalance: number;
+}
+
 @Component({
     selector: 'recurring-dashboard',
     standalone: true,
@@ -43,17 +55,135 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 })
 export class RecurringDashboardComponent {
     private ledgerStore = inject(LedgerStore);
+    private router = inject(Router);
 
-    schedules = this.ledgerStore.schedules;
-    accounts = this.ledgerStore.accounts;
+    readonly schedules = this.ledgerStore.schedules;
+    readonly accounts = this.ledgerStore.accounts;
+    readonly transactions = this.ledgerStore.transactions;
 
-    isDialogVisible = signal(false);
-    selectedSchedule = signal<Partial<IRecurringSchedule>>({});
+    readonly isDialogVisible = signal(false);
+    readonly selectedSchedule = signal<Partial<IRecurringSchedule>>({});
+
+    // Filter & Sidebar State
+    readonly activeFilter = signal<'all' | 'due-soon' | 'autopost' | 'ai'>('all');
+
+    // 2-Week Calendar State
+    readonly calendarBaseDate = signal<Date>(new Date());
 
     // Analyze panel
-    isAnalyzeOpen = signal(false);
-    detectedPatterns = signal<Array<IDetectedPattern>>([]);
-    skippedPatternPayees = signal<Set<string>>(new Set());
+    readonly isAnalyzeOpen = signal(false);
+    readonly detectedPatterns = signal<Array<IDetectedPattern>>([]);
+    readonly skippedPatternPayees = signal<Set<string>>(new Set());
+
+    readonly clearedBalance = computed(() =>
+        this.transactions()
+            .filter(tx => tx.status === TransactionStatus.Cleared)
+            .reduce((sum, tx) => sum + tx.totalAmount, 0)
+    );
+
+    readonly activeSchedulesCount = computed(() => this.schedules().filter(s => s.isActive).length);
+
+    readonly dueSoonCount = computed(() => {
+        const now = new Date();
+        return this.schedules().filter(s => {
+            if (!s.isActive) return false;
+            const due = new Date(s.nextDueDate);
+            const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return diffDays >= 0 && diffDays <= 7;
+        }).length;
+    });
+
+    readonly autoPostCount = computed(
+        () => this.schedules().filter(s => s.isActive && s.autoPost).length
+    );
+
+    /**
+     * Computes the 14-day rolling calendar view with daily Start & End of Day balances.
+     */
+    readonly twoWeekDays = computed((): Array<ICalendarDayView> => {
+        const base = new Date(this.calendarBaseDate());
+        // Start from Monday of the base week
+        const dayOfWeek = base.getDay(); // 0 is Sunday, 1 is Monday...
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const startDate = new Date(base);
+        startDate.setDate(base.getDate() + diffToMonday);
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const days: Array<ICalendarDayView> = [];
+
+        let runningBalance = this.clearedBalance();
+
+        const allSchedules = this.schedules();
+        const allTransactions = this.transactions();
+
+        for (let i = 0; i < 14; i++) {
+            const current = new Date(startDate);
+            current.setDate(startDate.getDate() + i);
+            const dateStr = current.toISOString().slice(0, 10);
+
+            // Find pending transactions on this date
+            const dayPending = allTransactions
+                .filter(tx => tx.status === TransactionStatus.Pending && tx.date === dateStr)
+                .reduce((sum, tx) => sum + tx.totalAmount, 0);
+
+            // Find scheduled items due on this date
+            const daySchedules = allSchedules.filter(s => s.isActive && s.nextDueDate === dateStr);
+            const daySchedAmount = daySchedules.reduce((sum, s) => {
+                const isCredit =
+                    s.type === ScheduleType.Deposit || s.type === ScheduleType.Paycheck;
+                return sum + (isCredit ? s.amount : -s.amount);
+            }, 0);
+
+            const startOfDayBalance = runningBalance;
+            const endOfDayBalance = startOfDayBalance + dayPending + daySchedAmount;
+            runningBalance = endOfDayBalance;
+
+            days.push({
+                dateStr,
+                dayName: current.toLocaleDateString('en-US', { weekday: 'short' }),
+                dayNumber: current.getDate(),
+                isToday: dateStr === todayStr,
+                hasBills: daySchedules.length > 0,
+                schedules: daySchedules,
+                startOfDayBalance,
+                endOfDayBalance
+            });
+        }
+
+        return days;
+    });
+
+    /**
+     * Filtered days for the mobile Chronological Agenda view (only days with scheduled bills or Today).
+     */
+    readonly agendaDays = computed(() => {
+        return this.twoWeekDays().filter(day => day.hasBills || day.isToday);
+    });
+
+    openAddSchedule(): void {
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/recurring/new']);
+        } else {
+            this.selectedSchedule.set({});
+            this.isDialogVisible.set(true);
+        }
+    }
+
+    nextTwoWeeks(): void {
+        const next = new Date(this.calendarBaseDate());
+        next.setDate(next.getDate() + 14);
+        this.calendarBaseDate.set(next);
+    }
+
+    prevTwoWeeks(): void {
+        const prev = new Date(this.calendarBaseDate());
+        prev.setDate(prev.getDate() - 14);
+        this.calendarBaseDate.set(prev);
+    }
+
+    resetToCurrentWeek(): void {
+        this.calendarBaseDate.set(new Date());
+    }
 
     get visiblePatterns(): Array<IDetectedPattern> {
         const skipped = this.skippedPatternPayees();
@@ -104,19 +234,23 @@ export class RecurringDashboardComponent {
 
     // Actions
     openNew(): void {
-        const today = new Date().toISOString().slice(0, 10) as ISODateString;
-        this.selectedSchedule.set({
-            type: ScheduleType.Debit,
-            frequency: Frequency.Monthly,
-            paymentMethod: PaymentMethod.ElectronicTransfer,
-            startDate: today,
-            nextDueDate: today,
-            autoPost: false,
-            isActive: true,
-            memo: '',
-            splits: []
-        });
-        this.isDialogVisible.set(true);
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/recurring/new']);
+        } else {
+            const today = new Date().toISOString().slice(0, 10) as ISODateString;
+            this.selectedSchedule.set({
+                type: ScheduleType.Debit,
+                frequency: Frequency.Monthly,
+                paymentMethod: PaymentMethod.ElectronicTransfer,
+                startDate: today,
+                nextDueDate: today,
+                autoPost: false,
+                isActive: true,
+                memo: '',
+                splits: []
+            });
+            this.isDialogVisible.set(true);
+        }
     }
 
     runAnalysis(): void {
@@ -166,8 +300,12 @@ export class RecurringDashboardComponent {
     }
 
     editSchedule(schedule: IRecurringSchedule): void {
-        this.selectedSchedule.set({ ...schedule });
-        this.isDialogVisible.set(true);
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            void this.router.navigate(['/recurring', schedule.id, 'edit']);
+        } else {
+            this.selectedSchedule.set({ ...schedule });
+            this.isDialogVisible.set(true);
+        }
     }
 
     /**
@@ -226,16 +364,17 @@ export class RecurringDashboardComponent {
         await this.ledgerStore.updateSchedule(updatedSchedule);
     }
 
-    handleSave(schedule: Partial<IRecurringSchedule>): void {
+    handleSave(schedule: IRecurringSchedule | Partial<IRecurringSchedule>): void {
         if (schedule.id) {
-            this.ledgerStore.updateSchedule(schedule as IRecurringSchedule);
+            void this.ledgerStore.updateSchedule(schedule as IRecurringSchedule);
         } else {
-            console.log('Saving new schedule', schedule);
-            // new schedule
-            schedule.id = 'sched-' + Date.now();
-            schedule.isActive = true;
-            if (!schedule.type) schedule.type = ScheduleType.Debit;
-            this.ledgerStore.addSchedule(schedule as IRecurringSchedule);
+            const newSchedule: IRecurringSchedule = {
+                ...(schedule as IRecurringSchedule),
+                id: 'sched-' + Date.now(),
+                isActive: true,
+                type: schedule.type || ScheduleType.Debit
+            };
+            void this.ledgerStore.addSchedule(newSchedule);
         }
         this.isDialogVisible.set(false);
     }

@@ -1,0 +1,261 @@
+<shell>
+    <div class="w-full max-w-2xl mx-auto space-y-6 pb-24">
+        <!-- Top Navigation Bar with Back & Steps -->
+        <header class="flex items-center justify-between pb-4 border-b border-surface-200/60">
+            <div class="flex items-center gap-3">
+                <button
+                    type="button"
+                    (click)="handleBack()"
+                    aria-label="Back"
+                    class="w-10 h-10 rounded-xl bg-surface-100 border border-surface-200 flex items-center justify-center text-surface-800 hover:bg-surface-200 transition-colors cursor-pointer"
+                >
+                    <i class="pi pi-arrow-left text-sm font-bold"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-surface-900">
+                        {{ step() === 'select-type' ? 'Select Account Type' : 'Account Details' }}
+                    </h1>
+                    <p class="text-xs text-surface-500 font-medium mt-0.5">
+                        {{
+                            step() === 'select-type'
+                                ? 'Step 1 of 2: Choose the type of financial account'
+                                : 'Step 2 of 2: Enter account details and starting balance'
+                        }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step Pills Indicator -->
+            <div class="flex items-center gap-1.5">
+                <div
+                    [class]="
+                        'w-2.5 h-2.5 rounded-full transition-all ' +
+                        (step() === 'select-type' ? 'bg-primary w-6' : 'bg-primary/40')
+                    "
+                ></div>
+                <div
+                    [class]="
+                        'w-2.5 h-2.5 rounded-full transition-all ' +
+                        (step() === 'enter-details' ? 'bg-primary w-6' : 'bg-surface-300')
+                    "
+                ></div>
+            </div>
+        </header>
+
+        <!-- Error Alert -->
+        @if (error()) {
+            <div
+                class="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center gap-3 animate-fade-in"
+            >
+                <i class="pi pi-exclamation-circle text-lg shrink-0"></i>
+                <p class="font-medium">{{ error() }}</p>
+            </div>
+        }
+
+        <!-- STEP 1: SELECT TYPE -->
+        @if (step() === 'select-type') {
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @for (option of primaryTypes(); track option.type) {
+                        <button
+                            type="button"
+                            (click)="handleTypeSelect(option.type)"
+                            class="p-5 bg-surface-0 border border-surface-200/80 hover:border-primary rounded-2xl flex items-start gap-4 text-left transition-all hover:shadow-premium group cursor-pointer"
+                        >
+                            <div
+                                class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                            >
+                                <i [class]="'pi ' + option.icon + ' text-xl'"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h3 class="text-base font-bold text-surface-900">
+                                    {{ option.label }}
+                                </h3>
+                                <p class="text-xs text-surface-500 font-medium">
+                                    {{ option.description }}
+                                </p>
+                            </div>
+                        </button>
+                    }
+                </div>
+
+                <!-- Loan Toggle Section -->
+                <div class="pt-2">
+                    <button
+                        type="button"
+                        (click)="showLoans.set(!showLoans())"
+                        class="w-full py-3 px-4 bg-surface-50 hover:bg-surface-100 border border-surface-200 rounded-xl flex items-center justify-between text-xs font-bold uppercase tracking-wider text-surface-700 transition-colors cursor-pointer"
+                    >
+                        <span class="flex items-center gap-2">
+                            <i class="pi pi-percentage text-sm"></i>
+                            Loans, Mortgages &amp; Financing ({{ loanTypes().length }})
+                        </span>
+                        <i
+                            [class]="
+                                'pi ' +
+                                (showLoans() ? 'pi-chevron-up' : 'pi-chevron-down') +
+                                ' text-xs text-surface-400'
+                            "
+                        ></i>
+                    </button>
+
+                    @if (showLoans()) {
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 animate-fade-in">
+                            @for (option of loanTypes(); track option.type) {
+                                <button
+                                    type="button"
+                                    (click)="handleTypeSelect(option.type)"
+                                    class="p-4 bg-surface-0 border border-surface-200/80 hover:border-amber-500 rounded-xl flex flex-col items-center text-center gap-2 transition-all hover:shadow-premium cursor-pointer"
+                                >
+                                    <div
+                                        class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center"
+                                    >
+                                        <i [class]="'pi ' + option.icon + ' text-lg'"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-surface-900">
+                                            {{ option.label }}
+                                        </h4>
+                                        <p class="text-[11px] text-surface-500 font-medium mt-0.5">
+                                            {{ option.description }}
+                                        </p>
+                                    </div>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- STEP 2: ENTER DETAILS -->
+        @if (step() === 'enter-details') {
+            <form (ngSubmit)="handleCreate()" class="space-y-6">
+                <!-- Standard Account Form -->
+                @if (!isLoan()) {
+                    <div
+                        class="p-6 bg-surface-0 border border-surface-200/60 rounded-2xl shadow-premium space-y-5"
+                    >
+                        <!-- Account Name -->
+                        <div class="space-y-2">
+                            <label
+                                for="account-name-input"
+                                class="block text-xs font-bold uppercase tracking-wider text-surface-700"
+                            >
+                                Account Name <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="account-name-input"
+                                type="text"
+                                [ngModel]="accountName()"
+                                (ngModelChange)="accountName.set($event)"
+                                name="accountName"
+                                placeholder="e.g. Daily Checking, Emergency Fund, Sapphire Card"
+                                required
+                                autofocus
+                                class="block w-full px-4 py-3 bg-surface-0 border border-surface-200 rounded-xl text-base font-semibold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs min-h-[48px]"
+                            />
+                        </div>
+
+                        <!-- Institution Name -->
+                        <div class="space-y-2">
+                            <label
+                                for="institution-name-input"
+                                class="block text-xs font-bold uppercase tracking-wider text-surface-700"
+                            >
+                                Financial Institution
+                            </label>
+                            <input
+                                id="institution-name-input"
+                                type="text"
+                                [ngModel]="institutionName()"
+                                (ngModelChange)="institutionName.set($event)"
+                                name="institutionName"
+                                placeholder="e.g. Chase, Bank of America, Fidelity"
+                                class="block w-full px-4 py-3 bg-surface-0 border border-surface-200 rounded-xl text-sm font-medium text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs min-h-[48px]"
+                            />
+                        </div>
+
+                        <!-- Initial Balance -->
+                        <div class="space-y-2">
+                            <label
+                                for="initial-balance-input"
+                                class="block text-xs font-bold uppercase tracking-wider text-surface-700"
+                            >
+                                {{
+                                    selectedType() === 'credit'
+                                        ? 'Current Outstanding Balance ($)'
+                                        : 'Starting Balance ($)'
+                                }}
+                            </label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-surface-400 font-bold text-base"
+                                >
+                                    $
+                                </span>
+                                <input
+                                    id="initial-balance-input"
+                                    type="number"
+                                    step="0.01"
+                                    [ngModel]="initialBalance()"
+                                    (ngModelChange)="initialBalance.set($event)"
+                                    name="initialBalance"
+                                    placeholder="0.00"
+                                    class="block w-full pl-8 pr-4 py-3 bg-surface-0 border border-surface-200 rounded-xl text-base font-bold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs min-h-[48px]"
+                                />
+                            </div>
+                            <p class="text-[11px] text-surface-400 font-medium">
+                                {{
+                                    selectedType() === 'credit'
+                                        ? 'Enter your current credit card balance. It will be stored as a liability.'
+                                        : 'You can adjust this later or reconcile with bank imports.'
+                                }}
+                            </p>
+                        </div>
+                    </div>
+                } @else {
+                    <!-- Loan Account Form -->
+                    <div
+                        class="p-6 bg-surface-0 border border-surface-200/60 rounded-2xl shadow-premium"
+                    >
+                        <loan-details-form
+                            [type]="selectedType()!"
+                            [showFooter]="true"
+                            (submitted)="handleLoanSubmitted($event)"
+                            (backClicked)="handleBack()"
+                        ></loan-details-form>
+                    </div>
+                }
+
+                <!-- Sticky Bottom Action Bar for Non-Loan Forms -->
+                @if (!isLoan()) {
+                    <div
+                        class="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-surface-0/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t border-surface-200 sm:border-t-0 z-40 flex items-center justify-end gap-3"
+                    >
+                        <button
+                            type="button"
+                            (click)="handleBack()"
+                            class="flex-1 sm:flex-none min-h-[48px] px-5 border border-surface-200 hover:bg-surface-100 text-surface-700 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+                        >
+                            Back
+                        </button>
+                        <button
+                            type="submit"
+                            [disabled]="isSubmitting() || !accountName().trim()"
+                            class="flex-1 sm:flex-none min-h-[48px] px-6 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-bold shadow-premium transition-all cursor-pointer flex items-center justify-center gap-2"
+                        >
+                            @if (isSubmitting()) {
+                                <i class="pi pi-spin pi-spinner text-sm"></i>
+                                Creating...
+                            } @else {
+                                <i class="pi pi-check text-sm font-bold"></i>
+                                Create Account
+                            }
+                        </button>
+                    </div>
+                }
+            </form>
+        }
+    </div>
+</shell>

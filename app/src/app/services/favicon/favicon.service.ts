@@ -2,11 +2,12 @@ import { DOCUMENT } from '@angular/common';
 import { effect, inject, Injectable } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
+import { getBrandLogoSvg } from '../../components/ui/brand-logo/brand-logo.component';
 import { type ResolvedTheme, ThemeService } from '../theme/theme.service';
 
 /**
  * Service for dynamically updating the browser favicon
- * to represent the Path Logic logo ("P" inside a rounded square),
+ * to represent the Path Logic brand logo emblem,
  * styled dynamically with colors matching the theme and environment.
  */
 @Injectable({ providedIn: 'root' })
@@ -24,12 +25,7 @@ export class FaviconService {
 
     private updateFavicon(theme: ResolvedTheme): void {
         const color = this.getFaviconColor(theme);
-        const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect x="2" y="2" width="28" height="28" rx="6" fill="${color}" />
-  <text x="16" y="21" font-family="'Outfit', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="18" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">P</text>
-</svg>
-        `.trim();
+        const svg = getBrandLogoSvg(color, 'favicon-pl-cut');
 
         const base64Svg = btoa(svg);
         const dataUrl = `data:image/svg+xml;base64,${base64Svg}`;

@@ -87,6 +87,8 @@ export class SettingsPageComponent {
     });
 
     readonly showGuide = signal(false);
+    readonly showApiKey = signal(false);
+    readonly keySaved = signal(false);
 
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
     readonly currentTheme = this.themeService.preference;
@@ -98,6 +100,22 @@ export class SettingsPageComponent {
     ];
 
     readonly dynamicModels = signal<Array<ILlmModelOption>>([]);
+
+    readonly keyStatus = computed(() => {
+        if (this.hasKey()) {
+            return {
+                configured: true,
+                label: 'Key Configured',
+                badgeClass:
+                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+            };
+        }
+        return {
+            configured: false,
+            label: 'Key Required',
+            badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+        };
+    });
 
     readonly modelOptions = computed(() => {
         if (!this.hasKey()) {
@@ -226,8 +244,11 @@ export class SettingsPageComponent {
 
         if (trimmed) {
             void this.loadDynamicModels(detectedProvider, trimmed);
+            this.keySaved.set(true);
+            setTimeout(() => this.keySaved.set(false), 2500);
         } else {
             this.dynamicModels.set([]);
+            this.keySaved.set(false);
         }
     }
 

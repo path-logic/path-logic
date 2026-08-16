@@ -61,6 +61,78 @@ const config: any = {
                     )
                 }
             }
+        },
+        {
+            name: 'pixel-5',
+            use: {
+                ...devices['Pixel 5'],
+                viewport: { width: 393, height: 851 },
+                launchOptions: {
+                    executablePath: path.join(
+                        __dirname,
+                        'chrome-extracted',
+                        'opt',
+                        'google',
+                        'chrome',
+                        'google-chrome'
+                    )
+                }
+            }
+        },
+        {
+            name: 'pixel-7-pro',
+            use: {
+                ...devices['Pixel 7'],
+                viewport: { width: 412, height: 892 },
+                launchOptions: {
+                    executablePath: path.join(
+                        __dirname,
+                        'chrome-extracted',
+                        'opt',
+                        'google',
+                        'chrome',
+                        'google-chrome'
+                    )
+                }
+            }
+        },
+        {
+            name: 'pixel-11-pro-xl',
+            use: {
+                viewport: { width: 448, height: 1008 },
+                deviceScaleFactor: 3,
+                isMobile: true,
+                hasTouch: true,
+                launchOptions: {
+                    executablePath: path.join(
+                        __dirname,
+                        'chrome-extracted',
+                        'opt',
+                        'google',
+                        'chrome',
+                        'google-chrome'
+                    )
+                }
+            }
+        },
+        {
+            name: 'chromebook-cx34-portrait',
+            use: {
+                viewport: { width: 1080, height: 1920 },
+                deviceScaleFactor: 1,
+                isMobile: false,
+                hasTouch: true,
+                launchOptions: {
+                    executablePath: path.join(
+                        __dirname,
+                        'chrome-extracted',
+                        'opt',
+                        'google',
+                        'chrome',
+                        'google-chrome'
+                    )
+                }
+            }
         }
     ]
 };
