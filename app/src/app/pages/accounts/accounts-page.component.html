@@ -257,9 +257,20 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     @for (account of primaryAccounts(); track account.id) {
                                         <div
-                                            class="p-5 bg-surface-0 border border-surface-200/60 rounded-2xl shadow-premium flex flex-col justify-between hover:border-primary/50 transition-all group"
+                                            class="p-5 bg-surface-0 border border-surface-200/60 rounded-2xl shadow-premium flex flex-col justify-between hover:border-primary/50 transition-all group relative cursor-pointer"
                                         >
-                                            <div class="flex justify-between items-start mb-3">
+                                            <!-- Full-Card Click Target Overlay Anchor -->
+                                            <a
+                                                [routerLink]="['/accounts', account.id]"
+                                                class="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                                [attr.aria-label]="
+                                                    'View ledger for ' + account.name
+                                                "
+                                            ></a>
+
+                                            <div
+                                                class="flex justify-between items-start mb-3 relative z-10 pointer-events-none"
+                                            >
                                                 <div class="flex items-center gap-3">
                                                     <div
                                                         class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
@@ -273,7 +284,7 @@
                                                     </div>
                                                     <div>
                                                         <h3
-                                                            class="text-sm font-bold text-surface-900 truncate max-w-[140px]"
+                                                            class="text-sm font-bold text-surface-900 group-hover:text-primary transition-colors truncate max-w-[140px]"
                                                         >
                                                             {{ account.name }}
                                                         </h3>
@@ -291,7 +302,7 @@
                                                 ></span>
                                             </div>
 
-                                            <div class="my-2">
+                                            <div class="my-2 relative z-10 pointer-events-none">
                                                 <p class="text-xs text-surface-500 font-medium">
                                                     {{
                                                         isLiability(account.type)
@@ -308,7 +319,7 @@
 
                                             <!-- Subtle 30-Day Activity Sparkline Simulation -->
                                             <div
-                                                class="h-6 w-full flex items-end gap-1 opacity-70 my-2"
+                                                class="h-6 w-full flex items-end gap-1 opacity-70 my-2 relative z-10 pointer-events-none"
                                             >
                                                 <div
                                                     class="h-2 w-full bg-primary/20 rounded-xs"
@@ -332,7 +343,7 @@
                                             </div>
 
                                             <div
-                                                class="pt-3 border-t border-surface-100 flex items-center gap-2"
+                                                class="pt-3 border-t border-surface-100 flex items-center gap-2 relative z-10"
                                             >
                                                 <a
                                                     [routerLink]="['/accounts', account.id]"
@@ -342,8 +353,12 @@
                                                 </a>
                                                 <button
                                                     type="button"
-                                                    (click)="toggleExpand(account.id)"
-                                                    class="min-h-[38px] px-3 py-1.5 border border-surface-200 hover:bg-surface-100 text-surface-700 rounded-xl text-xs font-semibold flex items-center justify-center transition-colors"
+                                                    (click)="
+                                                        $event.stopPropagation();
+                                                        toggleExpand(account.id)
+                                                    "
+                                                    class="min-h-[38px] px-3 py-1.5 border border-surface-200 hover:bg-surface-100 text-surface-700 rounded-xl text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer"
+                                                    aria-label="Account Settings"
                                                 >
                                                     <i class="pi pi-cog"></i>
                                                 </button>

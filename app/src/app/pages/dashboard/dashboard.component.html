@@ -45,8 +45,14 @@
                 <!-- Account Portfolio Section -->
                 <section class="space-y-4">
                     <div class="flex items-center justify-between px-1">
-                        <div class="flex items-center gap-2.5">
-                            <h2 class="text-sm font-bold text-surface-900 uppercase tracking-wider">
+                        <a
+                            routerLink="/accounts"
+                            class="group inline-flex items-center gap-2.5 min-h-[44px] sm:min-h-[36px] text-surface-900 dark:text-surface-100 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                            aria-label="Manage Account Portfolio"
+                        >
+                            <h2
+                                class="text-sm font-bold uppercase tracking-wider group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors"
+                            >
                                 Account Portfolio
                             </h2>
                             <span
@@ -54,14 +60,10 @@
                             >
                                 {{ accounts().length }} Total
                             </span>
-                        </div>
-
-                        <a
-                            routerLink="/accounts"
-                            class="min-h-[44px] sm:min-h-[32px] inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:underline transition-colors cursor-pointer"
-                        >
-                            <span>Manage Accounts</span>
-                            <i class="pi pi-arrow-right text-[10px]" aria-hidden="true"></i>
+                            <i
+                                class="pi pi-arrow-right text-xs text-surface-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"
+                                aria-hidden="true"
+                            ></i>
                         </a>
                     </div>
 
@@ -140,18 +142,28 @@
                     <section
                         class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
                     >
-                        <div
-                            class="flex items-center justify-between border-b border-surface-100 pb-2"
+                        <a
+                            routerLink="/accounts"
+                            class="group flex items-center justify-between border-b border-surface-100 pb-2 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors cursor-pointer min-h-[36px]"
+                            aria-label="View full ledger activity"
                         >
-                            <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
-                                Recent Activity
-                            </h3>
+                            <div class="flex items-center gap-1.5">
+                                <h3
+                                    class="text-xs font-bold text-surface-900 dark:text-surface-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 uppercase tracking-wider transition-colors"
+                                >
+                                    Recent Activity
+                                </h3>
+                                <i
+                                    class="pi pi-arrow-right text-[10px] text-surface-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
                             <i
                                 class="pi pi-history text-xs text-surface-600 dark:text-surface-400"
                             ></i>
-                        </div>
+                        </a>
 
-                        <div class="space-y-2.5 min-h-[160px]">
+                        <div class="space-y-1 min-h-[160px]">
                             @if (recentTransactions().length === 0) {
                                 <div
                                     class="py-8 text-center text-xs text-surface-600 dark:text-surface-400 font-medium"
@@ -160,9 +172,20 @@
                                 </div>
                             } @else {
                                 @for (tx of recentTransactions(); track tx.id) {
-                                    <div class="flex items-center justify-between text-xs gap-2">
+                                    <a
+                                        [routerLink]="['/accounts', tx.accountId]"
+                                        class="flex items-center justify-between text-xs gap-2 p-2 rounded-xl hover:bg-surface-100/70 dark:hover:bg-surface-800/70 transition-colors cursor-pointer group/tx"
+                                        [attr.aria-label]="
+                                            'Transaction for ' +
+                                            tx.payee +
+                                            ': ' +
+                                            formatCurrency(tx.totalAmount)
+                                        "
+                                    >
                                         <div class="min-w-0">
-                                            <p class="font-bold text-surface-900 truncate">
+                                            <p
+                                                class="font-bold text-surface-900 group-hover/tx:text-primary dark:group-hover/tx:text-emerald-400 transition-colors truncate"
+                                            >
                                                 {{ tx.payee }}
                                             </p>
                                             <p
@@ -181,7 +204,7 @@
                                             {{ tx.totalAmount >= 0 ? '+' : ''
                                             }}{{ formatCurrency(tx.totalAmount) }}
                                         </span>
-                                    </div>
+                                    </a>
                                 }
                             }
                         </div>
@@ -198,18 +221,28 @@
                     <section
                         class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
                     >
-                        <div
-                            class="flex items-center justify-between border-b border-surface-100 pb-2"
+                        <a
+                            routerLink="/recurring"
+                            class="group flex items-center justify-between border-b border-surface-100 pb-2 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors cursor-pointer min-h-[36px]"
+                            aria-label="Manage upcoming recurring schedules"
                         >
-                            <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
-                                Upcoming
-                            </h3>
+                            <div class="flex items-center gap-1.5">
+                                <h3
+                                    class="text-xs font-bold text-surface-900 dark:text-surface-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 uppercase tracking-wider transition-colors"
+                                >
+                                    Upcoming
+                                </h3>
+                                <i
+                                    class="pi pi-arrow-right text-[10px] text-surface-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
                             <i
                                 class="pi pi-replay text-xs text-surface-600 dark:text-surface-400"
                             ></i>
-                        </div>
+                        </a>
 
-                        <div class="space-y-2.5 min-h-[160px]">
+                        <div class="space-y-1 min-h-[160px]">
                             @if (upcomingPayments().length === 0) {
                                 <div
                                     class="py-8 text-center text-xs text-surface-600 dark:text-surface-400 font-medium"
@@ -218,9 +251,20 @@
                                 </div>
                             } @else {
                                 @for (item of upcomingPayments(); track item.id) {
-                                    <div class="flex items-center justify-between text-xs gap-2">
+                                    <a
+                                        routerLink="/recurring"
+                                        class="flex items-center justify-between text-xs gap-2 p-2 rounded-xl hover:bg-surface-100/70 dark:hover:bg-surface-800/70 transition-colors cursor-pointer group/item"
+                                        [attr.aria-label]="
+                                            'Upcoming bill for ' +
+                                            item.name +
+                                            ': ' +
+                                            formatCurrency(item.amount)
+                                        "
+                                    >
                                         <div class="min-w-0">
-                                            <p class="font-bold text-surface-900 truncate">
+                                            <p
+                                                class="font-bold text-surface-900 group-hover/item:text-primary dark:group-hover/item:text-emerald-400 transition-colors truncate"
+                                            >
                                                 {{ item.name }}
                                             </p>
                                             <p
@@ -239,7 +283,7 @@
                                             {{ item.amount >= 0 ? '+' : ''
                                             }}{{ formatCurrency(item.amount) }}
                                         </span>
-                                    </div>
+                                    </a>
                                 }
                             }
                         </div>
