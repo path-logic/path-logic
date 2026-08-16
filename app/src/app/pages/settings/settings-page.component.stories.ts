@@ -26,7 +26,9 @@ export const Default: Story = {
         const canvas = within(canvasElement);
 
         // Verify key headers and sections
-        await expect(canvas.getByText(/System/i)).toBeInTheDocument();
+        await expect(
+            canvas.getByRole('heading', { name: /System Settings/i, level: 1 })
+        ).toBeInTheDocument();
         await expect(canvas.getByText(/AI Integration/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Data Backup & Storage/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Appearance/i)).toBeInTheDocument();
@@ -43,9 +45,9 @@ export const Default: Story = {
         await userEvent.click(guideToggle);
 
         // Verify guide contents expand
-        await expect(canvas.getByText(/Google Gemini/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Anthropic Claude/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/OpenAI/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Google Gemini/i)[0]).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Anthropic Claude/i)[0]).toBeInTheDocument();
+        await expect(canvas.getAllByText(/OpenAI/i)[0]).toBeInTheDocument();
     }
 };
 

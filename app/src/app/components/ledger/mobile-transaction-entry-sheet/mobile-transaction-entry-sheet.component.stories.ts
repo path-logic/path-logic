@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
 import { expect, within } from 'storybook/test';
@@ -111,11 +111,14 @@ const meta: Meta<MobileTransactionEntrySheetComponent> = {
     title: 'Ledger/MobileTransactionEntrySheet',
     component: MobileTransactionEntrySheetComponent,
     decorators: [
-        moduleMetadata({
-            imports: [BrowserAnimationsModule]
-        }),
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
+            providers: [
+                provideNoopAnimations(),
+                { provide: LedgerStore, useValue: mockLedgerStore }
+            ]
+        }),
+        moduleMetadata({
+            imports: [MobileTransactionEntrySheetComponent]
         })
     ],
     parameters: {
@@ -132,10 +135,19 @@ export const Default: Story = {
         visible: true,
         accountId: 'acc-1'
     },
+    render: args => ({
+        props: args,
+        template: `
+            <app-mobile-transaction-entry-sheet
+                [visible]="visible"
+                [accountId]="accountId"
+            ></app-mobile-transaction-entry-sheet>
+        `
+    }),
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement.parentElement || canvasElement);
-        await expect(canvas.getByText(/New Transaction/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Save Transaction/i)).toBeInTheDocument();
+        const body = within(canvasElement.ownerDocument.body);
+        await expect(await body.findByText(/New Transaction/i)).toBeInTheDocument();
+        await expect(await body.findByRole('button', { name: /save/i })).toBeInTheDocument();
     }
 };
 
@@ -159,9 +171,19 @@ export const EditMode: Story = {
             updatedAt: '2026-08-15T00:00:00Z' as ISODateString
         }
     },
+    render: args => ({
+        props: args,
+        template: `
+            <app-mobile-transaction-entry-sheet
+                [visible]="visible"
+                [accountId]="accountId"
+                [transaction]="transaction"
+            ></app-mobile-transaction-entry-sheet>
+        `
+    }),
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement.parentElement || canvasElement);
-        await expect(canvas.getByText(/Edit Transaction/i)).toBeInTheDocument();
+        const body = within(canvasElement.ownerDocument.body);
+        await expect(await body.findByText(/Edit Transaction/i)).toBeInTheDocument();
     }
 };
 

@@ -1,11 +1,13 @@
 import { signal } from '@angular/core';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
-import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import { applicationConfig, moduleMetadata, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
 
 import type { IPayee } from '../../../core/domain/types';
+import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { SecurityManagerService } from '../../../services/security-manager/security-manager.service';
 import { PayeeFormComponent } from './payee-form.component';
 
 const mockPayees: Array<IPayee> = [
@@ -47,13 +49,45 @@ const meta: Meta<PayeeFormComponent> = {
                 {
                     provide: LedgerStore,
                     useValue: {
+                        isInitialized: signal(true),
+                        syncStatus: signal('idle'),
+                        authError: signal(false),
+                        hasLocalFallback: signal(true),
+                        mergeCount: signal(0),
+                        syncConflicts: signal([]),
+                        totalClearedBalance: signal(0),
+                        totalPendingBalance: signal(0),
+                        transactions: signal([]),
+                        accounts: signal([]),
                         payees: signal<Array<IPayee>>(mockPayees),
                         categories: signal(mockCategories),
                         updatePayee: async () => {},
                         getOrCreatePayee: async (name: string) => ({ id: 'new-id', name })
                     }
+                },
+                {
+                    provide: AuthService,
+                    useValue: {
+                        accessToken: signal<string | null>(null),
+                        currentUser: signal(null),
+                        isLoggedIn: signal(true),
+                        isInitializing: signal(false),
+                        signInWithGoogle: () => {}
+                    }
+                },
+                {
+                    provide: SecurityManagerService,
+                    useValue: {
+                        isIdle: signal(false),
+                        startMonitoring: () => {},
+                        resetTimers: () => {},
+                        cleanup: () => {}
+                    }
                 }
             ]
+        }),
+        moduleMetadata({
+            imports: [PayeeFormComponent]
         })
     ]
 };
@@ -92,6 +126,10 @@ export const EditPayee: Story = {
     args: {
         initialPayee: mockPayees[0]!
     },
+    render: args => ({
+        props: args,
+        template: `<payee-form [initialPayee]="initialPayee"></payee-form>`
+    }),
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await expect(canvas.getByText(/Edit Payee/i)).toBeInTheDocument();

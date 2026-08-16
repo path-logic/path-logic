@@ -22,7 +22,7 @@ export function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div [class]="containerClasses()" aria-label="Path Logic">
+        <div [class]="containerClasses()" role="img" aria-label="Path Logic">
             <div [class]="badgeClasses()">
                 <svg
                     viewBox="0 0 100 100"

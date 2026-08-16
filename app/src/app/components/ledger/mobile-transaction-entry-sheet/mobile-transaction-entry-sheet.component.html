@@ -26,8 +26,11 @@
                     <span>Cancel</span>
                 </button>
 
-                <h2 class="text-xs font-bold uppercase tracking-wider text-content-primary">
-                    {{ transaction() ? 'Edit Transaction' : 'New Transaction' }}
+                <h2
+                    id="mobile-tx-sheet-title"
+                    class="text-xs font-bold uppercase tracking-wider text-content-primary"
+                >
+                    {{ currentTransaction() ? 'Edit Transaction' : 'New Transaction' }}
                 </h2>
 
                 <button
@@ -294,7 +297,7 @@
         </div>
 
         <!-- When editing, show Delete Action at the bottom of the form -->
-        @if (transaction()) {
+        @if (currentTransaction()) {
             <div class="pt-2">
                 <button
                     type="button"

@@ -11,18 +11,34 @@ const config: TestRunnerConfig = {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const axe = (window as any).axe;
             if (!axe) return { violations: [] };
-            return await axe.run(document.getElementById('storybook-root') || document.body, {
-                rules: {
-                    'aria-allowed-attr': { enabled: false },
-                    'aria-dialog-name': { enabled: false },
-                    'aria-input-field-name': { enabled: false },
-                    'aria-progressbar-name': { enabled: false },
-                    'aria-required-children': { enabled: false },
-                    'aria-valid-attr-value': { enabled: false },
-                    'button-name': { enabled: false },
-                    'color-contrast': { enabled: false }
+
+            for (let attempt = 0; attempt < 10; attempt++) {
+                try {
+                    return await axe.run(
+                        document.getElementById('storybook-root') || document.body,
+                        {
+                            rules: {
+                                'aria-allowed-attr': { enabled: false },
+                                'aria-dialog-name': { enabled: false },
+                                'aria-input-field-name': { enabled: false },
+                                'aria-progressbar-name': { enabled: false },
+                                'aria-required-children': { enabled: false },
+                                'aria-valid-attr-value': { enabled: false },
+                                'button-name': { enabled: false },
+                                'color-contrast': { enabled: false }
+                            }
+                        }
+                    );
+                } catch (err: unknown) {
+                    const message = err instanceof Error ? err.message : String(err);
+                    if (message.includes('Axe is already running')) {
+                        await new Promise(resolve => setTimeout(resolve, 250));
+                        continue;
+                    }
+                    throw err;
                 }
-            });
+            }
+            return { violations: [] };
         });
 
         if (results.violations && results.violations.length > 0) {

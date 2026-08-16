@@ -35,7 +35,11 @@ export class PayeeFormComponent implements OnInit {
     readonly categories = computed(() => this.ledgerStore.categories());
 
     ngOnInit(): void {
-        const inputPayee = this.initialPayee();
+        const raw = this.initialPayee;
+        const inputPayee =
+            typeof raw === 'function'
+                ? (raw as () => IPayee | null | undefined)()
+                : (raw as unknown as IPayee | null);
         if (inputPayee) {
             this.loadPayee(inputPayee);
             return;

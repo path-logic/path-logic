@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { PlatformLocation } from '@angular/common';
-import { Component, ɵReflectionCapabilities as ReflectionCapabilities } from '@angular/core';
+import {
+    Component,
+    ɵReflectionCapabilities as ReflectionCapabilities,
+    signal
+} from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withDisabledInitialNavigation } from '@angular/router';
 import { definePreset } from '@primeuix/themes';
@@ -10,6 +14,7 @@ import { applicationConfig, type Preview } from '@storybook/angular';
 import { providePrimeNG } from 'primeng/config';
 
 import docJson from '../documentation.json';
+import { SecurityManagerService } from '../src/app/services/security-manager/security-manager.service';
 import '../src/styles.css';
 
 // Support Angular signal inputs/outputs in Storybook by mapping inputsClass/outputsClass to inputs/outputs
@@ -53,6 +58,11 @@ if (docJsonClone && docJsonClone.components) {
 }
 
 setCompodocJson(docJsonClone);
+
+@Component({ template: '', standalone: true })
+export class DummyStorybookRouteComponent {
+    readonly isDummy = true;
+}
 
 const reflectionCapabilities = new ReflectionCapabilities();
 const patchedComponents = new Set<any>();
@@ -235,7 +245,10 @@ const preview: Preview = {
         },
         applicationConfig({
             providers: [
-                provideRouter([], withDisabledInitialNavigation()),
+                provideRouter(
+                    [{ path: '**', component: DummyStorybookRouteComponent }],
+                    withDisabledInitialNavigation()
+                ),
                 {
                     provide: PlatformLocation,
                     useValue: {
@@ -259,6 +272,21 @@ const preview: Preview = {
                     }
                 },
                 provideAnimationsAsync(),
+                {
+                    provide: SecurityManagerService,
+                    useValue: {
+                        isIdle: signal(false),
+                        startMonitoring(): void {
+                            /* noop */
+                        },
+                        resetTimers(): void {
+                            /* noop */
+                        },
+                        cleanup(): void {
+                            /* noop */
+                        }
+                    }
+                },
                 providePrimeNG({
                     theme: {
                         preset: PremiumPreset,

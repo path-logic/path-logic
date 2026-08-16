@@ -16,8 +16,8 @@
         "format-check": "prettier --check .",
         "typecheck": "tsc -p app/tsconfig.app.json --noEmit && tsc -p app/tsconfig.spec.json --noEmit && tsc -p e2e/tsconfig.json --noEmit",
         "e2e": "playwright test -c e2e/playwright.config.ts",
-        "build-storybook": "storybook build -c app/.storybook -o dist/app/storybook",
-        "storybook": "storybook dev -p 6006 -c app/.storybook",
+        "build-storybook": "compodoc -p app/tsconfig.app.json -e json -d app && storybook build -c app/.storybook -o dist/app/storybook",
+        "storybook": "compodoc -p app/tsconfig.app.json -e json -d app && storybook dev -p 6006 -c app/.storybook",
         "test-storybook": "test-storybook --config-dir app/.storybook",
         "prepare": "husky"
     },

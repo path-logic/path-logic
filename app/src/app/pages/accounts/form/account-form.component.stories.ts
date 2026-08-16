@@ -85,7 +85,9 @@ export const Step2EnterDetails: Story = {
         await userEvent.click(checkingBtn);
 
         // Verify Step 2 details form
-        await expect(canvas.getByText(/Account Details/i)).toBeInTheDocument();
+        await expect(
+            canvas.getByRole('heading', { name: /Account Details/i, level: 1 })
+        ).toBeInTheDocument();
         const nameInput = canvas.getByLabelText(/Account Name/i);
         await expect(nameInput).toBeInTheDocument();
         await expect(nameInput).toHaveValue('Main Checking');

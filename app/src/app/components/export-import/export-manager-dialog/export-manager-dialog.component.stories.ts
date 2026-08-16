@@ -106,8 +106,8 @@ export const Default: Story = {
         }
     }),
     play: async ({ canvasElement }) => {
-        const canvas = within(canvasElement);
-        const title = canvas.getByText(/Manage Export Backups/i);
+        const body = within(canvasElement.ownerDocument.body);
+        const title = await body.findByText(/Manage Export Backups/i);
         await expect(title).toBeInTheDocument();
     }
 };

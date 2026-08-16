@@ -90,7 +90,7 @@ export const OpenBalanced: Story = {
         await expect(body.getByText(/\$0\.00/)).toBeInTheDocument();
 
         // Verify save button is enabled
-        const saveBtn = body.getByRole('button', { name: /confirm splits/i });
+        const saveBtn = body.getAllByRole('button', { name: /confirm splits/i })[0];
         await expect(saveBtn).not.toBeDisabled();
     }
 };

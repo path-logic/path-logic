@@ -100,8 +100,8 @@ export const DevEnvironment: Story = {
         env: 'dev'
     },
     play: async ({ canvasElement }) => {
-        const path = canvasElement.querySelector('path');
-        await expect(path?.getAttribute('fill')).toBe('#3b82f6');
+        const circle = canvasElement.querySelector('circle');
+        await expect(circle?.getAttribute('fill')).toBe('#3b82f6');
     }
 };
 
@@ -112,8 +112,8 @@ export const StagingEnvironment: Story = {
         env: 'staging'
     },
     play: async ({ canvasElement }) => {
-        const path = canvasElement.querySelector('path');
-        await expect(path?.getAttribute('fill')).toBe('#f97316');
+        const circle = canvasElement.querySelector('circle');
+        await expect(circle?.getAttribute('fill')).toBe('#f97316');
     }
 };
 
@@ -124,7 +124,7 @@ export const ProdEnvironment: Story = {
         env: 'prod'
     },
     play: async ({ canvasElement }) => {
-        const path = canvasElement.querySelector('path');
-        await expect(path?.getAttribute('fill')).toBe('#a855f7');
+        const circle = canvasElement.querySelector('circle');
+        await expect(circle?.getAttribute('fill')).toBe('#a855f7');
     }
 };

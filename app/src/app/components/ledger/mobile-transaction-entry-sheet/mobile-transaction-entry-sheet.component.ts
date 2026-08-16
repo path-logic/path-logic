@@ -69,6 +69,14 @@ export class MobileTransactionEntrySheetComponent {
     // Filtered categories for autocomplete
     readonly filteredCategories = signal<Array<ICategory>>([]);
 
+    readonly currentTransaction = computed<ITransaction | null>(() => {
+        const tx = this.transaction;
+        if (typeof tx === 'function') {
+            return (tx as () => ITransaction | null)();
+        }
+        return (tx as unknown as ITransaction) || null;
+    });
+
     readonly amountCents = computed<number>(() => {
         const raw = this.amountString();
         const num = parseFloat(raw.replace(/,/g, ''));
@@ -85,7 +93,7 @@ export class MobileTransactionEntrySheetComponent {
     constructor() {
         // Synchronize when an existing transaction is passed for editing
         effect(() => {
-            const tx = this.transaction();
+            const tx = this.currentTransaction();
             if (tx) {
                 const isExpense = tx.totalAmount < 0;
                 this.mode.set(isExpense ? 'expense' : 'deposit');
@@ -208,7 +216,7 @@ export class MobileTransactionEntrySheetComponent {
         const multiplier = this.mode() === 'expense' ? -1 : 1;
         const totalAmount = (cents * multiplier) as Cents;
 
-        const existing = this.transaction();
+        const existing = this.currentTransaction();
         const now = new Date().toISOString() as ISODateString;
         const newTxId = existing ? existing.id : `tx-${Date.now()}`;
 
@@ -262,7 +270,7 @@ export class MobileTransactionEntrySheetComponent {
     }
 
     async deleteTransaction(): Promise<void> {
-        const tx = this.transaction();
+        const tx = this.currentTransaction();
         if (!tx) return;
         await this.ledgerStore.removeTransaction(tx.id);
         this.close();
