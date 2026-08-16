@@ -89,6 +89,38 @@
             </div>
         }
 
+        <!-- Search / Command Palette Button -->
+        <button
+            type="button"
+            (click)="openCommandPalette()"
+            aria-label="Open Command Palette"
+            [title]="isCollapsed() ? 'Search or Jump (⌘K)' : 'Search or Jump to view (⌘K)'"
+            class="w-full flex items-center rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 dark:hover:bg-surface-800 border border-surface-200/80 dark:border-surface-700/80 cursor-pointer shadow-2xs"
+            [class.px-3.5]="!isCollapsed()"
+            [class.py-2]="!isCollapsed()"
+            [class.justify-between]="!isCollapsed()"
+            [class.p-2.5]="isCollapsed()"
+            [class.justify-center]="isCollapsed()"
+        >
+            <div
+                class="flex items-center"
+                [class.gap-3]="!isCollapsed()"
+                [class.justify-center]="isCollapsed()"
+            >
+                <i class="pi pi-search text-base text-surface-500"></i>
+                @if (!isCollapsed()) {
+                    <span class="text-xs font-medium text-surface-500">Search...</span>
+                }
+            </div>
+            @if (!isCollapsed()) {
+                <kbd
+                    class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded text-surface-600 dark:text-surface-300"
+                >
+                    ⌘K
+                </kbd>
+            }
+        </button>
+
         <!-- Navigation Links -->
         <nav class="space-y-1.5" aria-label="Primary Navigation">
             @for (item of navItems; track item.name) {

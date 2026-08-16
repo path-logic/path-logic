@@ -15,6 +15,7 @@ import { filter } from 'rxjs';
 
 import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { ThemeService } from '../../../services/theme/theme.service';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
@@ -46,9 +47,14 @@ export class SidebarNavComponent {
     private readonly router: Router = inject(Router);
     readonly themeService: ThemeService = inject(ThemeService);
     readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
+    readonly commandPaletteService: CommandPaletteService = inject(CommandPaletteService);
 
     readonly isCollapsed = signal<boolean>(false);
     readonly showUserMenu = signal<boolean>(false);
+
+    openCommandPalette(): void {
+        this.commandPaletteService.open();
+    }
 
     readonly navItems = new Array<ISidebarNavItem>(
         { name: 'Overview', href: '/', icon: 'pi-objects-column' } satisfies ISidebarNavItem,
