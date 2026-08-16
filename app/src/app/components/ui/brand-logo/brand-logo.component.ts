@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, Input, signal } from '@angular/core';
+
+import { environment } from '../../../../environments/environment';
+import { ThemeService } from '../../../services/theme/theme.service';
 
 export type BrandLogoSize = 'sm' | 'md' | 'lg';
 export type BrandLogoVariant = 'full' | 'icon-only' | 'stacked';
@@ -31,7 +34,7 @@ export function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {
                     class="w-full h-full"
                 >
                     <mask
-                        id="pl-cut"
+                        [id]="maskId"
                         maskUnits="userSpaceOnUse"
                         x="0"
                         y="0"
@@ -49,7 +52,7 @@ export function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {
                         cy="39.16"
                         r="37.15"
                         [attr.fill]="fillColor()"
-                        mask="url(#pl-cut)"
+                        [attr.mask]="'url(#' + maskId + ')'"
                     />
                     <path
                         d="M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z"
@@ -72,6 +75,11 @@ export function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {
     `
 })
 export class BrandLogoComponent {
+    private static idCounter = 0;
+    readonly maskId = `pl-cut-${++BrandLogoComponent.idCounter}`;
+
+    private readonly themeService = inject(ThemeService, { optional: true });
+
     private readonly _size = signal<BrandLogoSize>('md');
     private readonly _variant = signal<BrandLogoVariant>('full');
     private readonly _env = signal<BrandLogoEnv | undefined>(undefined);
@@ -115,17 +123,20 @@ export class BrandLogoComponent {
         const customColor = this._color();
         if (customColor) return customColor;
 
-        const environment = this._env();
-        switch (environment) {
-            case 'dev':
-                return '#3b82f6';
-            case 'staging':
-                return '#f97316';
-            case 'prod':
-                return '#a855f7';
-            default:
-                return '#1D61E0';
+        const env = this._env();
+        if (env) {
+            switch (env) {
+                case 'dev':
+                    return '#3b82f6';
+                case 'staging':
+                    return '#f97316';
+                case 'prod':
+                    return '#a855f7';
+            }
         }
+
+        const theme = this.themeService?.resolvedTheme() ?? 'dark';
+        return theme === 'dark' ? environment.theme.faviconDark : environment.theme.faviconLight;
     });
 
     readonly containerClasses = computed(() => {
@@ -149,7 +160,7 @@ export class BrandLogoComponent {
 
     readonly pathTextClasses = computed(() => {
         const base =
-            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';
+            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';
         switch (this._size()) {
             case 'sm':
                 return `${base} text-[10px]`;
@@ -163,7 +174,7 @@ export class BrandLogoComponent {
 
     readonly logicTextClasses = computed(() => {
         const base =
-            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';
+            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';
         switch (this._size()) {
             case 'sm':
                 return `${base} text-[10px]`;

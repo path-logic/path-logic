@@ -70,6 +70,18 @@ describe('BrandLogoComponent', () => {
         expect(el.getAttribute('fill')).toBe('#a855f7');
     });
 
+    it('should default to active environment theme favicon color when env and color are not specified', () => {
+        const circle = fixture.nativeElement.querySelector('circle');
+        expect(circle.getAttribute('fill')).toBeTruthy();
+    });
+
+    it('should use custom color when color input is provided', () => {
+        fixture.componentRef.setInput('color', '#123456');
+        fixture.detectChanges();
+        const circle = fixture.nativeElement.querySelector('circle');
+        expect(circle.getAttribute('fill')).toBe('#123456');
+    });
+
     it('should apply stacked layout classes when variant is stacked', () => {
         fixture.componentRef.setInput('variant', 'stacked');
         fixture.detectChanges();

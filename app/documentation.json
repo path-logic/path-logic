@@ -17958,7 +17958,7 @@
         },
         {
             "name": "BrandLogoComponent",
-            "id": "component-BrandLogoComponent-7761d3bf59eef19f9f0a71143f349bff6db005611eedd3964caf549f7ab755015aee68346357cefe1d5f21653c279a3910df4f5124368d2099f765e25d0151d5",
+            "id": "component-BrandLogoComponent-2e1a6de3caaf94fcfd90b7fadac15e1812590dd1f7a1bc668518bc8ae5180f928f07649c4f292246bc3da892aef0153f8c48ab188a7eb944ff1770c6cb99ea85",
             "file": "app/src/app/components/ui/brand-logo/brand-logo.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -17969,7 +17969,7 @@
             "selector": "brand-logo",
             "styleUrls": [],
             "styles": [],
-            "template": "<div [class]=\"containerClasses()\" role=\"img\" aria-label=\"Path Logic\">\n    <div [class]=\"badgeClasses()\">\n        <svg\n            viewBox=\"0 0 100 100\"\n            fill=\"none\"\n            xmlns=\"http://www.w3.org/2000/svg\"\n            class=\"w-full h-full\"\n        >\n            <mask\n                id=\"pl-cut\"\n                maskUnits=\"userSpaceOnUse\"\n                x=\"0\"\n                y=\"0\"\n                width=\"100\"\n                height=\"100\"\n            >\n                <rect width=\"100\" height=\"100\" fill=\"white\" />\n                <path\n                    d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\"\n                    fill=\"black\"\n                />\n            </mask>\n            <circle\n                cx=\"50.47\"\n                cy=\"39.16\"\n                r=\"37.15\"\n                [attr.fill]=\"fillColor()\"\n                mask=\"url(#pl-cut)\"\n            />\n            <path\n                d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\"\n                [attr.fill]=\"fillColor()\"\n            />\n        </svg>\n    </div>\n    @if (computedVariant() !== 'icon-only') {\n        <div\n            class=\"brand-wordmark flex flex-col justify-between select-none tracking-tighter font-black\"\n            [class.items-center]=\"computedVariant() === 'stacked'\"\n            [class.items-start]=\"computedVariant() !== 'stacked'\"\n            [class.text-center]=\"computedVariant() === 'stacked'\"\n        >\n            <span [class]=\"pathTextClasses()\">PATH</span>\n            <span [class]=\"logicTextClasses()\">LOGIC</span>\n        </div>\n    }\n</div>\n",
+            "template": "<div [class]=\"containerClasses()\" role=\"img\" aria-label=\"Path Logic\">\n    <div [class]=\"badgeClasses()\">\n        <svg\n            viewBox=\"0 0 100 100\"\n            fill=\"none\"\n            xmlns=\"http://www.w3.org/2000/svg\"\n            class=\"w-full h-full\"\n        >\n            <mask\n                [id]=\"maskId\"\n                maskUnits=\"userSpaceOnUse\"\n                x=\"0\"\n                y=\"0\"\n                width=\"100\"\n                height=\"100\"\n            >\n                <rect width=\"100\" height=\"100\" fill=\"white\" />\n                <path\n                    d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\"\n                    fill=\"black\"\n                />\n            </mask>\n            <circle\n                cx=\"50.47\"\n                cy=\"39.16\"\n                r=\"37.15\"\n                [attr.fill]=\"fillColor()\"\n                [attr.mask]=\"'url(#' + maskId + ')'\"\n            />\n            <path\n                d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\"\n                [attr.fill]=\"fillColor()\"\n            />\n        </svg>\n    </div>\n    @if (computedVariant() !== 'icon-only') {\n        <div\n            class=\"brand-wordmark flex flex-col justify-between select-none tracking-tighter font-black\"\n            [class.items-center]=\"computedVariant() === 'stacked'\"\n            [class.items-start]=\"computedVariant() !== 'stacked'\"\n            [class.text-center]=\"computedVariant() === 'stacked'\"\n        >\n            <span [class]=\"pathTextClasses()\">PATH</span>\n            <span [class]=\"logicTextClasses()\">LOGIC</span>\n        </div>\n    }\n</div>\n",
             "templateUrl": [],
             "viewProviders": [],
             "hostDirectives": [],
@@ -17978,7 +17978,7 @@
                     "name": "color",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 105,
+                    "line": 120,
                     "type": "string | undefined",
                     "decorators": []
                 },
@@ -17986,7 +17986,7 @@
                     "name": "env",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 97,
+                    "line": 112,
                     "type": "BrandLogoEnv | undefined",
                     "decorators": []
                 },
@@ -17994,7 +17994,7 @@
                     "name": "size",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 81,
+                    "line": 96,
                     "type": "BrandLogoSize",
                     "decorators": []
                 },
@@ -18002,7 +18002,7 @@
                     "name": "variant",
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 89,
+                    "line": 104,
                     "type": "BrandLogoVariant",
                     "decorators": []
                 }
@@ -18018,7 +18018,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 78,
+                    "line": 93,
                     "modifierKind": [
                         123,
                         148
@@ -18033,7 +18033,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 77,
+                    "line": 92,
                     "modifierKind": [
                         123,
                         148
@@ -18048,7 +18048,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 75,
+                    "line": 90,
                     "modifierKind": [
                         123,
                         148
@@ -18063,7 +18063,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 76,
+                    "line": 91,
                     "modifierKind": [
                         123,
                         148
@@ -18078,7 +18078,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 136,
+                    "line": 154,
                     "modifierKind": [
                         148
                     ]
@@ -18092,7 +18092,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 112,
+                    "line": 127,
                     "modifierKind": [
                         148
                     ]
@@ -18106,50 +18106,94 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 131,
+                    "line": 149,
                     "modifierKind": [
                         148
                     ]
                 },
                 {
                     "name": "fillColor",
-                    "defaultValue": "computed(() => {\n        const customColor = this._color();\n        if (customColor) return customColor;\n\n        const environment = this._env();\n        switch (environment) {\n            case 'dev':\n                return '#3b82f6';\n            case 'staging':\n                return '#f97316';\n            case 'prod':\n                return '#a855f7';\n            default:\n                return '#1D61E0';\n        }\n    })",
+                    "defaultValue": "computed(() => {\n        const customColor = this._color();\n        if (customColor) return customColor;\n\n        const env = this._env();\n        if (env) {\n            switch (env) {\n                case 'dev':\n                    return '#3b82f6';\n                case 'staging':\n                    return '#f97316';\n                case 'prod':\n                    return '#a855f7';\n            }\n        }\n\n        const theme = this.themeService?.resolvedTheme() ?? 'dark';\n        return theme === 'dark' ? environment.theme.faviconDark : environment.theme.faviconLight;\n    })",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "unknown",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 114,
+                    "line": 129,
                     "modifierKind": [
                         148
                     ]
                 },
                 {
+                    "name": "idCounter",
+                    "defaultValue": "0",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "number",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 85,
+                    "modifierKind": [
+                        123,
+                        126
+                    ]
+                },
+                {
                     "name": "logicTextClasses",
-                    "defaultValue": "computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    })",
+                    "defaultValue": "computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    })",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "unknown",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 164,
+                    "line": 182,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "maskId",
+                    "defaultValue": "`pl-cut-${++BrandLogoComponent.idCounter}`",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 86,
                     "modifierKind": [
                         148
                     ]
                 },
                 {
                     "name": "pathTextClasses",
-                    "defaultValue": "computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    })",
+                    "defaultValue": "computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    })",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "unknown",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 150,
+                    "line": 168,
                     "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "themeService",
+                    "defaultValue": "inject(ThemeService, { optional: true })",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 88,
+                    "modifierKind": [
+                        123,
                         148
                     ]
                 }
@@ -18164,7 +18208,7 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';\n\nexport type BrandLogoSize = 'sm' | 'md' | 'lg';\nexport type BrandLogoVariant = 'full' | 'icon-only' | 'stacked';\nexport type BrandLogoEnv = 'dev' | 'staging' | 'prod';\n\nexport function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {\n    return `\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\">\n  <mask id=\"${maskId}\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"100\" height=\"100\">\n    <rect width=\"100\" height=\"100\" fill=\"white\" />\n    <path d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\" fill=\"black\" />\n  </mask>\n  <circle cx=\"50.47\" cy=\"39.16\" r=\"37.15\" fill=\"${color}\" mask=\"url(#${maskId})\" />\n  <path d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\" fill=\"${color}\" />\n</svg>\n    `.trim();\n}\n\n@Component({\n    selector: 'brand-logo',\n    standalone: true,\n    changeDetection: ChangeDetectionStrategy.OnPush,\n    template: `\n        <div [class]=\"containerClasses()\" role=\"img\" aria-label=\"Path Logic\">\n            <div [class]=\"badgeClasses()\">\n                <svg\n                    viewBox=\"0 0 100 100\"\n                    fill=\"none\"\n                    xmlns=\"http://www.w3.org/2000/svg\"\n                    class=\"w-full h-full\"\n                >\n                    <mask\n                        id=\"pl-cut\"\n                        maskUnits=\"userSpaceOnUse\"\n                        x=\"0\"\n                        y=\"0\"\n                        width=\"100\"\n                        height=\"100\"\n                    >\n                        <rect width=\"100\" height=\"100\" fill=\"white\" />\n                        <path\n                            d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\"\n                            fill=\"black\"\n                        />\n                    </mask>\n                    <circle\n                        cx=\"50.47\"\n                        cy=\"39.16\"\n                        r=\"37.15\"\n                        [attr.fill]=\"fillColor()\"\n                        mask=\"url(#pl-cut)\"\n                    />\n                    <path\n                        d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\"\n                        [attr.fill]=\"fillColor()\"\n                    />\n                </svg>\n            </div>\n            @if (computedVariant() !== 'icon-only') {\n                <div\n                    class=\"brand-wordmark flex flex-col justify-between select-none tracking-tighter font-black\"\n                    [class.items-center]=\"computedVariant() === 'stacked'\"\n                    [class.items-start]=\"computedVariant() !== 'stacked'\"\n                    [class.text-center]=\"computedVariant() === 'stacked'\"\n                >\n                    <span [class]=\"pathTextClasses()\">PATH</span>\n                    <span [class]=\"logicTextClasses()\">LOGIC</span>\n                </div>\n            }\n        </div>\n    `\n})\nexport class BrandLogoComponent {\n    private readonly _size = signal<BrandLogoSize>('md');\n    private readonly _variant = signal<BrandLogoVariant>('full');\n    private readonly _env = signal<BrandLogoEnv | undefined>(undefined);\n    private readonly _color = signal<string | undefined>(undefined);\n\n    @Input()\n    set size(val: BrandLogoSize) {\n        if (val) this._size.set(val);\n    }\n    get size(): BrandLogoSize {\n        return this._size();\n    }\n\n    @Input()\n    set variant(val: BrandLogoVariant) {\n        if (val) this._variant.set(val);\n    }\n    get variant(): BrandLogoVariant {\n        return this._variant();\n    }\n\n    @Input()\n    set env(val: BrandLogoEnv | undefined) {\n        this._env.set(val);\n    }\n    get env(): BrandLogoEnv | undefined {\n        return this._env();\n    }\n\n    @Input()\n    set color(val: string | undefined) {\n        this._color.set(val);\n    }\n    get color(): string | undefined {\n        return this._color();\n    }\n\n    readonly computedVariant = computed(() => this._variant());\n\n    readonly fillColor = computed(() => {\n        const customColor = this._color();\n        if (customColor) return customColor;\n\n        const environment = this._env();\n        switch (environment) {\n            case 'dev':\n                return '#3b82f6';\n            case 'staging':\n                return '#f97316';\n            case 'prod':\n                return '#a855f7';\n            default:\n                return '#1D61E0';\n        }\n    });\n\n    readonly containerClasses = computed(() => {\n        const base = 'inline-flex items-center select-none group';\n        return this._variant() === 'stacked' ? `${base} flex-col gap-2` : `${base} gap-2`;\n    });\n\n    readonly badgeClasses = computed(() => {\n        const base =\n            'brand-badge flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} w-5 h-5`;\n            case 'lg':\n                return `${base} w-12 h-12`;\n            case 'md':\n            default:\n                return `${base} w-8 h-8`;\n        }\n    });\n\n    readonly pathTextClasses = computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    });\n\n    readonly logicTextClasses = computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-slate-900 dark:text-slate-100 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    });\n}\n",
+            "sourceCode": "import {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    inject,\n    Input,\n    signal\n} from '@angular/core';\n\nimport { environment } from '../../../../environments/environment';\nimport { ThemeService } from '../../../services/theme/theme.service';\n\nexport type BrandLogoSize = 'sm' | 'md' | 'lg';\nexport type BrandLogoVariant = 'full' | 'icon-only' | 'stacked';\nexport type BrandLogoEnv = 'dev' | 'staging' | 'prod';\n\nexport function getBrandLogoSvg(color: string, maskId = 'pl-cut'): string {\n    return `\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\">\n  <mask id=\"${maskId}\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"100\" height=\"100\">\n    <rect width=\"100\" height=\"100\" fill=\"white\" />\n    <path d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\" fill=\"black\" />\n  </mask>\n  <circle cx=\"50.47\" cy=\"39.16\" r=\"37.15\" fill=\"${color}\" mask=\"url(#${maskId})\" />\n  <path d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\" fill=\"${color}\" />\n</svg>\n    `.trim();\n}\n\n@Component({\n    selector: 'brand-logo',\n    standalone: true,\n    changeDetection: ChangeDetectionStrategy.OnPush,\n    template: `\n        <div [class]=\"containerClasses()\" role=\"img\" aria-label=\"Path Logic\">\n            <div [class]=\"badgeClasses()\">\n                <svg\n                    viewBox=\"0 0 100 100\"\n                    fill=\"none\"\n                    xmlns=\"http://www.w3.org/2000/svg\"\n                    class=\"w-full h-full\"\n                >\n                    <mask\n                        [id]=\"maskId\"\n                        maskUnits=\"userSpaceOnUse\"\n                        x=\"0\"\n                        y=\"0\"\n                        width=\"100\"\n                        height=\"100\"\n                    >\n                        <rect width=\"100\" height=\"100\" fill=\"white\" />\n                        <path\n                            d=\"M63.89,22.72 L41.96,29.77 L47.78,36.48 A48.68,48.68 0 0 1 18.46,51.81 L0.11,58.19 L0.11,111.9 L31.44,111.9 L31.44,80.57 L45.99,78.89 C46.66,76.54 45.09,72.73 43.64,68.93 C42.74,63.78 42.97,58.86 45.77,54.05 C46.55,52.48 47.44,50.02 48,48.23 Q48.56,45.77 52.48,42.19 Q56.96,44.87 59.31,48.45 C62.55,44.42 64.9,35.25 66.35,25.74Z\"\n                            fill=\"black\"\n                        />\n                    </mask>\n                    <circle\n                        cx=\"50.47\"\n                        cy=\"39.16\"\n                        r=\"37.15\"\n                        [attr.fill]=\"fillColor()\"\n                        [attr.mask]=\"'url(#' + maskId + ')'\"\n                    />\n                    <path\n                        d=\"M36.59,52.15 L17.34,61.1 Q12.42,63.34 12.42,68.04 L12.42,95.56 Q12.42,98.02 14.88,98.02 L33.23,98.02 Q35.58,98.02 35.58,95.67 L36.93,53.71Z\"\n                        [attr.fill]=\"fillColor()\"\n                    />\n                </svg>\n            </div>\n            @if (computedVariant() !== 'icon-only') {\n                <div\n                    class=\"brand-wordmark flex flex-col justify-between select-none tracking-tighter font-black\"\n                    [class.items-center]=\"computedVariant() === 'stacked'\"\n                    [class.items-start]=\"computedVariant() !== 'stacked'\"\n                    [class.text-center]=\"computedVariant() === 'stacked'\"\n                >\n                    <span [class]=\"pathTextClasses()\">PATH</span>\n                    <span [class]=\"logicTextClasses()\">LOGIC</span>\n                </div>\n            }\n        </div>\n    `\n})\nexport class BrandLogoComponent {\n    private static idCounter = 0;\n    readonly maskId = `pl-cut-${++BrandLogoComponent.idCounter}`;\n\n    private readonly themeService = inject(ThemeService, { optional: true });\n\n    private readonly _size = signal<BrandLogoSize>('md');\n    private readonly _variant = signal<BrandLogoVariant>('full');\n    private readonly _env = signal<BrandLogoEnv | undefined>(undefined);\n    private readonly _color = signal<string | undefined>(undefined);\n\n    @Input()\n    set size(val: BrandLogoSize) {\n        if (val) this._size.set(val);\n    }\n    get size(): BrandLogoSize {\n        return this._size();\n    }\n\n    @Input()\n    set variant(val: BrandLogoVariant) {\n        if (val) this._variant.set(val);\n    }\n    get variant(): BrandLogoVariant {\n        return this._variant();\n    }\n\n    @Input()\n    set env(val: BrandLogoEnv | undefined) {\n        this._env.set(val);\n    }\n    get env(): BrandLogoEnv | undefined {\n        return this._env();\n    }\n\n    @Input()\n    set color(val: string | undefined) {\n        this._color.set(val);\n    }\n    get color(): string | undefined {\n        return this._color();\n    }\n\n    readonly computedVariant = computed(() => this._variant());\n\n    readonly fillColor = computed(() => {\n        const customColor = this._color();\n        if (customColor) return customColor;\n\n        const env = this._env();\n        if (env) {\n            switch (env) {\n                case 'dev':\n                    return '#3b82f6';\n                case 'staging':\n                    return '#f97316';\n                case 'prod':\n                    return '#a855f7';\n            }\n        }\n\n        const theme = this.themeService?.resolvedTheme() ?? 'dark';\n        return theme === 'dark' ? environment.theme.faviconDark : environment.theme.faviconLight;\n    });\n\n    readonly containerClasses = computed(() => {\n        const base = 'inline-flex items-center select-none group';\n        return this._variant() === 'stacked' ? `${base} flex-col gap-2` : `${base} gap-2`;\n    });\n\n    readonly badgeClasses = computed(() => {\n        const base =\n            'brand-badge flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} w-5 h-5`;\n            case 'lg':\n                return `${base} w-12 h-12`;\n            case 'md':\n            default:\n                return `${base} w-8 h-8`;\n        }\n    });\n\n    readonly pathTextClasses = computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    });\n\n    readonly logicTextClasses = computed(() => {\n        const base =\n            'font-black uppercase tracking-tighter text-surface-900 dark:text-surface-50 leading-[0.85]';\n        switch (this._size()) {\n            case 'sm':\n                return `${base} text-[10px]`;\n            case 'lg':\n                return `${base} text-[20px]`;\n            case 'md':\n            default:\n                return `${base} text-[14px]`;\n        }\n    });\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": "",
@@ -18188,7 +18232,7 @@
                             }
                         ],
                         "returnType": "void",
-                        "line": 81,
+                        "line": 96,
                         "jsdoctags": [
                             {
                                 "name": "val",
@@ -18207,7 +18251,7 @@
                         "name": "size",
                         "type": "unknown",
                         "returnType": "BrandLogoSize",
-                        "line": 84
+                        "line": 99
                     }
                 },
                 "variant": {
@@ -18228,7 +18272,7 @@
                             }
                         ],
                         "returnType": "void",
-                        "line": 89,
+                        "line": 104,
                         "jsdoctags": [
                             {
                                 "name": "val",
@@ -18247,7 +18291,7 @@
                         "name": "variant",
                         "type": "unknown",
                         "returnType": "BrandLogoVariant",
-                        "line": 92
+                        "line": 107
                     }
                 },
                 "env": {
@@ -18268,7 +18312,7 @@
                             }
                         ],
                         "returnType": "void",
-                        "line": 97,
+                        "line": 112,
                         "jsdoctags": [
                             {
                                 "name": "val",
@@ -18287,7 +18331,7 @@
                         "name": "env",
                         "type": "unknown",
                         "returnType": "BrandLogoEnv | undefined",
-                        "line": 100
+                        "line": 115
                     }
                 },
                 "color": {
@@ -18308,7 +18352,7 @@
                             }
                         ],
                         "returnType": "void",
-                        "line": 105,
+                        "line": 120,
                         "jsdoctags": [
                             {
                                 "name": "val",
@@ -18327,7 +18371,7 @@
                         "name": "color",
                         "type": "unknown",
                         "returnType": "string | undefined",
-                        "line": 108
+                        "line": 123
                     }
                 }
             }
@@ -47423,7 +47467,7 @@
                 "linktype": "component",
                 "name": "BrandLogoComponent",
                 "coveragePercent": 0,
-                "coverageCount": "0/15",
+                "coverageCount": "0/18",
                 "status": "low"
             },
             {
