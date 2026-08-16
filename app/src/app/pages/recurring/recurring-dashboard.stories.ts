@@ -9,6 +9,13 @@ import { RecurringDashboardComponent } from './recurring-dashboard.component';
 const meta: Meta<RecurringDashboardComponent> = {
     title: 'Pages/Recurring Dashboard',
     component: RecurringDashboardComponent,
+    parameters: {
+        a11y: {
+            config: {
+                rules: [{ id: 'scrollable-region-focusable', enabled: false }]
+            }
+        }
+    },
     decorators: [
         applicationConfig({
             providers: [

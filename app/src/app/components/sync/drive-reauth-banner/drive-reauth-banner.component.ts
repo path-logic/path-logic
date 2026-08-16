@@ -21,7 +21,7 @@ import { SyncService } from '../../../services/sync/sync.service';
                 <button
                     type="button"
                     (click)="reauthenticate()"
-                    class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
+                    class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 shadow-sm cursor-pointer"
                 >
                     Re-authenticate Drive
                 </button>

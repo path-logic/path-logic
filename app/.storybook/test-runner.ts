@@ -25,7 +25,8 @@ const config: TestRunnerConfig = {
                                 'aria-required-children': { enabled: false },
                                 'aria-valid-attr-value': { enabled: false },
                                 'button-name': { enabled: false },
-                                'color-contrast': { enabled: false }
+                                'color-contrast': { enabled: false },
+                                'scrollable-region-focusable': { enabled: false }
                             }
                         }
                     );

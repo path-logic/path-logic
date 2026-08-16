@@ -103,6 +103,7 @@ const mockAuthService = {
         displayName: 'Alex Mercer',
         email: 'alex@pathlogic.io'
     }),
+    accessToken: signal('mock-token'),
     signOut: () => {}
 };
 
@@ -143,13 +144,14 @@ export const Default: Story = {
         const canvas = within(canvasElement);
 
         // Verify Overview header
-        await expect(canvas.getByText(/Portfolio/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Overview/i)).toBeInTheDocument();
+        await expect(
+            canvas.getByRole('heading', { name: /Portfolio Overview/i })
+        ).toBeInTheDocument();
 
         // Verify sections
         await expect(canvas.getByText(/Account Portfolio/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Quick Entry/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/90-Day Cashflow Forecast/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/90-Day Cashflow Forecast/i)[0]).toBeInTheDocument();
         await expect(canvas.getByText(/Recent Activity/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Upcoming/i)).toBeInTheDocument();
     }

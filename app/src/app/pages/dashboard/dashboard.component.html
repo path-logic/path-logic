@@ -4,7 +4,7 @@
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
             <div>
                 <h1 class="text-3xl font-bold tracking-tight text-surface-900">
-                    Portfolio <span class="text-primary">Overview</span>
+                    Portfolio <span class="text-emerald-700 dark:text-emerald-400">Overview</span>
                 </h1>
                 <p class="text-sm text-surface-500 font-medium mt-0.5">
                     Welcome back, {{ userName() }}!
@@ -50,14 +50,14 @@
                                 Account Portfolio
                             </h2>
                             <span
-                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20"
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-emerald-700 dark:text-emerald-400 border border-primary/20"
                             >
                                 {{ accounts().length }} Total
                             </span>
                         </div>
                         <a
                             routerLink="/accounts"
-                            class="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                            class="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline transition-colors"
                         >
                             Manage Accounts &rarr;
                         </a>
@@ -148,12 +148,16 @@
                             <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
                                 Recent Activity
                             </h3>
-                            <i class="pi pi-history text-xs text-surface-400"></i>
+                            <i
+                                class="pi pi-history text-xs text-surface-600 dark:text-surface-400"
+                            ></i>
                         </div>
 
                         <div class="space-y-2.5 min-h-[160px]">
                             @if (recentTransactions().length === 0) {
-                                <div class="py-8 text-center text-xs text-surface-400 font-medium">
+                                <div
+                                    class="py-8 text-center text-xs text-surface-600 dark:text-surface-400 font-medium"
+                                >
                                     No transactions recorded yet
                                 </div>
                             } @else {
@@ -163,13 +167,16 @@
                                             <p class="font-bold text-surface-900 truncate">
                                                 {{ tx.payee }}
                                             </p>
-                                            <p class="text-[10px] text-surface-400">
+                                            <p
+                                                class="text-[10px] text-surface-600 dark:text-surface-400"
+                                            >
                                                 {{ tx.date | localDate: 'short' }}
                                             </p>
                                         </div>
                                         <span
                                             class="font-mono font-bold shrink-0"
-                                            [class.text-red-500]="tx.totalAmount < 0"
+                                            [class.text-red-600]="tx.totalAmount < 0"
+                                            [class.dark:text-red-400]="tx.totalAmount < 0"
                                             [class.text-emerald-700]="tx.totalAmount >= 0"
                                             [class.dark:text-emerald-400]="tx.totalAmount >= 0"
                                         >
@@ -183,7 +190,7 @@
 
                         <a
                             routerLink="/accounts"
-                            class="text-[10px] font-bold text-primary hover:underline block text-center pt-2 border-t border-surface-100"
+                            class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline block text-center pt-2 border-t border-surface-100"
                         >
                             View Full Ledger &rarr;
                         </a>
@@ -199,12 +206,16 @@
                             <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
                                 Upcoming
                             </h3>
-                            <i class="pi pi-replay text-xs text-surface-400"></i>
+                            <i
+                                class="pi pi-replay text-xs text-surface-600 dark:text-surface-400"
+                            ></i>
                         </div>
 
                         <div class="space-y-2.5 min-h-[160px]">
                             @if (upcomingPayments().length === 0) {
-                                <div class="py-8 text-center text-xs text-surface-400 font-medium">
+                                <div
+                                    class="py-8 text-center text-xs text-surface-600 dark:text-surface-400 font-medium"
+                                >
                                     No scheduled bills due
                                 </div>
                             } @else {
@@ -214,13 +225,16 @@
                                             <p class="font-bold text-surface-900 truncate">
                                                 {{ item.name }}
                                             </p>
-                                            <p class="text-[10px] text-surface-400">
+                                            <p
+                                                class="text-[10px] text-surface-600 dark:text-surface-400"
+                                            >
                                                 Due {{ item.dueDate | localDate: 'short' }}
                                             </p>
                                         </div>
                                         <span
                                             class="font-mono font-bold shrink-0"
-                                            [class.text-red-500]="item.amount < 0"
+                                            [class.text-red-600]="item.amount < 0"
+                                            [class.dark:text-red-400]="item.amount < 0"
                                             [class.text-emerald-700]="item.amount >= 0"
                                             [class.dark:text-emerald-400]="item.amount >= 0"
                                         >
@@ -234,7 +248,7 @@
 
                         <a
                             routerLink="/recurring"
-                            class="text-[10px] font-bold text-primary hover:underline block text-center pt-2 border-t border-surface-100"
+                            class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline block text-center pt-2 border-t border-surface-100"
                         >
                             Manage Recurring &rarr;
                         </a>

@@ -36,9 +36,11 @@
                 class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                 [class.bg-surface-0]="isExpense()"
                 [class.dark:bg-surface-900]="isExpense()"
-                [class.text-red-500]="isExpense()"
+                [class.text-red-600]="isExpense()"
+                [class.dark:text-red-400]="isExpense()"
                 [class.shadow-xs]="isExpense()"
-                [class.text-surface-500]="!isExpense()"
+                [class.text-surface-600]="!isExpense()"
+                [class.dark:text-surface-400]="!isExpense()"
             >
                 <i class="pi pi-arrow-down-left text-[10px]"></i>
                 Expense
@@ -50,9 +52,11 @@
                 class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                 [class.bg-surface-0]="!isExpense()"
                 [class.dark:bg-surface-900]="!isExpense()"
-                [class.text-emerald-500]="!isExpense()"
+                [class.text-emerald-700]="!isExpense()"
+                [class.dark:text-emerald-400]="!isExpense()"
                 [class.shadow-xs]="!isExpense()"
-                [class.text-surface-500]="isExpense()"
+                [class.text-surface-600]="isExpense()"
+                [class.dark:text-surface-400]="isExpense()"
             >
                 <i class="pi pi-arrow-up-right text-[10px]"></i>
                 Income
@@ -74,7 +78,7 @@
         @if (errorMessage()) {
             <div
                 id="quick-entry-error"
-                class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-2 animate-in fade-in"
+                class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2 animate-in fade-in"
             >
                 <i class="pi pi-exclamation-triangle text-sm"></i>
                 <span>{{ errorMessage() }}</span>
@@ -90,7 +94,7 @@
                 for="quick-entry-account"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Account <span class="text-red-500">*</span>
+                Account <span class="text-red-600 dark:text-red-400">*</span>
             </label>
             <select
                 id="quick-entry-account"
@@ -111,7 +115,7 @@
                 for="quick-entry-payee"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Payee <span class="text-red-500">*</span>
+                Payee <span class="text-red-600 dark:text-red-400">*</span>
             </label>
             <input
                 id="quick-entry-payee"
@@ -156,11 +160,11 @@
                 for="quick-entry-amount"
                 class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
             >
-                Amount <span class="text-red-500">*</span>
+                Amount <span class="text-red-600 dark:text-red-400">*</span>
             </label>
             <div class="relative">
                 <span
-                    class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-surface-400"
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-surface-600 dark:text-surface-400"
                     aria-hidden="true"
                 >
                     $
@@ -182,7 +186,7 @@
 
     <!-- Actions Row -->
     <div class="flex items-center justify-between pt-1">
-        <div class="text-[11px] text-surface-400 font-medium hidden sm:block">
+        <div class="text-[11px] text-surface-600 dark:text-surface-400 font-medium hidden sm:block">
             Press
             <kbd
                 class="px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 font-mono text-[10px]"
@@ -195,7 +199,7 @@
             (click)="saveTransaction()"
             [disabled]="isSubmitting()"
             aria-label="Save transaction to ledger"
-            class="min-h-[38px] px-5 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ml-auto sm:ml-0"
+            class="min-h-[38px] px-5 bg-emerald-700 hover:bg-emerald-800 text-white disabled:opacity-50 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 ml-auto sm:ml-0"
         >
             @if (isSubmitting()) {
                 <i class="pi pi-spin pi-spinner text-xs" aria-hidden="true"></i>

@@ -15,17 +15,24 @@
         </div>
         <div class="flex items-center gap-1">
             <button
+                type="button"
                 (click)="aiService.clearChat()"
+                aria-label="Clear Chat History"
                 title="Clear Chat History"
                 class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-surface-200 text-surface-500 hover:text-surface-800 transition-colors"
             >
-                <i class="pi pi-refresh text-xs"></i>
+                <i class="pi pi-refresh text-xs" aria-hidden="true"></i>
+                <span class="sr-only">Clear Chat History</span>
             </button>
             <button
+                type="button"
                 (click)="aiService.close()"
+                aria-label="Close Assistant"
+                title="Close Assistant"
                 class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-surface-200 text-surface-500 hover:text-surface-800 transition-colors"
             >
-                <i class="pi pi-times text-xs"></i>
+                <i class="pi pi-times text-xs" aria-hidden="true"></i>
+                <span class="sr-only">Close Assistant</span>
             </button>
         </div>
     </div>
@@ -139,11 +146,14 @@
             class="flex-1 h-9 px-3 text-xs bg-surface-0 border border-surface-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none disabled:opacity-50"
         />
         <button
+            type="button"
             (click)="handleSend()"
+            aria-label="Send message"
             [disabled]="aiService.isSending() || !inputText().trim() || !geminiService.hasKey()"
             class="h-9 px-3 bg-primary text-white rounded-md hover:bg-primary/95 flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
         >
-            <i class="pi pi-send text-xs"></i>
+            <i class="pi pi-send text-xs" aria-hidden="true"></i>
+            <span class="sr-only">Send</span>
         </button>
     </div>
 </div>
