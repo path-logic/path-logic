@@ -182,10 +182,14 @@
             <!-- Status Filter Pills -->
             <div
                 class="flex items-center gap-1 bg-brand-base p-1 rounded-xl border border-brand-border"
+                role="group"
+                aria-label="Transaction status filter"
             >
                 <button
                     type="button"
                     (click)="setStatusFilter('all')"
+                    aria-controls="transaction-table"
+                    [attr.aria-pressed]="statusFilter() === 'all'"
                     [class]="
                         statusFilter() === 'all'
                             ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
@@ -197,6 +201,8 @@
                 <button
                     type="button"
                     (click)="setStatusFilter('cleared')"
+                    aria-controls="transaction-table"
+                    [attr.aria-pressed]="statusFilter() === 'cleared'"
                     [class]="
                         statusFilter() === 'cleared'
                             ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
@@ -208,6 +214,8 @@
                 <button
                     type="button"
                     (click)="setStatusFilter('pending')"
+                    aria-controls="transaction-table"
+                    [attr.aria-pressed]="statusFilter() === 'pending'"
                     [class]="
                         statusFilter() === 'pending'
                             ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'
@@ -277,10 +285,14 @@
         <!-- Filter Segmented Control -->
         <div
             class="grid grid-cols-3 p-1 rounded-xl bg-brand-surface border border-brand-border shadow-xs"
+            role="group"
+            aria-label="Transaction status filter"
         >
             <button
                 type="button"
                 (click)="setStatusFilter('all')"
+                aria-controls="transaction-table"
+                [attr.aria-pressed]="statusFilter() === 'all'"
                 [class]="
                     statusFilter() === 'all'
                         ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'
@@ -292,6 +304,8 @@
             <button
                 type="button"
                 (click)="setStatusFilter('cleared')"
+                aria-controls="transaction-table"
+                [attr.aria-pressed]="statusFilter() === 'cleared'"
                 [class]="
                     statusFilter() === 'cleared'
                         ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'
@@ -303,6 +317,8 @@
             <button
                 type="button"
                 (click)="setStatusFilter('pending')"
+                aria-controls="transaction-table"
+                [attr.aria-pressed]="statusFilter() === 'pending'"
                 [class]="
                     statusFilter() === 'pending'
                         ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'

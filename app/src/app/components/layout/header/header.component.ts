@@ -15,6 +15,7 @@ import { filter } from 'rxjs';
 
 import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { ThemeService } from '../../../services/theme/theme.service';
 
@@ -48,12 +49,17 @@ export class HeaderComponent {
     private readonly router: Router = inject(Router);
     readonly themeService: ThemeService = inject(ThemeService);
     readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
+    readonly commandPaletteService: CommandPaletteService = inject(CommandPaletteService);
 
     readonly showUserMenu = signal<boolean>(false);
     readonly showMobileMenu = signal<boolean>(false);
 
     toggleAiAssistant(): void {
         this.aiAssistantService.toggle();
+    }
+
+    openCommandPalette(): void {
+        this.commandPaletteService.open();
     }
 
     toggleMobileMenu(): void {

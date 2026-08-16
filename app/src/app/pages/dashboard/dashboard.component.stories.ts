@@ -150,7 +150,9 @@ export const Default: Story = {
 
         // Verify sections
         await expect(canvas.getByText(/Account Portfolio/i)).toBeInTheDocument();
-        await expect(canvas.getByRole('button', { name: /\+ Quick Entry/i })).toBeInTheDocument();
+        await expect(
+            canvas.getAllByRole('button', { name: /Quick Entry/i })[0]
+        ).toBeInTheDocument();
         await expect(canvas.getAllByText(/90-Day Cashflow Forecast/i)[0]).toBeInTheDocument();
         await expect(canvas.getByText(/Recent Activity/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Upcoming/i)).toBeInTheDocument();

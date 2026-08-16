@@ -46,16 +46,45 @@
 
             <div
                 (click)="editClicked.emit(row.original)"
-                class="bg-brand-surface border border-brand-border hover:border-primary/50 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs cursor-pointer active:scale-[0.99] transition-all"
+                class="bg-brand-surface border border-brand-border hover:border-primary/50 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs cursor-pointer active:scale-[0.99] transition-all relative group/card"
+                [attr.aria-label]="'Edit transaction for ' + row.original.payee"
             >
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                        class="w-10 h-10 rounded-full bg-brand-elevated border border-brand-border flex items-center justify-center text-primary shrink-0"
+                    <!-- Quick Status Toggle Action Button -->
+                    <button
+                        type="button"
+                        (click)="$event.stopPropagation(); toggleTransactionStatus(row.original)"
+                        [title]="
+                            row.original.status === 'cleared' ||
+                            row.original.status === 'reconciled'
+                                ? 'Cleared (Click to mark Pending)'
+                                : 'Pending (Click to mark Cleared)'
+                        "
+                        [attr.aria-label]="
+                            'Status: ' + row.original.status + '. Click to toggle status.'
+                        "
+                        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-all cursor-pointer relative z-10"
+                        [ngClass]="{
+                            'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400':
+                                row.original.status === 'cleared' ||
+                                row.original.status === 'reconciled',
+                            'bg-brand-elevated border-brand-border text-amber-500':
+                                row.original.status === 'pending'
+                        }"
                     >
-                        <i [class]="'pi ' + getCategoryIcon(row.original)"></i>
-                    </div>
+                        @if (
+                            row.original.status === 'cleared' ||
+                            row.original.status === 'reconciled'
+                        ) {
+                            <i class="pi pi-check text-xs font-bold"></i>
+                        } @else {
+                            <i [class]="'pi ' + getCategoryIcon(row.original) + ' text-sm'"></i>
+                        }
+                    </button>
                     <div class="min-w-0 flex-1">
-                        <p class="text-sm font-bold text-content-primary truncate">
+                        <p
+                            class="text-sm font-bold text-content-primary group-hover/card:text-primary transition-colors truncate"
+                        >
                             {{ row.original.payee }}
                         </p>
                         <div class="flex items-center gap-2 mt-0.5">

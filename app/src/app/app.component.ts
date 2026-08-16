@@ -12,6 +12,7 @@ import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 
 import { environment } from '../environments/environment';
+import { CommandPaletteComponent } from './components/ui/command-palette/command-palette.component';
 import { EnvBannerComponent } from './components/ui/env-banner/env-banner.component';
 import { AuthService } from './services/auth/auth.service';
 import { FaviconService } from './services/favicon/favicon.service';
@@ -53,11 +54,12 @@ const AUTO_SAVE_DEBOUNCE_MS = 3_000;
  *   - Drive API fails → syncStatus = 'error', error detail shown in banner
  */
 @Component({
-    imports: [RouterOutlet, EnvBannerComponent],
+    imports: [RouterOutlet, EnvBannerComponent, CommandPaletteComponent],
     selector: 'root',
     template: `
         <env-banner />
         <router-outlet />
+        <app-command-palette />
     `,
     styles: `
         :host {

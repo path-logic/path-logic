@@ -419,4 +419,16 @@ export class TransactionTableComponent {
             setTimeout(() => this.scrollToToday(), 50);
         }
     }
+
+    async toggleTransactionStatus(tx: ITransaction): Promise<void> {
+        const newStatus =
+            tx.status === TransactionStatus.Cleared || tx.status === TransactionStatus.Reconciled
+                ? TransactionStatus.Pending
+                : TransactionStatus.Cleared;
+
+        await this.ledgerStore.updateTransaction({
+            ...tx,
+            status: newStatus
+        });
+    }
 }
