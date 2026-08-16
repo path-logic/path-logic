@@ -1,3 +1,58 @@
 :host {
-    display: block;
+    display: contents;
+}
+
+.quick-entry-overlay {
+    animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.quick-entry-modal {
+    animation: modalPopSpring 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: center center;
+}
+
+@keyframes backdropFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalPopSpring {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(16px);
+    }
+    70% {
+        transform: scale(1.01) translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 0.5s ease-in-out;
+}
+
+@keyframes bounceSubtle {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quick-entry-overlay,
+    .quick-entry-modal,
+    .animate-bounce-subtle {
+        animation: none !important;
+        transform: none !important;
+    }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { IAccount } from '@core';
 import { AccountType, Money } from '@core';
@@ -17,6 +17,7 @@ import { AccountType, Money } from '@core';
 export class AccountSparklineCardComponent {
     readonly account = input.required<IAccount>();
     readonly trendPercent = input<string | null>(null);
+    readonly quickEntryRequested = output<string>();
 
     readonly formattedBalance = computed((): string => {
         return Money.formatCurrency(this.account().pendingBalance);

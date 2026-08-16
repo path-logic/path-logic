@@ -1,5 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    input,
+    model,
+    output,
+    signal
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import type { IAccount, ITransaction } from '@core';
 import { KnownCategory, Money, TransactionStatus } from '@core';
@@ -7,7 +17,7 @@ import { KnownCategory, Money, TransactionStatus } from '@core';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 
 /**
- * Inline Fast Transaction Capture Widget for the Dashboard overview.
+ * Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.
  */
 @Component({
     selector: 'quick-entry-widget',
@@ -19,6 +29,10 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 })
 export class QuickEntryWidgetComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
+
+    readonly visible = model<boolean>(true);
+    readonly preselectedAccountId = input<string | null>(null);
+    readonly closed = output();
 
     readonly accounts = this.ledgerStore.accounts;
     readonly payees = this.ledgerStore.payees;
@@ -39,16 +53,46 @@ export class QuickEntryWidgetComponent {
         return this.accounts().filter((a: IAccount): boolean => a.isActive);
     });
 
+    readonly selectedAccount = computed((): IAccount | undefined => {
+        const id = this.selectedAccountId();
+        return this.accounts().find((a: IAccount): boolean => a.id === id);
+    });
+
     constructor() {
-        // Auto-select first account if available
-        const first = this.accounts()[0];
-        if (first) {
-            this.selectedAccountId.set(first.id);
-        }
+        // Auto-select initial account or react to preselectedAccountId input
+        effect(() => {
+            const preselected = this.preselectedAccountId();
+            if (preselected) {
+                this.selectedAccountId.set(preselected);
+            } else if (!this.selectedAccountId()) {
+                const first = this.accounts()[0];
+                if (first) {
+                    this.selectedAccountId.set(first.id);
+                }
+            }
+        });
     }
 
     toggleType(): void {
         this.isExpense.update((v: boolean) => !v);
+    }
+
+    close(): void {
+        this.visible.set(false);
+        this.closed.emit();
+        this.errorMessage.set(null);
+    }
+
+    onBackdropClick(event: MouseEvent): void {
+        if (event.target === event.currentTarget) {
+            this.close();
+        }
+    }
+
+    onKeyDown(event: KeyboardEvent): void {
+        if (event.key === 'Escape') {
+            this.close();
+        }
     }
 
     async saveTransaction(): Promise<void> {
@@ -113,7 +157,10 @@ export class QuickEntryWidgetComponent {
             this.amountString.set('');
             this.category.set('');
             this.showSuccess.set(true);
-            setTimeout(() => this.showSuccess.set(false), 2500);
+            setTimeout(() => {
+                this.showSuccess.set(false);
+                this.close();
+            }, 1000);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Failed to save transaction';
             this.errorMessage.set(msg);

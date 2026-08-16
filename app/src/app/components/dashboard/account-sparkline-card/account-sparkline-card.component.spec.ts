@@ -57,4 +57,19 @@ describe('AccountSparklineCardComponent', () => {
         expect(svg).toBeTruthy();
         expect(path.getAttribute('d')).toBeTruthy();
     });
+
+    it('should emit quickEntryRequested when Quick Entry button is clicked', () => {
+        let emittedId: string | null = null;
+        component.quickEntryRequested.subscribe((id: string) => {
+            emittedId = id;
+        });
+
+        const quickEntryBtn = fixture.nativeElement.querySelector(
+            'button[aria-label="Quick Entry for Chase Checking"]'
+        ) as HTMLButtonElement;
+        expect(quickEntryBtn).toBeTruthy();
+        quickEntryBtn.click();
+
+        expect(emittedId).toBe('acc-1');
+    });
 });

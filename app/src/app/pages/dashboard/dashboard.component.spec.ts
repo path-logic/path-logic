@@ -143,4 +143,16 @@ describe('DashboardComponent', () => {
         expect(component.upcomingPayments().length).toBe(1);
         expect(component.upcomingPayments()[0]?.name).toBe('Electric Bill');
     });
+
+    it('should open quick entry popup with or without specific preselected account', () => {
+        expect(component.isQuickEntryOpen()).toBe(false);
+        expect(component.quickEntryAccountId()).toBeNull();
+
+        component.openQuickEntry('acc-2');
+        expect(component.isQuickEntryOpen()).toBe(true);
+        expect(component.quickEntryAccountId()).toBe('acc-2');
+
+        component.closeQuickEntry();
+        expect(component.isQuickEntryOpen()).toBe(false);
+    });
 });

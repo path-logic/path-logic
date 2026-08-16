@@ -74,6 +74,9 @@ export const Checking: Story = {
         await expect(canvas.getByText('Primary Checking')).toBeInTheDocument();
         await expect(canvas.getByText('$14,870.50')).toBeInTheDocument();
         await expect(canvas.getByText('+1.1%')).toBeInTheDocument();
+        await expect(
+            canvas.getByRole('button', { name: /Quick Entry for Primary Checking/i })
+        ).toBeInTheDocument();
     }
 };
 

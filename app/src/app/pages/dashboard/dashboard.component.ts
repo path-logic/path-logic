@@ -52,6 +52,8 @@ export class DashboardComponent {
     readonly isInitialized = this.ledgerStore.isInitialized;
 
     readonly searchQuery = signal<string>('');
+    readonly isQuickEntryOpen = signal<boolean>(false);
+    readonly quickEntryAccountId = signal<string | null>(null);
 
     readonly userName = computed((): string => {
         return this.authService.currentUser()?.displayName?.split(' ')[0] || 'Commander';
@@ -161,6 +163,16 @@ export class DashboardComponent {
 
     formatCurrency(amount: number): string {
         return Money.formatCurrency(amount);
+    }
+
+    openQuickEntry(accountId?: string): void {
+        this.quickEntryAccountId.set(accountId ?? null);
+        this.isQuickEntryOpen.set(true);
+    }
+
+    closeQuickEntry(): void {
+        this.isQuickEntryOpen.set(false);
+        this.quickEntryAccountId.set(null);
     }
 
     navigateToAddAccount(): void {

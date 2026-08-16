@@ -111,4 +111,16 @@ describe('QuickEntryWidgetComponent', () => {
             })
         );
     });
+
+    it('should preselect account when preselectedAccountId input changes', () => {
+        fixture.componentRef.setInput('preselectedAccountId', 'acc-1');
+        fixture.detectChanges();
+        expect(component.selectedAccountId()).toBe('acc-1');
+    });
+
+    it('should close when close() is invoked or close button clicked', () => {
+        expect(component.visible()).toBe(true);
+        component.close();
+        expect(component.visible()).toBe(false);
+    });
 });
