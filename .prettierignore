@@ -22,3 +22,8 @@ packages/core/coverage/
 .angular
 
 qif-results
+
+# Generated documentation
+app/documentation.json
+documentation.json
+documentation/
