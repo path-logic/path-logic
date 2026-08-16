@@ -12,6 +12,7 @@ import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
 import { ModelUpgradeBannerComponent } from '../model-upgrade-banner/model-upgrade-banner.component';
 import { SecurityOverlayComponent } from '../security-overlay/security-overlay.component';
+import { SidebarNavComponent } from '../sidebar-nav/sidebar-nav.component';
 
 /**
  * Global application shell that provides the consistent header,
@@ -22,6 +23,7 @@ import { SecurityOverlayComponent } from '../security-overlay/security-overlay.c
     standalone: true,
     imports: [
         HeaderComponent,
+        SidebarNavComponent,
         FooterComponent,
         BreadcrumbNavComponent,
         SecurityOverlayComponent,

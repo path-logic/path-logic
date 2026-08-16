@@ -1,0 +1,164 @@
+<div
+    class="quick-entry-widget p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm relative overflow-hidden space-y-4"
+>
+    <!-- Header -->
+    <div class="flex items-center justify-between gap-3 pb-3 border-b border-surface-100">
+        <div class="flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center"
+            >
+                <i class="pi pi-bolt text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-surface-900">Quick Entry</h3>
+                <p class="text-[11px] text-surface-500 font-medium">Instant ledger capture</p>
+            </div>
+        </div>
+
+        <!-- Expense / Income Toggle -->
+        <button
+            type="button"
+            (click)="toggleType()"
+            [attr.aria-label]="isExpense() ? 'Switch to Income' : 'Switch to Expense'"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer"
+            [class.bg-red-500-10]="isExpense()"
+            [class.text-red-500]="isExpense()"
+            [class.border-red-500-20]="isExpense()"
+            [class.bg-emerald-500-10]="!isExpense()"
+            [class.text-emerald-700]="!isExpense()"
+            [class.dark:text-emerald-400]="!isExpense()"
+            [class.border-emerald-500-20]="!isExpense()"
+        >
+            <i [class]="'pi ' + (isExpense() ? 'pi-arrow-down-left' : 'pi-arrow-up-right')"></i>
+            {{ isExpense() ? 'Expense' : 'Income' }}
+        </button>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (showSuccess()) {
+        <div
+            class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-in fade-in"
+        >
+            <i class="pi pi-check-circle text-sm"></i>
+            <span>Transaction captured successfully!</span>
+        </div>
+    }
+
+    @if (errorMessage()) {
+        <div
+            class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-2 animate-in fade-in"
+        >
+            <i class="pi pi-exclamation-triangle text-sm"></i>
+            <span>{{ errorMessage() }}</span>
+        </div>
+    }
+
+    <!-- Form Fields Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Account Dropdown -->
+        <div class="space-y-1">
+            <label
+                for="quick-entry-account"
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
+            >
+                Account
+            </label>
+            <select
+                id="quick-entry-account"
+                [ngModel]="selectedAccountId()"
+                (ngModelChange)="selectedAccountId.set($event)"
+                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            >
+                @for (acc of accounts(); track acc.id) {
+                    <option [value]="acc.id">{{ acc.name }} ({{ acc.institutionName }})</option>
+                }
+            </select>
+        </div>
+
+        <!-- Payee Input with Datalist -->
+        <div class="space-y-1">
+            <label
+                for="quick-entry-payee"
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
+            >
+                Payee
+            </label>
+            <input
+                id="quick-entry-payee"
+                type="text"
+                list="quick-entry-payees-list"
+                [ngModel]="payee()"
+                (ngModelChange)="payee.set($event)"
+                placeholder="e.g. Netflix, Trader Joe's"
+                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            />
+            <datalist id="quick-entry-payees-list">
+                @for (p of payees(); track p.id) {
+                    <option [value]="p.name"></option>
+                }
+            </datalist>
+        </div>
+
+        <!-- Category Input -->
+        <div class="space-y-1">
+            <label
+                for="quick-entry-category"
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
+            >
+                Category
+            </label>
+            <input
+                id="quick-entry-category"
+                type="text"
+                [ngModel]="category()"
+                (ngModelChange)="category.set($event)"
+                placeholder="e.g. Subscriptions, Food"
+                class="w-full px-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-semibold text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            />
+        </div>
+
+        <!-- Amount Input -->
+        <div class="space-y-1">
+            <label
+                for="quick-entry-amount"
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-500"
+            >
+                Amount
+            </label>
+            <div class="relative">
+                <span
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-surface-400"
+                >
+                    $
+                </span>
+                <input
+                    id="quick-entry-amount"
+                    type="text"
+                    [ngModel]="amountString()"
+                    (ngModelChange)="amountString.set($event)"
+                    (keyup.enter)="saveTransaction()"
+                    placeholder="0.00"
+                    class="w-full pl-7 pr-3 py-2 bg-surface-50 border border-surface-200 rounded-xl text-xs font-bold font-mono text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                />
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="flex items-center justify-end pt-1">
+        <button
+            type="button"
+            (click)="saveTransaction()"
+            [disabled]="isSubmitting()"
+            class="min-h-[38px] px-5 bg-primary text-white hover:bg-primary/90 disabled:opacity-50 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer"
+        >
+            @if (isSubmitting()) {
+                <i class="pi pi-spin pi-spinner text-xs"></i>
+                Saving...
+            } @else {
+                <i class="pi pi-check text-xs"></i>
+                Save Transaction
+            }
+        </button>
+    </div>
+</div>

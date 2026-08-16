@@ -1,234 +1,244 @@
-<shell [noPadding]="false">
-    <div class="w-full mx-auto space-y-8 pb-12">
-        <!-- Header Section -->
-        <div class="flex justify-between items-end">
+<shell>
+    <div class="w-full space-y-6 pb-12">
+        <!-- ── Top Header Section ────────────────────────────────────────── -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
             <div>
-                <h1 class="text-3xl font-bold tracking-tight text-surface-800">
-                    Financial <span class="text-primary">Overview</span>
+                <h1 class="text-3xl font-bold tracking-tight text-surface-900">
+                    Portfolio <span class="text-primary">Overview</span>
                 </h1>
-                <p class="text-sm text-surface-500 font-medium mt-1">
-                    Snapshot of your net worth and future outlook
+                <p class="text-sm text-surface-500 font-medium mt-0.5">
+                    Welcome back, {{ userName() }}!
                 </p>
             </div>
-            <button
-                (click)="navigateToAddAccount()"
-                class="hidden md:flex items-center bg-primary text-white hover:bg-primary/90 min-h-[44px] px-4 rounded-xl font-semibold text-sm shadow-premium gap-2 transition-all"
-            >
-                <i class="pi pi-plus text-base"></i> Add Account
-            </button>
-        </div>
 
-        <!-- KPI Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Net Position Card -->
-            <div
-                class="p-6 bg-surface-0 border border-surface-200/50 rounded-2xl shadow-premium flex flex-col justify-between relative overflow-hidden group"
-            >
+            <div class="flex items-center gap-3">
+                <!-- Current Date Pill -->
                 <div
-                    class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"
+                    class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-0 border border-surface-200/80 text-xs font-semibold text-surface-600 shadow-xs"
                 >
-                    <i class="pi pi-wallet text-6xl"></i>
+                    <i class="pi pi-calendar text-xs text-primary"></i>
+                    <span>{{ currentDateFormatted() }}</span>
                 </div>
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-surface-500">
-                        Total Net Position
+
+                <!-- Global Search Input -->
+                <div class="relative w-full sm:w-64">
+                    <span
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-surface-400"
+                    >
+                        <i class="pi pi-search text-xs"></i>
                     </span>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <span
-                            class="text-4xl font-black tracking-tight"
-                            [class.text-surface-900]="netPosition() >= 0"
-                            [class.text-red-500]="netPosition() < 0"
+                    <input
+                        type="text"
+                        [ngModel]="searchQuery()"
+                        (ngModelChange)="searchQuery.set($event)"
+                        placeholder="Quick search..."
+                        class="w-full pl-8 pr-3 py-2 bg-surface-0 border border-surface-200/80 rounded-xl text-xs font-medium text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-xs"
+                    />
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Main Workspace 2-Column Grid ─────────────────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- ── Left Column: Account Portfolio & Quick Entry ─────────── -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Account Portfolio Section -->
+                <section class="space-y-3">
+                    <div class="flex items-center justify-between px-1">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-bold text-surface-900 uppercase tracking-wider">
+                                Account Portfolio
+                            </h2>
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20"
+                            >
+                                {{ accounts().length }} Total
+                            </span>
+                        </div>
+                        <a
+                            routerLink="/accounts"
+                            class="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
                         >
-                            {{ formattedNetPosition() }}
-                        </span>
+                            Manage Accounts &rarr;
+                        </a>
                     </div>
-                </div>
 
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                    >
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Cleared: {{ formattedClearedBalance() }}
-                    </span>
-                    <span
-                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                    >
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        Pending: {{ formattedPendingBalance() }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Projection Chart Card -->
-            <div
-                class="p-6 bg-surface-0 border border-surface-200/50 rounded-2xl shadow-premium md:col-span-2 overflow-hidden flex items-center justify-center"
-            >
-                <projection-chart [data]="projection()" [height]="120" class="w-full" />
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Accounts Summary -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="flex justify-between items-center px-1 min-h-[44px]">
-                    <h2 class="text-sm font-semibold text-surface-800 tracking-wide">
-                        My Accounts
-                    </h2>
-                    <a
-                        routerLink="/accounts"
-                        class="text-sm font-medium text-primary hover:text-primary/80 flex items-center transition-colors"
-                    >
-                        Manage All
-                    </a>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @if (accounts().length === 0) {
+                        <!-- Empty State -->
                         <div
-                            class="p-10 border border-surface-200/40 rounded-2xl bg-glass flex flex-col items-center justify-center text-center col-span-full shadow-premium"
+                            class="p-8 border border-dashed border-surface-200/80 rounded-2xl bg-surface-0 flex flex-col items-center justify-center text-center space-y-3"
                         >
                             <div
-                                class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+                                class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
                             >
-                                <i class="pi pi-building-columns text-3xl text-primary"></i>
+                                <i class="pi pi-wallet text-2xl"></i>
                             </div>
-                            <p class="text-sm font-medium text-surface-800 tracking-wide">
-                                No accounts connected yet
-                            </p>
-                            <a routerLink="/accounts" class="mt-6 flex">
-                                <button
-                                    class="bg-foreground text-background hover:bg-foreground/90 min-h-[44px] px-6 rounded-xl text-sm font-semibold transition-all shadow-md"
-                                >
-                                    Get Started
-                                </button>
-                            </a>
+                            <div>
+                                <h3 class="text-sm font-bold text-surface-900">
+                                    No accounts connected
+                                </h3>
+                                <p class="text-xs text-surface-500 mt-0.5">
+                                    Add your checking, savings, credit, or investment accounts.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                (click)="navigateToAddAccount()"
+                                class="min-h-[40px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-bold shadow-premium flex items-center gap-2 transition-all cursor-pointer"
+                            >
+                                <i class="pi pi-plus text-xs"></i>
+                                Add First Account
+                            </button>
                         </div>
                     } @else {
-                        @for (account of accounts().slice(0, 4); track account.id) {
-                            <a [routerLink]="['/accounts', account.id]">
-                                <div
-                                    class="p-4 border border-surface-200 rounded-lg bg-surface-0 hover:border-primary/50 transition-all cursor-pointer hover:shadow-[0_0_20px_rgba(56,189,248,0.05)] group"
-                                >
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
-                                            >
-                                                <i
-                                                    [class]="
-                                                        'pi text-lg ' + getAccountIcon(account.type)
-                                                    "
-                                                ></i>
-                                            </div>
-                                            <div>
-                                                <h3
-                                                    class="text-sm font-bold text-surface-900 truncate max-w-[140px]"
-                                                >
-                                                    {{ account.name }}
-                                                </h3>
-                                                <p
-                                                    class="text-xs text-surface-500 font-medium truncate max-w-[140px]"
-                                                >
-                                                    {{ account.institutionName }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <i
-                                            class="pi pi-chevron-right text-base text-surface-400 group-hover:text-primary transition-colors"
-                                        ></i>
-                                    </div>
-                                    <div class="mt-4 flex justify-between items-end">
-                                        <div class="flex flex-col">
-                                            <span class="text-xs text-surface-500 font-medium">
-                                                {{
-                                                    account.type === 'credit'
-                                                        ? 'Balance Due'
-                                                        : 'Current Balance'
-                                                }}
-                                            </span>
-                                            <span
-                                                class="text-base font-mono font-bold tracking-tight text-surface-900"
-                                            >
-                                                {{ formattedAccountBalance(account) }}
-                                            </span>
-                                        </div>
-                                        <div
-                                            class="w-2 h-2 rounded-full"
-                                            [class.bg-emerald-500]="account.isActive"
-                                            [class.bg-surface-300]="!account.isActive"
-                                            [title]="account.isActive ? 'Active' : 'Inactive'"
-                                        ></div>
-                                    </div>
-                                </div>
-                            </a>
-                        }
+                        <!-- 2x2 Sparkline Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @for (account of primaryAccounts(); track account.id; let i = $index) {
+                                <account-sparkline-card
+                                    [account]="account"
+                                    [trendPercent]="getTrendPercent(i)"
+                                />
+                            }
+                        </div>
                     }
-                </div>
+                </section>
+
+                <!-- Quick Entry Widget -->
+                <section>
+                    <quick-entry-widget />
+                </section>
             </div>
 
-            <!-- Recent Activity -->
-            <div class="space-y-4">
-                <div class="flex justify-between items-center px-1 min-h-[44px]">
-                    <h2 class="text-sm font-semibold text-surface-800 tracking-wide">
-                        Recent Activity
-                    </h2>
-                    <i class="pi pi-history text-base text-surface-500"></i>
-                </div>
-                <div
-                    class="bg-surface-0 border border-surface-200/50 rounded-2xl shadow-premium overflow-hidden"
+            <!-- ── Right Column: Forecast, Activity & Upcoming ──────────── -->
+            <div class="lg:col-span-5 space-y-6">
+                <!-- 90-Day Cashflow Forecast Panel -->
+                <section
+                    class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3"
                 >
-                    <div class="h-[360px] overflow-y-auto">
-                        <div class="divide-y divide-border/50">
+                    <div class="flex items-center justify-between border-b border-surface-100 pb-3">
+                        <div>
+                            <h2 class="text-sm font-bold text-surface-900">
+                                90-Day Cashflow Forecast
+                            </h2>
+                            <p class="text-[11px] text-surface-500 font-medium">
+                                Projected trajectory & scheduled delta
+                            </p>
+                        </div>
+                        <span
+                            class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-surface-100 text-surface-600 border border-surface-200"
+                        >
+                            Daily Roll
+                        </span>
+                    </div>
+
+                    <div class="pt-2">
+                        <projection-chart [data]="projection()" [height]="140" class="w-full" />
+                    </div>
+                </section>
+
+                <!-- Activity & Upcoming Feeds Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Recent Activity Feed -->
+                    <section
+                        class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b border-surface-100 pb-2"
+                        >
+                            <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
+                                Recent Activity
+                            </h3>
+                            <i class="pi pi-history text-xs text-surface-400"></i>
+                        </div>
+
+                        <div class="space-y-2.5 min-h-[160px]">
                             @if (recentTransactions().length === 0) {
-                                <div class="p-8 text-center">
-                                    <p
-                                        class="text-[10px] font-bold text-surface-500 uppercase tracking-widest italic"
-                                    >
-                                        No recent transactions
-                                    </p>
+                                <div class="py-8 text-center text-xs text-surface-400 font-medium">
+                                    No transactions recorded yet
                                 </div>
                             } @else {
                                 @for (tx of recentTransactions(); track tx.id) {
-                                    <div class="p-4 hover:bg-surface-100/30 transition-colors">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <div class="flex flex-col gap-0.5 max-w-[140px]">
-                                                <span
-                                                    class="text-sm font-medium text-surface-800 truncate"
-                                                >
-                                                    {{ tx.payee }}
-                                                </span>
-                                                <span class="text-xs text-surface-500">
-                                                    {{ tx.date | localDate: 'short' }}
-                                                </span>
-                                            </div>
-                                            <span
-                                                class="text-sm font-semibold"
-                                                [class.text-red-500]="tx.totalAmount < 0"
-                                                [class.text-primary]="tx.totalAmount >= 0"
-                                            >
-                                                {{ tx.totalAmount >= 0 ? '+' : ''
-                                                }}{{ formatCurrency(tx.totalAmount) }}
-                                            </span>
-                                        </div>
-                                        @if (tx.memo) {
-                                            <p class="text-[9px] text-surface-500 italic truncate">
-                                                {{ tx.memo }}
+                                    <div class="flex items-center justify-between text-xs gap-2">
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-surface-900 truncate">
+                                                {{ tx.payee }}
                                             </p>
-                                        }
+                                            <p class="text-[10px] text-surface-400">
+                                                {{ tx.date | localDate: 'short' }}
+                                            </p>
+                                        </div>
+                                        <span
+                                            class="font-mono font-bold shrink-0"
+                                            [class.text-red-500]="tx.totalAmount < 0"
+                                            [class.text-emerald-700]="tx.totalAmount >= 0"
+                                            [class.dark:text-emerald-400]="tx.totalAmount >= 0"
+                                        >
+                                            {{ tx.totalAmount >= 0 ? '+' : ''
+                                            }}{{ formatCurrency(tx.totalAmount) }}
+                                        </span>
                                     </div>
                                 }
                             }
                         </div>
-                    </div>
-                    @if (recentTransactions().length > 0) {
-                        <div class="p-3 bg-surface-100/20 border-t border-surface-200 text-center">
-                            <p
-                                class="text-[9px] font-bold text-surface-500 uppercase tracking-widest"
-                            >
-                                Use Accounts to see full history
-                            </p>
+
+                        <a
+                            routerLink="/accounts"
+                            class="text-[10px] font-bold text-primary hover:underline block text-center pt-2 border-t border-surface-100"
+                        >
+                            View Full Ledger &rarr;
+                        </a>
+                    </section>
+
+                    <!-- Upcoming Payments Feed -->
+                    <section
+                        class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b border-surface-100 pb-2"
+                        >
+                            <h3 class="text-xs font-bold text-surface-900 uppercase tracking-wider">
+                                Upcoming
+                            </h3>
+                            <i class="pi pi-replay text-xs text-surface-400"></i>
                         </div>
-                    }
+
+                        <div class="space-y-2.5 min-h-[160px]">
+                            @if (upcomingPayments().length === 0) {
+                                <div class="py-8 text-center text-xs text-surface-400 font-medium">
+                                    No scheduled bills due
+                                </div>
+                            } @else {
+                                @for (item of upcomingPayments(); track item.id) {
+                                    <div class="flex items-center justify-between text-xs gap-2">
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-surface-900 truncate">
+                                                {{ item.name }}
+                                            </p>
+                                            <p class="text-[10px] text-surface-400">
+                                                Due {{ item.dueDate | localDate: 'short' }}
+                                            </p>
+                                        </div>
+                                        <span
+                                            class="font-mono font-bold shrink-0"
+                                            [class.text-red-500]="item.amount < 0"
+                                            [class.text-emerald-700]="item.amount >= 0"
+                                            [class.dark:text-emerald-400]="item.amount >= 0"
+                                        >
+                                            {{ item.amount >= 0 ? '+' : ''
+                                            }}{{ formatCurrency(item.amount) }}
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <a
+                            routerLink="/recurring"
+                            class="text-[10px] font-bold text-primary hover:underline block text-center pt-2 border-t border-surface-100"
+                        >
+                            Manage Recurring &rarr;
+                        </a>
+                    </section>
                 </div>
             </div>
         </div>

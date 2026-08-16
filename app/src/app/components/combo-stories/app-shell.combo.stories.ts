@@ -57,6 +57,8 @@ export class ComboShellComponent {}
 const mockLedgerStore = {
     transactions: signal([]),
     accounts: signal([]),
+    schedules: signal([]),
+    payees: signal([]),
     syncStatus: signal('idle'),
     authError: signal(false),
     isInitialized: signal(true),

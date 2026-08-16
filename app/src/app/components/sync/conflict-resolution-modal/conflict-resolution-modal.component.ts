@@ -22,7 +22,9 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 export class ConflictResolutionModalComponent {
     private readonly ledgerStore = inject(LedgerStore);
 
-    readonly conflicts = computed(() => this.ledgerStore.syncConflicts());
+    readonly conflicts = computed(() =>
+        typeof this.ledgerStore.syncConflicts === 'function' ? this.ledgerStore.syncConflicts() : []
+    );
     readonly showModal = computed(() => this.conflicts().length > 0);
 
     formatAmount(cents: number): string {

@@ -11,33 +11,43 @@
     <merge-sync-toast />
     <conflict-resolution-modal />
 
-    <header class="app-header"></header>
+    <!-- Mobile Top Header (hidden on desktop) -->
+    <header class="app-header lg:hidden"></header>
 
-    <main
-        class="flex-1 w-full flex flex-col min-h-0 relative"
-        [class.overflow-hidden]="!scrollable()"
-    >
-        <breadcrumb-nav />
+    <!-- Workspace Body: Desktop Left Sidebar + Main Content Area -->
+    <div class="flex-1 w-full flex min-h-0 overflow-hidden">
+        <!-- Desktop Left Sidebar Navigation -->
+        <sidebar-nav class="hidden lg:flex w-64 shrink-0 h-full" />
 
-        <div
-            class="flex-1 w-full flex flex-col"
-            [class.overflow-y-auto]="scrollable()"
-            [class.overflow-x-hidden]="scrollable()"
-            [class.overflow-hidden]="!scrollable()"
-        >
-            <div
-                class="w-full mx-auto flex flex-col"
-                [class.p-4]="!noPadding()"
-                [class.max-w-7xl]="!noPadding()"
-                [class.min-h-full]="scrollable()"
-                [class.h-full]="!scrollable()"
+        <!-- Main Viewport Area -->
+        <div class="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden relative">
+            <main
+                class="flex-1 w-full flex flex-col min-h-0 relative"
+                [class.overflow-hidden]="!scrollable()"
             >
-                <ng-content />
-            </div>
-        </div>
-    </main>
+                <breadcrumb-nav />
 
-    <footer></footer>
+                <div
+                    class="flex-1 w-full flex flex-col"
+                    [class.overflow-y-auto]="scrollable()"
+                    [class.overflow-x-hidden]="scrollable()"
+                    [class.overflow-hidden]="!scrollable()"
+                >
+                    <div
+                        class="w-full mx-auto flex flex-col"
+                        [class.p-4]="!noPadding()"
+                        [class.max-w-7xl]="!noPadding()"
+                        [class.min-h-full]="scrollable()"
+                        [class.h-full]="!scrollable()"
+                    >
+                        <ng-content />
+                    </div>
+                </div>
+            </main>
+
+            <footer class="lg:hidden"></footer>
+        </div>
+    </div>
 
     <!-- AI Assistant Sidebar -->
     <ai-assistant-sidebar />

@@ -1,0 +1,177 @@
+<aside
+    class="sidebar-nav h-full flex flex-col justify-between p-4 bg-surface-0 border-r border-surface-200 select-none overflow-y-auto"
+    aria-label="Main navigation"
+>
+    <!-- Top Section: Brand Logo & Navigation -->
+    <div class="space-y-6">
+        <!-- Brand Header -->
+        <div class="px-2 pt-2 flex items-center justify-between">
+            <a routerLink="/" class="flex items-center group min-h-[44px]">
+                <brand-logo [size]="'md'" [variant]="'full'" />
+            </a>
+        </div>
+
+        <!-- Net Position Quick Pill -->
+        <div
+            class="mx-1 p-3 rounded-xl bg-surface-50 border border-surface-200/80 flex flex-col gap-1 shadow-xs"
+        >
+            <span class="text-[10px] font-bold uppercase tracking-wider text-surface-500">
+                Net Position
+            </span>
+            <span
+                class="text-base font-black tracking-tight"
+                [class.text-red-500]="netBalance() < 0"
+                [class.text-surface-900]="netBalance() >= 0"
+            >
+                {{ formattedNetBalance() }}
+            </span>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="space-y-1.5" aria-label="Primary Navigation">
+            @for (item of navItems; track item.name) {
+                <a
+                    [routerLink]="item.href"
+                    routerLinkActive="active-nav-link text-primary bg-primary/10 border-primary font-bold shadow-xs"
+                    [routerLinkActiveOptions]="{ exact: item.href === '/' }"
+                    class="group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 border border-transparent"
+                >
+                    <div class="flex items-center gap-3">
+                        <i
+                            [class]="
+                                'pi ' +
+                                item.icon +
+                                ' text-base group-hover:text-primary transition-colors'
+                            "
+                        ></i>
+                        <span>{{ item.name }}</span>
+                    </div>
+
+                    @if (item.badge && item.badge()) {
+                        <span
+                            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-200 text-surface-700 group-hover:bg-primary/20 group-hover:text-primary transition-colors"
+                        >
+                            {{ item.badge!() }}
+                        </span>
+                    }
+                </a>
+            }
+        </nav>
+    </div>
+
+    <!-- Bottom Utility Zone -->
+    <div class="pt-4 border-t border-surface-200 space-y-3">
+        <!-- Quick Action Tools: Theme, AI Assistant, Sync -->
+        <div class="flex items-center justify-between px-2">
+            <div class="flex items-center gap-1.5">
+                <!-- Theme Toggle -->
+                <button
+                    type="button"
+                    (click)="toggleTheme()"
+                    [title]="
+                        themeService.resolvedTheme() === 'dark'
+                            ? 'Switch to Light Mode'
+                            : 'Switch to Dark Mode'
+                    "
+                    [attr.aria-label]="
+                        themeService.resolvedTheme() === 'dark'
+                            ? 'Switch to Light Mode'
+                            : 'Switch to Dark Mode'
+                    "
+                    class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                    <i
+                        class="pi text-base"
+                        [class.pi-moon]="themeService.resolvedTheme() === 'dark'"
+                        [class.pi-sun]="themeService.resolvedTheme() !== 'dark'"
+                    ></i>
+                </button>
+
+                <!-- AI Assistant Trigger -->
+                <button
+                    type="button"
+                    (click)="toggleAiAssistant()"
+                    title="AI Financial Assistant"
+                    aria-label="Open AI Financial Assistant"
+                    class="ai-assistant-toggle w-9 h-9 rounded-xl flex items-center justify-center text-surface-500 hover:text-surface-900 hover:bg-surface-100 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                    <i class="pi pi-sparkles text-base text-primary animate-pulse"></i>
+                </button>
+            </div>
+
+            <!-- Sync Indicator -->
+            <sync-indicator />
+        </div>
+
+        <!-- User Profile Card / Menu -->
+        <div class="relative">
+            <button
+                type="button"
+                (click)="toggleUserMenu()"
+                aria-label="User Account Menu"
+                [attr.aria-expanded]="showUserMenu()"
+                class="w-full p-2 rounded-xl flex items-center gap-3 hover:bg-surface-100 transition-all text-left cursor-pointer border border-transparent hover:border-surface-200"
+            >
+                <div
+                    class="w-8 h-8 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0"
+                >
+                    @if (userPhotoUrl()) {
+                        <img
+                            [src]="userPhotoUrl()"
+                            [alt]="userName()"
+                            class="w-full h-full object-cover"
+                        />
+                    } @else {
+                        <span class="text-xs font-bold text-primary">{{ userInitial() }}</span>
+                    }
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-surface-900 truncate">
+                        {{ userName() }}
+                    </p>
+                    <p class="text-[10px] text-surface-500 truncate">
+                        {{ userEmail() || 'Encrypted Vault' }}
+                    </p>
+                </div>
+
+                <i
+                    class="pi pi-ellipsis-v text-xs text-surface-400"
+                    [class.text-primary]="showUserMenu()"
+                ></i>
+            </button>
+
+            <!-- User Menu Popup -->
+            @if (showUserMenu()) {
+                <div
+                    class="absolute bottom-full left-0 mb-2 w-full bg-surface-0 border border-surface-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150"
+                >
+                    <div class="px-3 py-2 border-b border-surface-100">
+                        <p class="text-xs font-bold text-surface-900 truncate">{{ userName() }}</p>
+                        <p class="text-[10px] text-surface-500 truncate">
+                            {{ userEmail() || 'Local Encrypted' }}
+                        </p>
+                    </div>
+
+                    <a
+                        routerLink="/settings"
+                        (click)="showUserMenu.set(false)"
+                        class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-surface-700 hover:bg-surface-100 hover:text-surface-900 transition-colors"
+                    >
+                        <i class="pi pi-cog text-xs"></i>
+                        Settings
+                    </a>
+
+                    <button
+                        type="button"
+                        (click)="signOut()"
+                        class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-left"
+                    >
+                        <i class="pi pi-sign-out text-xs"></i>
+                        Sign Out
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</aside>

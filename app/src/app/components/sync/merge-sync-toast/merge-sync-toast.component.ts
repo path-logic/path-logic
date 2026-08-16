@@ -31,9 +31,19 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 export class MergeSyncToastComponent {
     private readonly ledgerStore = inject(LedgerStore);
 
-    readonly mergeCount = computed(() => this.ledgerStore.mergeCount());
-    readonly hasConflicts = computed(() => this.ledgerStore.syncConflicts().length > 0);
-    readonly conflictCount = computed(() => this.ledgerStore.syncConflicts().length);
+    readonly mergeCount = computed(() =>
+        typeof this.ledgerStore.mergeCount === 'function' ? this.ledgerStore.mergeCount() : 0
+    );
+    readonly hasConflicts = computed(
+        () =>
+            typeof this.ledgerStore.syncConflicts === 'function' &&
+            this.ledgerStore.syncConflicts().length > 0
+    );
+    readonly conflictCount = computed(() =>
+        typeof this.ledgerStore.syncConflicts === 'function'
+            ? this.ledgerStore.syncConflicts().length
+            : 0
+    );
 
     /** Controls local visibility (separate from mergeCount for dismiss animation) */
     readonly visible = signal<boolean>(false);
