@@ -19,645 +19,220 @@
     } @else {
         <div class="w-full space-y-6 pb-12">
             <!-- Header Section -->
-            <header
-                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            >
-                <div>
-                    <h1 class="text-3xl font-bold tracking-tight text-surface-800">
-                        Accounts <span class="text-primary">Portfolio</span>
-                    </h1>
-                    <p class="text-sm text-surface-500 font-medium mt-1">
-                        Hierarchical management of institutions, credit limits, and balances
-                    </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button
-                        type="button"
-                        (click)="toggleTrash()"
-                        class="min-h-[44px] px-4 flex items-center gap-2 border border-surface-200/60 hover:bg-surface-100 text-surface-600 rounded-xl text-sm font-semibold transition-all shadow-sm"
-                        [class.bg-red-500-10]="isTrashOpen()"
-                        [class.border-red-500-30]="isTrashOpen()"
-                        aria-label="View trashed accounts"
-                    >
-                        <i class="pi pi-trash text-base text-red-500"></i>
-                        Trash
-                        @if (trashedAccounts().length > 0) {
-                            <span
-                                class="px-1.5 py-0.5 rounded-full text-xs bg-red-500/10 text-red-500 font-bold"
-                            >
-                                {{ trashedAccounts().length }}
-                            </span>
-                        }
-                    </button>
-                    <button
-                        (click)="openAddAccount()"
-                        class="min-h-[44px] px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all cursor-pointer"
-                    >
-                        <i class="pi pi-plus text-base"></i>
-                        Add Account
-                    </button>
-                </div>
+            <header class="flex justify-between items-center gap-4">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-surface-900">
+                    Accounts
+                </h1>
+                <button
+                    (click)="openAddAccount()"
+                    class="min-h-[44px] px-4 sm:px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all cursor-pointer"
+                >
+                    <i class="pi pi-plus text-base"></i>
+                    Add Account
+                </button>
             </header>
 
-            <!-- Main Layout Grid: Left Sidebar (Desktop) + Right Content Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Left Sidebar Filters (Desktop) / Horizontal Filter Bar (Mobile) -->
-                <div class="lg:col-span-3 space-y-4">
+            @if (isTrashOpen()) {
+                <!-- Trashed / Archived Accounts View -->
+                <div
+                    class="bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl p-6 shadow-xs space-y-4"
+                >
                     <div
-                        class="bg-surface-0 border border-surface-200/60 rounded-2xl p-4 shadow-sm space-y-2"
+                        class="flex justify-between items-center pb-4 border-b border-surface-100 dark:border-surface-800"
                     >
-                        <div
-                            class="flex items-center justify-between pb-2 border-b border-surface-100"
-                        >
-                            <span
-                                class="text-xs font-bold uppercase tracking-wider text-surface-500"
-                                >Categories</span
-                            >
-                            <span class="text-xs font-mono font-semibold text-primary"
-                                >{{ accounts().length }} total</span
-                            >
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-trash text-red-500 text-lg"></i>
+                            <h2 class="text-base font-bold text-surface-900">Archived Accounts</h2>
                         </div>
-
-                        <div
-                            class="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0"
-                        >
+                        <div class="flex items-center gap-2">
+                            @if (trashedAccounts().length > 0) {
+                                <button
+                                    type="button"
+                                    (click)="requestEmptyTrash()"
+                                    class="px-3 py-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold transition-colors min-h-[36px]"
+                                >
+                                    Empty Trash
+                                </button>
+                            }
                             <button
                                 type="button"
-                                (click)="setFilter('all')"
-                                class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                                [class.bg-primary-10]="activeFilter() === 'all'"
-                                [class.text-primary]="activeFilter() === 'all'"
-                                [class.font-bold]="activeFilter() === 'all'"
-                                [class.text-surface-700]="activeFilter() !== 'all'"
-                                [class.hover:bg-surface-100]="activeFilter() !== 'all'"
+                                (click)="toggleTrash()"
+                                class="px-3 py-1.5 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg text-xs font-semibold transition-colors min-h-[36px]"
                             >
-                                <span class="flex items-center gap-2.5">
-                                    <i class="pi pi-list"></i>
-                                    All Accounts
-                                </span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                                >
-                                    {{ accounts().length }}
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                (click)="setFilter('banking')"
-                                class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                                [class.bg-primary-10]="activeFilter() === 'banking'"
-                                [class.text-primary]="activeFilter() === 'banking'"
-                                [class.font-bold]="activeFilter() === 'banking'"
-                                [class.text-surface-700]="activeFilter() !== 'banking'"
-                                [class.hover:bg-surface-100]="activeFilter() !== 'banking'"
-                            >
-                                <span class="flex items-center gap-2.5">
-                                    <i class="pi pi-building-columns"></i>
-                                    Banking & Cash
-                                </span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                                >
-                                    {{ bankingCount() }}
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                (click)="setFilter('credit')"
-                                class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                                [class.bg-primary-10]="activeFilter() === 'credit'"
-                                [class.text-primary]="activeFilter() === 'credit'"
-                                [class.font-bold]="activeFilter() === 'credit'"
-                                [class.text-surface-700]="activeFilter() !== 'credit'"
-                                [class.hover:bg-surface-100]="activeFilter() !== 'credit'"
-                            >
-                                <span class="flex items-center gap-2.5">
-                                    <i class="pi pi-credit-card"></i>
-                                    Credit Cards
-                                </span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                                >
-                                    {{ creditCount() }}
-                                </span>
-                            </button>
-
-                            <button
-                                type="button"
-                                (click)="setFilter('loans')"
-                                class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                                [class.bg-primary-10]="activeFilter() === 'loans'"
-                                [class.text-primary]="activeFilter() === 'loans'"
-                                [class.font-bold]="activeFilter() === 'loans'"
-                                [class.text-surface-700]="activeFilter() !== 'loans'"
-                                [class.hover:bg-surface-100]="activeFilter() !== 'loans'"
-                            >
-                                <span class="flex items-center gap-2.5">
-                                    <i class="pi pi-percentage"></i>
-                                    Loans & Mortgages
-                                </span>
-                                <span
-                                    class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                                >
-                                    {{ loansCount() }}
-                                </span>
+                                Close
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Main Content Area (Two-Tier Hierarchy or Trashed View) -->
-                <div class="lg:col-span-9 space-y-8">
-                    @if (isTrashOpen()) {
-                        <!-- Trashed Accounts View -->
-                        <div
-                            class="bg-surface-0 border border-surface-200/60 rounded-2xl p-6 shadow-premium space-y-4"
-                        >
-                            <div
-                                class="flex justify-between items-center pb-4 border-b border-surface-100"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <i class="pi pi-trash text-red-500 text-xl"></i>
-                                    <h2 class="text-lg font-bold text-surface-900">Trash Bin</h2>
-                                </div>
-                                @if (trashedAccounts().length > 0) {
-                                    <button
-                                        type="button"
-                                        (click)="requestEmptyTrash()"
-                                        class="px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-xs font-bold transition-colors min-h-[40px]"
-                                    >
-                                        Empty Trash
-                                    </button>
-                                }
-                            </div>
-
-                            @if (trashedAccounts().length === 0) {
-                                <div class="p-12 text-center text-surface-500 space-y-2">
-                                    <i class="pi pi-check-circle text-3xl text-emerald-500"></i>
-                                    <p class="font-medium">Trash is empty</p>
-                                </div>
-                            } @else {
-                                <div class="divide-y divide-surface-100">
-                                    @for (account of trashedAccounts(); track account.id) {
-                                        <div class="py-4 flex items-center justify-between gap-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-500"
-                                                >
-                                                    <i
-                                                        [class]="
-                                                            'pi ' + getAccountIcon(account.type)
-                                                        "
-                                                    ></i>
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-surface-900">
-                                                        {{ account.name }}
-                                                    </p>
-                                                    <p class="text-xs text-surface-500 uppercase">
-                                                        {{ account.institutionName }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    (click)="handleRestoreAccount(account.id)"
-                                                    class="px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors min-h-[36px]"
-                                                >
-                                                    Restore
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    (click)="requestPurgeAccount(account.id)"
-                                                    class="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-lg transition-colors min-h-[36px]"
-                                                >
-                                                    Delete Permanently
-                                                </button>
-                                            </div>
+                    @if (trashedAccounts().length === 0) {
+                        <div class="p-8 text-center text-surface-500 space-y-2">
+                            <i class="pi pi-check-circle text-2xl text-emerald-500"></i>
+                            <p class="text-sm font-medium">Trash is empty</p>
+                        </div>
+                    } @else {
+                        <div class="divide-y divide-surface-100 dark:divide-surface-800">
+                            @for (account of trashedAccounts(); track account.id) {
+                                <div class="py-3 flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div
+                                            class="w-10 h-10 rounded-xl flex items-center justify-center border shrink-0"
+                                            [class]="getAccountBadgeClass(account.type)"
+                                        >
+                                            <i
+                                                [class]="
+                                                    'pi text-base ' + getAccountIcon(account.type)
+                                                "
+                                            ></i>
                                         </div>
-                                    }
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-surface-900 text-sm truncate">
+                                                {{ account.name }}
+                                            </p>
+                                            <p class="text-xs text-surface-500 truncate">
+                                                {{ account.institutionName || 'Account' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button
+                                            type="button"
+                                            (click)="handleRestoreAccount(account.id)"
+                                            class="px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors min-h-[36px]"
+                                        >
+                                            Restore
+                                        </button>
+                                        <button
+                                            type="button"
+                                            (click)="requestPurgeAccount(account.id)"
+                                            class="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-lg transition-colors min-h-[36px]"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
                             }
                         </div>
-                    } @else {
-                        <!-- Tier 1: Primary & Daily Accounts Hero Section -->
-                        @if (activeFilter() === 'all' && primaryAccounts().length > 0) {
-                            <section class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <h2
-                                        class="text-sm font-bold uppercase tracking-wider text-surface-500"
-                                    >
-                                        Primary & Daily Accounts
-                                    </h2>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                    @for (account of primaryAccounts(); track account.id) {
-                                        <div
-                                            class="p-5 bg-surface-0 border border-surface-200/60 rounded-2xl shadow-premium flex flex-col justify-between hover:border-primary/50 transition-all group relative cursor-pointer"
-                                        >
-                                            <!-- Full-Card Click Target Overlay Anchor -->
-                                            <a
-                                                [routerLink]="['/accounts', account.id]"
-                                                class="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                                [attr.aria-label]="
-                                                    'View ledger for ' + account.name
-                                                "
-                                            ></a>
-
-                                            <div
-                                                class="flex justify-between items-start mb-3 relative z-10 pointer-events-none"
-                                            >
-                                                <div class="flex items-center gap-3">
-                                                    <div
-                                                        class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors"
-                                                    >
-                                                        <i
-                                                            [class]="
-                                                                'pi text-lg ' +
-                                                                getAccountIcon(account.type)
-                                                            "
-                                                        ></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3
-                                                            class="text-sm font-bold text-surface-900 group-hover:text-primary transition-colors truncate max-w-[140px]"
-                                                        >
-                                                            {{ account.name }}
-                                                        </h3>
-                                                        <p
-                                                            class="text-xs text-surface-500 font-medium truncate max-w-[140px]"
-                                                        >
-                                                            {{ account.institutionName }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span
-                                                    class="w-2 h-2 rounded-full"
-                                                    [class.bg-emerald-500]="account.isActive"
-                                                    [class.bg-surface-300]="!account.isActive"
-                                                ></span>
-                                            </div>
-
-                                            <div class="my-2 relative z-10 pointer-events-none">
-                                                <p class="text-xs text-surface-500 font-medium">
-                                                    {{
-                                                        isLiability(account.type)
-                                                            ? 'Balance Due'
-                                                            : 'Current Balance'
-                                                    }}
-                                                </p>
-                                                <p
-                                                    class="text-2xl font-mono font-black tracking-tight text-surface-900"
-                                                >
-                                                    {{ formattedAccountBalance(account) }}
-                                                </p>
-                                            </div>
-
-                                            <!-- Subtle 30-Day Activity Sparkline Simulation -->
-                                            <div
-                                                class="h-6 w-full flex items-end gap-1 opacity-70 my-2 relative z-10 pointer-events-none"
-                                            >
-                                                <div
-                                                    class="h-2 w-full bg-primary/20 rounded-xs"
-                                                ></div>
-                                                <div
-                                                    class="h-3 w-full bg-primary/30 rounded-xs"
-                                                ></div>
-                                                <div
-                                                    class="h-2.5 w-full bg-primary/20 rounded-xs"
-                                                ></div>
-                                                <div
-                                                    class="h-4 w-full bg-primary/40 rounded-xs"
-                                                ></div>
-                                                <div
-                                                    class="h-5 w-full bg-primary/60 rounded-xs"
-                                                ></div>
-                                                <div
-                                                    class="h-4 w-full bg-primary/50 rounded-xs"
-                                                ></div>
-                                                <div class="h-6 w-full bg-primary rounded-xs"></div>
-                                            </div>
-
-                                            <div
-                                                class="pt-3 border-t border-surface-100 flex items-center gap-2 relative z-10"
-                                            >
-                                                <a
-                                                    [routerLink]="['/accounts', account.id]"
-                                                    class="flex-1 min-h-[38px] px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl text-xs font-bold flex items-center justify-center transition-colors"
-                                                >
-                                                    View Ledger
-                                                </a>
-                                                <button
-                                                    type="button"
-                                                    (click)="
-                                                        $event.stopPropagation();
-                                                        toggleExpand(account.id)
-                                                    "
-                                                    class="min-h-[38px] px-3 py-1.5 border border-surface-200 hover:bg-surface-100 text-surface-700 rounded-xl text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer"
-                                                    aria-label="Account Settings"
-                                                >
-                                                    <i class="pi pi-cog"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </section>
-                        }
-
-                        <!-- Tier 2: Secondary Accounts (Only when activeFilter === 'all' AND secondaryAccounts > 0) -->
-                        @if (activeFilter() === 'all' && secondaryAccounts().length > 0) {
-                            <section class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <h2
-                                        class="text-sm font-bold uppercase tracking-wider text-surface-500"
-                                    >
-                                        All Other Accounts & Liabilities
-                                    </h2>
-                                </div>
-
-                                <div
-                                    class="bg-surface-0 border border-surface-200/60 rounded-2xl overflow-hidden shadow-premium"
-                                >
-                                    <div class="divide-y divide-surface-100">
-                                        @for (account of secondaryAccounts(); track account.id) {
-                                            <div class="transition-colors hover:bg-surface-50/50">
-                                                <div
-                                                    class="p-4 flex items-center justify-between cursor-pointer select-none min-h-[60px]"
-                                                    (click)="toggleExpand(account.id)"
-                                                    (keydown.enter)="toggleExpand(account.id)"
-                                                    (keydown.space)="toggleExpand(account.id)"
-                                                    tabindex="0"
-                                                    role="button"
-                                                >
-                                                    <div class="flex items-center gap-4">
-                                                        <div
-                                                            class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-600 flex-shrink-0"
-                                                        >
-                                                            <i
-                                                                [class]="
-                                                                    'pi text-lg ' +
-                                                                    getAccountIcon(account.type)
-                                                                "
-                                                            ></i>
-                                                        </div>
-                                                        <div>
-                                                            <h3
-                                                                class="text-sm font-bold text-surface-900"
-                                                            >
-                                                                {{ account.name }}
-                                                            </h3>
-                                                            <p
-                                                                class="text-xs text-surface-500 font-medium"
-                                                            >
-                                                                {{ account.institutionName }} •
-                                                                <span class="capitalize">{{
-                                                                    account.type
-                                                                }}</span>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="flex items-center gap-6">
-                                                        <div class="text-right">
-                                                            <p
-                                                                class="text-xs text-surface-500 font-medium"
-                                                            >
-                                                                {{
-                                                                    isLiability(account.type)
-                                                                        ? 'Balance Due'
-                                                                        : 'Balance'
-                                                                }}
-                                                            </p>
-                                                            <p
-                                                                class="font-mono font-bold text-base text-surface-900"
-                                                            >
-                                                                {{
-                                                                    formattedAccountBalance(account)
-                                                                }}
-                                                            </p>
-                                                        </div>
-                                                        <div class="flex items-center gap-2">
-                                                            <a
-                                                                [routerLink]="[
-                                                                    '/accounts',
-                                                                    account.id
-                                                                ]"
-                                                                (click)="$event.stopPropagation()"
-                                                                class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white transition-colors"
-                                                            >
-                                                                Ledger
-                                                            </a>
-                                                            <i
-                                                                [class]="
-                                                                    'pi text-sm text-surface-400 transition-transform ' +
-                                                                    (expandedId() === account.id
-                                                                        ? 'pi-chevron-up'
-                                                                        : 'pi-chevron-down')
-                                                                "
-                                                            ></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                @if (expandedId() === account.id) {
-                                                    <div
-                                                        class="px-6 pb-6 pt-2 border-t border-surface-100 bg-surface-50/50"
-                                                    >
-                                                        <account-edit-form
-                                                            [accountData]="account"
-                                                        />
-                                                    </div>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            </section>
-                        }
-
-                        <!-- Category Filtered View (When activeFilter !== 'all') -->
-                        @if (activeFilter() !== 'all') {
-                            @if (filteredAccounts().length > 0) {
-                                <section class="space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <h2
-                                            class="text-sm font-bold uppercase tracking-wider text-surface-500"
-                                        >
-                                            {{ getFilterLabel(activeFilter()) }} Accounts
-                                        </h2>
-                                    </div>
-
-                                    <div
-                                        class="bg-surface-0 border border-surface-200/60 rounded-2xl overflow-hidden shadow-premium"
-                                    >
-                                        <div class="divide-y divide-surface-100">
-                                            @for (account of filteredAccounts(); track account.id) {
-                                                <div
-                                                    class="transition-colors hover:bg-surface-50/50"
-                                                >
-                                                    <div
-                                                        class="p-4 flex items-center justify-between cursor-pointer select-none min-h-[60px]"
-                                                        (click)="toggleExpand(account.id)"
-                                                        (keydown.enter)="toggleExpand(account.id)"
-                                                        (keydown.space)="toggleExpand(account.id)"
-                                                        tabindex="0"
-                                                        role="button"
-                                                    >
-                                                        <div class="flex items-center gap-4">
-                                                            <div
-                                                                class="w-10 h-10 rounded-xl bg-surface-100 flex items-center justify-center text-surface-600 flex-shrink-0"
-                                                            >
-                                                                <i
-                                                                    [class]="
-                                                                        'pi text-lg ' +
-                                                                        getAccountIcon(account.type)
-                                                                    "
-                                                                ></i>
-                                                            </div>
-                                                            <div>
-                                                                <h3
-                                                                    class="text-sm font-bold text-surface-900"
-                                                                >
-                                                                    {{ account.name }}
-                                                                </h3>
-                                                                <p
-                                                                    class="text-xs text-surface-500 font-medium"
-                                                                >
-                                                                    {{ account.institutionName }} •
-                                                                    <span class="capitalize">{{
-                                                                        account.type
-                                                                    }}</span>
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="flex items-center gap-6">
-                                                            <div class="text-right">
-                                                                <p
-                                                                    class="text-xs text-surface-500 font-medium"
-                                                                >
-                                                                    {{
-                                                                        isLiability(account.type)
-                                                                            ? 'Balance Due'
-                                                                            : 'Balance'
-                                                                    }}
-                                                                </p>
-                                                                <p
-                                                                    class="font-mono font-bold text-base text-surface-900"
-                                                                >
-                                                                    {{
-                                                                        formattedAccountBalance(
-                                                                            account
-                                                                        )
-                                                                    }}
-                                                                </p>
-                                                            </div>
-                                                            <div class="flex items-center gap-2">
-                                                                <a
-                                                                    [routerLink]="[
-                                                                        '/accounts',
-                                                                        account.id
-                                                                    ]"
-                                                                    (click)="
-                                                                        $event.stopPropagation()
-                                                                    "
-                                                                    class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white transition-colors"
-                                                                >
-                                                                    Ledger
-                                                                </a>
-                                                                <i
-                                                                    [class]="
-                                                                        'pi text-sm text-surface-400 transition-transform ' +
-                                                                        (expandedId() === account.id
-                                                                            ? 'pi-chevron-up'
-                                                                            : 'pi-chevron-down')
-                                                                    "
-                                                                ></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    @if (expandedId() === account.id) {
-                                                        <div
-                                                            class="px-6 pb-6 pt-2 border-t border-surface-100 bg-surface-50/50"
-                                                        >
-                                                            <account-edit-form
-                                                                [accountData]="account"
-                                                            />
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                </section>
-                            } @else {
-                                <!-- Empty state for specific category filter with 0 accounts -->
-                                <div
-                                    class="p-12 bg-surface-0 border border-surface-200/60 rounded-2xl text-center shadow-premium space-y-4"
-                                >
-                                    <div
-                                        class="w-12 h-12 rounded-full bg-surface-100 text-surface-500 flex items-center justify-center mx-auto"
-                                    >
-                                        <i class="pi pi-inbox text-2xl"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-base font-bold text-surface-900">
-                                            No {{ getFilterLabel(activeFilter()) }} accounts found
-                                        </h3>
-                                        <p class="text-xs text-surface-500 font-medium mt-1">
-                                            You don't have any accounts under this category yet.
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        (click)="openAddAccount(activeFilter())"
-                                        class="min-h-[40px] px-4 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer"
-                                    >
-                                        <i class="pi pi-plus text-xs"></i>
-                                        Add {{ getFilterLabel(activeFilter()) }} Account
-                                    </button>
-                                </div>
-                            }
-                        }
-
-                        <!-- Global Empty State when activeFilter === 'all' and 0 accounts overall -->
-                        @if (activeFilter() === 'all' && accounts().length === 0) {
-                            <div
-                                class="p-12 bg-surface-0 border border-surface-200/60 rounded-2xl text-center shadow-premium space-y-4"
-                            >
-                                <div
-                                    class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto"
-                                >
-                                    <i class="pi pi-building-columns text-2xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-bold text-surface-900">
-                                        No active accounts in portfolio
-                                    </h3>
-                                    <p class="text-xs text-surface-500 font-medium mt-1">
-                                        Get started by adding your checking, savings, or credit card
-                                        accounts.
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    (click)="openAddAccount()"
-                                    class="min-h-[44px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium inline-flex items-center gap-2 transition-all cursor-pointer"
-                                >
-                                    <i class="pi pi-plus text-sm"></i>
-                                    Add Your First Account
-                                </button>
-                            </div>
-                        }
                     }
                 </div>
-            </div>
+            } @else {
+                <!-- Direct Clean Accounts Feed -->
+                @if (accounts().length > 0) {
+                    <div class="space-y-3">
+                        @for (account of accounts(); track account.id) {
+                            <div
+                                class="bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-primary/50 transition-all group relative cursor-pointer active:scale-[0.99]"
+                            >
+                                <!-- Full-Card Click Target Overlay Anchor -->
+                                <a
+                                    [routerLink]="['/accounts', account.id]"
+                                    class="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                    [attr.aria-label]="'View ledger for ' + account.name"
+                                ></a>
+
+                                <div
+                                    class="flex items-center justify-between gap-3 relative z-10 pointer-events-none"
+                                >
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div
+                                            class="w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 text-base"
+                                            [class]="getAccountBadgeClass(account.type)"
+                                        >
+                                            <i [class]="'pi ' + getAccountIcon(account.type)"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h3
+                                                class="text-sm sm:text-base font-bold text-surface-900 group-hover:text-primary transition-colors truncate"
+                                            >
+                                                {{ account.name }}
+                                            </h3>
+                                            <p
+                                                class="text-xs text-surface-500 font-medium truncate"
+                                            >
+                                                {{ account.institutionName || 'Account' }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-3 shrink-0">
+                                        <div class="text-right">
+                                            @if (isLiability(account.type)) {
+                                                <span
+                                                    class="text-[10px] sm:text-xs text-surface-500 font-medium block leading-tight"
+                                                >
+                                                    Balance Due:
+                                                </span>
+                                            }
+                                            <span
+                                                class="text-base sm:text-lg font-mono font-bold"
+                                                [class.text-red-500]="
+                                                    isLiability(account.type) ||
+                                                    account.clearedBalance +
+                                                        account.pendingBalance <
+                                                        0
+                                                "
+                                                [class.text-surface-900]="
+                                                    !isLiability(account.type) &&
+                                                    account.clearedBalance +
+                                                        account.pendingBalance >=
+                                                        0
+                                                "
+                                            >
+                                                {{ formattedAccountBalance(account) }}
+                                            </span>
+                                        </div>
+
+                                        <i
+                                            class="pi pi-chevron-right text-xs text-surface-400 group-hover:text-primary transition-colors"
+                                        ></i>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Discreet Archived Accounts Link at Bottom -->
+                    @if (trashedAccounts().length > 0) {
+                        <div class="pt-4 flex justify-center">
+                            <button
+                                type="button"
+                                (click)="toggleTrash()"
+                                class="text-xs font-semibold text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                            >
+                                <i class="pi pi-trash text-xs text-surface-400"></i>
+                                Archived Accounts ({{ trashedAccounts().length }})
+                            </button>
+                        </div>
+                    }
+                } @else {
+                    <!-- Global Empty State when 0 accounts overall -->
+                    <div
+                        class="p-12 bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl text-center shadow-xs space-y-4"
+                    >
+                        <div
+                            class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto"
+                        >
+                            <i class="pi pi-building-columns text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-surface-900">
+                                No active accounts in portfolio
+                            </h3>
+                            <p class="text-xs text-surface-500 font-medium mt-1">
+                                Get started by adding your checking, savings, or credit card
+                                accounts.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            (click)="openAddAccount()"
+                            class="min-h-[44px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium inline-flex items-center gap-2 transition-all cursor-pointer"
+                        >
+                            <i class="pi pi-plus text-sm"></i>
+                            Add Your First Account
+                        </button>
+                    </div>
+                }
+            }
         </div>
     }
 

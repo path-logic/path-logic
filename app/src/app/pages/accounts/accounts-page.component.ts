@@ -194,6 +194,28 @@ export class AccountsPageComponent {
         }
     }
 
+    /**
+     * Helper to determine account badge background and text colors based on type
+     */
+    getAccountBadgeClass(type: AccountType): string {
+        switch (type) {
+            case AccountType.Checking:
+                return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
+            case AccountType.Savings:
+                return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+            case AccountType.Credit:
+                return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20';
+            case AccountType.Cash:
+                return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+            case AccountType.Mortgage:
+            case AccountType.AutoLoan:
+            case AccountType.PersonalLoan:
+                return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+            default:
+                return 'bg-primary/10 text-primary border-primary/20';
+        }
+    }
+
     formatCurrency(amount: number): string {
         return Money.formatCurrency(amount);
     }
