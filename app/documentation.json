@@ -385,6 +385,61 @@
             "duplicateName": "IAccountTypeOption-2"
         },
         {
+            "name": "IAccountTypeStyle",
+            "id": "interface-IAccountTypeStyle-636741bd6b98cf7d039d731dd5c99e8e73bebaab8b2fe5b03e59ba527bddcede840b598bc9705236c33e319df3b23a63433d7971cfe509564eee5e67235ce05d",
+            "file": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    ElementRef,\n    HostListener,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport type { IAccount } from '@core';\nimport { AccountType, Money } from '@core';\n\nexport interface IAccountTypeStyle {\n    icon: string;\n    iconColor: string;\n    iconBg: string;\n    label: string;\n}\n\nconst ACCOUNT_TYPE_STYLES: Record<AccountType, IAccountTypeStyle> = {\n    [AccountType.Checking]: {\n        icon: 'pi-building-columns',\n        iconColor: 'text-teal-600 dark:text-teal-400',\n        iconBg: 'bg-teal-500/10',\n        label: 'Checking'\n    },\n    [AccountType.Savings]: {\n        icon: 'pi-chart-line',\n        iconColor: 'text-blue-600 dark:text-blue-400',\n        iconBg: 'bg-blue-500/10',\n        label: 'Savings'\n    },\n    [AccountType.Credit]: {\n        icon: 'pi-credit-card',\n        iconColor: 'text-purple-600 dark:text-purple-400',\n        iconBg: 'bg-purple-500/10',\n        label: 'Credit'\n    },\n    [AccountType.Cash]: {\n        icon: 'pi-wallet',\n        iconColor: 'text-emerald-600 dark:text-emerald-400',\n        iconBg: 'bg-emerald-500/10',\n        label: 'Cash'\n    },\n    [AccountType.Mortgage]: {\n        icon: 'pi-home',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Mortgage'\n    },\n    [AccountType.AutoLoan]: {\n        icon: 'pi-car',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Auto Loan'\n    },\n    [AccountType.PersonalLoan]: {\n        icon: 'pi-receipt',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Personal Loan'\n    }\n};\n\n@Component({\n    selector: 'account-dropdown',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './account-dropdown.component.html',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class AccountDropdownComponent {\n    private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);\n\n    // Inputs & Models\n    readonly accounts = input.required<Array<IAccount>>();\n    readonly selectedAccountId = model<string | null>(null);\n    readonly getAccountBalance = input<((id: string) => number) | undefined>(undefined);\n    readonly showAddOption = input<boolean>(true);\n    readonly size = input<'sm' | 'md' | 'lg'>('md');\n    readonly ariaLabel = input<string>('Select Account');\n\n    // Outputs\n    readonly addAccount = output<void>();\n\n    // State\n    readonly isOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(0);\n\n    // Computed\n    readonly selectedAccount = computed(() => {\n        const list = this.accounts();\n        const id = this.selectedAccountId();\n        if (!id && list.length > 0) {\n            return list[0];\n        }\n        return list.find(a => a.id === id) ?? null;\n    });\n\n    @HostListener('document:click', ['$event'])\n    onDocumentClick(event: MouseEvent): void {\n        if (!this.elementRef.nativeElement.contains(event.target as Node)) {\n            this.close();\n        }\n    }\n\n    toggleDropdown(): void {\n        if (this.isOpen()) {\n            this.close();\n        } else {\n            this.open();\n        }\n    }\n\n    open(): void {\n        this.isOpen.set(true);\n        const idx = this.accounts().findIndex(a => a.id === this.selectedAccountId());\n        this.highlightedIndex.set(idx >= 0 ? idx : 0);\n    }\n\n    close(): void {\n        this.isOpen.set(false);\n    }\n\n    selectAccount(account: IAccount): void {\n        this.selectedAccountId.set(account.id);\n        this.close();\n    }\n\n    triggerAddAccount(): void {\n        this.close();\n        this.addAccount.emit();\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        const count = this.accounts().length;\n        if (!this.isOpen()) {\n            if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {\n                event.preventDefault();\n                this.open();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(idx => (idx + 1) % count);\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(idx => (idx - 1 + count) % count);\n                break;\n            case 'Enter':\n            case ' ':\n                event.preventDefault();\n                {\n                    const target = this.accounts()[this.highlightedIndex()];\n                    if (target) {\n                        this.selectAccount(target);\n                    }\n                }\n                break;\n            case 'Escape':\n                event.preventDefault();\n                this.close();\n                break;\n            case 'Tab':\n                this.close();\n                break;\n        }\n    }\n\n    getAccountStyle(type: AccountType | undefined): IAccountTypeStyle {\n        if (!type || !ACCOUNT_TYPE_STYLES[type]) {\n            return {\n                icon: 'pi-building-columns',\n                iconColor: 'text-teal-600 dark:text-teal-400',\n                iconBg: 'bg-teal-500/10',\n                label: 'Account'\n            };\n        }\n        return ACCOUNT_TYPE_STYLES[type];\n    }\n\n    getBalance(acc: IAccount): number {\n        const balanceFn = this.getAccountBalance();\n        if (balanceFn) {\n            return balanceFn(acc.id);\n        }\n        return acc.clearedBalance ?? 0;\n    }\n\n    formatCurrency(amount: number): string {\n        return Money.formatCurrency(amount);\n    }\n}\n",
+            "properties": [
+                {
+                    "name": "icon",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 18
+                },
+                {
+                    "name": "iconBg",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 20
+                },
+                {
+                    "name": "iconColor",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 19
+                },
+                {
+                    "name": "label",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 21
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 172,
+            "methods": [],
+            "extends": []
+        },
+        {
             "name": "IAiMappingError",
             "id": "interface-IAiMappingError-52fac96f5c92ea09d063ed2c433b1180c1d3d8e89db8abbc43b960f4bd4adc6dcc46bc6b9a3fb19bd28fc3d9f267deb313199232e13057fb224d0f5b4b8ae180",
             "file": "app/src/app/components/ledger/category-mapping-dialog/category-mapping-dialog.component.ts",
@@ -14610,6 +14665,488 @@
             "templateData": "<shell>\n    <account-ledger [initialAccountId]=\"accountId()\" />\n</shell>\n"
         },
         {
+            "name": "AccountDropdownComponent",
+            "id": "component-AccountDropdownComponent-636741bd6b98cf7d039d731dd5c99e8e73bebaab8b2fe5b03e59ba527bddcede840b598bc9705236c33e319df3b23a63433d7971cfe509564eee5e67235ce05d",
+            "file": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+            "changeDetection": "ChangeDetectionStrategy.OnPush",
+            "encapsulation": [],
+            "entryComponents": [],
+            "inputs": [],
+            "outputs": [],
+            "providers": [],
+            "selector": "account-dropdown",
+            "styleUrls": [],
+            "styles": [],
+            "templateUrl": [
+                "./account-dropdown.component.html"
+            ],
+            "viewProviders": [],
+            "hostDirectives": [],
+            "inputsClass": [
+                {
+                    "name": "accounts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Array<IAccount>",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 80,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": true
+                },
+                {
+                    "name": "ariaLabel",
+                    "defaultValue": "'Select Account'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 85,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "selectedAccountId",
+                    "defaultValue": "null",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string | null",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 81,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "showAddOption",
+                    "defaultValue": "true",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 83,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "size",
+                    "defaultValue": "'md'",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "\"sm\" | \"md\" | \"lg\"",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 84,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "addAccount",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "void",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 88,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "selectedAccountId",
+                    "defaultValue": "null",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string | null",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 81,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                }
+            ],
+            "propertiesClass": [
+                {
+                    "name": "elementRef",
+                    "defaultValue": "inject(ElementRef)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "ElementRef<HTMLElement>",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 77,
+                    "modifierKind": [
+                        123,
+                        148
+                    ]
+                },
+                {
+                    "name": "getAccountBalance",
+                    "defaultValue": "input<((id: string) => number) | undefined>(undefined)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 82,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "highlightedIndex",
+                    "defaultValue": "signal<number>(0)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 92,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "isOpen",
+                    "defaultValue": "signal<boolean>(false)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 91,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "selectedAccount",
+                    "defaultValue": "computed(() => {\n        const list = this.accounts();\n        const id = this.selectedAccountId();\n        if (!id && list.length > 0) {\n            return list[0];\n        }\n        return list.find(a => a.id === id) ?? null;\n    })",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 95,
+                    "modifierKind": [
+                        148
+                    ]
+                }
+            ],
+            "methodsClass": [
+                {
+                    "name": "close",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 125,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "formatCurrency",
+                    "args": [
+                        {
+                            "name": "amount",
+                            "type": "number",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "string",
+                    "typeParameters": [],
+                    "line": 198,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "amount",
+                            "type": "number",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "getAccountStyle",
+                    "args": [
+                        {
+                            "name": "type",
+                            "type": "AccountType | undefined",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "IAccountTypeStyle",
+                    "typeParameters": [],
+                    "line": 178,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "type",
+                            "type": "AccountType | undefined",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "getBalance",
+                    "args": [
+                        {
+                            "name": "acc",
+                            "type": "IAccount",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "number",
+                    "typeParameters": [],
+                    "line": 190,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "acc",
+                            "type": "IAccount",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "onDocumentClick",
+                    "args": [
+                        {
+                            "name": "event",
+                            "type": "MouseEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 105,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "decorators": [
+                        {
+                            "name": "HostListener",
+                            "stringifiedArguments": "'document:click', ['$event']"
+                        }
+                    ],
+                    "modifierKind": [
+                        171
+                    ],
+                    "jsdoctags": [
+                        {
+                            "name": "event",
+                            "type": "MouseEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "onKeyDown",
+                    "args": [
+                        {
+                            "name": "event",
+                            "type": "KeyboardEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 139,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "event",
+                            "type": "KeyboardEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "open",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 119,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "selectAccount",
+                    "args": [
+                        {
+                            "name": "account",
+                            "type": "IAccount",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 129,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "account",
+                            "type": "IAccount",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "toggleDropdown",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 111,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "triggerAddAccount",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 134,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                }
+            ],
+            "deprecated": false,
+            "deprecationMessage": "",
+            "hostBindings": [],
+            "hostListeners": [
+                {
+                    "name": "document:click",
+                    "args": [
+                        {
+                            "name": "event",
+                            "type": "MouseEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "argsDecorator": [
+                        "$event"
+                    ],
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "line": 105
+                }
+            ],
+            "standalone": true,
+            "imports": [
+                {
+                    "name": "CommonModule",
+                    "type": "module"
+                }
+            ],
+            "description": "",
+            "rawdescription": "\n",
+            "type": "component",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    ElementRef,\n    HostListener,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport type { IAccount } from '@core';\nimport { AccountType, Money } from '@core';\n\nexport interface IAccountTypeStyle {\n    icon: string;\n    iconColor: string;\n    iconBg: string;\n    label: string;\n}\n\nconst ACCOUNT_TYPE_STYLES: Record<AccountType, IAccountTypeStyle> = {\n    [AccountType.Checking]: {\n        icon: 'pi-building-columns',\n        iconColor: 'text-teal-600 dark:text-teal-400',\n        iconBg: 'bg-teal-500/10',\n        label: 'Checking'\n    },\n    [AccountType.Savings]: {\n        icon: 'pi-chart-line',\n        iconColor: 'text-blue-600 dark:text-blue-400',\n        iconBg: 'bg-blue-500/10',\n        label: 'Savings'\n    },\n    [AccountType.Credit]: {\n        icon: 'pi-credit-card',\n        iconColor: 'text-purple-600 dark:text-purple-400',\n        iconBg: 'bg-purple-500/10',\n        label: 'Credit'\n    },\n    [AccountType.Cash]: {\n        icon: 'pi-wallet',\n        iconColor: 'text-emerald-600 dark:text-emerald-400',\n        iconBg: 'bg-emerald-500/10',\n        label: 'Cash'\n    },\n    [AccountType.Mortgage]: {\n        icon: 'pi-home',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Mortgage'\n    },\n    [AccountType.AutoLoan]: {\n        icon: 'pi-car',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Auto Loan'\n    },\n    [AccountType.PersonalLoan]: {\n        icon: 'pi-receipt',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Personal Loan'\n    }\n};\n\n@Component({\n    selector: 'account-dropdown',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './account-dropdown.component.html',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class AccountDropdownComponent {\n    private readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);\n\n    // Inputs & Models\n    readonly accounts = input.required<Array<IAccount>>();\n    readonly selectedAccountId = model<string | null>(null);\n    readonly getAccountBalance = input<((id: string) => number) | undefined>(undefined);\n    readonly showAddOption = input<boolean>(true);\n    readonly size = input<'sm' | 'md' | 'lg'>('md');\n    readonly ariaLabel = input<string>('Select Account');\n\n    // Outputs\n    readonly addAccount = output<void>();\n\n    // State\n    readonly isOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(0);\n\n    // Computed\n    readonly selectedAccount = computed(() => {\n        const list = this.accounts();\n        const id = this.selectedAccountId();\n        if (!id && list.length > 0) {\n            return list[0];\n        }\n        return list.find(a => a.id === id) ?? null;\n    });\n\n    @HostListener('document:click', ['$event'])\n    onDocumentClick(event: MouseEvent): void {\n        if (!this.elementRef.nativeElement.contains(event.target as Node)) {\n            this.close();\n        }\n    }\n\n    toggleDropdown(): void {\n        if (this.isOpen()) {\n            this.close();\n        } else {\n            this.open();\n        }\n    }\n\n    open(): void {\n        this.isOpen.set(true);\n        const idx = this.accounts().findIndex(a => a.id === this.selectedAccountId());\n        this.highlightedIndex.set(idx >= 0 ? idx : 0);\n    }\n\n    close(): void {\n        this.isOpen.set(false);\n    }\n\n    selectAccount(account: IAccount): void {\n        this.selectedAccountId.set(account.id);\n        this.close();\n    }\n\n    triggerAddAccount(): void {\n        this.close();\n        this.addAccount.emit();\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        const count = this.accounts().length;\n        if (!this.isOpen()) {\n            if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {\n                event.preventDefault();\n                this.open();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(idx => (idx + 1) % count);\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(idx => (idx - 1 + count) % count);\n                break;\n            case 'Enter':\n            case ' ':\n                event.preventDefault();\n                {\n                    const target = this.accounts()[this.highlightedIndex()];\n                    if (target) {\n                        this.selectAccount(target);\n                    }\n                }\n                break;\n            case 'Escape':\n                event.preventDefault();\n                this.close();\n                break;\n            case 'Tab':\n                this.close();\n                break;\n        }\n    }\n\n    getAccountStyle(type: AccountType | undefined): IAccountTypeStyle {\n        if (!type || !ACCOUNT_TYPE_STYLES[type]) {\n            return {\n                icon: 'pi-building-columns',\n                iconColor: 'text-teal-600 dark:text-teal-400',\n                iconBg: 'bg-teal-500/10',\n                label: 'Account'\n            };\n        }\n        return ACCOUNT_TYPE_STYLES[type];\n    }\n\n    getBalance(acc: IAccount): number {\n        const balanceFn = this.getAccountBalance();\n        if (balanceFn) {\n            return balanceFn(acc.id);\n        }\n        return acc.clearedBalance ?? 0;\n    }\n\n    formatCurrency(amount: number): string {\n        return Money.formatCurrency(amount);\n    }\n}\n",
+            "assetsDirs": [],
+            "styleUrlsData": "",
+            "stylesData": "",
+            "extends": [],
+            "templateData": "<div class=\"relative inline-block w-full select-none\" (keydown)=\"onKeyDown($event)\">\n    <!-- Trigger Button -->\n    <button\n        type=\"button\"\n        (click)=\"toggleDropdown()\"\n        aria-haspopup=\"listbox\"\n        [attr.aria-expanded]=\"isOpen()\"\n        [attr.aria-controls]=\"isOpen() ? 'account-dropdown-listbox' : null\"\n        [attr.aria-label]=\"ariaLabel()\"\n        class=\"w-full flex items-center justify-between gap-2.5 bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700/80 rounded-2xl hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-150 cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary/40 text-left\"\n        [class.px-3]=\"size() === 'sm'\"\n        [class.py-2]=\"size() === 'sm'\"\n        [class.min-h-[40px]]=\"size() === 'sm'\"\n        [class.px-3.5]=\"size() === 'md' || size() === 'lg'\"\n        [class.py-2.5]=\"size() === 'md'\"\n        [class.min-h-[44px]]=\"size() === 'md' || size() === 'lg'\"\n        [class.border-primary]=\"isOpen()\"\n        [class.ring-2]=\"isOpen()\"\n        [class.ring-primary/20]=\"isOpen()\"\n    >\n        @if (selectedAccount(); as active) {\n            <div class=\"flex items-center gap-2.5 min-w-0 flex-1\">\n                <!-- Icon Badge -->\n                <div\n                    class=\"w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border\"\n                    [class]=\"\n                        getAccountStyle(active.type).iconBg +\n                        ' ' +\n                        getAccountStyle(active.type).iconColor +\n                        ' border-current/20'\n                    \"\n                >\n                    <i [class]=\"'pi ' + getAccountStyle(active.type).icon + ' text-xs'\"></i>\n                </div>\n\n                <!-- Account Info -->\n                <div class=\"flex items-center gap-2 min-w-0 flex-1\">\n                    <span class=\"text-xs sm:text-sm font-bold text-surface-900 dark:text-surface-100 truncate\">\n                        {{ active.name }}\n                    </span>\n                    <span class=\"text-surface-300 dark:text-surface-600 shrink-0 font-light\">•</span>\n                    <span\n                        class=\"text-xs sm:text-sm font-mono font-bold shrink-0 tracking-tight\"\n                        [class.text-emerald-700]=\"getBalance(active) > 0\"\n                        [class.dark:text-emerald-400]=\"getBalance(active) > 0\"\n                        [class.text-red-700]=\"getBalance(active) < 0\"\n                        [class.dark:text-red-400]=\"getBalance(active) < 0\"\n                        [class.text-surface-600]=\"getBalance(active) === 0\"\n                        [class.dark:text-surface-300]=\"getBalance(active) === 0\"\n                    >\n                        {{ formatCurrency(getBalance(active)) }}\n                    </span>\n                </div>\n            </div>\n        } @else {\n            <span class=\"text-xs text-surface-400 font-medium\">No account selected</span>\n        }\n\n        <!-- Chevron Indicator -->\n        <i\n            class=\"pi pi-chevron-down text-xs text-surface-400 dark:text-surface-500 transition-transform duration-200 shrink-0 ml-1\"\n            [class.rotate-180]=\"isOpen()\"\n        ></i>\n    </button>\n\n    <!-- Dropdown Menu / Popover Overlay -->\n    @if (isOpen()) {\n        <div\n            id=\"account-dropdown-listbox\"\n            role=\"listbox\"\n            tabindex=\"-1\"\n            class=\"absolute left-0 top-full mt-1.5 w-full min-w-[280px] max-h-80 overflow-y-auto z-50 bg-surface-0/95 dark:bg-surface-900/95 backdrop-blur-xl border border-surface-200 dark:border-surface-700 rounded-2xl shadow-2xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150\"\n        >\n            <!-- Accounts List -->\n            @for (acc of accounts(); track acc.id; let i = $index) {\n                <button\n                    type=\"button\"\n                    role=\"option\"\n                    (click)=\"selectAccount(acc)\"\n                    [attr.aria-selected]=\"acc.id === selectedAccountId()\"\n                    class=\"w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-colors cursor-pointer\"\n                    [class.bg-primary/10]=\"acc.id === selectedAccountId()\"\n                    [class.border]=\"acc.id === selectedAccountId()\"\n                    [class.border-primary/20]=\"acc.id === selectedAccountId()\"\n                    [class.bg-surface-100]=\"highlightedIndex() === i && acc.id !== selectedAccountId()\"\n                    [class.dark:bg-surface-800]=\"highlightedIndex() === i && acc.id !== selectedAccountId()\"\n                    [class.hover:bg-surface-100]=\"acc.id !== selectedAccountId()\"\n                    [class.dark:hover:bg-surface-800]=\"acc.id !== selectedAccountId()\"\n                >\n                    <div class=\"flex items-center gap-2.5 min-w-0 flex-1\">\n                        <!-- Type Icon -->\n                        <div\n                            class=\"w-7 h-7 rounded-xl flex items-center justify-center shrink-0 border\"\n                            [class]=\"\n                                getAccountStyle(acc.type).iconBg +\n                                ' ' +\n                                getAccountStyle(acc.type).iconColor +\n                                ' border-current/20'\n                            \"\n                        >\n                            <i [class]=\"'pi ' + getAccountStyle(acc.type).icon + ' text-xs'\"></i>\n                        </div>\n\n                        <!-- Name & Institution -->\n                        <div class=\"min-w-0 flex-1 flex flex-col\">\n                            <span class=\"text-xs font-bold text-surface-900 dark:text-surface-100 truncate\">\n                                {{ acc.name }}\n                            </span>\n                            @if (acc.institutionName) {\n                                <span class=\"text-[10px] text-surface-500 truncate\">\n                                    {{ acc.institutionName }} · {{ getAccountStyle(acc.type).label }}\n                                </span>\n                            } @else {\n                                <span class=\"text-[10px] text-surface-500 truncate\">\n                                    {{ getAccountStyle(acc.type).label }}\n                                </span>\n                            }\n                        </div>\n                    </div>\n\n                    <!-- Balance & Active Checkmark -->\n                    <div class=\"flex items-center gap-2 shrink-0\">\n                        <span\n                            class=\"text-xs font-mono font-bold tracking-tight\"\n                            [class.text-emerald-700]=\"getBalance(acc) > 0\"\n                            [class.dark:text-emerald-400]=\"getBalance(acc) > 0\"\n                            [class.text-red-700]=\"getBalance(acc) < 0\"\n                            [class.dark:text-red-400]=\"getBalance(acc) < 0\"\n                            [class.text-surface-600]=\"getBalance(acc) === 0\"\n                            [class.dark:text-surface-300]=\"getBalance(acc) === 0\"\n                        >\n                            {{ formatCurrency(getBalance(acc)) }}\n                        </span>\n\n                        @if (acc.id === selectedAccountId()) {\n                            <i class=\"pi pi-check text-xs text-primary font-bold\"></i>\n                        }\n                    </div>\n                </button>\n            }\n\n            <!-- Add Account Option -->\n            @if (showAddOption()) {\n                <div class=\"pt-1 border-t border-surface-200/80 dark:border-surface-800\">\n                    <button\n                        type=\"button\"\n                        (click)=\"triggerAddAccount()\"\n                        class=\"w-full flex items-center gap-2.5 p-2 rounded-xl text-xs font-bold text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer\"\n                    >\n                        <i class=\"pi pi-plus-circle text-xs\"></i>\n                        <span>Add New Account</span>\n                    </button>\n                </div>\n            }\n        </div>\n    }\n</div>\n"
+        },
+        {
             "name": "AccountEditFormComponent",
             "id": "component-AccountEditFormComponent-99c2453dfdad0e3deb2ce32a78d98b8b69b7897e5987626b10606882ce2b9d8c2b56a54dd8ae07b3ab7fd0cff9d948aeaa605eba78e44eec18263c0bc58f179d",
             "file": "app/src/app/components/accounts/account-edit-form/account-edit-form.component.ts",
@@ -15417,7 +15954,7 @@
         },
         {
             "name": "AccountLedgerComponent",
-            "id": "component-AccountLedgerComponent-1db3bb8175ebfc76b6057ea2070b8ed4f1b5a894b83f9fae61859d403ba0a5f4ade597c3f8fd262b4a6104a5a21a3677cff662fa85838dfe019d9f0ad1efb21c",
+            "id": "component-AccountLedgerComponent-8f3c562b2c87794ddaf37dd92b5b7707538d9edc30f06ed6ae7bea1e36900765c3baa4737201e29378f7cfd1cf9f4a39361e2628fd0c7d669c45df0f9c9c9a80",
             "file": "app/src/app/components/ledger/account-ledger/account-ledger.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -15450,7 +15987,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 65,
+                    "line": 67,
                     "modifierKind": [
                         148
                     ],
@@ -15468,7 +16005,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 89,
+                    "line": 92,
                     "modifierKind": [
                         148
                     ]
@@ -15482,7 +16019,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 121,
+                    "line": 124,
                     "modifierKind": [
                         148
                     ]
@@ -15496,7 +16033,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 68,
+                    "line": 70,
                     "modifierKind": [
                         148
                     ]
@@ -15510,7 +16047,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 109,
+                    "line": 112,
                     "modifierKind": [
                         148
                     ]
@@ -15524,7 +16061,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 73,
+                    "line": 76,
                     "modifierKind": [
                         148
                     ]
@@ -15538,7 +16075,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 433,
+                    "line": 436,
                     "modifierKind": [
                         148
                     ]
@@ -15552,7 +16089,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 80,
+                    "line": 83,
                     "modifierKind": [
                         148
                     ]
@@ -15566,7 +16103,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 86,
+                    "line": 89,
                     "modifierKind": [
                         148
                     ]
@@ -15580,7 +16117,21 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 92,
+                    "line": 95,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "getAccountBalanceBound",
+                    "defaultValue": "() => {...}",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 72,
                     "modifierKind": [
                         148
                     ]
@@ -15594,7 +16145,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 148,
+                    "line": 151,
                     "modifierKind": [
                         148
                     ]
@@ -15608,7 +16159,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "<p>Convenience alias so the template can read import progress reactively.</p>\n",
-                    "line": 147,
+                    "line": 150,
                     "rawdescription": "\nConvenience alias so the template can read import progress reactively.",
                     "modifierKind": [
                         148
@@ -15623,7 +16174,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 61,
+                    "line": 63,
                     "modifierKind": [
                         148
                     ]
@@ -15637,7 +16188,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 149,
+                    "line": 152,
                     "modifierKind": [
                         148
                     ]
@@ -15651,7 +16202,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 76,
+                    "line": 79,
                     "modifierKind": [
                         148
                     ]
@@ -15665,7 +16216,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 83,
+                    "line": 86,
                     "modifierKind": [
                         148
                     ]
@@ -15679,7 +16230,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 72,
+                    "line": 75,
                     "modifierKind": [
                         148
                     ]
@@ -15693,7 +16244,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 59,
+                    "line": 61,
                     "modifierKind": [
                         123,
                         148
@@ -15708,7 +16259,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 62,
+                    "line": 64,
                     "modifierKind": [
                         123,
                         148
@@ -15723,7 +16274,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 115,
+                    "line": 118,
                     "modifierKind": [
                         148
                     ]
@@ -15737,7 +16288,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 60,
+                    "line": 62,
                     "modifierKind": [
                         123,
                         148
@@ -15752,7 +16303,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 79,
+                    "line": 82,
                     "modifierKind": [
                         148
                     ]
@@ -15766,7 +16317,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 69,
+                    "line": 71,
                     "modifierKind": [
                         148
                     ]
@@ -15780,7 +16331,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 90,
+                    "line": 93,
                     "modifierKind": [
                         148
                     ]
@@ -15802,7 +16353,7 @@
                     "optional": false,
                     "returnType": "Promise<void>",
                     "typeParameters": [],
-                    "line": 443,
+                    "line": 446,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -15837,7 +16388,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 435,
+                    "line": 438,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -15869,7 +16420,7 @@
                     "optional": false,
                     "returnType": "string",
                     "typeParameters": [],
-                    "line": 455,
+                    "line": 458,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -15901,7 +16452,7 @@
                     "optional": false,
                     "returnType": "number",
                     "typeParameters": [],
-                    "line": 474,
+                    "line": 477,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -15933,7 +16484,7 @@
                     "optional": false,
                     "returnType": "string",
                     "typeParameters": [],
-                    "line": 459,
+                    "line": 462,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -15965,7 +16516,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 186,
+                    "line": 189,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -15988,7 +16539,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 402,
+                    "line": 405,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16007,7 +16558,7 @@
                     "optional": false,
                     "returnType": "Promise<void>",
                     "typeParameters": [],
-                    "line": 254,
+                    "line": 257,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -16033,7 +16584,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 397,
+                    "line": 400,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16052,7 +16603,7 @@
                     "optional": false,
                     "returnType": "boolean",
                     "typeParameters": [],
-                    "line": 243,
+                    "line": 246,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -16087,7 +16638,7 @@
                     "optional": false,
                     "returnType": "string",
                     "typeParameters": [],
-                    "line": 406,
+                    "line": 409,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -16113,7 +16664,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 182,
+                    "line": 185,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16123,7 +16674,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 178,
+                    "line": 181,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16142,7 +16693,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 201,
+                    "line": 204,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "decorators": [
@@ -16183,7 +16734,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 193,
+                    "line": 196,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "decorators": [
@@ -16224,7 +16775,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 213,
+                    "line": 216,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "decorators": [
@@ -16265,7 +16816,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 230,
+                    "line": 233,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -16297,7 +16848,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 137,
+                    "line": 140,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -16320,7 +16871,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 132,
+                    "line": 135,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16330,7 +16881,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 128,
+                    "line": 131,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -16349,7 +16900,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 142,
+                    "line": 145,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -16381,7 +16932,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 238,
+                    "line": 241,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
@@ -16407,7 +16958,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 226,
+                    "line": 229,
                     "deprecated": false,
                     "deprecationMessage": ""
                 }
@@ -16433,7 +16984,7 @@
                     ],
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 201
+                    "line": 204
                 },
                 {
                     "name": "dragover",
@@ -16452,7 +17003,7 @@
                     ],
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 193
+                    "line": 196
                 },
                 {
                     "name": "drop",
@@ -16471,7 +17022,7 @@
                     ],
                     "deprecated": false,
                     "deprecationMessage": "",
-                    "line": 213
+                    "line": 216
                 }
             ],
             "standalone": true,
@@ -16486,6 +17037,10 @@
                 },
                 {
                     "name": "RouterLink"
+                },
+                {
+                    "name": "AccountDropdownComponent",
+                    "type": "component"
                 },
                 {
                     "name": "TransactionTableComponent",
@@ -16527,7 +17082,7 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { CommonModule } from '@angular/common';\nimport type { ElementRef, OnDestroy, OnInit } from '@angular/core';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    HostListener,\n    computed,\n    effect,\n    inject,\n    input,\n    signal,\n    untracked,\n    viewChild\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport { RouterLink } from '@angular/router';\nimport type { IPayee, ISODateString, ITransaction } from '@core';\nimport { AccountType, KnownCategory, Money, TransactionStatus } from '@core';\nimport { MessageService } from 'primeng/api';\n\nimport type { IAccount } from '@core';\nimport { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';\nimport type { ReconciliationDecision } from '../../../services/import/import.types';\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\nimport { PostHogService } from '../../../services/posthog/posthog.service';\nimport { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';\nimport { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';\nimport { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';\nimport { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';\nimport { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';\nimport { MobileTransactionEntrySheetComponent } from '../mobile-transaction-entry-sheet/mobile-transaction-entry-sheet.component';\nimport { ReconciliationDialogComponent } from '../reconciliation-dialog/reconciliation-dialog.component';\nimport { TransactionEntryFormComponent } from '../transaction-entry-form/transaction-entry-form.component';\nimport { TransactionTableComponent } from '../transaction-table/transaction-table.component';\n\n@Component({\n    selector: 'account-ledger',\n    standalone: true,\n    imports: [\n        CommonModule,\n        FormsModule,\n        RouterLink,\n        TransactionTableComponent,\n        TransactionEntryFormComponent,\n        MobileTransactionEntrySheetComponent,\n        SyncIndicatorComponent,\n        ReconciliationDialogComponent,\n        ExpressImportDialogComponent,\n        ImportProgressOverlayComponent,\n        CategoryMappingDialogComponent,\n        NewAccountDialogComponent\n    ],\n    providers: [MessageService],\n    templateUrl: './account-ledger.component.html',\n    styleUrls: ['./account-ledger.component.css'],\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class AccountLedgerComponent implements OnInit, OnDestroy {\n    private readonly ledgerStore = inject(LedgerStore);\n    private readonly posthogService = inject(PostHogService);\n    readonly importService = inject(ImportOrchestrationService);\n    private readonly messageService = inject(MessageService);\n\n    // Inputs\n    readonly initialAccountId = input<string | null>(null);\n\n    // State\n    readonly activeAccountId = signal<string | null>(null);\n    readonly statusFilter = signal<'all' | 'cleared' | 'pending'>('all');\n\n    // Mobile Entry Sheet & Edit State\n    readonly isMobileEntrySheetOpen = signal<boolean>(false);\n    readonly editingTransaction = signal<ITransaction | null>(null);\n\n    // New Account Dialog\n    readonly isAddDialogOpen = signal<boolean>(false);\n\n    // Reconciliation Dialog\n    readonly reconciliationOpen = signal<boolean>(false);\n    readonly expressImportOpen = signal<boolean>(false);\n\n    // Drag-and-drop state\n    readonly isDragOver = signal<boolean>(false);\n\n    // File input ref\n    readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');\n\n    // Computed from store\n    readonly accounts = this.ledgerStore.accounts;\n    readonly transactions = this.ledgerStore.transactions;\n\n    readonly filteredTransactions = computed(() => {\n        const accId = this.activeAccountId();\n        const allTxs = this.transactions();\n        const filter = this.statusFilter();\n        let txs = accId ? allTxs.filter(tx => tx.accountId === accId) : allTxs;\n        if (filter === 'cleared') {\n            txs = txs.filter(\n                tx =>\n                    tx.status === TransactionStatus.Cleared ||\n                    tx.status === TransactionStatus.Reconciled\n            );\n        } else if (filter === 'pending') {\n            txs = txs.filter(tx => tx.status === TransactionStatus.Pending);\n        }\n        return txs;\n    });\n\n    readonly clearedBalance = computed(() =>\n        this.filteredTransactions()\n            .filter(tx => tx.status === TransactionStatus.Cleared)\n            .reduce((sum, tx) => sum + tx.totalAmount, 0)\n    );\n\n    readonly pendingBalance = computed(() =>\n        this.filteredTransactions()\n            .filter(tx => tx.status === TransactionStatus.Pending)\n            .reduce((sum, tx) => sum + tx.totalAmount, 0)\n    );\n\n    readonly activeAccount = computed(() => {\n        const accs = this.accounts();\n        const id = this.activeAccountId();\n        if (!id && accs.length > 0) return accs[0];\n        return accs.find(a => a.id === id) ?? null;\n    });\n\n    openReconciliation(): void {\n        this.reconciliationOpen.set(true);\n    }\n\n    openNewTransactionMobile(): void {\n        this.editingTransaction.set(null);\n        this.isMobileEntrySheetOpen.set(true);\n    }\n\n    openEditTransactionMobile(tx: ITransaction): void {\n        this.editingTransaction.set(tx);\n        this.isMobileEntrySheetOpen.set(true);\n    }\n\n    setStatusFilter(filter: 'all' | 'cleared' | 'pending'): void {\n        this.statusFilter.set(filter);\n    }\n\n    /** Convenience alias so the template can read import progress reactively. */\n    readonly importProgress = this.importService.progress;\n    readonly importMatches = this.importService.matches;\n    readonly importStats = this.importService.stats;\n\n    // ── Lifecycle ─────────────────────────────────────────────────────────────\n\n    constructor() {\n        // Open the appropriate dialog when import finishes\n        effect(() => {\n            const stage = this.importService.progress().stage;\n            if (stage === 'done') {\n                untracked(() => {\n                    const matches = this.importService.matches();\n                    const stats = this.importService.stats();\n                    const isExpress = matches.length >= 100 && stats?.fuzzyCount === 0;\n\n                    if (isExpress) {\n                        this.expressImportOpen.set(true);\n                    } else {\n                        this.reconciliationOpen.set(true);\n                    }\n\n                    this.posthogService.posthog.capture('qif_import_parsed', {\n                        match_count: matches.length,\n                        account_id: this.activeAccountId()\n                    });\n                });\n            }\n        });\n    }\n\n    ngOnInit(): void {\n        this.activeAccountId.set(this.initialAccountId());\n    }\n\n    ngOnDestroy(): void {\n        this.importService.reset();\n    }\n\n    handleAccountCreated(account: IAccount): void {\n        this.ledgerStore.addAccount(account);\n    }\n\n    // ── Drag and Drop ─────────────────────────────────────────────────────────\n\n    @HostListener('dragover', ['$event'])\n    onDragOver(event: DragEvent): void {\n        event.preventDefault();\n        event.stopPropagation();\n        const hasFiles = event.dataTransfer?.types.includes('Files') ?? false;\n        if (hasFiles) this.isDragOver.set(true);\n    }\n\n    @HostListener('dragleave', ['$event'])\n    onDragLeave(event: DragEvent): void {\n        // Only clear if leaving the host element (not a child)\n        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();\n        const outside =\n            event.clientX < rect.left ||\n            event.clientX > rect.right ||\n            event.clientY < rect.top ||\n            event.clientY > rect.bottom;\n        if (outside) this.isDragOver.set(false);\n    }\n\n    @HostListener('drop', ['$event'])\n    onDrop(event: DragEvent): void {\n        event.preventDefault();\n        event.stopPropagation();\n        this.isDragOver.set(false);\n\n        const file = event.dataTransfer?.files[0];\n        if (file && this.isQifFile(file)) {\n            this.startImport(file);\n        }\n    }\n\n    // ── Import actions ────────────────────────────────────────────────────────\n\n    triggerImport(): void {\n        this.fileInput()?.nativeElement.click();\n    }\n\n    onFileSelected(event: Event): void {\n        const input = event.target as HTMLInputElement;\n        const file = input.files?.[0];\n        if (!file) return;\n        input.value = ''; // reset so same file can be re-selected\n        this.startImport(file);\n    }\n\n    private startImport(file: File): void {\n        const accountId = this.activeAccountId() ?? 'default';\n        this.importService.startImport(file, accountId);\n    }\n\n    private isQifFile(file: File): boolean {\n        return (\n            file.name.toLowerCase().endsWith('.qif') ||\n            file.name.toLowerCase().endsWith('.csv') ||\n            file.type === 'application/qif' ||\n            file.type === 'text/plain'\n        );\n    }\n\n    // ── Reconciliation commit ─────────────────────────────────────────────────\n\n    async handleReconciliationConfirmed(event: {\n        decisions: Record<number, ReconciliationDecision>;\n        payeeOverrides?: Record<number, string>;\n        categoryOverrides?: Record<number, string>;\n        matchOverrides?: Record<number, string>;\n        done: () => void;\n    }): Promise<void> {\n        const {\n            decisions,\n            payeeOverrides = {},\n            categoryOverrides = {},\n            matchOverrides = {},\n            done\n        } = event;\n        const matches = this.importService.matches();\n        const accountId = this.activeAccountId() ?? 'default';\n        const now = new Date().toISOString() as ISODateString;\n\n        const txsToImport: Array<ITransaction> = [];\n        const txsToUpdate: Array<ITransaction> = [];\n        const newPayees = new Map<string, IPayee>();\n        const currentPayees = new Map(this.ledgerStore.payees().map(p => [p.name, p]));\n\n        let matchedCount = 0;\n        let ignoredCount = 0;\n\n        for (const [idxStr, decision] of Object.entries(decisions)) {\n            const idx = parseInt(idxStr, 10);\n            const match = matches[idx];\n            if (!match) continue;\n\n            if (decision === 'import') {\n                const parsed = match.parsedTx;\n                const overriddenPayeeName = payeeOverrides[idx] || parsed.payee;\n\n                let payee = currentPayees.get(overriddenPayeeName);\n                if (!payee && newPayees.has(overriddenPayeeName)) {\n                    payee = newPayees.get(overriddenPayeeName);\n                }\n                if (!payee) {\n                    payee = {\n                        id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,\n                        name: overriddenPayeeName,\n                        address: null,\n                        city: null,\n                        state: null,\n                        zipCode: null,\n                        latitude: null,\n                        longitude: null,\n                        website: null,\n                        phone: null,\n                        notes: null,\n                        defaultCategoryId: null,\n                        createdAt: now,\n                        updatedAt: now\n                    };\n                    newPayees.set(overriddenPayeeName, payee);\n                }\n\n                txsToImport.push({\n                    id: `tx-import-${Date.now()}-${idx}`,\n                    accountId,\n                    payeeId: payee.id,\n                    date: parsed.date,\n                    payee: overriddenPayeeName,\n                    memo: parsed.memo,\n                    totalAmount: parsed.amount,\n                    status: TransactionStatus.Cleared,\n                    checkNumber: parsed.checkNumber,\n                    importHash: parsed.importHash,\n                    splits:\n                        parsed.splits && parsed.splits.length > 0\n                            ? parsed.splits.map((s, sIdx) => ({\n                                  id: `split-import-${Date.now()}-${idx}-${sIdx}`,\n                                  amount: s.amount,\n                                  memo: s.memo || '',\n                                  categoryId:\n                                      categoryOverrides[idx] ||\n                                      this.mapQifCategory(s.category ?? undefined)\n                              }))\n                            : [\n                                  {\n                                      id: `split-import-${Date.now()}-${idx}`,\n                                      amount: parsed.amount,\n                                      memo: parsed.memo,\n                                      categoryId:\n                                          categoryOverrides[idx] ||\n                                          this.mapQifCategory(parsed.category ?? undefined)\n                                  }\n                              ],\n                    createdAt: now,\n                    updatedAt: now\n                });\n            } else if (decision === 'match') {\n                const targetMatchId = matchOverrides[idx] || match.existingTxId;\n                if (targetMatchId) {\n                    const existingTx = this.transactions().find(t => t.id === targetMatchId);\n                    if (existingTx) {\n                        txsToUpdate.push({\n                            ...existingTx,\n                            status: TransactionStatus.Cleared,\n                            updatedAt: now\n                        });\n                        matchedCount++;\n                    }\n                }\n            } else {\n                ignoredCount++;\n            }\n        }\n\n        if (newPayees.size > 0 || txsToImport.length > 0 || txsToUpdate.length > 0) {\n            await this.ledgerStore.applyReconciliationBatch(\n                Array.from(newPayees.values()),\n                txsToImport,\n                txsToUpdate\n            );\n        }\n\n        // Show completion toast\n        this.messageService.add({\n            severity: 'success',\n            summary: 'Import Complete',\n            detail: [\n                txsToImport.length > 0 ? `${txsToImport.length.toLocaleString()} added` : '',\n                matchedCount > 0 ? `${matchedCount} matched` : '',\n                ignoredCount > 0 ? `${ignoredCount} skipped` : ''\n            ]\n                .filter(Boolean)\n                .join(' · '),\n            life: 5000\n        });\n\n        this.posthogService.posthog.capture('qif_import_completed', {\n            imported_count: txsToImport.length,\n            matched_count: matchedCount,\n            ignored_count: ignoredCount\n        });\n\n        this.importService.reset();\n        done();\n    }\n\n    handleReviewFirst(): void {\n        this.expressImportOpen.set(false);\n        this.reconciliationOpen.set(true);\n    }\n\n    handleImportCancelled(): void {\n        this.importService.reset();\n    }\n\n    private mapQifCategory(qifCategory: string | undefined): string {\n        if (!qifCategory) return KnownCategory.Uncategorized;\n\n        // If it's already a valid category ID, use it directly\n        const categories = this.ledgerStore.categories();\n        if (categories.some(c => c.id === qifCategory)) {\n            return qifCategory;\n        }\n\n        // Clean: remove brackets and take the last part after ':'\n        const cleanNameRaw = qifCategory.replace(/[[\\]]/g, '').trim();\n        let cleanName = cleanNameRaw;\n        if (cleanNameRaw.includes(':')) {\n            const parts = cleanNameRaw.split(':');\n            const lastPart = parts[parts.length - 1];\n            if (lastPart) {\n                cleanName = lastPart.trim();\n            }\n        }\n\n        const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());\n\n        return match ? match.id : KnownCategory.Uncategorized;\n    }\n\n    // ── Edit Transaction ──────────────────────────────────────────────────────\n\n    readonly entryForm = viewChild(TransactionEntryFormComponent);\n\n    editTransaction(tx: ITransaction): void {\n        if (typeof window !== 'undefined' && window.innerWidth < 640) {\n            this.openEditTransactionMobile(tx);\n        } else {\n            this.entryForm()?.editTransaction(tx);\n        }\n    }\n\n    async deleteTransaction(txId: string): Promise<void> {\n        await this.ledgerStore.removeTransaction(txId);\n        this.messageService.add({\n            severity: 'success',\n            summary: 'Transaction Deleted',\n            detail: 'The transaction has been removed.',\n            life: 3000\n        });\n    }\n\n    // ── Helpers ───────────────────────────────────────────────────────────────\n\n    formatCurrency(amount: number): string {\n        return Money.formatCurrency(amount);\n    }\n\n    getAccountIcon(type: AccountType | undefined): string {\n        switch (type) {\n            case AccountType.Checking:\n                return 'pi-building-columns';\n            case AccountType.Savings:\n                return 'pi-chart-line';\n            case AccountType.Credit:\n                return 'pi-credit-card';\n            case AccountType.Cash:\n                return 'pi-wallet';\n            default:\n                return 'pi-building-columns';\n        }\n    }\n\n    getAccountBalance(accId: string): number {\n        return this.transactions()\n            .filter(t => t.accountId === accId)\n            .reduce((s, t) => s + t.totalAmount, 0);\n    }\n\n    // ── Icons ─────────────────────────────────────────────────────────────────\n}\n",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport type { ElementRef, OnDestroy, OnInit } from '@angular/core';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    HostListener,\n    computed,\n    effect,\n    inject,\n    input,\n    signal,\n    untracked,\n    viewChild\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport { RouterLink } from '@angular/router';\nimport type { IPayee, ISODateString, ITransaction } from '@core';\nimport { AccountType, KnownCategory, Money, TransactionStatus } from '@core';\nimport { MessageService } from 'primeng/api';\n\nimport type { IAccount } from '@core';\nimport { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';\nimport type { ReconciliationDecision } from '../../../services/import/import.types';\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\nimport { PostHogService } from '../../../services/posthog/posthog.service';\nimport { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';\nimport { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';\nimport { AccountDropdownComponent } from '../account-dropdown/account-dropdown.component';\nimport { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';\nimport { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';\nimport { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';\nimport { MobileTransactionEntrySheetComponent } from '../mobile-transaction-entry-sheet/mobile-transaction-entry-sheet.component';\nimport { ReconciliationDialogComponent } from '../reconciliation-dialog/reconciliation-dialog.component';\nimport { TransactionEntryFormComponent } from '../transaction-entry-form/transaction-entry-form.component';\nimport { TransactionTableComponent } from '../transaction-table/transaction-table.component';\n\n@Component({\n    selector: 'account-ledger',\n    standalone: true,\n    imports: [\n        CommonModule,\n        FormsModule,\n        RouterLink,\n        AccountDropdownComponent,\n        TransactionTableComponent,\n        TransactionEntryFormComponent,\n        MobileTransactionEntrySheetComponent,\n        SyncIndicatorComponent,\n        ReconciliationDialogComponent,\n        ExpressImportDialogComponent,\n        ImportProgressOverlayComponent,\n        CategoryMappingDialogComponent,\n        NewAccountDialogComponent\n    ],\n    providers: [MessageService],\n    templateUrl: './account-ledger.component.html',\n    styleUrls: ['./account-ledger.component.css'],\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class AccountLedgerComponent implements OnInit, OnDestroy {\n    private readonly ledgerStore = inject(LedgerStore);\n    private readonly posthogService = inject(PostHogService);\n    readonly importService = inject(ImportOrchestrationService);\n    private readonly messageService = inject(MessageService);\n\n    // Inputs\n    readonly initialAccountId = input<string | null>(null);\n\n    // State\n    readonly activeAccountId = signal<string | null>(null);\n    readonly statusFilter = signal<'all' | 'cleared' | 'pending'>('all');\n    readonly getAccountBalanceBound = (id: string): number => this.getAccountBalance(id);\n\n    // Mobile Entry Sheet & Edit State\n    readonly isMobileEntrySheetOpen = signal<boolean>(false);\n    readonly editingTransaction = signal<ITransaction | null>(null);\n\n    // New Account Dialog\n    readonly isAddDialogOpen = signal<boolean>(false);\n\n    // Reconciliation Dialog\n    readonly reconciliationOpen = signal<boolean>(false);\n    readonly expressImportOpen = signal<boolean>(false);\n\n    // Drag-and-drop state\n    readonly isDragOver = signal<boolean>(false);\n\n    // File input ref\n    readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');\n\n    // Computed from store\n    readonly accounts = this.ledgerStore.accounts;\n    readonly transactions = this.ledgerStore.transactions;\n\n    readonly filteredTransactions = computed(() => {\n        const accId = this.activeAccountId();\n        const allTxs = this.transactions();\n        const filter = this.statusFilter();\n        let txs = accId ? allTxs.filter(tx => tx.accountId === accId) : allTxs;\n        if (filter === 'cleared') {\n            txs = txs.filter(\n                tx =>\n                    tx.status === TransactionStatus.Cleared ||\n                    tx.status === TransactionStatus.Reconciled\n            );\n        } else if (filter === 'pending') {\n            txs = txs.filter(tx => tx.status === TransactionStatus.Pending);\n        }\n        return txs;\n    });\n\n    readonly clearedBalance = computed(() =>\n        this.filteredTransactions()\n            .filter(tx => tx.status === TransactionStatus.Cleared)\n            .reduce((sum, tx) => sum + tx.totalAmount, 0)\n    );\n\n    readonly pendingBalance = computed(() =>\n        this.filteredTransactions()\n            .filter(tx => tx.status === TransactionStatus.Pending)\n            .reduce((sum, tx) => sum + tx.totalAmount, 0)\n    );\n\n    readonly activeAccount = computed(() => {\n        const accs = this.accounts();\n        const id = this.activeAccountId();\n        if (!id && accs.length > 0) return accs[0];\n        return accs.find(a => a.id === id) ?? null;\n    });\n\n    openReconciliation(): void {\n        this.reconciliationOpen.set(true);\n    }\n\n    openNewTransactionMobile(): void {\n        this.editingTransaction.set(null);\n        this.isMobileEntrySheetOpen.set(true);\n    }\n\n    openEditTransactionMobile(tx: ITransaction): void {\n        this.editingTransaction.set(tx);\n        this.isMobileEntrySheetOpen.set(true);\n    }\n\n    setStatusFilter(filter: 'all' | 'cleared' | 'pending'): void {\n        this.statusFilter.set(filter);\n    }\n\n    /** Convenience alias so the template can read import progress reactively. */\n    readonly importProgress = this.importService.progress;\n    readonly importMatches = this.importService.matches;\n    readonly importStats = this.importService.stats;\n\n    // ── Lifecycle ─────────────────────────────────────────────────────────────\n\n    constructor() {\n        // Open the appropriate dialog when import finishes\n        effect(() => {\n            const stage = this.importService.progress().stage;\n            if (stage === 'done') {\n                untracked(() => {\n                    const matches = this.importService.matches();\n                    const stats = this.importService.stats();\n                    const isExpress = matches.length >= 100 && stats?.fuzzyCount === 0;\n\n                    if (isExpress) {\n                        this.expressImportOpen.set(true);\n                    } else {\n                        this.reconciliationOpen.set(true);\n                    }\n\n                    this.posthogService.posthog.capture('qif_import_parsed', {\n                        match_count: matches.length,\n                        account_id: this.activeAccountId()\n                    });\n                });\n            }\n        });\n    }\n\n    ngOnInit(): void {\n        this.activeAccountId.set(this.initialAccountId());\n    }\n\n    ngOnDestroy(): void {\n        this.importService.reset();\n    }\n\n    handleAccountCreated(account: IAccount): void {\n        this.ledgerStore.addAccount(account);\n    }\n\n    // ── Drag and Drop ─────────────────────────────────────────────────────────\n\n    @HostListener('dragover', ['$event'])\n    onDragOver(event: DragEvent): void {\n        event.preventDefault();\n        event.stopPropagation();\n        const hasFiles = event.dataTransfer?.types.includes('Files') ?? false;\n        if (hasFiles) this.isDragOver.set(true);\n    }\n\n    @HostListener('dragleave', ['$event'])\n    onDragLeave(event: DragEvent): void {\n        // Only clear if leaving the host element (not a child)\n        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();\n        const outside =\n            event.clientX < rect.left ||\n            event.clientX > rect.right ||\n            event.clientY < rect.top ||\n            event.clientY > rect.bottom;\n        if (outside) this.isDragOver.set(false);\n    }\n\n    @HostListener('drop', ['$event'])\n    onDrop(event: DragEvent): void {\n        event.preventDefault();\n        event.stopPropagation();\n        this.isDragOver.set(false);\n\n        const file = event.dataTransfer?.files[0];\n        if (file && this.isQifFile(file)) {\n            this.startImport(file);\n        }\n    }\n\n    // ── Import actions ────────────────────────────────────────────────────────\n\n    triggerImport(): void {\n        this.fileInput()?.nativeElement.click();\n    }\n\n    onFileSelected(event: Event): void {\n        const input = event.target as HTMLInputElement;\n        const file = input.files?.[0];\n        if (!file) return;\n        input.value = ''; // reset so same file can be re-selected\n        this.startImport(file);\n    }\n\n    private startImport(file: File): void {\n        const accountId = this.activeAccountId() ?? 'default';\n        this.importService.startImport(file, accountId);\n    }\n\n    private isQifFile(file: File): boolean {\n        return (\n            file.name.toLowerCase().endsWith('.qif') ||\n            file.name.toLowerCase().endsWith('.csv') ||\n            file.type === 'application/qif' ||\n            file.type === 'text/plain'\n        );\n    }\n\n    // ── Reconciliation commit ─────────────────────────────────────────────────\n\n    async handleReconciliationConfirmed(event: {\n        decisions: Record<number, ReconciliationDecision>;\n        payeeOverrides?: Record<number, string>;\n        categoryOverrides?: Record<number, string>;\n        matchOverrides?: Record<number, string>;\n        done: () => void;\n    }): Promise<void> {\n        const {\n            decisions,\n            payeeOverrides = {},\n            categoryOverrides = {},\n            matchOverrides = {},\n            done\n        } = event;\n        const matches = this.importService.matches();\n        const accountId = this.activeAccountId() ?? 'default';\n        const now = new Date().toISOString() as ISODateString;\n\n        const txsToImport: Array<ITransaction> = [];\n        const txsToUpdate: Array<ITransaction> = [];\n        const newPayees = new Map<string, IPayee>();\n        const currentPayees = new Map(this.ledgerStore.payees().map(p => [p.name, p]));\n\n        let matchedCount = 0;\n        let ignoredCount = 0;\n\n        for (const [idxStr, decision] of Object.entries(decisions)) {\n            const idx = parseInt(idxStr, 10);\n            const match = matches[idx];\n            if (!match) continue;\n\n            if (decision === 'import') {\n                const parsed = match.parsedTx;\n                const overriddenPayeeName = payeeOverrides[idx] || parsed.payee;\n\n                let payee = currentPayees.get(overriddenPayeeName);\n                if (!payee && newPayees.has(overriddenPayeeName)) {\n                    payee = newPayees.get(overriddenPayeeName);\n                }\n                if (!payee) {\n                    payee = {\n                        id: `payee-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,\n                        name: overriddenPayeeName,\n                        address: null,\n                        city: null,\n                        state: null,\n                        zipCode: null,\n                        latitude: null,\n                        longitude: null,\n                        website: null,\n                        phone: null,\n                        notes: null,\n                        defaultCategoryId: null,\n                        createdAt: now,\n                        updatedAt: now\n                    };\n                    newPayees.set(overriddenPayeeName, payee);\n                }\n\n                txsToImport.push({\n                    id: `tx-import-${Date.now()}-${idx}`,\n                    accountId,\n                    payeeId: payee.id,\n                    date: parsed.date,\n                    payee: overriddenPayeeName,\n                    memo: parsed.memo,\n                    totalAmount: parsed.amount,\n                    status: TransactionStatus.Cleared,\n                    checkNumber: parsed.checkNumber,\n                    importHash: parsed.importHash,\n                    splits:\n                        parsed.splits && parsed.splits.length > 0\n                            ? parsed.splits.map((s, sIdx) => ({\n                                  id: `split-import-${Date.now()}-${idx}-${sIdx}`,\n                                  amount: s.amount,\n                                  memo: s.memo || '',\n                                  categoryId:\n                                      categoryOverrides[idx] ||\n                                      this.mapQifCategory(s.category ?? undefined)\n                              }))\n                            : [\n                                  {\n                                      id: `split-import-${Date.now()}-${idx}`,\n                                      amount: parsed.amount,\n                                      memo: parsed.memo,\n                                      categoryId:\n                                          categoryOverrides[idx] ||\n                                          this.mapQifCategory(parsed.category ?? undefined)\n                                  }\n                              ],\n                    createdAt: now,\n                    updatedAt: now\n                });\n            } else if (decision === 'match') {\n                const targetMatchId = matchOverrides[idx] || match.existingTxId;\n                if (targetMatchId) {\n                    const existingTx = this.transactions().find(t => t.id === targetMatchId);\n                    if (existingTx) {\n                        txsToUpdate.push({\n                            ...existingTx,\n                            status: TransactionStatus.Cleared,\n                            updatedAt: now\n                        });\n                        matchedCount++;\n                    }\n                }\n            } else {\n                ignoredCount++;\n            }\n        }\n\n        if (newPayees.size > 0 || txsToImport.length > 0 || txsToUpdate.length > 0) {\n            await this.ledgerStore.applyReconciliationBatch(\n                Array.from(newPayees.values()),\n                txsToImport,\n                txsToUpdate\n            );\n        }\n\n        // Show completion toast\n        this.messageService.add({\n            severity: 'success',\n            summary: 'Import Complete',\n            detail: [\n                txsToImport.length > 0 ? `${txsToImport.length.toLocaleString()} added` : '',\n                matchedCount > 0 ? `${matchedCount} matched` : '',\n                ignoredCount > 0 ? `${ignoredCount} skipped` : ''\n            ]\n                .filter(Boolean)\n                .join(' · '),\n            life: 5000\n        });\n\n        this.posthogService.posthog.capture('qif_import_completed', {\n            imported_count: txsToImport.length,\n            matched_count: matchedCount,\n            ignored_count: ignoredCount\n        });\n\n        this.importService.reset();\n        done();\n    }\n\n    handleReviewFirst(): void {\n        this.expressImportOpen.set(false);\n        this.reconciliationOpen.set(true);\n    }\n\n    handleImportCancelled(): void {\n        this.importService.reset();\n    }\n\n    private mapQifCategory(qifCategory: string | undefined): string {\n        if (!qifCategory) return KnownCategory.Uncategorized;\n\n        // If it's already a valid category ID, use it directly\n        const categories = this.ledgerStore.categories();\n        if (categories.some(c => c.id === qifCategory)) {\n            return qifCategory;\n        }\n\n        // Clean: remove brackets and take the last part after ':'\n        const cleanNameRaw = qifCategory.replace(/[[\\]]/g, '').trim();\n        let cleanName = cleanNameRaw;\n        if (cleanNameRaw.includes(':')) {\n            const parts = cleanNameRaw.split(':');\n            const lastPart = parts[parts.length - 1];\n            if (lastPart) {\n                cleanName = lastPart.trim();\n            }\n        }\n\n        const match = categories.find(c => c.name.toLowerCase() === cleanName.toLowerCase());\n\n        return match ? match.id : KnownCategory.Uncategorized;\n    }\n\n    // ── Edit Transaction ──────────────────────────────────────────────────────\n\n    readonly entryForm = viewChild(TransactionEntryFormComponent);\n\n    editTransaction(tx: ITransaction): void {\n        if (typeof window !== 'undefined' && window.innerWidth < 640) {\n            this.openEditTransactionMobile(tx);\n        } else {\n            this.entryForm()?.editTransaction(tx);\n        }\n    }\n\n    async deleteTransaction(txId: string): Promise<void> {\n        await this.ledgerStore.removeTransaction(txId);\n        this.messageService.add({\n            severity: 'success',\n            summary: 'Transaction Deleted',\n            detail: 'The transaction has been removed.',\n            life: 3000\n        });\n    }\n\n    // ── Helpers ───────────────────────────────────────────────────────────────\n\n    formatCurrency(amount: number): string {\n        return Money.formatCurrency(amount);\n    }\n\n    getAccountIcon(type: AccountType | undefined): string {\n        switch (type) {\n            case AccountType.Checking:\n                return 'pi-building-columns';\n            case AccountType.Savings:\n                return 'pi-chart-line';\n            case AccountType.Credit:\n                return 'pi-credit-card';\n            case AccountType.Cash:\n                return 'pi-wallet';\n            default:\n                return 'pi-building-columns';\n        }\n    }\n\n    getAccountBalance(accId: string): number {\n        return this.transactions()\n            .filter(t => t.accountId === accId)\n            .reduce((s, t) => s + t.totalAmount, 0);\n    }\n\n    // ── Icons ─────────────────────────────────────────────────────────────────\n}\n",
             "assetsDirs": [],
             "styleUrlsData": [
                 {
@@ -16542,14 +17097,14 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "args": [],
-                "line": 149
+                "line": 152
             },
             "extends": [],
             "implements": [
                 "OnInit",
                 "OnDestroy"
             ],
-            "templateData": "<div class=\"flex flex-col lg:flex-row h-full w-full gap-4 lg:gap-6 overflow-hidden bg-brand-base\">\n    <input\n        #fileInput\n        type=\"file\"\n        (change)=\"onFileSelected($event)\"\n        accept=\".qif,.csv\"\n        class=\"hidden\"\n    />\n\n    <!-- Desktop Sidebar (>= 1024px) -->\n    <aside class=\"hidden lg:flex w-72 flex-col gap-4 flex-none overflow-y-auto pr-1\">\n        <div\n            class=\"bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm space-y-4\"\n        >\n            <!-- Account Dropdown Switcher -->\n            <div class=\"space-y-1.5\">\n                <div class=\"flex justify-between items-center\">\n                    <label\n                        for=\"account-selector-desktop\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-content-muted\"\n                        >Active Account</label\n                    >\n                    <sync-indicator />\n                </div>\n                <div class=\"relative\">\n                    <select\n                        id=\"account-selector-desktop\"\n                        [ngModel]=\"activeAccountId()\"\n                        (ngModelChange)=\"activeAccountId.set($event)\"\n                        class=\"w-full min-h-[44px] px-3.5 py-2.5 bg-brand-base border border-brand-border rounded-xl text-sm font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8\"\n                    >\n                        @if (accounts().length === 0) {\n                            <option value=\"\" disabled selected>No accounts available</option>\n                        }\n                        @for (acc of accounts(); track acc.id) {\n                            <option [value]=\"acc.id\">\n                                {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}\n                            </option>\n                        }\n                    </select>\n                    <i\n                        class=\"pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none\"\n                    ></i>\n                </div>\n            </div>\n\n            <!-- Cleared / Pending Balance Metrics -->\n            <div class=\"flex flex-col gap-2 pt-3 border-t border-brand-border\">\n                <div class=\"flex justify-between items-center text-xs\">\n                    <span class=\"font-bold text-content-muted uppercase tracking-wider\"\n                        >Cleared</span\n                    >\n                    <span\n                        class=\"font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm\"\n                    >\n                        {{ formatCurrency(clearedBalance()) }}\n                    </span>\n                </div>\n                <div class=\"flex justify-between items-center text-xs\">\n                    <span class=\"font-bold text-content-muted uppercase tracking-wider\"\n                        >Pending</span\n                    >\n                    <span class=\"font-mono font-bold text-amber-500 text-sm\">\n                        {{ formatCurrency(pendingBalance()) }}\n                    </span>\n                </div>\n            </div>\n\n            <!-- Divider -->\n            <div class=\"h-px bg-brand-border my-1\"></div>\n\n            <!-- Account Tasks Menu -->\n            <div class=\"space-y-1\">\n                <span\n                    class=\"text-xs font-bold uppercase tracking-wider text-content-muted block mb-2\"\n                    >Account Actions</span\n                >\n                <a\n                    routerLink=\"/recurring\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors\"\n                >\n                    <i class=\"pi pi-bolt text-primary\"></i>\n                    Recurring Bills\n                </a>\n                <button\n                    type=\"button\"\n                    (click)=\"openReconciliation()\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left cursor-pointer\"\n                >\n                    <i class=\"pi pi-balance-scale text-primary\"></i>\n                    Reconcile Account\n                </button>\n                <a\n                    routerLink=\"/settings\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors\"\n                >\n                    <i class=\"pi pi-cog text-content-muted\"></i>\n                    Account Rules\n                </a>\n            </div>\n\n            <!-- Divider -->\n            <div class=\"h-px bg-brand-border my-1\"></div>\n\n            <!-- Import QIF/CSV Drag & Drop Zone with Button -->\n            <div\n                class=\"p-4 border-2 border-dashed border-brand-border hover:border-primary/50 rounded-xl bg-brand-base flex flex-col items-center justify-center text-center gap-2 transition-colors\"\n            >\n                <i class=\"pi pi-upload text-xl text-primary\"></i>\n                <button\n                    type=\"button\"\n                    (click)=\"triggerImport()\"\n                    [disabled]=\"\n                        importProgress().stage !== 'idle' &&\n                        importProgress().stage !== 'done' &&\n                        importProgress().stage !== 'error'\n                    \"\n                    class=\"min-h-[44px] px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer\"\n                >\n                    Import QIF/CSV\n                </button>\n                <span class=\"text-xs text-content-muted font-medium\"\n                    >or drag & drop files here</span\n                >\n            </div>\n        </div>\n    </aside>\n\n    <!-- Tablet Portrait Toolbar (640px – 1023px) -->\n    <div\n        class=\"hidden sm:flex lg:hidden flex-none flex-col gap-3 p-3.5 bg-brand-surface border border-brand-border rounded-2xl shadow-xs\"\n    >\n        <div class=\"flex items-center justify-between gap-3 flex-wrap\">\n            <!-- Account Switcher -->\n            <div class=\"relative flex-1 min-w-[220px]\">\n                <select\n                    id=\"account-selector-tablet\"\n                    [ngModel]=\"activeAccountId()\"\n                    (ngModelChange)=\"activeAccountId.set($event)\"\n                    class=\"w-full min-h-[44px] px-3 py-2 bg-brand-base border border-brand-border rounded-xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8\"\n                >\n                    @if (accounts().length === 0) {\n                        <option value=\"\" disabled selected>No accounts available</option>\n                    }\n                    @for (acc of accounts(); track acc.id) {\n                        <option [value]=\"acc.id\">\n                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}\n                        </option>\n                    }\n                </select>\n                <i\n                    class=\"pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none\"\n                ></i>\n            </div>\n\n            <!-- Cleared & Pending Balance Pills -->\n            <div class=\"flex items-center gap-2\">\n                <span\n                    class=\"px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted\"\n                >\n                    Cleared:\n                    <span class=\"text-emerald-700 dark:text-emerald-400 font-mono\">{{\n                        formatCurrency(clearedBalance())\n                    }}</span>\n                </span>\n                <span\n                    class=\"px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted\"\n                >\n                    Pending:\n                    <span class=\"text-amber-500 font-mono\">{{\n                        formatCurrency(pendingBalance())\n                    }}</span>\n                </span>\n                <sync-indicator />\n            </div>\n        </div>\n\n        <!-- Quick Action Buttons & Status Filters -->\n        <div\n            class=\"flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-brand-border\"\n        >\n            <!-- Status Filter Pills -->\n            <div\n                class=\"flex items-center gap-1 bg-brand-base p-1 rounded-xl border border-brand-border\"\n                role=\"group\"\n                aria-label=\"Transaction status filter\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('all')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'all'\"\n                    [class]=\"\n                        statusFilter() === 'all'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    All\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('cleared')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'cleared'\"\n                    [class]=\"\n                        statusFilter() === 'cleared'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    Cleared\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('pending')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'pending'\"\n                    [class]=\"\n                        statusFilter() === 'pending'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    Pending\n                </button>\n            </div>\n\n            <!-- Quick Action Links -->\n            <div class=\"flex items-center gap-2\">\n                <a\n                    routerLink=\"/recurring\"\n                    class=\"h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition\"\n                >\n                    <i class=\"pi pi-bolt text-primary text-xs\"></i>\n                    <span>Recurring</span>\n                </a>\n                <button\n                    type=\"button\"\n                    (click)=\"openReconciliation()\"\n                    class=\"h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition\"\n                >\n                    <i class=\"pi pi-balance-scale text-primary text-xs\"></i>\n                    <span>Reconcile</span>\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"triggerImport()\"\n                    class=\"h-8 px-3 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1.5 transition shadow-xs\"\n                >\n                    <i class=\"pi pi-upload text-xs\"></i>\n                    <span>Import QIF</span>\n                </button>\n            </div>\n        </div>\n    </div>\n\n    <!-- Mobile Header (< 640px) -->\n    <div class=\"sm:hidden flex-none flex flex-col gap-2.5 pb-1\">\n        <!-- Account Switcher Pill Row -->\n        <div class=\"flex items-center gap-2\">\n            <div class=\"relative flex-1\">\n                <select\n                    id=\"account-selector-mobile\"\n                    [ngModel]=\"activeAccountId()\"\n                    (ngModelChange)=\"activeAccountId.set($event)\"\n                    class=\"w-full min-h-[44px] px-3.5 py-2.5 bg-brand-surface border border-brand-border rounded-2xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8 shadow-xs\"\n                >\n                    @if (accounts().length === 0) {\n                        <option value=\"\" disabled selected>No accounts available</option>\n                    }\n                    @for (acc of accounts(); track acc.id) {\n                        <option [value]=\"acc.id\">\n                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}\n                        </option>\n                    }\n                </select>\n                <i\n                    class=\"pi pi-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none\"\n                ></i>\n            </div>\n            <sync-indicator />\n        </div>\n\n        <!-- Filter Segmented Control -->\n        <div\n            class=\"grid grid-cols-3 p-1 rounded-xl bg-brand-surface border border-brand-border shadow-xs\"\n            role=\"group\"\n            aria-label=\"Transaction status filter\"\n        >\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('all')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'all'\"\n                [class]=\"\n                    statusFilter() === 'all'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                All\n            </button>\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('cleared')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'cleared'\"\n                [class]=\"\n                    statusFilter() === 'cleared'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                Cleared\n            </button>\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('pending')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'pending'\"\n                [class]=\"\n                    statusFilter() === 'pending'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                Pending\n            </button>\n        </div>\n    </div>\n\n    <!-- Main Ledger Area -->\n    <div class=\"flex-1 flex flex-col gap-4 overflow-hidden min-h-0 relative\">\n        <!-- Ledger table + overlays -->\n        <div\n            class=\"bg-brand-surface border border-brand-border rounded-2xl flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all shadow-sm\"\n            [class]=\"{\n                'border-primary ring-2 ring-primary/20 bg-primary/5': isDragOver(),\n                'border-brand-border': !isDragOver()\n            }\"\n        >\n            <!-- Drag-over visual target -->\n            @if (isDragOver()) {\n                <div\n                    class=\"absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none bg-brand-surface/90 backdrop-blur-xs\"\n                >\n                    <i class=\"pi pi-upload text-5xl text-primary mb-3 animate-bounce\"></i>\n                    <p class=\"text-sm font-black uppercase tracking-[0.2em] text-primary\">\n                        Drop QIF / CSV File to Import\n                    </p>\n                </div>\n            }\n\n            <!-- Import progress overlay -->\n            <import-progress-overlay (cancelled)=\"handleImportCancelled()\" />\n\n            @if (filteredTransactions(); as txData) {\n                <transaction-table\n                    [data]=\"txData\"\n                    (editClicked)=\"editTransaction($event)\"\n                    (deleted)=\"deleteTransaction($event)\"\n                />\n            }\n        </div>\n\n        <!-- Desktop & Tablet Checkbook Dock (>= 640px) -->\n        <transaction-entry-form\n            [accountId]=\"activeAccountId() || ''\"\n            (requestAddAccount)=\"isAddDialogOpen.set(true)\"\n            class=\"hidden sm:block flex-none relative z-10\"\n        />\n\n        <!-- Mobile Floating Action Button (< 640px) -->\n        <div class=\"sm:hidden fixed bottom-6 right-6 z-30\">\n            <button\n                type=\"button\"\n                (click)=\"openNewTransactionMobile()\"\n                class=\"h-14 px-6 rounded-full bg-primary text-white font-bold text-sm shadow-2xl hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2.5 border border-white/20\"\n                aria-label=\"Add Transaction\"\n            >\n                <i class=\"pi pi-plus text-base font-bold\"></i>\n                <span>Add Transaction</span>\n            </button>\n        </div>\n    </div>\n</div>\n\n<!-- Mobile Fast-Entry Sheet -->\n<app-mobile-transaction-entry-sheet\n    [(visible)]=\"isMobileEntrySheetOpen\"\n    [accountId]=\"activeAccountId() || ''\"\n    [transaction]=\"editingTransaction()\"\n/>\n\n<!-- Express Import dialog -->\n<express-import-dialog\n    [(isOpen)]=\"expressImportOpen\"\n    [matches]=\"importMatches()\"\n    [importStats]=\"importStats()\"\n    (reviewFirst)=\"handleReviewFirst()\"\n    (confirmed)=\"handleReconciliationConfirmed($event)\"\n/>\n\n<!-- Reconciliation dialog -->\n<reconciliation-dialog\n    [(isOpen)]=\"reconciliationOpen\"\n    [matches]=\"importMatches()\"\n    [importStats]=\"importStats()\"\n    (confirmed)=\"handleReconciliationConfirmed($event)\"\n/>\n\n<!-- Category Mapping dialog -->\n<category-mapping-dialog />\n\n<!-- New Account dialog -->\n<new-account-dialog\n    [isOpen]=\"isAddDialogOpen()\"\n    (closed)=\"isAddDialogOpen.set(false)\"\n    (accountCreated)=\"handleAccountCreated($event)\"\n/>\n"
+            "templateData": "<div class=\"flex flex-col lg:flex-row h-full w-full gap-4 lg:gap-6 overflow-hidden bg-brand-base\">\n    <input\n        #fileInput\n        type=\"file\"\n        (change)=\"onFileSelected($event)\"\n        accept=\".qif,.csv\"\n        class=\"hidden\"\n    />\n\n    <!-- Desktop Sidebar (>= 1024px) -->\n    <aside class=\"hidden lg:flex w-72 flex-col gap-4 flex-none overflow-y-auto pr-1\">\n        <div\n            class=\"bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm space-y-4\"\n        >\n            <!-- Account Dropdown Switcher -->\n            <div class=\"space-y-1.5\">\n                <div class=\"flex justify-between items-center\">\n                    <label\n                        class=\"text-xs font-bold uppercase tracking-wider text-content-muted\"\n                        >Active Account</label\n                    >\n                    <sync-indicator />\n                </div>\n                <account-dropdown\n                    [accounts]=\"accounts()\"\n                    [(selectedAccountId)]=\"activeAccountId\"\n                    [getAccountBalance]=\"getAccountBalanceBound\"\n                    (addAccount)=\"isAddDialogOpen.set(true)\"\n                    ariaLabel=\"Active Account\"\n                />\n            </div>\n\n            <!-- Cleared / Pending Balance Metrics -->\n            <div class=\"flex flex-col gap-2 pt-3 border-t border-brand-border\">\n                <div class=\"flex justify-between items-center text-xs\">\n                    <span class=\"font-bold text-content-muted uppercase tracking-wider\"\n                        >Cleared</span\n                    >\n                    <span\n                        class=\"font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm\"\n                    >\n                        {{ formatCurrency(clearedBalance()) }}\n                    </span>\n                </div>\n                <div class=\"flex justify-between items-center text-xs\">\n                    <span class=\"font-bold text-content-muted uppercase tracking-wider\"\n                        >Pending</span\n                    >\n                    <span class=\"font-mono font-bold text-amber-500 text-sm\">\n                        {{ formatCurrency(pendingBalance()) }}\n                    </span>\n                </div>\n            </div>\n\n            <!-- Divider -->\n            <div class=\"h-px bg-brand-border my-1\"></div>\n\n            <!-- Account Tasks Menu -->\n            <div class=\"space-y-1\">\n                <span\n                    class=\"text-xs font-bold uppercase tracking-wider text-content-muted block mb-2\"\n                    >Account Actions</span\n                >\n                <a\n                    routerLink=\"/recurring\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors\"\n                >\n                    <i class=\"pi pi-bolt text-primary\"></i>\n                    Recurring Bills\n                </a>\n                <button\n                    type=\"button\"\n                    (click)=\"openReconciliation()\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left cursor-pointer\"\n                >\n                    <i class=\"pi pi-balance-scale text-primary\"></i>\n                    Reconcile Account\n                </button>\n                <a\n                    routerLink=\"/settings\"\n                    class=\"w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors\"\n                >\n                    <i class=\"pi pi-cog text-content-muted\"></i>\n                    Account Rules\n                </a>\n            </div>\n\n            <!-- Divider -->\n            <div class=\"h-px bg-brand-border my-1\"></div>\n\n            <!-- Import QIF/CSV Drag & Drop Zone with Button -->\n            <div\n                class=\"p-4 border-2 border-dashed border-brand-border hover:border-primary/50 rounded-xl bg-brand-base flex flex-col items-center justify-center text-center gap-2 transition-colors\"\n            >\n                <i class=\"pi pi-upload text-xl text-primary\"></i>\n                <button\n                    type=\"button\"\n                    (click)=\"triggerImport()\"\n                    [disabled]=\"\n                        importProgress().stage !== 'idle' &&\n                        importProgress().stage !== 'done' &&\n                        importProgress().stage !== 'error'\n                    \"\n                    class=\"min-h-[44px] px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer\"\n                >\n                    Import QIF/CSV\n                </button>\n                <span class=\"text-xs text-content-muted font-medium\"\n                    >or drag & drop files here</span\n                >\n            </div>\n        </div>\n    </aside>\n\n    <!-- Tablet Portrait Toolbar (640px – 1023px) -->\n    <div\n        class=\"hidden sm:flex lg:hidden flex-none flex-col gap-3 p-3.5 bg-brand-surface border border-brand-border rounded-2xl shadow-xs\"\n    >\n        <div class=\"flex items-center justify-between gap-3 flex-wrap\">\n            <!-- Account Switcher -->\n            <div class=\"flex-1 min-w-[240px]\">\n                <account-dropdown\n                    [accounts]=\"accounts()\"\n                    [(selectedAccountId)]=\"activeAccountId\"\n                    [getAccountBalance]=\"getAccountBalanceBound\"\n                    (addAccount)=\"isAddDialogOpen.set(true)\"\n                    size=\"sm\"\n                    ariaLabel=\"Select Account\"\n                />\n            </div>\n\n            <!-- Cleared & Pending Balance Pills -->\n            <div class=\"flex items-center gap-2\">\n                <span\n                    class=\"px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted\"\n                >\n                    Cleared:\n                    <span class=\"text-emerald-700 dark:text-emerald-400 font-mono\">{{\n                        formatCurrency(clearedBalance())\n                    }}</span>\n                </span>\n                <span\n                    class=\"px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-base border border-brand-border text-content-muted\"\n                >\n                    Pending:\n                    <span class=\"text-amber-500 font-mono\">{{\n                        formatCurrency(pendingBalance())\n                    }}</span>\n                </span>\n                <sync-indicator />\n            </div>\n        </div>\n\n        <!-- Quick Action Buttons & Status Filters -->\n        <div\n            class=\"flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-brand-border\"\n        >\n            <!-- Status Filter Pills -->\n            <div\n                class=\"flex items-center gap-1 bg-brand-base p-1 rounded-xl border border-brand-border\"\n                role=\"group\"\n                aria-label=\"Transaction status filter\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('all')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'all'\"\n                    [class]=\"\n                        statusFilter() === 'all'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    All\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('cleared')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'cleared'\"\n                    [class]=\"\n                        statusFilter() === 'cleared'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    Cleared\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"setStatusFilter('pending')\"\n                    aria-controls=\"transaction-table\"\n                    [attr.aria-pressed]=\"statusFilter() === 'pending'\"\n                    [class]=\"\n                        statusFilter() === 'pending'\n                            ? 'px-3 py-1 text-xs font-bold rounded-lg bg-primary text-white shadow-xs'\n                            : 'px-3 py-1 text-xs font-semibold text-content-muted hover:text-content-primary'\n                    \"\n                >\n                    Pending\n                </button>\n            </div>\n\n            <!-- Quick Action Links -->\n            <div class=\"flex items-center gap-2\">\n                <a\n                    routerLink=\"/recurring\"\n                    class=\"h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition\"\n                >\n                    <i class=\"pi pi-bolt text-primary text-xs\"></i>\n                    <span>Recurring</span>\n                </a>\n                <button\n                    type=\"button\"\n                    (click)=\"openReconciliation()\"\n                    class=\"h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition\"\n                >\n                    <i class=\"pi pi-balance-scale text-primary text-xs\"></i>\n                    <span>Reconcile</span>\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"triggerImport()\"\n                    class=\"h-8 px-3 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 flex items-center gap-1.5 transition shadow-xs\"\n                >\n                    <i class=\"pi pi-upload text-xs\"></i>\n                    <span>Import QIF</span>\n                </button>\n            </div>\n        </div>\n    </div>\n\n    <!-- Mobile Header (< 640px) -->\n    <div class=\"sm:hidden flex-none flex flex-col gap-2.5 pb-1\">\n        <!-- Account Switcher Pill Row -->\n        <div class=\"flex items-center gap-2\">\n            <div class=\"flex-1 min-w-0\">\n                <account-dropdown\n                    [accounts]=\"accounts()\"\n                    [(selectedAccountId)]=\"activeAccountId\"\n                    [getAccountBalance]=\"getAccountBalanceBound\"\n                    (addAccount)=\"isAddDialogOpen.set(true)\"\n                    size=\"sm\"\n                    ariaLabel=\"Select Account\"\n                />\n            </div>\n            <sync-indicator />\n        </div>\n\n        <!-- Filter Segmented Control -->\n        <div\n            class=\"grid grid-cols-3 p-1 rounded-xl bg-brand-surface border border-brand-border shadow-xs\"\n            role=\"group\"\n            aria-label=\"Transaction status filter\"\n        >\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('all')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'all'\"\n                [class]=\"\n                    statusFilter() === 'all'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                All\n            </button>\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('cleared')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'cleared'\"\n                [class]=\"\n                    statusFilter() === 'cleared'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                Cleared\n            </button>\n            <button\n                type=\"button\"\n                (click)=\"setStatusFilter('pending')\"\n                aria-controls=\"transaction-table\"\n                [attr.aria-pressed]=\"statusFilter() === 'pending'\"\n                [class]=\"\n                    statusFilter() === 'pending'\n                        ? 'h-8 rounded-lg font-bold text-xs bg-primary text-white shadow-xs'\n                        : 'h-8 rounded-lg font-semibold text-xs text-content-muted hover:text-content-primary'\n                \"\n            >\n                Pending\n            </button>\n        </div>\n    </div>\n\n    <!-- Main Ledger Area -->\n    <div class=\"flex-1 flex flex-col gap-4 overflow-hidden min-h-0 relative\">\n        <!-- Ledger table + overlays -->\n        <div\n            class=\"bg-brand-surface border border-brand-border rounded-2xl flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all shadow-sm\"\n            [class]=\"{\n                'border-primary ring-2 ring-primary/20 bg-primary/5': isDragOver(),\n                'border-brand-border': !isDragOver()\n            }\"\n        >\n            <!-- Drag-over visual target -->\n            @if (isDragOver()) {\n                <div\n                    class=\"absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none bg-brand-surface/90 backdrop-blur-xs\"\n                >\n                    <i class=\"pi pi-upload text-5xl text-primary mb-3 animate-bounce\"></i>\n                    <p class=\"text-sm font-black uppercase tracking-[0.2em] text-primary\">\n                        Drop QIF / CSV File to Import\n                    </p>\n                </div>\n            }\n\n            <!-- Import progress overlay -->\n            <import-progress-overlay (cancelled)=\"handleImportCancelled()\" />\n\n            @if (filteredTransactions(); as txData) {\n                <transaction-table\n                    [data]=\"txData\"\n                    (editClicked)=\"editTransaction($event)\"\n                    (deleted)=\"deleteTransaction($event)\"\n                />\n            }\n        </div>\n\n        <!-- Desktop & Tablet Checkbook Dock (>= 640px) -->\n        <transaction-entry-form\n            [accountId]=\"activeAccountId() || ''\"\n            (requestAddAccount)=\"isAddDialogOpen.set(true)\"\n            class=\"hidden sm:block flex-none relative z-10\"\n        />\n\n        <!-- Mobile Floating Action Button (< 640px) -->\n        <div class=\"sm:hidden fixed bottom-6 right-6 z-30\">\n            <button\n                type=\"button\"\n                (click)=\"openNewTransactionMobile()\"\n                class=\"h-14 px-6 rounded-full bg-primary text-white font-bold text-sm shadow-2xl hover:bg-primary/90 active:scale-95 transition-all flex items-center gap-2.5 border border-white/20\"\n                aria-label=\"Add Transaction\"\n            >\n                <i class=\"pi pi-plus text-base font-bold\"></i>\n                <span>Add Transaction</span>\n            </button>\n        </div>\n    </div>\n</div>\n\n<!-- Mobile Fast-Entry Sheet -->\n<app-mobile-transaction-entry-sheet\n    [(visible)]=\"isMobileEntrySheetOpen\"\n    [accountId]=\"activeAccountId() || ''\"\n    [transaction]=\"editingTransaction()\"\n/>\n\n<!-- Express Import dialog -->\n<express-import-dialog\n    [(isOpen)]=\"expressImportOpen\"\n    [matches]=\"importMatches()\"\n    [importStats]=\"importStats()\"\n    (reviewFirst)=\"handleReviewFirst()\"\n    (confirmed)=\"handleReconciliationConfirmed($event)\"\n/>\n\n<!-- Reconciliation dialog -->\n<reconciliation-dialog\n    [(isOpen)]=\"reconciliationOpen\"\n    [matches]=\"importMatches()\"\n    [importStats]=\"importStats()\"\n    (confirmed)=\"handleReconciliationConfirmed($event)\"\n/>\n\n<!-- Category Mapping dialog -->\n<category-mapping-dialog />\n\n<!-- New Account dialog -->\n<new-account-dialog\n    [isOpen]=\"isAddDialogOpen()\"\n    (closed)=\"isAddDialogOpen.set(false)\"\n    (accountCreated)=\"handleAccountCreated($event)\"\n/>\n"
         },
         {
             "name": "AccountsPageComponent",
@@ -36539,6 +37094,16 @@
     "miscellaneous": {
         "variables": [
             {
+                "name": "ACCOUNT_TYPE_STYLES",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "Record<AccountType, IAccountTypeStyle>",
+                "defaultValue": "{\n    [AccountType.Checking]: {\n        icon: 'pi-building-columns',\n        iconColor: 'text-teal-600 dark:text-teal-400',\n        iconBg: 'bg-teal-500/10',\n        label: 'Checking'\n    },\n    [AccountType.Savings]: {\n        icon: 'pi-chart-line',\n        iconColor: 'text-blue-600 dark:text-blue-400',\n        iconBg: 'bg-blue-500/10',\n        label: 'Savings'\n    },\n    [AccountType.Credit]: {\n        icon: 'pi-credit-card',\n        iconColor: 'text-purple-600 dark:text-purple-400',\n        iconBg: 'bg-purple-500/10',\n        label: 'Credit'\n    },\n    [AccountType.Cash]: {\n        icon: 'pi-wallet',\n        iconColor: 'text-emerald-600 dark:text-emerald-400',\n        iconBg: 'bg-emerald-500/10',\n        label: 'Cash'\n    },\n    [AccountType.Mortgage]: {\n        icon: 'pi-home',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Mortgage'\n    },\n    [AccountType.AutoLoan]: {\n        icon: 'pi-car',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Auto Loan'\n    },\n    [AccountType.PersonalLoan]: {\n        icon: 'pi-receipt',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Personal Loan'\n    }\n}"
+            },
+            {
                 "name": "AncillarySerializer",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
@@ -42584,6 +43149,18 @@
             }
         ],
         "groupedVariables": {
+            "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts": [
+                {
+                    "name": "ACCOUNT_TYPE_STYLES",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "Record<AccountType, IAccountTypeStyle>",
+                    "defaultValue": "{\n    [AccountType.Checking]: {\n        icon: 'pi-building-columns',\n        iconColor: 'text-teal-600 dark:text-teal-400',\n        iconBg: 'bg-teal-500/10',\n        label: 'Checking'\n    },\n    [AccountType.Savings]: {\n        icon: 'pi-chart-line',\n        iconColor: 'text-blue-600 dark:text-blue-400',\n        iconBg: 'bg-blue-500/10',\n        label: 'Savings'\n    },\n    [AccountType.Credit]: {\n        icon: 'pi-credit-card',\n        iconColor: 'text-purple-600 dark:text-purple-400',\n        iconBg: 'bg-purple-500/10',\n        label: 'Credit'\n    },\n    [AccountType.Cash]: {\n        icon: 'pi-wallet',\n        iconColor: 'text-emerald-600 dark:text-emerald-400',\n        iconBg: 'bg-emerald-500/10',\n        label: 'Cash'\n    },\n    [AccountType.Mortgage]: {\n        icon: 'pi-home',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Mortgage'\n    },\n    [AccountType.AutoLoan]: {\n        icon: 'pi-car',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Auto Loan'\n    },\n    [AccountType.PersonalLoan]: {\n        icon: 'pi-receipt',\n        iconColor: 'text-amber-600 dark:text-amber-400',\n        iconBg: 'bg-amber-500/10',\n        label: 'Personal Loan'\n    }\n}"
+                }
+            ],
             "app/src/app/core/export-import/serializers/AncillarySerializer.ts": [
                 {
                     "name": "AncillarySerializer",
@@ -49151,12 +49728,40 @@
                 "status": "low"
             },
             {
+                "filePath": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+                "type": "component",
+                "linktype": "component",
+                "name": "AccountDropdownComponent",
+                "coveragePercent": 0,
+                "coverageCount": "0/24",
+                "status": "low"
+            },
+            {
+                "filePath": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "IAccountTypeStyle",
+                "coveragePercent": 0,
+                "coverageCount": "0/5",
+                "status": "low"
+            },
+            {
+                "filePath": "app/src/app/components/ledger/account-dropdown/account-dropdown.component.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "ACCOUNT_TYPE_STYLES",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
+                "status": "low"
+            },
+            {
                 "filePath": "app/src/app/components/ledger/account-ledger/account-ledger.component.ts",
                 "type": "component",
                 "linktype": "component",
                 "name": "AccountLedgerComponent",
                 "coveragePercent": 1,
-                "coverageCount": "1/52",
+                "coverageCount": "1/53",
                 "status": "low"
             },
             {

@@ -25,6 +25,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
 import { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
+import { AccountDropdownComponent } from '../account-dropdown/account-dropdown.component';
 import { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';
 import { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';
 import { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';
@@ -40,6 +41,7 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         CommonModule,
         FormsModule,
         RouterLink,
+        AccountDropdownComponent,
         TransactionTableComponent,
         TransactionEntryFormComponent,
         MobileTransactionEntrySheetComponent,
@@ -67,6 +69,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     // State
     readonly activeAccountId = signal<string | null>(null);
     readonly statusFilter = signal<'all' | 'cleared' | 'pending'>('all');
+    readonly getAccountBalanceBound = (id: string): number => this.getAccountBalance(id);
 
     // Mobile Entry Sheet & Edit State
     readonly isMobileEntrySheetOpen = signal<boolean>(false);

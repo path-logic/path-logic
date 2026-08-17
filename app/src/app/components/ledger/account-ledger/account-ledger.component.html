@@ -15,33 +15,18 @@
             <!-- Account Dropdown Switcher -->
             <div class="space-y-1.5">
                 <div class="flex justify-between items-center">
-                    <label
-                        for="account-selector-desktop"
-                        class="text-xs font-bold uppercase tracking-wider text-content-muted"
+                    <label class="text-xs font-bold uppercase tracking-wider text-content-muted"
                         >Active Account</label
                     >
                     <sync-indicator />
                 </div>
-                <div class="relative">
-                    <select
-                        id="account-selector-desktop"
-                        [ngModel]="activeAccountId()"
-                        (ngModelChange)="activeAccountId.set($event)"
-                        class="w-full min-h-[44px] px-3.5 py-2.5 bg-brand-base border border-brand-border rounded-xl text-sm font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
-                    >
-                        @if (accounts().length === 0) {
-                            <option value="" disabled selected>No accounts available</option>
-                        }
-                        @for (acc of accounts(); track acc.id) {
-                            <option [value]="acc.id">
-                                {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
-                            </option>
-                        }
-                    </select>
-                    <i
-                        class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
-                    ></i>
-                </div>
+                <account-dropdown
+                    [accounts]="accounts()"
+                    [(selectedAccountId)]="activeAccountId"
+                    [getAccountBalance]="getAccountBalanceBound"
+                    (addAccount)="isAddDialogOpen.set(true)"
+                    ariaLabel="Active Account"
+                />
             </div>
 
             <!-- Cleared / Pending Balance Metrics -->
@@ -132,25 +117,15 @@
     >
         <div class="flex items-center justify-between gap-3 flex-wrap">
             <!-- Account Switcher -->
-            <div class="relative flex-1 min-w-[220px]">
-                <select
-                    id="account-selector-tablet"
-                    [ngModel]="activeAccountId()"
-                    (ngModelChange)="activeAccountId.set($event)"
-                    class="w-full min-h-[44px] px-3 py-2 bg-brand-base border border-brand-border rounded-xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8"
-                >
-                    @if (accounts().length === 0) {
-                        <option value="" disabled selected>No accounts available</option>
-                    }
-                    @for (acc of accounts(); track acc.id) {
-                        <option [value]="acc.id">
-                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
-                        </option>
-                    }
-                </select>
-                <i
-                    class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
-                ></i>
+            <div class="flex-1 min-w-[240px]">
+                <account-dropdown
+                    [accounts]="accounts()"
+                    [(selectedAccountId)]="activeAccountId"
+                    [getAccountBalance]="getAccountBalanceBound"
+                    (addAccount)="isAddDialogOpen.set(true)"
+                    size="sm"
+                    ariaLabel="Select Account"
+                />
             </div>
 
             <!-- Cleared & Pending Balance Pills -->
@@ -259,25 +234,15 @@
     <div class="sm:hidden flex-none flex flex-col gap-2.5 pb-1">
         <!-- Account Switcher Pill Row -->
         <div class="flex items-center gap-2">
-            <div class="relative flex-1">
-                <select
-                    id="account-selector-mobile"
-                    [ngModel]="activeAccountId()"
-                    (ngModelChange)="activeAccountId.set($event)"
-                    class="w-full min-h-[44px] px-3.5 py-2.5 bg-brand-surface border border-brand-border rounded-2xl text-xs font-bold text-content-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary pr-8 shadow-xs"
-                >
-                    @if (accounts().length === 0) {
-                        <option value="" disabled selected>No accounts available</option>
-                    }
-                    @for (acc of accounts(); track acc.id) {
-                        <option [value]="acc.id">
-                            {{ acc.name }} • {{ formatCurrency(getAccountBalance(acc.id)) }}
-                        </option>
-                    }
-                </select>
-                <i
-                    class="pi pi-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-content-muted pointer-events-none"
-                ></i>
+            <div class="flex-1 min-w-0">
+                <account-dropdown
+                    [accounts]="accounts()"
+                    [(selectedAccountId)]="activeAccountId"
+                    [getAccountBalance]="getAccountBalanceBound"
+                    (addAccount)="isAddDialogOpen.set(true)"
+                    size="sm"
+                    ariaLabel="Select Account"
+                />
             </div>
             <sync-indicator />
         </div>

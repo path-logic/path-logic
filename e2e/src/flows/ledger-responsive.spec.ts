@@ -10,7 +10,7 @@ test.describe('Account Ledger Responsive & Fast-Entry Verification', () => {
 
         const resumeBtn = page.getByRole('button', { name: /Resume Session/i });
         if (await resumeBtn.isVisible()) {
-            await resumeBtn.click();
+            await resumeBtn.click({ force: true });
         }
 
         // Check for horizontal overflow
@@ -60,7 +60,7 @@ test.describe('Account Ledger Responsive & Fast-Entry Verification', () => {
 
         const resumeBtn = page.getByRole('button', { name: /Resume Session/i });
         if (await resumeBtn.isVisible()) {
-            await resumeBtn.click();
+            await resumeBtn.click({ force: true });
         }
 
         const isOverflowing = await page.evaluate(() => {
@@ -82,7 +82,7 @@ test.describe('Account Ledger Responsive & Fast-Entry Verification', () => {
 
         const resumeBtn = page.getByRole('button', { name: /Resume Session/i });
         if (await resumeBtn.isVisible()) {
-            await resumeBtn.click();
+            await resumeBtn.click({ force: true });
         }
 
         const isOverflowing = await page.evaluate(() => {
