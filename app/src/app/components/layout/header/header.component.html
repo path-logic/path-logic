@@ -187,14 +187,14 @@
     @if (showMobileMenu()) {
         <!-- Dimmed Backdrop -->
         <div
-            class="lg:hidden fixed inset-0 top-14 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
+            class="lg:hidden fixed inset-0 top-16 bg-black/60 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
             (click)="showMobileMenu.set(false)"
             aria-hidden="true"
         ></div>
 
         <!-- Overlay Navigation Panel -->
         <div
-            class="lg:hidden absolute top-full left-0 right-0 border-b border-surface-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-3 z-50 shadow-2xl animate-fade-in"
+            class="lg:hidden absolute top-full left-0 right-0 border-b border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 px-4 py-4 space-y-3 z-50 shadow-2xl animate-fade-in"
         >
             <nav class="flex flex-col gap-1">
                 @for (item of navItems; track item.name) {
