@@ -29022,7 +29022,7 @@
         },
         {
             "name": "QuickEntryWidgetComponent",
-            "id": "component-QuickEntryWidgetComponent-2c84392597244b80ab1de906663492a9f7999f9c0010dbc939040019b9f7fa86f8fc4bd6adec132a3e9059663cd858a5294b502c465afe3b1acdddc884d4b003",
+            "id": "component-QuickEntryWidgetComponent-2c658a9985377dffa086d855dd6d820f3d26ed9bc9854fe9a4155258aa26b0ddc9fcc026494219c310d18d7ad8165d194b2141ccd0a2ff699a7a900837b38ec8",
             "file": "app/src/app/components/dashboard/quick-entry-widget/quick-entry-widget.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -29124,7 +29124,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 52,
+                    "line": 56,
                     "modifierKind": [
                         148
                     ]
@@ -29180,6 +29180,34 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
+                    "line": 54,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "filteredPayees",
+                    "defaultValue": "computed(() => {\n        const query = this.payee().trim().toLowerCase();\n        const list = this.payees();\n        if (!query) {\n            return list.slice(0, 8);\n        }\n        return list.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8);\n    })",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 65,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "highlightedIndex",
+                    "defaultValue": "signal<number>(-1)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
                     "line": 50,
                     "modifierKind": [
                         148
@@ -29200,6 +29228,20 @@
                     ]
                 },
                 {
+                    "name": "isPayeeDropdownOpen",
+                    "defaultValue": "signal<boolean>(false)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 49,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
                     "name": "isSubmitting",
                     "defaultValue": "signal<boolean>(false)",
                     "deprecated": false,
@@ -29208,7 +29250,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 48,
+                    "line": 52,
                     "modifierKind": [
                         148
                     ]
@@ -29265,7 +29307,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 56,
+                    "line": 60,
                     "modifierKind": [
                         148
                     ]
@@ -29293,7 +29335,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 49,
+                    "line": 53,
                     "modifierKind": [
                         148
                     ]
@@ -29306,7 +29348,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 80,
+                    "line": 160,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -29325,7 +29367,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 86,
+                    "line": 168,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -29357,7 +29399,91 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 92,
+                    "line": 174,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "event",
+                            "type": "KeyboardEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "onPayeeBlur",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 101,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "onPayeeFocus",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 95,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "onPayeeInput",
+                    "args": [
+                        {
+                            "name": "val",
+                            "type": "string",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 89,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "val",
+                            "type": "string",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "onPayeeKeyDown",
+                    "args": [
+                        {
+                            "name": "event",
+                            "type": "KeyboardEvent",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 114,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -29380,11 +29506,43 @@
                     "optional": false,
                     "returnType": "Promise<void>",
                     "typeParameters": [],
-                    "line": 98,
+                    "line": 180,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
                         134
+                    ]
+                },
+                {
+                    "name": "selectPayee",
+                    "args": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 108,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
                     ]
                 },
                 {
@@ -29393,7 +29551,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 76,
+                    "line": 156,
                     "deprecated": false,
                     "deprecationMessage": ""
                 }
@@ -29416,7 +29574,7 @@
             "description": "<p>Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.</p>\n",
             "rawdescription": "\n\nAnimated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n",
             "type": "component",
-            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    effect,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport type { IAccount, ITransaction } from '@core';\nimport { KnownCategory, Money, TransactionStatus } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\n/**\n * Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n */\n@Component({\n    selector: 'quick-entry-widget',\n    standalone: true,\n    imports: [CommonModule, FormsModule],\n    templateUrl: './quick-entry-widget.component.html',\n    styleUrl: './quick-entry-widget.component.css',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class QuickEntryWidgetComponent {\n    private readonly ledgerStore: LedgerStore = inject(LedgerStore);\n\n    readonly visible = model<boolean>(true);\n    readonly preselectedAccountId = input<string | null>(null);\n    readonly closed = output();\n\n    readonly accounts = this.ledgerStore.accounts;\n    readonly payees = this.ledgerStore.payees;\n\n    // Form fields\n    readonly selectedAccountId = signal<string>('');\n    readonly payee = signal<string>('');\n    readonly category = signal<string>('');\n    readonly amountString = signal<string>('');\n    readonly isExpense = signal<boolean>(true);\n    readonly date = signal<string>(new Date().toISOString().split('T')[0] ?? '');\n\n    readonly isSubmitting = signal<boolean>(false);\n    readonly showSuccess = signal<boolean>(false);\n    readonly errorMessage = signal<string | null>(null);\n\n    readonly activeAccounts = computed((): Array<IAccount> => {\n        return this.accounts().filter((a: IAccount): boolean => a.isActive);\n    });\n\n    readonly selectedAccount = computed((): IAccount | undefined => {\n        const id = this.selectedAccountId();\n        return this.accounts().find((a: IAccount): boolean => a.id === id);\n    });\n\n    constructor() {\n        // Auto-select initial account or react to preselectedAccountId input\n        effect(() => {\n            const preselected = this.preselectedAccountId();\n            if (preselected) {\n                this.selectedAccountId.set(preselected);\n            } else if (!this.selectedAccountId()) {\n                const first = this.accounts()[0];\n                if (first) {\n                    this.selectedAccountId.set(first.id);\n                }\n            }\n        });\n    }\n\n    toggleType(): void {\n        this.isExpense.update((v: boolean) => !v);\n    }\n\n    close(): void {\n        this.visible.set(false);\n        this.closed.emit();\n        this.errorMessage.set(null);\n    }\n\n    onBackdropClick(event: MouseEvent): void {\n        if (event.target === event.currentTarget) {\n            this.close();\n        }\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        if (event.key === 'Escape') {\n            this.close();\n        }\n    }\n\n    async saveTransaction(): Promise<void> {\n        this.errorMessage.set(null);\n\n        const firstActive = this.activeAccounts()[0];\n        const accountId = this.selectedAccountId() || (firstActive ? firstActive.id : '');\n        if (!accountId) {\n            this.errorMessage.set('Please select an account.');\n            return;\n        }\n\n        const payeeName = this.payee().trim();\n        if (!payeeName) {\n            this.errorMessage.set('Please enter a payee.');\n            return;\n        }\n\n        const amountCents = Money.parseCurrencyInput(this.amountString());\n        if (amountCents === 0) {\n            this.errorMessage.set('Please enter a valid non-zero amount.');\n            return;\n        }\n\n        const finalAmount = this.isExpense() ? -Math.abs(amountCents) : Math.abs(amountCents);\n        const todayStr = new Date().toISOString().split('T')[0] ?? '';\n        const txId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;\n        const now = new Date().toISOString();\n\n        const matchedPayee = this.payees().find(\n            p => p.name.toLowerCase() === payeeName.toLowerCase()\n        );\n        const payeeId = matchedPayee ? matchedPayee.id : `payee-${Date.now()}`;\n\n        const newTx: ITransaction = {\n            id: txId,\n            accountId,\n            payeeId,\n            date: this.date() || todayStr,\n            payee: payeeName,\n            memo: this.category().trim(),\n            totalAmount: finalAmount,\n            status: TransactionStatus.Cleared,\n            checkNumber: null,\n            importHash: `quick-${txId}`,\n            splits: [\n                {\n                    id: `split-${txId}-1`,\n                    amount: finalAmount,\n                    memo: this.category().trim(),\n                    categoryId: KnownCategory.Uncategorized\n                }\n            ],\n            createdAt: now,\n            updatedAt: now\n        };\n\n        this.isSubmitting.set(true);\n        try {\n            await this.ledgerStore.addTransaction(newTx);\n            this.payee.set('');\n            this.amountString.set('');\n            this.category.set('');\n            this.showSuccess.set(true);\n            setTimeout(() => {\n                this.showSuccess.set(false);\n                this.close();\n            }, 1000);\n        } catch (err: unknown) {\n            const msg = err instanceof Error ? err.message : 'Failed to save transaction';\n            this.errorMessage.set(msg);\n        } finally {\n            this.isSubmitting.set(false);\n        }\n    }\n}\n",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    effect,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport type { IAccount, ITransaction } from '@core';\nimport { KnownCategory, Money, TransactionStatus } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\n/**\n * Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n */\n@Component({\n    selector: 'quick-entry-widget',\n    standalone: true,\n    imports: [CommonModule, FormsModule],\n    templateUrl: './quick-entry-widget.component.html',\n    styleUrl: './quick-entry-widget.component.css',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class QuickEntryWidgetComponent {\n    private readonly ledgerStore: LedgerStore = inject(LedgerStore);\n\n    readonly visible = model<boolean>(true);\n    readonly preselectedAccountId = input<string | null>(null);\n    readonly closed = output();\n\n    readonly accounts = this.ledgerStore.accounts;\n    readonly payees = this.ledgerStore.payees;\n\n    // Form fields\n    readonly selectedAccountId = signal<string>('');\n    readonly payee = signal<string>('');\n    readonly category = signal<string>('');\n    readonly amountString = signal<string>('');\n    readonly isExpense = signal<boolean>(true);\n    readonly date = signal<string>(new Date().toISOString().split('T')[0] ?? '');\n\n    // Payee in-DOM autocomplete state\n    readonly isPayeeDropdownOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(-1);\n\n    readonly isSubmitting = signal<boolean>(false);\n    readonly showSuccess = signal<boolean>(false);\n    readonly errorMessage = signal<string | null>(null);\n\n    readonly activeAccounts = computed((): Array<IAccount> => {\n        return this.accounts().filter((a: IAccount): boolean => a.isActive);\n    });\n\n    readonly selectedAccount = computed((): IAccount | undefined => {\n        const id = this.selectedAccountId();\n        return this.accounts().find((a: IAccount): boolean => a.id === id);\n    });\n\n    readonly filteredPayees = computed(() => {\n        const query = this.payee().trim().toLowerCase();\n        const list = this.payees();\n        if (!query) {\n            return list.slice(0, 8);\n        }\n        return list.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8);\n    });\n\n    constructor() {\n        // Auto-select initial account or react to preselectedAccountId input\n        effect(() => {\n            const preselected = this.preselectedAccountId();\n            if (preselected) {\n                this.selectedAccountId.set(preselected);\n            } else if (!this.selectedAccountId()) {\n                const first = this.accounts()[0];\n                if (first) {\n                    this.selectedAccountId.set(first.id);\n                }\n            }\n        });\n    }\n\n    onPayeeInput(val: string): void {\n        this.payee.set(val);\n        this.isPayeeDropdownOpen.set(true);\n        this.highlightedIndex.set(-1);\n    }\n\n    onPayeeFocus(): void {\n        if (this.payees().length > 0) {\n            this.isPayeeDropdownOpen.set(true);\n        }\n    }\n\n    onPayeeBlur(): void {\n        setTimeout(() => {\n            this.isPayeeDropdownOpen.set(false);\n            this.highlightedIndex.set(-1);\n        }, 200);\n    }\n\n    selectPayee(name: string): void {\n        this.payee.set(name);\n        this.isPayeeDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n    }\n\n    onPayeeKeyDown(event: KeyboardEvent): void {\n        const options = this.filteredPayees();\n        if (!this.isPayeeDropdownOpen() || options.length === 0) {\n            if (event.key === 'ArrowDown') {\n                this.isPayeeDropdownOpen.set(true);\n                event.preventDefault();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i + 1 < options.length ? i + 1 : 0));\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i - 1 >= 0 ? i - 1 : options.length - 1));\n                break;\n            case 'Enter':\n                if (this.highlightedIndex() >= 0 && options[this.highlightedIndex()]) {\n                    event.preventDefault();\n                    event.stopPropagation();\n                    this.selectPayee(options[this.highlightedIndex()]!.name);\n                }\n                break;\n            case 'Escape':\n                event.preventDefault();\n                event.stopPropagation();\n                this.isPayeeDropdownOpen.set(false);\n                this.highlightedIndex.set(-1);\n                break;\n            case 'Tab':\n                if (this.highlightedIndex() >= 0 && options[this.highlightedIndex()]) {\n                    this.selectPayee(options[this.highlightedIndex()]!.name);\n                } else {\n                    this.isPayeeDropdownOpen.set(false);\n                }\n                break;\n        }\n    }\n\n    toggleType(): void {\n        this.isExpense.update((v: boolean) => !v);\n    }\n\n    close(): void {\n        this.isPayeeDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n        this.visible.set(false);\n        this.closed.emit();\n        this.errorMessage.set(null);\n    }\n\n    onBackdropClick(event: MouseEvent): void {\n        if (event.target === event.currentTarget) {\n            this.close();\n        }\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        if (event.key === 'Escape') {\n            this.close();\n        }\n    }\n\n    async saveTransaction(): Promise<void> {\n        this.errorMessage.set(null);\n\n        const firstActive = this.activeAccounts()[0];\n        const accountId = this.selectedAccountId() || (firstActive ? firstActive.id : '');\n        if (!accountId) {\n            this.errorMessage.set('Please select an account.');\n            return;\n        }\n\n        const payeeName = this.payee().trim();\n        if (!payeeName) {\n            this.errorMessage.set('Please enter a payee.');\n            return;\n        }\n\n        const amountCents = Money.parseCurrencyInput(this.amountString());\n        if (amountCents === 0) {\n            this.errorMessage.set('Please enter a valid non-zero amount.');\n            return;\n        }\n\n        const finalAmount = this.isExpense() ? -Math.abs(amountCents) : Math.abs(amountCents);\n        const todayStr = new Date().toISOString().split('T')[0] ?? '';\n        const txId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;\n        const now = new Date().toISOString();\n\n        const matchedPayee = this.payees().find(\n            p => p.name.toLowerCase() === payeeName.toLowerCase()\n        );\n        const payeeId = matchedPayee ? matchedPayee.id : `payee-${Date.now()}`;\n\n        const newTx: ITransaction = {\n            id: txId,\n            accountId,\n            payeeId,\n            date: this.date() || todayStr,\n            payee: payeeName,\n            memo: this.category().trim(),\n            totalAmount: finalAmount,\n            status: TransactionStatus.Cleared,\n            checkNumber: null,\n            importHash: `quick-${txId}`,\n            splits: [\n                {\n                    id: `split-${txId}-1`,\n                    amount: finalAmount,\n                    memo: this.category().trim(),\n                    categoryId: KnownCategory.Uncategorized\n                }\n            ],\n            createdAt: now,\n            updatedAt: now\n        };\n\n        this.isSubmitting.set(true);\n        try {\n            await this.ledgerStore.addTransaction(newTx);\n            this.payee.set('');\n            this.amountString.set('');\n            this.category.set('');\n            this.showSuccess.set(true);\n            setTimeout(() => {\n                this.showSuccess.set(false);\n                this.close();\n            }, 1000);\n        } catch (err: unknown) {\n            const msg = err instanceof Error ? err.message : 'Failed to save transaction';\n            this.errorMessage.set(msg);\n        } finally {\n            this.isSubmitting.set(false);\n        }\n    }\n}\n",
             "styleUrl": "./quick-entry-widget.component.css",
             "assetsDirs": [],
             "styleUrlsData": "",
@@ -29427,10 +29585,10 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "args": [],
-                "line": 59
+                "line": 72
             },
             "extends": [],
-            "templateData": "@if (visible()) {\n    <div\n        class=\"quick-entry-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-surface-950/60 dark:bg-surface-950/80 backdrop-blur-sm\"\n        (click)=\"onBackdropClick($event)\"\n        (keydown)=\"onKeyDown($event)\"\n        tabindex=\"-1\"\n    >\n        <div\n            class=\"quick-entry-modal w-full sm:max-w-lg bg-surface-0 dark:bg-surface-900 border-t sm:border border-surface-200/90 dark:border-surface-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto max-h-[92dvh] sm:max-h-none p-5 sm:p-8 space-y-4 sm:space-y-5 relative\"\n            role=\"dialog\"\n            aria-modal=\"true\"\n            aria-labelledby=\"quick-entry-title\"\n        >\n            <!-- Mobile Pull / Grab Handle -->\n            <div class=\"sm:hidden flex justify-center w-full -mt-1 mb-1\" aria-hidden=\"true\">\n                <div class=\"w-12 h-1.5 rounded-full bg-surface-300 dark:bg-surface-700\"></div>\n            </div>\n\n            <!-- Header Row -->\n            <div\n                class=\"flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-surface-100 dark:border-surface-800\"\n            >\n                <div class=\"flex items-center gap-3\">\n                    <div\n                        class=\"w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center ring-1 ring-emerald-500/20\"\n                    >\n                        <i class=\"pi pi-bolt text-sm sm:text-base\"></i>\n                    </div>\n                    <div>\n                        <h2\n                            id=\"quick-entry-title\"\n                            class=\"text-base sm:text-lg font-bold text-surface-900 dark:text-surface-100 leading-tight\"\n                        >\n                            Quick Entry\n                        </h2>\n                        <p class=\"text-xs text-surface-500 font-medium\">\n                            @if (selectedAccount()) {\n                                Posting to\n                                <span\n                                    class=\"font-semibold text-surface-700 dark:text-surface-300\"\n                                    >{{ selectedAccount()?.name }}</span\n                                >\n                            } @else {\n                                Instant ledger capture &bull; Today\n                            }\n                        </p>\n                    </div>\n                </div>\n\n                <!-- Close Dialog Button -->\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    aria-label=\"Close Quick Entry\"\n                    class=\"w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer shrink-0\"\n                >\n                    <i class=\"pi pi-times text-sm\"></i>\n                </button>\n            </div>\n\n            <!-- Expense / Income Segmented Control -->\n            <div\n                role=\"group\"\n                aria-label=\"Transaction Type\"\n                class=\"grid grid-cols-2 p-1 rounded-2xl bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 gap-1\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(true)\"\n                    [attr.aria-pressed]=\"isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"isExpense()\"\n                    [class.dark:bg-surface-900]=\"isExpense()\"\n                    [class.text-red-600]=\"isExpense()\"\n                    [class.dark:text-red-400]=\"isExpense()\"\n                    [class.shadow-xs]=\"isExpense()\"\n                    [class.text-surface-600]=\"!isExpense()\"\n                    [class.dark:text-surface-400]=\"!isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-down-left text-xs\"></i>\n                    Expense\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(false)\"\n                    [attr.aria-pressed]=\"!isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"!isExpense()\"\n                    [class.dark:bg-surface-900]=\"!isExpense()\"\n                    [class.text-emerald-700]=\"!isExpense()\"\n                    [class.dark:text-emerald-400]=\"!isExpense()\"\n                    [class.shadow-xs]=\"!isExpense()\"\n                    [class.text-surface-600]=\"isExpense()\"\n                    [class.dark:text-surface-400]=\"isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-up-right text-xs\"></i>\n                    Income\n                </button>\n            </div>\n\n            <!-- Feedback Alerts with Live Regions for A11y -->\n            <div aria-live=\"polite\" aria-atomic=\"true\">\n                @if (showSuccess()) {\n                    <div\n                        class=\"p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-bounce-subtle\"\n                    >\n                        <i class=\"pi pi-check-circle text-base\"></i>\n                        <span>Transaction captured successfully! Closing...</span>\n                    </div>\n                }\n\n                @if (errorMessage()) {\n                    <div\n                        id=\"quick-entry-error\"\n                        class=\"p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2\"\n                    >\n                        <i class=\"pi pi-exclamation-triangle text-base\"></i>\n                        <span>{{ errorMessage() }}</span>\n                    </div>\n                }\n            </div>\n\n            <!-- Form Fields -->\n            <div class=\"space-y-3.5 sm:space-y-4\">\n                <!-- Account Dropdown -->\n                <div class=\"space-y-1 sm:space-y-1.5\">\n                    <label\n                        for=\"quick-entry-account\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                    >\n                        Account <span class=\"text-red-600 dark:text-red-400\">*</span>\n                    </label>\n                    <select\n                        id=\"quick-entry-account\"\n                        [ngModel]=\"selectedAccountId()\"\n                        (ngModelChange)=\"selectedAccountId.set($event)\"\n                        aria-required=\"true\"\n                        class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer min-h-[42px]\"\n                    >\n                        @for (acc of accounts(); track acc.id) {\n                            <option [value]=\"acc.id\">\n                                {{ acc.name }} ({{ acc.institutionName }})\n                            </option>\n                        }\n                    </select>\n                </div>\n\n                <!-- Payee Input with Datalist -->\n                <div class=\"space-y-1 sm:space-y-1.5\">\n                    <label\n                        for=\"quick-entry-payee\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                    >\n                        Payee <span class=\"text-red-600 dark:text-red-400\">*</span>\n                    </label>\n                    <input\n                        id=\"quick-entry-payee\"\n                        type=\"text\"\n                        list=\"quick-entry-payees-list\"\n                        [ngModel]=\"payee()\"\n                        (ngModelChange)=\"payee.set($event)\"\n                        (keyup.enter)=\"saveTransaction()\"\n                        aria-required=\"true\"\n                        placeholder=\"e.g. Netflix, Trader Joe's\"\n                        class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                    />\n                    <datalist id=\"quick-entry-payees-list\">\n                        @for (p of payees(); track p.id) {\n                            <option [value]=\"p.name\"></option>\n                        }\n                    </datalist>\n                </div>\n\n                <!-- Category and Amount Row -->\n                <div class=\"grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4\">\n                    <!-- Category Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-category\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Category / Memo\n                        </label>\n                        <input\n                            id=\"quick-entry-category\"\n                            type=\"text\"\n                            [ngModel]=\"category()\"\n                            (ngModelChange)=\"category.set($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            placeholder=\"e.g. Groceries\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                        />\n                    </div>\n\n                    <!-- Amount Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-amount\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Amount ($) <span class=\"text-red-600 dark:text-red-400\">*</span>\n                        </label>\n                        <div class=\"relative\">\n                            <span\n                                class=\"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono font-bold text-surface-400 text-xs\"\n                            >\n                                $\n                            </span>\n                            <input\n                                id=\"quick-entry-amount\"\n                                type=\"text\"\n                                [ngModel]=\"amountString()\"\n                                (ngModelChange)=\"amountString.set($event)\"\n                                (keyup.enter)=\"saveTransaction()\"\n                                aria-required=\"true\"\n                                placeholder=\"0.00\"\n                                class=\"w-full pl-8 pr-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-bold font-mono text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            />\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Footer Actions -->\n            <div\n                class=\"flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-surface-100 dark:border-surface-800 pb-2 sm:pb-0\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    class=\"min-h-[42px] px-5 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-bold transition-all cursor-pointer\"\n                >\n                    Cancel\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"saveTransaction()\"\n                    [disabled]=\"isSubmitting()\"\n                    class=\"min-h-[42px] px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed\"\n                >\n                    @if (isSubmitting()) {\n                        <i class=\"pi pi-spinner pi-spin text-xs\"></i>\n                        <span>Saving...</span>\n                    } @else {\n                        <i class=\"pi pi-check text-xs\"></i>\n                        <span>Save Transaction</span>\n                    }\n                </button>\n            </div>\n        </div>\n    </div>\n}\n"
+            "templateData": "@if (visible()) {\n    <div\n        class=\"quick-entry-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-surface-950/60 dark:bg-surface-950/80 backdrop-blur-sm\"\n        (click)=\"onBackdropClick($event)\"\n        (keydown)=\"onKeyDown($event)\"\n        tabindex=\"-1\"\n    >\n        <div\n            class=\"quick-entry-modal w-full sm:max-w-lg bg-surface-0 dark:bg-surface-900 border-t sm:border border-surface-200/90 dark:border-surface-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto max-h-[92dvh] sm:max-h-none p-5 sm:p-8 space-y-4 sm:space-y-5 relative\"\n            role=\"dialog\"\n            aria-modal=\"true\"\n            aria-labelledby=\"quick-entry-title\"\n        >\n            <!-- Mobile Pull / Grab Handle -->\n            <div class=\"sm:hidden flex justify-center w-full -mt-1 mb-1\" aria-hidden=\"true\">\n                <div class=\"w-12 h-1.5 rounded-full bg-surface-300 dark:bg-surface-700\"></div>\n            </div>\n\n            <!-- Header Row -->\n            <div\n                class=\"flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-surface-100 dark:border-surface-800\"\n            >\n                <div class=\"flex items-center gap-3\">\n                    <div\n                        class=\"w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center ring-1 ring-emerald-500/20\"\n                    >\n                        <i class=\"pi pi-bolt text-sm sm:text-base\"></i>\n                    </div>\n                    <div>\n                        <h2\n                            id=\"quick-entry-title\"\n                            class=\"text-base sm:text-lg font-bold text-surface-900 dark:text-surface-100 leading-tight\"\n                        >\n                            Quick Entry\n                        </h2>\n                        <p class=\"text-xs text-surface-500 font-medium\">\n                            @if (selectedAccount()) {\n                                Posting to\n                                <span\n                                    class=\"font-semibold text-surface-700 dark:text-surface-300\"\n                                    >{{ selectedAccount()?.name }}</span\n                                >\n                            } @else {\n                                Instant ledger capture &bull; Today\n                            }\n                        </p>\n                    </div>\n                </div>\n\n                <!-- Close Dialog Button -->\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    aria-label=\"Close Quick Entry\"\n                    class=\"w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer shrink-0\"\n                >\n                    <i class=\"pi pi-times text-sm\"></i>\n                </button>\n            </div>\n\n            <!-- Expense / Income Segmented Control -->\n            <div\n                role=\"group\"\n                aria-label=\"Transaction Type\"\n                class=\"grid grid-cols-2 p-1 rounded-2xl bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 gap-1\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(true)\"\n                    [attr.aria-pressed]=\"isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"isExpense()\"\n                    [class.dark:bg-surface-900]=\"isExpense()\"\n                    [class.text-red-600]=\"isExpense()\"\n                    [class.dark:text-red-400]=\"isExpense()\"\n                    [class.shadow-xs]=\"isExpense()\"\n                    [class.text-surface-600]=\"!isExpense()\"\n                    [class.dark:text-surface-400]=\"!isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-down-left text-xs\"></i>\n                    Expense\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(false)\"\n                    [attr.aria-pressed]=\"!isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"!isExpense()\"\n                    [class.dark:bg-surface-900]=\"!isExpense()\"\n                    [class.text-emerald-700]=\"!isExpense()\"\n                    [class.dark:text-emerald-400]=\"!isExpense()\"\n                    [class.shadow-xs]=\"!isExpense()\"\n                    [class.text-surface-600]=\"isExpense()\"\n                    [class.dark:text-surface-400]=\"isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-up-right text-xs\"></i>\n                    Income\n                </button>\n            </div>\n\n            <!-- Feedback Alerts with Live Regions for A11y -->\n            <div aria-live=\"polite\" aria-atomic=\"true\">\n                @if (showSuccess()) {\n                    <div\n                        class=\"p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-bounce-subtle\"\n                    >\n                        <i class=\"pi pi-check-circle text-base\"></i>\n                        <span>Transaction captured successfully! Closing...</span>\n                    </div>\n                }\n\n                @if (errorMessage()) {\n                    <div\n                        id=\"quick-entry-error\"\n                        class=\"p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2\"\n                    >\n                        <i class=\"pi pi-exclamation-triangle text-base\"></i>\n                        <span>{{ errorMessage() }}</span>\n                    </div>\n                }\n            </div>\n\n            <!-- Form Fields -->\n            <div class=\"space-y-3.5 sm:space-y-4\">\n                <!-- Payee Input with In-DOM Accessible Combobox -->\n                <div class=\"space-y-1 sm:space-y-1.5 relative\">\n                    <label\n                        for=\"quick-entry-payee\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                    >\n                        Payee <span class=\"text-red-600 dark:text-red-400\">*</span>\n                    </label>\n                    <div class=\"relative\">\n                        <input\n                            id=\"quick-entry-payee\"\n                            type=\"text\"\n                            role=\"combobox\"\n                            aria-autocomplete=\"list\"\n                            [attr.aria-expanded]=\"isPayeeDropdownOpen()\"\n                            aria-controls=\"quick-entry-payee-listbox\"\n                            [attr.aria-activedescendant]=\"\n                                highlightedIndex() >= 0\n                                    ? 'payee-opt-' + highlightedIndex()\n                                    : null\n                            \"\n                            [ngModel]=\"payee()\"\n                            (ngModelChange)=\"onPayeeInput($event)\"\n                            (focus)=\"onPayeeFocus()\"\n                            (blur)=\"onPayeeBlur()\"\n                            (keydown)=\"onPayeeKeyDown($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            aria-required=\"true\"\n                            placeholder=\"e.g. Netflix, Trader Joe's\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            autocomplete=\"off\"\n                        />\n\n                        <!-- In-DOM Accessible Payee Dropdown Menu -->\n                        @if (isPayeeDropdownOpen() && filteredPayees().length > 0) {\n                            <ul\n                                id=\"quick-entry-payee-listbox\"\n                                role=\"listbox\"\n                                aria-label=\"Suggested Payees\"\n                                class=\"absolute top-full left-0 right-0 mt-1.5 z-30 max-h-48 overflow-y-auto rounded-xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1 divide-y divide-surface-100 dark:divide-surface-800\"\n                            >\n                                @for (p of filteredPayees(); track p.id; let i = $index) {\n                                    <li\n                                        [id]=\"'payee-opt-' + i\"\n                                        role=\"option\"\n                                        [attr.aria-selected]=\"highlightedIndex() === i\"\n                                        (mousedown)=\"selectPayee(p.name)\"\n                                        class=\"px-3.5 py-2 text-xs font-semibold flex items-center justify-between cursor-pointer transition-colors\"\n                                        [class.bg-primary/10]=\"highlightedIndex() === i\"\n                                        [class.text-primary]=\"highlightedIndex() === i\"\n                                        [class.text-surface-800]=\"highlightedIndex() !== i\"\n                                        [class.dark:text-surface-200]=\"highlightedIndex() !== i\"\n                                        [class.hover:bg-surface-100]=\"highlightedIndex() !== i\"\n                                        [class.dark:hover:bg-surface-800]=\"highlightedIndex() !== i\"\n                                    >\n                                        <div class=\"flex items-center gap-2 truncate\">\n                                            <i class=\"pi pi-building text-surface-400 text-xs shrink-0\"></i>\n                                            <span class=\"truncate\">{{ p.name }}</span>\n                                        </div>\n                                        <i class=\"pi pi-arrow-up-left text-[10px] text-surface-400 shrink-0 opacity-60\"></i>\n                                    </li>\n                                }\n                            </ul>\n                        }\n                    </div>\n                </div>\n\n                <!-- Category and Amount Row -->\n                <div class=\"grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4\">\n                    <!-- Category Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-category\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Category / Memo\n                        </label>\n                        <input\n                            id=\"quick-entry-category\"\n                            type=\"text\"\n                            [ngModel]=\"category()\"\n                            (ngModelChange)=\"category.set($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            placeholder=\"e.g. Groceries\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                        />\n                    </div>\n\n                    <!-- Amount Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-amount\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Amount ($) <span class=\"text-red-600 dark:text-red-400\">*</span>\n                        </label>\n                        <div class=\"relative\">\n                            <span\n                                class=\"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono font-bold text-surface-400 text-xs\"\n                            >\n                                $\n                            </span>\n                            <input\n                                id=\"quick-entry-amount\"\n                                type=\"text\"\n                                [ngModel]=\"amountString()\"\n                                (ngModelChange)=\"amountString.set($event)\"\n                                (keyup.enter)=\"saveTransaction()\"\n                                aria-required=\"true\"\n                                placeholder=\"0.00\"\n                                class=\"w-full pl-8 pr-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-bold font-mono text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            />\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Footer Actions -->\n            <div\n                class=\"flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-surface-100 dark:border-surface-800 pb-2 sm:pb-0\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    class=\"min-h-[42px] px-5 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-bold transition-all cursor-pointer\"\n                >\n                    Cancel\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"saveTransaction()\"\n                    [disabled]=\"isSubmitting()\"\n                    class=\"min-h-[42px] px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed\"\n                >\n                    @if (isSubmitting()) {\n                        <i class=\"pi pi-spinner pi-spin text-xs\"></i>\n                        <span>Saving...</span>\n                    } @else {\n                        <i class=\"pi pi-check text-xs\"></i>\n                        <span>Save</span>\n                    }\n                </button>\n            </div>\n        </div>\n    </div>\n}\n"
         },
         {
             "name": "ReconciliationDialogComponent",
@@ -49616,8 +49774,8 @@
                 "type": "component",
                 "linktype": "component",
                 "name": "QuickEntryWidgetComponent",
-                "coveragePercent": 4,
-                "coverageCount": "1/25",
+                "coveragePercent": 3,
+                "coverageCount": "1/33",
                 "status": "low"
             },
             {

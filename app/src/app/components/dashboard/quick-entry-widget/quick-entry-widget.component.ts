@@ -45,6 +45,10 @@ export class QuickEntryWidgetComponent {
     readonly isExpense = signal<boolean>(true);
     readonly date = signal<string>(new Date().toISOString().split('T')[0] ?? '');
 
+    // Payee in-DOM autocomplete state
+    readonly isPayeeDropdownOpen = signal<boolean>(false);
+    readonly highlightedIndex = signal<number>(-1);
+
     readonly isSubmitting = signal<boolean>(false);
     readonly showSuccess = signal<boolean>(false);
     readonly errorMessage = signal<string | null>(null);
@@ -56,6 +60,15 @@ export class QuickEntryWidgetComponent {
     readonly selectedAccount = computed((): IAccount | undefined => {
         const id = this.selectedAccountId();
         return this.accounts().find((a: IAccount): boolean => a.id === id);
+    });
+
+    readonly filteredPayees = computed(() => {
+        const query = this.payee().trim().toLowerCase();
+        const list = this.payees();
+        if (!query) {
+            return list.slice(0, 8);
+        }
+        return list.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8);
     });
 
     constructor() {
@@ -73,11 +86,84 @@ export class QuickEntryWidgetComponent {
         });
     }
 
+    onPayeeInput(val: string): void {
+        this.payee.set(val);
+        this.isPayeeDropdownOpen.set(true);
+        this.highlightedIndex.set(-1);
+    }
+
+    onPayeeFocus(): void {
+        if (this.payees().length > 0) {
+            this.isPayeeDropdownOpen.set(true);
+        }
+    }
+
+    onPayeeBlur(): void {
+        setTimeout(() => {
+            this.isPayeeDropdownOpen.set(false);
+            this.highlightedIndex.set(-1);
+        }, 200);
+    }
+
+    selectPayee(name: string): void {
+        this.payee.set(name);
+        this.isPayeeDropdownOpen.set(false);
+        this.highlightedIndex.set(-1);
+    }
+
+    onPayeeKeyDown(event: KeyboardEvent): void {
+        const options = this.filteredPayees();
+        if (!this.isPayeeDropdownOpen() || options.length === 0) {
+            if (event.key === 'ArrowDown') {
+                this.isPayeeDropdownOpen.set(true);
+                event.preventDefault();
+            }
+            return;
+        }
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                this.highlightedIndex.update(i => (i + 1 < options.length ? i + 1 : 0));
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                this.highlightedIndex.update(i => (i - 1 >= 0 ? i - 1 : options.length - 1));
+                break;
+            case 'Enter': {
+                const selected = options[this.highlightedIndex()];
+                if (selected) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.selectPayee(selected.name);
+                }
+                break;
+            }
+            case 'Escape':
+                event.preventDefault();
+                event.stopPropagation();
+                this.isPayeeDropdownOpen.set(false);
+                this.highlightedIndex.set(-1);
+                break;
+            case 'Tab': {
+                const selected = options[this.highlightedIndex()];
+                if (selected) {
+                    this.selectPayee(selected.name);
+                } else {
+                    this.isPayeeDropdownOpen.set(false);
+                }
+                break;
+            }
+        }
+    }
+
     toggleType(): void {
         this.isExpense.update((v: boolean) => !v);
     }
 
     close(): void {
+        this.isPayeeDropdownOpen.set(false);
+        this.highlightedIndex.set(-1);
         this.visible.set(false);
         this.closed.emit();
         this.errorMessage.set(null);

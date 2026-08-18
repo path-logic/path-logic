@@ -55,7 +55,7 @@ export const Default: Story = {
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
         await expect(canvas.getByText(/Quick Entry/i)).toBeInTheDocument();
-        await expect(canvas.getByRole('button', { name: /Save Transaction/i })).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: /^Save$/i })).toBeInTheDocument();
 
         // Toggle type to Income
         const incomeBtn = canvas.getByRole('button', { name: /Income/i });
