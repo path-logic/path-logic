@@ -1,9 +1,9 @@
 <shell>
     <div class="w-full space-y-6 pb-12">
         <!-- ── Top Header Section ────────────────────────────────────────── -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+        <header class="flex flex-row items-center justify-between gap-4 pb-2">
             <div>
-                <h1 class="text-3xl font-bold tracking-tight text-surface-900">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-surface-900">
                     Portfolio <span class="text-emerald-700 dark:text-emerald-400">Overview</span>
                 </h1>
                 <p class="text-sm text-surface-500 font-medium mt-0.5">
@@ -20,8 +20,8 @@
                     <span>{{ currentDateFormatted() }}</span>
                 </div>
 
-                <!-- Global Search Input -->
-                <div class="relative w-full sm:w-64">
+                <!-- Global Search Input (Desktop/Tablet only; hidden on mobile) -->
+                <div class="hidden sm:block relative sm:w-64">
                     <span
                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-surface-400"
                     >

@@ -21,38 +21,53 @@ const ENV_LABELS: Record<string, string> = {
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         @if (!isProd) {
-            <div class="env-ribbon">
-                <span [style.background]="bannerBg" [style.color]="bannerText">{{ envLabel }}</span>
+            <div class="env-corner-tag" aria-hidden="true">
+                <svg viewBox="0 0 80 80" class="env-corner-svg">
+                    <polygon points="0,0 80,0 80,80" [attr.fill]="bannerBg" />
+                    <text
+                        x="52"
+                        y="28"
+                        transform="rotate(45 52 28)"
+                        [attr.fill]="bannerText"
+                        text-anchor="middle"
+                        dominant-baseline="central"
+                        class="env-text"
+                    >
+                        {{ envLabel }}
+                    </text>
+                </svg>
             </div>
         }
     `,
     styles: `
-        .env-ribbon {
+        .env-corner-tag {
             position: fixed;
             top: 0;
             right: 0;
             z-index: 9999;
-            width: 120px;
-            height: 120px;
+            width: 50px;
+            height: 50px;
             overflow: hidden;
             pointer-events: none;
         }
 
-        .env-ribbon span {
-            position: absolute;
-            top: 28px;
-            right: -28px;
-            width: 130px;
-            padding: 4px 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-            font-family: 'Outfit', 'Inter', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-align: center;
+        .env-corner-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(-2px 3px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .env-text {
+            font-family:
+                'Outfit',
+                'Inter',
+                system-ui,
+                -apple-system,
+                sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            transform: rotate(45deg);
-            transform-origin: center;
         }
     `
 })

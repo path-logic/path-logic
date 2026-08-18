@@ -10,7 +10,6 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountType, type IAccount, Money } from '@core';
 
-import { AccountEditFormComponent } from '../../components/accounts/account-edit-form/account-edit-form.component';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { NewAccountDialogComponent } from '../../components/onboarding/new-account-dialog/new-account-dialog.component';
 import { WelcomeWizardComponent } from '../../components/onboarding/welcome-wizard/welcome-wizard.component';
@@ -30,7 +29,6 @@ export type AccountCategoryFilter = 'all' | 'banking' | 'credit' | 'loans' | 'tr
         RouterLink,
         WelcomeWizardComponent,
         NewAccountDialogComponent,
-        AccountEditFormComponent,
         AppShellComponent
     ],
     templateUrl: './accounts-page.component.html',
