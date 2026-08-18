@@ -38,6 +38,7 @@ import {
     insertTransactions,
     insertTransfer,
     loadDatabase,
+    mergePayeesInDb,
     purgeAccountCascade,
     purgeAllTrashedAccounts,
     resetDatabase,
@@ -411,6 +412,19 @@ export class LedgerStore {
         this.payees.set(getAllPayees());
         await this.commitToLocal();
         this.isDirty.set(true);
+    }
+
+    async mergePayees(
+        sourcePayeeId: string,
+        targetPayeeId: string
+    ): Promise<{ affectedTransactions: number; affectedSchedules: number }> {
+        const result = mergePayeesInDb(sourcePayeeId, targetPayeeId);
+        this.payees.set(getAllPayees());
+        this.transactions.set(getAllTransactions());
+        this.schedules.set(getAllRecurringSchedules());
+        await this.commitToLocal();
+        this.isDirty.set(true);
+        return result;
     }
 
     async bulkUpsertPayeesAndAliases(

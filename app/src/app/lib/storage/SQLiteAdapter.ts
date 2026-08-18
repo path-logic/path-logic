@@ -1700,6 +1700,68 @@ export function deletePayee(payeeId: string): void {
 }
 
 /**
+ * Merges sourcePayee into targetPayee:
+ * 1. Updates transactions referencing sourcePayee (payeeId and/or payee string) to targetPayee.
+ * 2. Updates recurring schedules referencing sourcePayee to targetPayee.
+ * 3. Soft-deletes sourcePayee.
+ */
+export function mergePayeesInDb(
+    sourcePayeeId: string,
+    targetPayeeId: string
+): { affectedTransactions: number; affectedSchedules: number } {
+    if (!db) throw new Error('Database not initialized');
+    const now: string = new Date().toISOString();
+
+    const allPayees = getAllPayees();
+    const source = allPayees.find(p => p.id === sourcePayeeId);
+    const target = allPayees.find(p => p.id === targetPayeeId);
+    if (!source || !target) {
+        throw new Error('Source or target payee not found');
+    }
+
+    const txCountRes = db.exec(
+        'SELECT COUNT(*) FROM transactions WHERE payeeId = ? AND isDeleted = 0',
+        [sourcePayeeId]
+    );
+    const affectedTransactions = (txCountRes[0]?.values[0]?.[0] as number) || 0;
+
+    const schedCountRes = db.exec(
+        'SELECT COUNT(*) FROM recurring_schedules WHERE (payee = ? OR payee = ?) AND isDeleted = 0',
+        [source.name, sourcePayeeId]
+    );
+    const affectedSchedules = (schedCountRes[0]?.values[0]?.[0] as number) || 0;
+
+    db.run('BEGIN TRANSACTION');
+    try {
+        // Update all transactions to point to target payee
+        db.run(
+            `UPDATE transactions 
+             SET payeeId = ?, payee = ?, updatedAt = ? 
+             WHERE payeeId = ?`,
+            [targetPayeeId, target.name, now, sourcePayeeId]
+        );
+
+        // Update recurring schedules
+        db.run(
+            `UPDATE recurring_schedules 
+             SET payee = ?, updatedAt = ? 
+             WHERE (payee = ? OR payee = ?)`,
+            [target.name, now, source.name, sourcePayeeId]
+        );
+
+        // Soft-delete source payee
+        db.run(SQL_QUERIES.DELETE_PAYEE, [now, sourcePayeeId]);
+
+        db.run('COMMIT');
+    } catch (err) {
+        db.run('ROLLBACK');
+        throw err;
+    }
+
+    return { affectedTransactions, affectedSchedules };
+}
+
+/**
  * Get the mapped categoryId for a specific QIF category alias.
  */
 export function getCategoryAlias(alias: string): string | null {

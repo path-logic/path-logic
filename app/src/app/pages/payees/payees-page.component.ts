@@ -6,16 +6,23 @@ import type { IPayee } from '@core';
 
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { PayeeEditDialogComponent } from '../../components/payees/payee-edit-dialog/payee-edit-dialog.component';
+import { PayeeMergeDialogComponent } from '../../components/payees/payee-merge-dialog/payee-merge-dialog.component';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
 /**
  * Page for managing the Payee directory.
- * Provides search, filtering, add, and edit capabilities for each payee.
+ * Provides search, filtering, add, edit, and merge capabilities for each payee.
  */
 @Component({
     selector: 'payees-page',
     standalone: true,
-    imports: [CommonModule, FormsModule, AppShellComponent, PayeeEditDialogComponent],
+    imports: [
+        CommonModule,
+        FormsModule,
+        AppShellComponent,
+        PayeeEditDialogComponent,
+        PayeeMergeDialogComponent
+    ],
     templateUrl: './payees-page.component.html',
     styleUrls: ['./payees-page.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,9 +35,13 @@ export class PayeesPageComponent {
     readonly expandedId = signal<string | null>(null);
     readonly searchQuery = signal<string>('');
 
-    // Dialog state
+    // Edit Dialog state
     readonly isDialogOpen = signal<boolean>(false);
     readonly selectedPayee = signal<IPayee | null>(null);
+
+    // Merge Dialog state
+    readonly isMergeDialogOpen = signal<boolean>(false);
+    readonly preselectedMergeSourceId = signal<string | null>(null);
 
     // Store Signals
     readonly payees = this.ledgerStore.payees;
@@ -72,11 +83,16 @@ export class PayeesPageComponent {
         }
     }
 
+    openMergePayees(sourceId?: string): void {
+        this.preselectedMergeSourceId.set(sourceId ?? null);
+        this.isMergeDialogOpen.set(true);
+    }
+
     handlePayeeSaved(_payee: IPayee): void {
-        // The store already refreshed via the updatePayee/getOrCreatePayee call
-        // inside the dialog. Just close any expanded row.
         this.expandedId.set(null);
     }
 
-    // Lucide Icons
+    handlePayeesMerged(): void {
+        this.expandedId.set(null);
+    }
 }

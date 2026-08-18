@@ -9,13 +9,24 @@
                     Manage spenders and recipients with geographical tracking
                 </p>
             </div>
-            <button
-                (click)="openAddPayee()"
-                class="min-h-[44px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium flex items-center gap-2 transition-all cursor-pointer"
-            >
-                <i class="pi pi-plus text-base"></i>
-                Add Payee
-            </button>
+            <div class="flex items-center gap-3">
+                <button
+                    type="button"
+                    (click)="openMergePayees()"
+                    class="min-h-[44px] px-4 bg-surface-100 hover:bg-surface-200/80 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-xl text-sm font-semibold border border-surface-200/80 dark:border-surface-700 flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                    <i class="pi pi-clone text-base text-primary"></i>
+                    Merge Payees
+                </button>
+                <button
+                    type="button"
+                    (click)="openAddPayee()"
+                    class="min-h-[44px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium flex items-center gap-2 transition-all cursor-pointer"
+                >
+                    <i class="pi pi-plus text-base"></i>
+                    Add Payee
+                </button>
+            </div>
         </header>
 
         <div class="space-y-4">
@@ -194,13 +205,22 @@
                                             </div>
                                             <div class="flex flex-col justify-end gap-2">
                                                 <button
+                                                    type="button"
                                                     (click)="openEditPayee(payee)"
-                                                    class="h-7 px-4 flex items-center justify-center border border-surface-200 hover:bg-surface-100 text-[9px] uppercase font-black tracking-widest rounded-sm transition-all"
+                                                    class="h-7 px-4 flex items-center justify-center border border-surface-200 hover:bg-surface-100 text-[9px] uppercase font-black tracking-widest rounded-sm transition-all cursor-pointer"
                                                 >
                                                     Edit Payee
                                                 </button>
                                                 <button
-                                                    class="h-7 px-4 flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary text-[9px] uppercase font-black border border-primary/20 tracking-widest rounded-sm transition-all"
+                                                    type="button"
+                                                    (click)="openMergePayees(payee.id)"
+                                                    class="h-7 px-4 flex items-center justify-center bg-surface-100/80 hover:bg-surface-200 text-surface-700 dark:bg-surface-800 dark:hover:bg-surface-700 dark:text-surface-300 text-[9px] uppercase font-black border border-surface-200 dark:border-surface-700 tracking-widest rounded-sm transition-all cursor-pointer"
+                                                >
+                                                    Merge Payee
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="h-7 px-4 flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary text-[9px] uppercase font-black border border-primary/20 tracking-widest rounded-sm transition-all cursor-pointer"
                                                 >
                                                     Transaction History
                                                 </button>
@@ -221,4 +241,10 @@
     [(isOpen)]="isDialogOpen"
     [payeeToEdit]="selectedPayee()"
     (saved)="handlePayeeSaved($event)"
+/>
+
+<payee-merge-dialog
+    [(isOpen)]="isMergeDialogOpen"
+    [initialSourcePayeeId]="preselectedMergeSourceId()"
+    (merged)="handlePayeesMerged()"
 />

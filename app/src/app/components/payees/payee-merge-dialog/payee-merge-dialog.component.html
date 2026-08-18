@@ -1,0 +1,242 @@
+@if (isOpen()) {
+    <div
+        class="merge-modal-backdrop fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-surface-950/60 dark:bg-surface-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+        (click)="onBackdropClick($event)"
+        (keydown)="onKeyDown($event)"
+        tabindex="-1"
+    >
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="merge-dialog-title"
+            class="relative w-full max-w-lg bg-surface-0 dark:bg-surface-900 border-t sm:border border-surface-200/80 dark:border-surface-700/80 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-4 duration-200"
+            (click)="$event.stopPropagation()"
+        >
+            <!-- Header -->
+            <div
+                class="px-6 py-4.5 border-b border-surface-100 dark:divide-surface-800 flex items-center justify-between"
+            >
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0"
+                    >
+                        <i class="pi pi-clone text-base"></i>
+                    </div>
+                    <div>
+                        <h2
+                            id="merge-dialog-title"
+                            class="text-base font-bold text-surface-900 dark:text-surface-100"
+                        >
+                            Merge Payees
+                        </h2>
+                        <p class="text-xs text-surface-500 font-medium">
+                            Combine duplicate records into a single primary payee
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    (click)="close()"
+                    aria-label="Close merge dialog"
+                    class="w-9 h-9 rounded-xl flex items-center justify-center text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer"
+                >
+                    <i class="pi pi-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Body Content -->
+            <div class="p-6 overflow-y-auto space-y-5">
+                @if (error()) {
+                    <div
+                        role="alert"
+                        class="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400 font-semibold"
+                    >
+                        <i class="pi pi-exclamation-circle text-sm shrink-0"></i>
+                        <span>{{ error() }}</span>
+                    </div>
+                }
+
+                <!-- Step 1: Duplicate Payee (To be merged & removed) -->
+                <div class="space-y-1.5">
+                    <label
+                        for="merge-source-select"
+                        class="text-xs font-bold text-surface-900 dark:text-surface-100 flex items-center justify-between"
+                    >
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            Payee to Merge (will be removed)
+                        </span>
+                        <span class="text-[11px] font-normal text-surface-500">Duplicate</span>
+                    </label>
+                    <div class="relative">
+                        <select
+                            id="merge-source-select"
+                            [ngModel]="sourcePayeeId()"
+                            (ngModelChange)="sourcePayeeId.set($event)"
+                            class="w-full min-h-[44px] px-3.5 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs sm:text-sm font-semibold text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                        >
+                            <option value="" disabled>Select duplicate payee...</option>
+                            @for (p of payees(); track p.id) {
+                                <option [value]="p.id">
+                                    {{ p.name }}
+                                    {{ p.city ? '(' + p.city + ')' : '' }}
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <p class="text-[11px] text-surface-500">
+                        This duplicate entry will be archived after moving all of its historical
+                        data.
+                    </p>
+                </div>
+
+                <!-- Step 2: Target Master Payee (To keep) -->
+                <div class="space-y-1.5">
+                    <label
+                        for="merge-target-select"
+                        class="text-xs font-bold text-surface-900 dark:text-surface-100 flex items-center justify-between"
+                    >
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Keep this Payee (will receive all history)
+                        </span>
+                        <span class="text-[11px] font-normal text-emerald-600 dark:text-emerald-400"
+                            >Primary Master</span
+                        >
+                    </label>
+                    <div class="relative">
+                        <select
+                            id="merge-target-select"
+                            [ngModel]="targetPayeeId()"
+                            (ngModelChange)="targetPayeeId.set($event)"
+                            [disabled]="!sourcePayeeId()"
+                            class="w-full min-h-[44px] px-3.5 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs sm:text-sm font-semibold text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <option value="" disabled>Select primary payee to keep...</option>
+                            @for (p of availableTargets(); track p.id) {
+                                <option [value]="p.id">
+                                    {{ p.name }}
+                                    {{ p.city ? '(' + p.city + ')' : '' }}
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <p class="text-[11px] text-surface-500">
+                        All transactions will be reassigned to this master payee name and ID.
+                    </p>
+                </div>
+
+                <!-- Live Dynamic Impact Card -->
+                @if (selectedSourcePayee() && selectedTargetPayee()) {
+                    <div
+                        class="p-4 rounded-2xl bg-surface-100/60 dark:bg-surface-800/60 border border-surface-200/80 dark:border-surface-700/80 space-y-3 animate-in fade-in duration-150"
+                    >
+                        <div class="flex items-center justify-between text-xs font-bold">
+                            <span class="text-surface-500 uppercase tracking-wider text-[10px]"
+                                >Merge Flow</span
+                            >
+                            <span
+                                class="px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold"
+                            >
+                                {{ affectedTransactionCount() }}
+                                {{
+                                    affectedTransactionCount() === 1
+                                        ? 'Transaction'
+                                        : 'Transactions'
+                                }}
+                            </span>
+                        </div>
+
+                        <!-- Visual Transition -->
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="flex-1 p-2.5 rounded-xl bg-surface-0 dark:bg-surface-900 border border-surface-200/70 dark:border-surface-700/70 truncate text-center"
+                            >
+                                <span
+                                    class="text-xs font-bold text-surface-900 dark:text-surface-100 truncate block"
+                                >
+                                    {{ selectedSourcePayee()?.name }}
+                                </span>
+                                <span
+                                    class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold"
+                                    >To be removed</span
+                                >
+                            </div>
+
+                            <div class="flex items-center justify-center shrink-0 text-primary">
+                                <i class="pi pi-arrow-right text-sm"></i>
+                            </div>
+
+                            <div
+                                class="flex-1 p-2.5 rounded-xl bg-surface-0 dark:bg-surface-900 border border-primary/40 dark:border-primary/40 truncate text-center shadow-xs"
+                            >
+                                <span
+                                    class="text-xs font-bold text-surface-900 dark:text-surface-100 truncate block"
+                                >
+                                    {{ selectedTargetPayee()?.name }}
+                                </span>
+                                <span
+                                    class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold"
+                                    >Retained</span
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Schedule note if any -->
+                        @if (affectedScheduleCount() > 0) {
+                            <div
+                                class="text-[11px] font-semibold text-surface-600 dark:text-surface-400 flex items-center gap-1.5"
+                            >
+                                <i class="pi pi-calendar text-xs text-primary"></i>
+                                <span>
+                                    {{ affectedScheduleCount() }} recurring
+                                    {{ affectedScheduleCount() === 1 ? 'schedule' : 'schedules' }}
+                                    will also be updated.
+                                </span>
+                            </div>
+                        }
+
+                        <p class="text-[11px] text-surface-500">
+                            This cannot be undone. Historical ledger reports, charts, and queries
+                            will now reflect
+                            <span class="font-bold text-surface-700 dark:text-surface-300">{{
+                                selectedTargetPayee()?.name
+                            }}</span
+                            >.
+                        </p>
+                    </div>
+                }
+            </div>
+
+            <!-- Footer Buttons -->
+            <div
+                class="px-6 py-4 border-t border-surface-100 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-900/50 flex items-center justify-end gap-3"
+            >
+                <button
+                    type="button"
+                    (click)="close()"
+                    [disabled]="isMerging()"
+                    class="min-h-[44px] px-4 rounded-xl text-xs sm:text-sm font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-200/60 dark:hover:bg-surface-800 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    (click)="confirmMerge()"
+                    [disabled]="!canMerge()"
+                    class="min-h-[44px] px-5 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs sm:text-sm font-bold shadow-md flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                    @if (isMerging()) {
+                        <i class="pi pi-spin pi-spinner text-sm"></i>
+                        <span>Merging...</span>
+                    } @else {
+                        <i class="pi pi-check text-sm"></i>
+                        <span>Confirm & Merge</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
