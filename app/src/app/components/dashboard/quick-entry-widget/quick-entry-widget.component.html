@@ -122,79 +122,22 @@
 
             <!-- Form Fields -->
             <div class="space-y-3.5 sm:space-y-4">
-                <!-- Payee Input with In-DOM Accessible Combobox -->
-                <div class="space-y-1 sm:space-y-1.5 relative">
+                <!-- Payee Input using PayeeAutocompleteComponent -->
+                <div class="space-y-1 sm:space-y-1.5">
                     <label
                         for="quick-entry-payee"
                         class="text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400"
                     >
                         Payee <span class="text-red-600 dark:text-red-400">*</span>
                     </label>
-                    <div class="relative">
-                        <input
-                            id="quick-entry-payee"
-                            type="text"
-                            role="combobox"
-                            aria-autocomplete="list"
-                            [attr.aria-expanded]="isPayeeDropdownOpen()"
-                            aria-controls="quick-entry-payee-listbox"
-                            [attr.aria-activedescendant]="
-                                highlightedIndex() >= 0 ? 'payee-opt-' + highlightedIndex() : null
-                            "
-                            [ngModel]="payee()"
-                            (ngModelChange)="onPayeeInput($event)"
-                            (focus)="onPayeeFocus()"
-                            (blur)="onPayeeBlur()"
-                            (keydown)="onPayeeKeyDown($event)"
-                            (keyup.enter)="saveTransaction()"
-                            aria-required="true"
-                            placeholder="e.g. Netflix, Trader Joe's"
-                            class="w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]"
-                            autocomplete="off"
-                        />
-
-                        <!-- In-DOM Accessible Payee Dropdown Menu -->
-                        @if (isPayeeDropdownOpen() && filteredPayees().length > 0) {
-                            <ul
-                                id="quick-entry-payee-listbox"
-                                role="listbox"
-                                aria-label="Suggested Payees"
-                                class="absolute top-full left-0 right-0 mt-1.5 z-30 max-h-60 sm:max-h-48 overflow-y-auto rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1.5 divide-y divide-surface-100 dark:divide-surface-800"
-                            >
-                                @for (p of filteredPayees(); track p.id; let i = $index) {
-                                    <li
-                                        [id]="'payee-opt-' + i"
-                                        role="option"
-                                        [attr.aria-selected]="highlightedIndex() === i"
-                                        (mousedown)="selectPayee(p.name)"
-                                        class="min-h-[44px] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition-colors"
-                                        [class]="
-                                            highlightedIndex() === i
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-surface-800 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'
-                                        "
-                                    >
-                                        <div class="flex items-center gap-3 truncate">
-                                            <div
-                                                class="w-7 h-7 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60"
-                                            >
-                                                <i
-                                                    class="pi pi-building text-surface-400 text-xs shrink-0"
-                                                ></i>
-                                            </div>
-                                            <span
-                                                class="truncate text-xs sm:text-sm font-bold sm:font-semibold"
-                                                >{{ p.name }}</span
-                                            >
-                                        </div>
-                                        <i
-                                            class="pi pi-arrow-up-left text-xs text-surface-400 shrink-0 opacity-60"
-                                        ></i>
-                                    </li>
-                                }
-                            </ul>
-                        }
-                    </div>
+                    <payee-autocomplete
+                        inputId="quick-entry-payee"
+                        name="payee"
+                        [ngModel]="payee()"
+                        (ngModelChange)="payee.set($event)"
+                        placeholder="e.g. Netflix, Trader Joe's"
+                        (keyup.enter)="saveTransaction()"
+                    ></payee-autocomplete>
                 </div>
 
                 <!-- Category and Amount Row -->

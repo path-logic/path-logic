@@ -4789,6 +4789,51 @@
             "extends": []
         },
         {
+            "name": "IPayeeSuggestion",
+            "id": "interface-IPayeeSuggestion-0560816362f940af12eed5b0ac3135d7d8f5061f66cef00a950a6188a55cd42f1b21124e96f1d7ac79f7fb015da70cee2f846a3cd1119116271a38393b710535",
+            "file": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
+            "deprecated": false,
+            "deprecationMessage": "",
+            "type": "interface",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    forwardRef,\n    inject,\n    input,\n    signal\n} from '@angular/core';\nimport type { ControlValueAccessor } from '@angular/forms';\nimport { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';\nimport type { IPayee } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\nexport interface IPayeeSuggestion {\n    id?: string;\n    name: string;\n    isNew?: boolean;\n}\n\nlet nextId = 0;\n\n/**\n * Reusable accessible in-DOM Payee Autocomplete Combobox component.\n * Provides touch-friendly 44px targets, WAI-ARIA 1.2 Combobox keyboard navigation,\n * and seamless in-DOM floating dropdown matching the app design system.\n */\n@Component({\n    selector: 'payee-autocomplete',\n    standalone: true,\n    imports: [CommonModule, FormsModule],\n    template: `\n        <div class=\"relative w-full\" [class]=\"styleClass()\">\n            <div class=\"relative\">\n                <input\n                    [id]=\"resolvedInputId\"\n                    type=\"text\"\n                    role=\"combobox\"\n                    aria-autocomplete=\"list\"\n                    [attr.aria-expanded]=\"isDropdownOpen()\"\n                    [attr.aria-controls]=\"listboxId\"\n                    [attr.aria-activedescendant]=\"\n                        highlightedIndex() >= 0 ? listboxId + '-opt-' + highlightedIndex() : null\n                    \"\n                    [attr.aria-label]=\"ariaLabel()\"\n                    [name]=\"name()\"\n                    [disabled]=\"disabled\"\n                    [placeholder]=\"placeholder() || 'e.g. Netflix, Trader Joe\\\\'s'\"\n                    [ngModel]=\"displayValue()\"\n                    (ngModelChange)=\"handleInputChange($event)\"\n                    (focus)=\"handleInputFocus()\"\n                    (blur)=\"handleInputBlur()\"\n                    (keydown)=\"handleKeyDown($event)\"\n                    autocomplete=\"off\"\n                    [class]=\"\n                        inputStyleClass() ||\n                        'w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]'\n                    \"\n                />\n            </div>\n\n            <!-- In-DOM Accessible Dropdown Listbox -->\n            @if (isDropdownOpen() && suggestions().length > 0) {\n                <ul\n                    [id]=\"listboxId\"\n                    role=\"listbox\"\n                    [attr.aria-label]=\"ariaLabel() + ' Suggestions'\"\n                    class=\"absolute top-full left-0 right-0 mt-1.5 z-50 max-h-60 sm:max-h-48 overflow-y-auto rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1.5 divide-y divide-surface-100 dark:divide-surface-800\"\n                >\n                    @for (p of suggestions(); track p.id ?? p.name; let i = $index) {\n                        <li\n                            [id]=\"listboxId + '-opt-' + i\"\n                            role=\"option\"\n                            [attr.aria-selected]=\"highlightedIndex() === i\"\n                            (mousedown)=\"selectPayee(p)\"\n                            class=\"min-h-[44px] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition-colors\"\n                            [class]=\"\n                                highlightedIndex() === i\n                                    ? 'bg-primary/10 text-primary'\n                                    : 'text-surface-800 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'\n                            \"\n                        >\n                            <div class=\"flex items-center gap-3 truncate\">\n                                @if (p.isNew) {\n                                    <div\n                                        class=\"w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20\"\n                                    >\n                                        <i class=\"pi pi-plus-circle text-xs\"></i>\n                                    </div>\n                                    <span\n                                        class=\"truncate text-xs sm:text-sm font-bold text-primary\"\n                                    >\n                                        Add '{{ p.name }}'\n                                    </span>\n                                } @else {\n                                    <div\n                                        class=\"w-7 h-7 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60\"\n                                    >\n                                        <i\n                                            class=\"pi pi-building text-surface-400 text-xs shrink-0\"\n                                        ></i>\n                                    </div>\n                                    <span\n                                        class=\"truncate text-xs sm:text-sm font-bold sm:font-semibold\"\n                                    >\n                                        {{ p.name }}\n                                    </span>\n                                }\n                            </div>\n                            <i\n                                class=\"pi pi-arrow-up-left text-xs text-surface-400 shrink-0 opacity-60\"\n                            ></i>\n                        </li>\n                    }\n                </ul>\n            }\n        </div>\n    `,\n    providers: [\n        {\n            provide: NG_VALUE_ACCESSOR,\n            useExisting: forwardRef(() => PayeeAutocompleteComponent),\n            multi: true\n        }\n    ],\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class PayeeAutocompleteComponent implements ControlValueAccessor {\n    private readonly ledgerStore = inject(LedgerStore);\n    private readonly instanceId = ++nextId;\n\n    readonly listboxId = `payee-listbox-${this.instanceId}`;\n    readonly ariaLabel = input<string>('Payee');\n    readonly name = input<string>('payee');\n    readonly inputId = input<string>('');\n    readonly placeholder = input<string>('');\n    readonly styleClass = input<string>('w-full');\n    readonly inputStyleClass = input<string>('');\n\n    get resolvedInputId(): string {\n        return this.inputId() || `payee-input-${this.instanceId}`;\n    }\n\n    readonly payees = this.ledgerStore.payees;\n    readonly isDropdownOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(-1);\n    readonly inputValue = signal<string>('');\n\n    private innerValue: unknown = null;\n    disabled = false;\n\n    readonly displayValue = computed<string>(() => {\n        return this.inputValue();\n    });\n\n    readonly suggestions = computed<Array<IPayeeSuggestion>>(() => {\n        const query = this.inputValue().trim().toLowerCase();\n        const list = this.payees();\n\n        if (!query) {\n            return list.slice(0, 8);\n        }\n\n        const matches: Array<IPayeeSuggestion> = list.filter(p =>\n            p.name.toLowerCase().includes(query)\n        );\n\n        const exactMatch = matches.find(p => p.name.toLowerCase() === query);\n        if (!exactMatch) {\n            return [{ name: this.inputValue().trim(), isNew: true }, ...matches.slice(0, 7)];\n        }\n\n        return matches.slice(0, 8);\n    });\n\n    onChange: (val: unknown) => void = () => {};\n    onTouched: () => void = () => {};\n\n    writeValue(val: unknown): void {\n        this.innerValue = val;\n        if (val) {\n            if (typeof val === 'string') {\n                this.inputValue.set(val);\n            } else if (typeof val === 'object' && 'name' in (val as Record<string, unknown>)) {\n                this.inputValue.set((val as IPayee).name);\n            } else {\n                this.inputValue.set('');\n            }\n        } else {\n            this.inputValue.set('');\n        }\n    }\n\n    registerOnChange(fn: (val: unknown) => void): void {\n        this.onChange = fn;\n    }\n\n    registerOnTouched(fn: () => void): void {\n        this.onTouched = fn;\n    }\n\n    setDisabledState(isDisabled: boolean): void {\n        this.disabled = isDisabled;\n    }\n\n    handleInputChange(val: string): void {\n        this.inputValue.set(val);\n        this.isDropdownOpen.set(true);\n        this.highlightedIndex.set(-1);\n\n        const match = this.payees().find(p => p.name.toLowerCase() === val.trim().toLowerCase());\n        const emitVal = match ?? (val.trim() ? val.trim() : null);\n        this.innerValue = emitVal;\n        this.onChange(emitVal);\n        this.onTouched();\n    }\n\n    handleInputFocus(): void {\n        if (!this.disabled && this.payees().length > 0) {\n            this.isDropdownOpen.set(true);\n        }\n    }\n\n    handleInputBlur(): void {\n        setTimeout(() => {\n            this.isDropdownOpen.set(false);\n            this.highlightedIndex.set(-1);\n            this.onTouched();\n        }, 200);\n    }\n\n    selectPayee(suggestion: IPayeeSuggestion): void {\n        const name = suggestion.name;\n        this.inputValue.set(name);\n        this.isDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n\n        const match = this.payees().find(p => p.name.toLowerCase() === name.toLowerCase());\n        const emitVal = match ?? (suggestion.id ? suggestion : name);\n        this.innerValue = emitVal;\n        this.onChange(emitVal);\n        this.onTouched();\n    }\n\n    handleKeyDown(event: KeyboardEvent): void {\n        const options = this.suggestions();\n        if (!this.isDropdownOpen() || options.length === 0) {\n            if (event.key === 'ArrowDown') {\n                this.isDropdownOpen.set(true);\n                event.preventDefault();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i + 1 < options.length ? i + 1 : 0));\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i - 1 >= 0 ? i - 1 : options.length - 1));\n                break;\n            case 'Enter': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    event.preventDefault();\n                    event.stopPropagation();\n                    this.selectPayee(selected);\n                }\n                break;\n            }\n            case 'Escape':\n                event.preventDefault();\n                event.stopPropagation();\n                this.isDropdownOpen.set(false);\n                this.highlightedIndex.set(-1);\n                break;\n            case 'Tab': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    this.selectPayee(selected);\n                } else {\n                    this.isDropdownOpen.set(false);\n                }\n                break;\n            }\n        }\n    }\n}\n",
+            "properties": [
+                {
+                    "name": "id",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": true,
+                    "description": "",
+                    "line": 18
+                },
+                {
+                    "name": "isNew",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": true,
+                    "description": "",
+                    "line": 20
+                },
+                {
+                    "name": "name",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "string",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 19
+                }
+            ],
+            "indexSignatures": [],
+            "kind": 172,
+            "methods": [],
+            "extends": []
+        },
+        {
             "name": "IPersonalLoanMetadata",
             "id": "interface-IPersonalLoanMetadata-d7cb9cf4aa6d7251d490175b3ed7906fa0cf35ae42117db3aebad4899432203841c4104862d04c12bf3fbe2b51b3379272f9b125b023131eb1c1a09f2a0ca358",
             "file": "app/src/app/core/domain/types.ts",
@@ -27163,7 +27208,7 @@
         },
         {
             "name": "PayeeAutocompleteComponent",
-            "id": "component-PayeeAutocompleteComponent-52b99e2e3714890087113a1cbcfdf697fd2c38ca500fae81862cf1b2e9e4be39b4c4c13af9535715fe8a7df95eeab9be27137c7e3dcc5dc73a9d54904f6d6e1b",
+            "id": "component-PayeeAutocompleteComponent-0560816362f940af12eed5b0ac3135d7d8f5061f66cef00a950a6188a55cd42f1b21124e96f1d7ac79f7fb015da70cee2f846a3cd1119116271a38393b710535",
             "file": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -27178,7 +27223,7 @@
             "selector": "payee-autocomplete",
             "styleUrls": [],
             "styles": [],
-            "template": "<p-autoComplete\n    [ariaLabel]=\"ariaLabel()\"\n    [attr.aria-label]=\"ariaLabel()\"\n    [inputId]=\"inputId()\"\n    [(ngModel)]=\"value\"\n    (ngModelChange)=\"onValueChange($event)\"\n    [suggestions]=\"filteredPayees()\"\n    (completeMethod)=\"filterPayees($event)\"\n    optionLabel=\"name\"\n    [name]=\"name()\"\n    [placeholder]=\"placeholder()\"\n    [styleClass]=\"styleClass()\"\n    [inputStyleClass]=\"inputStyleClass()\"\n    [forceSelection]=\"false\"\n    [dropdown]=\"false\"\n    appendTo=\"body\"\n>\n    <ng-template let-payee pTemplate=\"item\">\n        <div class=\"flex items-center gap-2 px-1\">\n            @if (payee.isNew) {\n                <i class=\"pi pi-plus-circle text-primary text-xs\"></i>\n                <span class=\"text-sm font-bold text-primary\">Add '{{ payee.name }}'</span>\n            } @else {\n                <i class=\"pi pi-building text-surface-400 text-xs\"></i>\n                <span class=\"text-sm\">{{ payee.name }}</span>\n            }\n        </div>\n    </ng-template>\n</p-autoComplete>\n",
+            "template": "<div class=\"relative w-full\" [class]=\"styleClass()\">\n    <div class=\"relative\">\n        <input\n            [id]=\"resolvedInputId\"\n            type=\"text\"\n            role=\"combobox\"\n            aria-autocomplete=\"list\"\n            [attr.aria-expanded]=\"isDropdownOpen()\"\n            [attr.aria-controls]=\"listboxId\"\n            [attr.aria-activedescendant]=\"\n                highlightedIndex() >= 0 ? listboxId + '-opt-' + highlightedIndex() : null\n            \"\n            [attr.aria-label]=\"ariaLabel()\"\n            [name]=\"name()\"\n            [disabled]=\"disabled\"\n            [placeholder]=\"placeholder() || 'e.g. Netflix, Trader Joe\\'s'\"\n            [ngModel]=\"displayValue()\"\n            (ngModelChange)=\"handleInputChange($event)\"\n            (focus)=\"handleInputFocus()\"\n            (blur)=\"handleInputBlur()\"\n            (keydown)=\"handleKeyDown($event)\"\n            autocomplete=\"off\"\n            [class]=\"\n                inputStyleClass() ||\n                'w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]'\n            \"\n        />\n    </div>\n\n    <!-- In-DOM Accessible Dropdown Listbox -->\n    @if (isDropdownOpen() && suggestions().length > 0) {\n        <ul\n            [id]=\"listboxId\"\n            role=\"listbox\"\n            [attr.aria-label]=\"ariaLabel() + ' Suggestions'\"\n            class=\"absolute top-full left-0 right-0 mt-1.5 z-50 max-h-60 sm:max-h-48 overflow-y-auto rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1.5 divide-y divide-surface-100 dark:divide-surface-800\"\n        >\n            @for (p of suggestions(); track p.id ?? p.name; let i = $index) {\n                <li\n                    [id]=\"listboxId + '-opt-' + i\"\n                    role=\"option\"\n                    [attr.aria-selected]=\"highlightedIndex() === i\"\n                    (mousedown)=\"selectPayee(p)\"\n                    class=\"min-h-[44px] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition-colors\"\n                    [class]=\"\n                        highlightedIndex() === i\n                            ? 'bg-primary/10 text-primary'\n                            : 'text-surface-800 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'\n                    \"\n                >\n                    <div class=\"flex items-center gap-3 truncate\">\n                        @if (p.isNew) {\n                            <div\n                                class=\"w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20\"\n                            >\n                                <i class=\"pi pi-plus-circle text-xs\"></i>\n                            </div>\n                            <span\n                                class=\"truncate text-xs sm:text-sm font-bold text-primary\"\n                            >\n                                Add '{{ p.name }}'\n                            </span>\n                        } @else {\n                            <div\n                                class=\"w-7 h-7 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60\"\n                            >\n                                <i\n                                    class=\"pi pi-building text-surface-400 text-xs shrink-0\"\n                                ></i>\n                            </div>\n                            <span\n                                class=\"truncate text-xs sm:text-sm font-bold sm:font-semibold\"\n                            >\n                                {{ p.name }}\n                            </span>\n                        }\n                    </div>\n                    <i\n                        class=\"pi pi-arrow-up-left text-xs text-surface-400 shrink-0 opacity-60\"\n                    ></i>\n                </li>\n            }\n        </ul>\n    }\n</div>\n",
             "templateUrl": [],
             "viewProviders": [],
             "hostDirectives": [],
@@ -27192,7 +27237,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 63,
+                    "line": 135,
                     "modifierKind": [
                         148
                     ],
@@ -27207,7 +27252,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 65,
+                    "line": 137,
                     "modifierKind": [
                         148
                     ],
@@ -27215,14 +27260,14 @@
                 },
                 {
                     "name": "inputStyleClass",
-                    "defaultValue": "        'w-full h-full text-sm font-medium px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow backdrop-blur-sm'    ",
+                    "defaultValue": "''",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "string",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 68,
+                    "line": 140,
                     "modifierKind": [
                         148
                     ],
@@ -27237,7 +27282,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 64,
+                    "line": 136,
                     "modifierKind": [
                         148
                     ],
@@ -27252,7 +27297,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 66,
+                    "line": 138,
                     "modifierKind": [
                         148
                     ],
@@ -27260,14 +27305,14 @@
                 },
                 {
                     "name": "styleClass",
-                    "defaultValue": "'w-full h-full'",
+                    "defaultValue": "'w-full'",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "string",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 67,
+                    "line": 139,
                     "modifierKind": [
                         148
                     ],
@@ -27285,18 +27330,89 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 76
+                    "line": 152
                 },
                 {
-                    "name": "filteredPayees",
-                    "defaultValue": "signal<Array<IPayee | { name: string; isNew: boolean }>>([])",
+                    "name": "displayValue",
+                    "defaultValue": "computed<string>(() => {\n        return this.inputValue();\n    })",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "unknown",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 73,
+                    "line": 154,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "highlightedIndex",
+                    "defaultValue": "signal<number>(-1)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 148,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "innerValue",
+                    "defaultValue": "null",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 151,
+                    "modifierKind": [
+                        123
+                    ]
+                },
+                {
+                    "name": "inputValue",
+                    "defaultValue": "signal<string>('')",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 149,
+                    "modifierKind": [
+                        148
+                    ]
+                },
+                {
+                    "name": "instanceId",
+                    "defaultValue": "++nextId",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 132,
+                    "modifierKind": [
+                        123,
+                        148
+                    ]
+                },
+                {
+                    "name": "isDropdownOpen",
+                    "defaultValue": "signal<boolean>(false)",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 147,
                     "modifierKind": [
                         148
                     ]
@@ -27310,9 +27426,24 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 61,
+                    "line": 131,
                     "modifierKind": [
-                        123
+                        123,
+                        148
+                    ]
+                },
+                {
+                    "name": "listboxId",
+                    "defaultValue": "`payee-listbox-${this.instanceId}`",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "unknown",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 134,
+                    "modifierKind": [
+                        148
                     ]
                 },
                 {
@@ -27324,7 +27455,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 78
+                    "line": 178
                 },
                 {
                     "name": "onTouched",
@@ -27335,7 +27466,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 82
+                    "line": 179
                 },
                 {
                     "name": "payees",
@@ -27346,30 +27477,43 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 72,
+                    "line": 146,
                     "modifierKind": [
                         148
                     ]
                 },
                 {
-                    "name": "value",
-                    "defaultValue": "null",
+                    "name": "suggestions",
+                    "defaultValue": "computed<Array<IPayeeSuggestion>>(() => {\n        const query = this.inputValue().trim().toLowerCase();\n        const list = this.payees();\n\n        if (!query) {\n            return list.slice(0, 8);\n        }\n\n        const matches: Array<IPayeeSuggestion> = list.filter(p =>\n            p.name.toLowerCase().includes(query)\n        );\n\n        const exactMatch = matches.find(p => p.name.toLowerCase() === query);\n        if (!exactMatch) {\n            return [{ name: this.inputValue().trim(), isNew: true }, ...matches.slice(0, 7)];\n        }\n\n        return matches.slice(0, 8);\n    })",
                     "deprecated": false,
                     "deprecationMessage": "",
                     "type": "unknown",
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 75
+                    "line": 158,
+                    "modifierKind": [
+                        148
+                    ]
                 }
             ],
             "methodsClass": [
                 {
-                    "name": "filterPayees",
+                    "name": "handleInputBlur",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 226,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "handleInputChange",
                     "args": [
                         {
-                            "name": "event",
-                            "type": "literal type",
+                            "name": "val",
+                            "type": "string",
                             "optional": false,
                             "dotDotDotToken": false,
                             "deprecated": false,
@@ -27379,13 +27523,13 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 108,
+                    "line": 208,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
                         {
-                            "name": "event",
-                            "type": "literal type",
+                            "name": "val",
+                            "type": "string",
                             "optional": false,
                             "dotDotDotToken": false,
                             "deprecated": false,
@@ -27397,11 +27541,21 @@
                     ]
                 },
                 {
-                    "name": "onValueChange",
+                    "name": "handleInputFocus",
+                    "args": [],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 220,
+                    "deprecated": false,
+                    "deprecationMessage": ""
+                },
+                {
+                    "name": "handleKeyDown",
                     "args": [
                         {
-                            "name": "val",
-                            "type": "unknown",
+                            "name": "event",
+                            "type": "KeyboardEvent",
                             "optional": false,
                             "dotDotDotToken": false,
                             "deprecated": false,
@@ -27411,13 +27565,13 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 102,
+                    "line": 247,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
                         {
-                            "name": "val",
-                            "type": "unknown",
+                            "name": "event",
+                            "type": "KeyboardEvent",
                             "optional": false,
                             "dotDotDotToken": false,
                             "deprecated": false,
@@ -27453,7 +27607,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 90,
+                    "line": 196,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -27496,7 +27650,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 94,
+                    "line": 200,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -27508,6 +27662,38 @@
                             "deprecated": false,
                             "deprecationMessage": "",
                             "function": [],
+                            "tagName": {
+                                "text": "param"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "selectPayee",
+                    "args": [
+                        {
+                            "name": "suggestion",
+                            "type": "IPayeeSuggestion",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": ""
+                        }
+                    ],
+                    "optional": false,
+                    "returnType": "void",
+                    "typeParameters": [],
+                    "line": 234,
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "jsdoctags": [
+                        {
+                            "name": "suggestion",
+                            "type": "IPayeeSuggestion",
+                            "optional": false,
+                            "dotDotDotToken": false,
+                            "deprecated": false,
+                            "deprecationMessage": "",
                             "tagName": {
                                 "text": "param"
                             }
@@ -27529,7 +27715,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 98,
+                    "line": 204,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -27561,7 +27747,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 86,
+                    "line": 181,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -27592,23 +27778,30 @@
                 {
                     "name": "FormsModule",
                     "type": "module"
-                },
-                {
-                    "name": "AutoCompleteModule",
-                    "type": "module"
                 }
             ],
-            "description": "",
-            "rawdescription": "\n",
+            "description": "<p>Reusable accessible in-DOM Payee Autocomplete Combobox component.\nProvides touch-friendly 44px targets, WAI-ARIA 1.2 Combobox keyboard navigation,\nand seamless in-DOM floating dropdown matching the app design system.</p>\n",
+            "rawdescription": "\n\nReusable accessible in-DOM Payee Autocomplete Combobox component.\nProvides touch-friendly 44px targets, WAI-ARIA 1.2 Combobox keyboard navigation,\nand seamless in-DOM floating dropdown matching the app design system.\n",
             "type": "component",
-            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    forwardRef,\n    inject,\n    input,\n    signal\n} from '@angular/core';\nimport type { ControlValueAccessor } from '@angular/forms';\nimport { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';\nimport type { IPayee } from '@core';\nimport { AutoCompleteModule } from 'primeng/autocomplete';\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\n@Component({\n    selector: 'payee-autocomplete',\n    standalone: true,\n    imports: [CommonModule, FormsModule, AutoCompleteModule],\n    template: `\n        <p-autoComplete\n            [ariaLabel]=\"ariaLabel()\"\n            [attr.aria-label]=\"ariaLabel()\"\n            [inputId]=\"inputId()\"\n            [(ngModel)]=\"value\"\n            (ngModelChange)=\"onValueChange($event)\"\n            [suggestions]=\"filteredPayees()\"\n            (completeMethod)=\"filterPayees($event)\"\n            optionLabel=\"name\"\n            [name]=\"name()\"\n            [placeholder]=\"placeholder()\"\n            [styleClass]=\"styleClass()\"\n            [inputStyleClass]=\"inputStyleClass()\"\n            [forceSelection]=\"false\"\n            [dropdown]=\"false\"\n            appendTo=\"body\"\n        >\n            <ng-template let-payee pTemplate=\"item\">\n                <div class=\"flex items-center gap-2 px-1\">\n                    @if (payee.isNew) {\n                        <i class=\"pi pi-plus-circle text-primary text-xs\"></i>\n                        <span class=\"text-sm font-bold text-primary\">Add '{{ payee.name }}'</span>\n                    } @else {\n                        <i class=\"pi pi-building text-surface-400 text-xs\"></i>\n                        <span class=\"text-sm\">{{ payee.name }}</span>\n                    }\n                </div>\n            </ng-template>\n        </p-autoComplete>\n    `,\n    providers: [\n        {\n            provide: NG_VALUE_ACCESSOR,\n            useExisting: forwardRef(() => PayeeAutocompleteComponent),\n            multi: true\n        }\n    ],\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class PayeeAutocompleteComponent implements ControlValueAccessor {\n    private ledgerStore = inject(LedgerStore);\n\n    readonly ariaLabel = input<string>('Payee');\n    readonly name = input<string>('payee');\n    readonly inputId = input<string>('');\n    readonly placeholder = input<string>('');\n    readonly styleClass = input<string>('w-full h-full');\n    readonly inputStyleClass = input<string>(\n        'w-full h-full text-sm font-medium px-3 bg-surface-0/60 border border-surface-200/60 text-surface-900 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow backdrop-blur-sm'\n    );\n\n    readonly payees = this.ledgerStore.payees;\n    readonly filteredPayees = signal<Array<IPayee | { name: string; isNew: boolean }>>([]);\n\n    value: unknown = null;\n    disabled = false;\n\n    onChange: (val: unknown) => void = () => {\n        // Placeholder for ControlValueAccessor callback\n    };\n\n    onTouched: () => void = () => {\n        // Placeholder for ControlValueAccessor callback\n    };\n\n    writeValue(val: unknown): void {\n        this.value = val;\n    }\n\n    registerOnChange(fn: (val: unknown) => void): void {\n        this.onChange = fn;\n    }\n\n    registerOnTouched(fn: () => void): void {\n        this.onTouched = fn;\n    }\n\n    setDisabledState(isDisabled: boolean): void {\n        this.disabled = isDisabled;\n    }\n\n    onValueChange(val: unknown): void {\n        this.value = val;\n        this.onChange(val);\n        this.onTouched();\n    }\n\n    filterPayees(event: { query?: string; originalEvent?: Event }): void {\n        const query = (event.query || '').toLowerCase();\n        const matches = this.payees().filter(p => p.name.toLowerCase().includes(query));\n\n        const exactMatch = matches.find(p => p.name.toLowerCase() === query);\n        if (!exactMatch && query.length > 0 && event.query) {\n            matches.unshift({ name: event.query, isNew: true } as unknown as IPayee);\n        }\n\n        this.filteredPayees.set(matches);\n    }\n}\n",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    forwardRef,\n    inject,\n    input,\n    signal\n} from '@angular/core';\nimport type { ControlValueAccessor } from '@angular/forms';\nimport { FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';\nimport type { IPayee } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\nexport interface IPayeeSuggestion {\n    id?: string;\n    name: string;\n    isNew?: boolean;\n}\n\nlet nextId = 0;\n\n/**\n * Reusable accessible in-DOM Payee Autocomplete Combobox component.\n * Provides touch-friendly 44px targets, WAI-ARIA 1.2 Combobox keyboard navigation,\n * and seamless in-DOM floating dropdown matching the app design system.\n */\n@Component({\n    selector: 'payee-autocomplete',\n    standalone: true,\n    imports: [CommonModule, FormsModule],\n    template: `\n        <div class=\"relative w-full\" [class]=\"styleClass()\">\n            <div class=\"relative\">\n                <input\n                    [id]=\"resolvedInputId\"\n                    type=\"text\"\n                    role=\"combobox\"\n                    aria-autocomplete=\"list\"\n                    [attr.aria-expanded]=\"isDropdownOpen()\"\n                    [attr.aria-controls]=\"listboxId\"\n                    [attr.aria-activedescendant]=\"\n                        highlightedIndex() >= 0 ? listboxId + '-opt-' + highlightedIndex() : null\n                    \"\n                    [attr.aria-label]=\"ariaLabel()\"\n                    [name]=\"name()\"\n                    [disabled]=\"disabled\"\n                    [placeholder]=\"placeholder() || 'e.g. Netflix, Trader Joe\\\\'s'\"\n                    [ngModel]=\"displayValue()\"\n                    (ngModelChange)=\"handleInputChange($event)\"\n                    (focus)=\"handleInputFocus()\"\n                    (blur)=\"handleInputBlur()\"\n                    (keydown)=\"handleKeyDown($event)\"\n                    autocomplete=\"off\"\n                    [class]=\"\n                        inputStyleClass() ||\n                        'w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]'\n                    \"\n                />\n            </div>\n\n            <!-- In-DOM Accessible Dropdown Listbox -->\n            @if (isDropdownOpen() && suggestions().length > 0) {\n                <ul\n                    [id]=\"listboxId\"\n                    role=\"listbox\"\n                    [attr.aria-label]=\"ariaLabel() + ' Suggestions'\"\n                    class=\"absolute top-full left-0 right-0 mt-1.5 z-50 max-h-60 sm:max-h-48 overflow-y-auto rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1.5 divide-y divide-surface-100 dark:divide-surface-800\"\n                >\n                    @for (p of suggestions(); track p.id ?? p.name; let i = $index) {\n                        <li\n                            [id]=\"listboxId + '-opt-' + i\"\n                            role=\"option\"\n                            [attr.aria-selected]=\"highlightedIndex() === i\"\n                            (mousedown)=\"selectPayee(p)\"\n                            class=\"min-h-[44px] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition-colors\"\n                            [class]=\"\n                                highlightedIndex() === i\n                                    ? 'bg-primary/10 text-primary'\n                                    : 'text-surface-800 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'\n                            \"\n                        >\n                            <div class=\"flex items-center gap-3 truncate\">\n                                @if (p.isNew) {\n                                    <div\n                                        class=\"w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20\"\n                                    >\n                                        <i class=\"pi pi-plus-circle text-xs\"></i>\n                                    </div>\n                                    <span\n                                        class=\"truncate text-xs sm:text-sm font-bold text-primary\"\n                                    >\n                                        Add '{{ p.name }}'\n                                    </span>\n                                } @else {\n                                    <div\n                                        class=\"w-7 h-7 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60\"\n                                    >\n                                        <i\n                                            class=\"pi pi-building text-surface-400 text-xs shrink-0\"\n                                        ></i>\n                                    </div>\n                                    <span\n                                        class=\"truncate text-xs sm:text-sm font-bold sm:font-semibold\"\n                                    >\n                                        {{ p.name }}\n                                    </span>\n                                }\n                            </div>\n                            <i\n                                class=\"pi pi-arrow-up-left text-xs text-surface-400 shrink-0 opacity-60\"\n                            ></i>\n                        </li>\n                    }\n                </ul>\n            }\n        </div>\n    `,\n    providers: [\n        {\n            provide: NG_VALUE_ACCESSOR,\n            useExisting: forwardRef(() => PayeeAutocompleteComponent),\n            multi: true\n        }\n    ],\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class PayeeAutocompleteComponent implements ControlValueAccessor {\n    private readonly ledgerStore = inject(LedgerStore);\n    private readonly instanceId = ++nextId;\n\n    readonly listboxId = `payee-listbox-${this.instanceId}`;\n    readonly ariaLabel = input<string>('Payee');\n    readonly name = input<string>('payee');\n    readonly inputId = input<string>('');\n    readonly placeholder = input<string>('');\n    readonly styleClass = input<string>('w-full');\n    readonly inputStyleClass = input<string>('');\n\n    get resolvedInputId(): string {\n        return this.inputId() || `payee-input-${this.instanceId}`;\n    }\n\n    readonly payees = this.ledgerStore.payees;\n    readonly isDropdownOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(-1);\n    readonly inputValue = signal<string>('');\n\n    private innerValue: unknown = null;\n    disabled = false;\n\n    readonly displayValue = computed<string>(() => {\n        return this.inputValue();\n    });\n\n    readonly suggestions = computed<Array<IPayeeSuggestion>>(() => {\n        const query = this.inputValue().trim().toLowerCase();\n        const list = this.payees();\n\n        if (!query) {\n            return list.slice(0, 8);\n        }\n\n        const matches: Array<IPayeeSuggestion> = list.filter(p =>\n            p.name.toLowerCase().includes(query)\n        );\n\n        const exactMatch = matches.find(p => p.name.toLowerCase() === query);\n        if (!exactMatch) {\n            return [{ name: this.inputValue().trim(), isNew: true }, ...matches.slice(0, 7)];\n        }\n\n        return matches.slice(0, 8);\n    });\n\n    onChange: (val: unknown) => void = () => {};\n    onTouched: () => void = () => {};\n\n    writeValue(val: unknown): void {\n        this.innerValue = val;\n        if (val) {\n            if (typeof val === 'string') {\n                this.inputValue.set(val);\n            } else if (typeof val === 'object' && 'name' in (val as Record<string, unknown>)) {\n                this.inputValue.set((val as IPayee).name);\n            } else {\n                this.inputValue.set('');\n            }\n        } else {\n            this.inputValue.set('');\n        }\n    }\n\n    registerOnChange(fn: (val: unknown) => void): void {\n        this.onChange = fn;\n    }\n\n    registerOnTouched(fn: () => void): void {\n        this.onTouched = fn;\n    }\n\n    setDisabledState(isDisabled: boolean): void {\n        this.disabled = isDisabled;\n    }\n\n    handleInputChange(val: string): void {\n        this.inputValue.set(val);\n        this.isDropdownOpen.set(true);\n        this.highlightedIndex.set(-1);\n\n        const match = this.payees().find(p => p.name.toLowerCase() === val.trim().toLowerCase());\n        const emitVal = match ?? (val.trim() ? val.trim() : null);\n        this.innerValue = emitVal;\n        this.onChange(emitVal);\n        this.onTouched();\n    }\n\n    handleInputFocus(): void {\n        if (!this.disabled && this.payees().length > 0) {\n            this.isDropdownOpen.set(true);\n        }\n    }\n\n    handleInputBlur(): void {\n        setTimeout(() => {\n            this.isDropdownOpen.set(false);\n            this.highlightedIndex.set(-1);\n            this.onTouched();\n        }, 200);\n    }\n\n    selectPayee(suggestion: IPayeeSuggestion): void {\n        const name = suggestion.name;\n        this.inputValue.set(name);\n        this.isDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n\n        const match = this.payees().find(p => p.name.toLowerCase() === name.toLowerCase());\n        const emitVal = match ?? (suggestion.id ? suggestion : name);\n        this.innerValue = emitVal;\n        this.onChange(emitVal);\n        this.onTouched();\n    }\n\n    handleKeyDown(event: KeyboardEvent): void {\n        const options = this.suggestions();\n        if (!this.isDropdownOpen() || options.length === 0) {\n            if (event.key === 'ArrowDown') {\n                this.isDropdownOpen.set(true);\n                event.preventDefault();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i + 1 < options.length ? i + 1 : 0));\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i - 1 >= 0 ? i - 1 : options.length - 1));\n                break;\n            case 'Enter': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    event.preventDefault();\n                    event.stopPropagation();\n                    this.selectPayee(selected);\n                }\n                break;\n            }\n            case 'Escape':\n                event.preventDefault();\n                event.stopPropagation();\n                this.isDropdownOpen.set(false);\n                this.highlightedIndex.set(-1);\n                break;\n            case 'Tab': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    this.selectPayee(selected);\n                } else {\n                    this.isDropdownOpen.set(false);\n                }\n                break;\n            }\n        }\n    }\n}\n",
             "assetsDirs": [],
             "styleUrlsData": "",
             "stylesData": "",
             "extends": [],
             "implements": [
                 "ControlValueAccessor"
-            ]
+            ],
+            "accessors": {
+                "resolvedInputId": {
+                    "name": "resolvedInputId",
+                    "getSignature": {
+                        "name": "resolvedInputId",
+                        "type": "string",
+                        "returnType": "string",
+                        "line": 142
+                    }
+                }
+            }
         },
         {
             "name": "PayeeEditDialogComponent",
@@ -29022,7 +29215,7 @@
         },
         {
             "name": "QuickEntryWidgetComponent",
-            "id": "component-QuickEntryWidgetComponent-b1452323369b9776b132c61286dd4d355759fcca3501dd58dd03b89fa7b25024b1bb33bbb3c311008422f002174858dfef4fdcd21f8b5d917ceb3c8133041e9d",
+            "id": "component-QuickEntryWidgetComponent-682d1b13a07577342cc5d9d7a8c0de9b9303faa5d9d98797d0a477c31b332a505315819eb4abf12a070599cf4491830620ac6ac112ce2d3bdbd747c10d5a8f5a",
             "file": "app/src/app/components/dashboard/quick-entry-widget/quick-entry-widget.component.ts",
             "changeDetection": "ChangeDetectionStrategy.OnPush",
             "encapsulation": [],
@@ -29048,36 +29241,6 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 34,
-                    "modifierKind": [
-                        148
-                    ],
-                    "required": false
-                },
-                {
-                    "name": "visible",
-                    "defaultValue": "true",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "boolean",
-                    "indexKey": "",
-                    "optional": false,
-                    "description": "",
-                    "line": 33,
-                    "modifierKind": [
-                        148
-                    ],
-                    "required": false
-                }
-            ],
-            "outputsClass": [
-                {
-                    "name": "closed",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "indexKey": "",
-                    "optional": false,
-                    "description": "",
                     "line": 35,
                     "modifierKind": [
                         148
@@ -29093,7 +29256,37 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 33,
+                    "line": 34,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                }
+            ],
+            "outputsClass": [
+                {
+                    "name": "closed",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 36,
+                    "modifierKind": [
+                        148
+                    ],
+                    "required": false
+                },
+                {
+                    "name": "visible",
+                    "defaultValue": "true",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "boolean",
+                    "indexKey": "",
+                    "optional": false,
+                    "description": "",
+                    "line": 34,
                     "modifierKind": [
                         148
                     ],
@@ -29110,7 +29303,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 37,
+                    "line": 38,
                     "modifierKind": [
                         148
                     ]
@@ -29124,7 +29317,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 56,
+                    "line": 53,
                     "modifierKind": [
                         148
                     ]
@@ -29138,7 +29331,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 44,
+                    "line": 45,
                     "modifierKind": [
                         148
                     ]
@@ -29152,7 +29345,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 43,
+                    "line": 44,
                     "modifierKind": [
                         148
                     ]
@@ -29166,7 +29359,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 46,
+                    "line": 47,
                     "modifierKind": [
                         148
                     ]
@@ -29180,35 +29373,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 54,
-                    "modifierKind": [
-                        148
-                    ]
-                },
-                {
-                    "name": "filteredPayees",
-                    "defaultValue": "computed(() => {\n        const query = this.payee().trim().toLowerCase();\n        const list = this.payees();\n        if (!query) {\n            return list.slice(0, 8);\n        }\n        return list.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8);\n    })",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "unknown",
-                    "indexKey": "",
-                    "optional": false,
-                    "description": "",
-                    "line": 65,
-                    "modifierKind": [
-                        148
-                    ]
-                },
-                {
-                    "name": "highlightedIndex",
-                    "defaultValue": "signal<number>(-1)",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "unknown",
-                    "indexKey": "",
-                    "optional": false,
-                    "description": "",
-                    "line": 50,
+                    "line": 51,
                     "modifierKind": [
                         148
                     ]
@@ -29222,21 +29387,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 45,
-                    "modifierKind": [
-                        148
-                    ]
-                },
-                {
-                    "name": "isPayeeDropdownOpen",
-                    "defaultValue": "signal<boolean>(false)",
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "type": "unknown",
-                    "indexKey": "",
-                    "optional": false,
-                    "description": "",
-                    "line": 49,
+                    "line": 46,
                     "modifierKind": [
                         148
                     ]
@@ -29250,7 +29401,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 52,
+                    "line": 49,
                     "modifierKind": [
                         148
                     ]
@@ -29264,7 +29415,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 31,
+                    "line": 32,
                     "modifierKind": [
                         123,
                         148
@@ -29279,7 +29430,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 42,
+                    "line": 43,
                     "modifierKind": [
                         148
                     ]
@@ -29293,7 +29444,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 38,
+                    "line": 39,
                     "modifierKind": [
                         148
                     ]
@@ -29307,7 +29458,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 60,
+                    "line": 57,
                     "modifierKind": [
                         148
                     ]
@@ -29321,7 +29472,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 41,
+                    "line": 42,
                     "modifierKind": [
                         148
                     ]
@@ -29335,7 +29486,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 53,
+                    "line": 50,
                     "modifierKind": [
                         148
                     ]
@@ -29348,7 +29499,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 164,
+                    "line": 81,
                     "deprecated": false,
                     "deprecationMessage": ""
                 },
@@ -29367,7 +29518,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 172,
+                    "line": 87,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -29399,91 +29550,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 178,
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "event",
-                            "type": "KeyboardEvent",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "onPayeeBlur",
-                    "args": [],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 101,
-                    "deprecated": false,
-                    "deprecationMessage": ""
-                },
-                {
-                    "name": "onPayeeFocus",
-                    "args": [],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 95,
-                    "deprecated": false,
-                    "deprecationMessage": ""
-                },
-                {
-                    "name": "onPayeeInput",
-                    "args": [
-                        {
-                            "name": "val",
-                            "type": "string",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 89,
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "val",
-                            "type": "string",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "onPayeeKeyDown",
-                    "args": [
-                        {
-                            "name": "event",
-                            "type": "KeyboardEvent",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 114,
+                    "line": 93,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "jsdoctags": [
@@ -29506,43 +29573,11 @@
                     "optional": false,
                     "returnType": "Promise<void>",
                     "typeParameters": [],
-                    "line": 184,
+                    "line": 99,
                     "deprecated": false,
                     "deprecationMessage": "",
                     "modifierKind": [
                         134
-                    ]
-                },
-                {
-                    "name": "selectPayee",
-                    "args": [
-                        {
-                            "name": "name",
-                            "type": "string",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": ""
-                        }
-                    ],
-                    "optional": false,
-                    "returnType": "void",
-                    "typeParameters": [],
-                    "line": 108,
-                    "deprecated": false,
-                    "deprecationMessage": "",
-                    "jsdoctags": [
-                        {
-                            "name": "name",
-                            "type": "string",
-                            "optional": false,
-                            "dotDotDotToken": false,
-                            "deprecated": false,
-                            "deprecationMessage": "",
-                            "tagName": {
-                                "text": "param"
-                            }
-                        }
                     ]
                 },
                 {
@@ -29551,7 +29586,7 @@
                     "optional": false,
                     "returnType": "void",
                     "typeParameters": [],
-                    "line": 160,
+                    "line": 77,
                     "deprecated": false,
                     "deprecationMessage": ""
                 }
@@ -29569,12 +29604,16 @@
                 {
                     "name": "FormsModule",
                     "type": "module"
+                },
+                {
+                    "name": "PayeeAutocompleteComponent",
+                    "type": "component"
                 }
             ],
             "description": "<p>Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.</p>\n",
             "rawdescription": "\n\nAnimated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n",
             "type": "component",
-            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    effect,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport type { IAccount, ITransaction } from '@core';\nimport { KnownCategory, Money, TransactionStatus } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\n\n/**\n * Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n */\n@Component({\n    selector: 'quick-entry-widget',\n    standalone: true,\n    imports: [CommonModule, FormsModule],\n    templateUrl: './quick-entry-widget.component.html',\n    styleUrl: './quick-entry-widget.component.css',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class QuickEntryWidgetComponent {\n    private readonly ledgerStore: LedgerStore = inject(LedgerStore);\n\n    readonly visible = model<boolean>(true);\n    readonly preselectedAccountId = input<string | null>(null);\n    readonly closed = output();\n\n    readonly accounts = this.ledgerStore.accounts;\n    readonly payees = this.ledgerStore.payees;\n\n    // Form fields\n    readonly selectedAccountId = signal<string>('');\n    readonly payee = signal<string>('');\n    readonly category = signal<string>('');\n    readonly amountString = signal<string>('');\n    readonly isExpense = signal<boolean>(true);\n    readonly date = signal<string>(new Date().toISOString().split('T')[0] ?? '');\n\n    // Payee in-DOM autocomplete state\n    readonly isPayeeDropdownOpen = signal<boolean>(false);\n    readonly highlightedIndex = signal<number>(-1);\n\n    readonly isSubmitting = signal<boolean>(false);\n    readonly showSuccess = signal<boolean>(false);\n    readonly errorMessage = signal<string | null>(null);\n\n    readonly activeAccounts = computed((): Array<IAccount> => {\n        return this.accounts().filter((a: IAccount): boolean => a.isActive);\n    });\n\n    readonly selectedAccount = computed((): IAccount | undefined => {\n        const id = this.selectedAccountId();\n        return this.accounts().find((a: IAccount): boolean => a.id === id);\n    });\n\n    readonly filteredPayees = computed(() => {\n        const query = this.payee().trim().toLowerCase();\n        const list = this.payees();\n        if (!query) {\n            return list.slice(0, 8);\n        }\n        return list.filter(p => p.name.toLowerCase().includes(query)).slice(0, 8);\n    });\n\n    constructor() {\n        // Auto-select initial account or react to preselectedAccountId input\n        effect(() => {\n            const preselected = this.preselectedAccountId();\n            if (preselected) {\n                this.selectedAccountId.set(preselected);\n            } else if (!this.selectedAccountId()) {\n                const first = this.accounts()[0];\n                if (first) {\n                    this.selectedAccountId.set(first.id);\n                }\n            }\n        });\n    }\n\n    onPayeeInput(val: string): void {\n        this.payee.set(val);\n        this.isPayeeDropdownOpen.set(true);\n        this.highlightedIndex.set(-1);\n    }\n\n    onPayeeFocus(): void {\n        if (this.payees().length > 0) {\n            this.isPayeeDropdownOpen.set(true);\n        }\n    }\n\n    onPayeeBlur(): void {\n        setTimeout(() => {\n            this.isPayeeDropdownOpen.set(false);\n            this.highlightedIndex.set(-1);\n        }, 200);\n    }\n\n    selectPayee(name: string): void {\n        this.payee.set(name);\n        this.isPayeeDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n    }\n\n    onPayeeKeyDown(event: KeyboardEvent): void {\n        const options = this.filteredPayees();\n        if (!this.isPayeeDropdownOpen() || options.length === 0) {\n            if (event.key === 'ArrowDown') {\n                this.isPayeeDropdownOpen.set(true);\n                event.preventDefault();\n            }\n            return;\n        }\n\n        switch (event.key) {\n            case 'ArrowDown':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i + 1 < options.length ? i + 1 : 0));\n                break;\n            case 'ArrowUp':\n                event.preventDefault();\n                this.highlightedIndex.update(i => (i - 1 >= 0 ? i - 1 : options.length - 1));\n                break;\n            case 'Enter': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    event.preventDefault();\n                    event.stopPropagation();\n                    this.selectPayee(selected.name);\n                }\n                break;\n            }\n            case 'Escape':\n                event.preventDefault();\n                event.stopPropagation();\n                this.isPayeeDropdownOpen.set(false);\n                this.highlightedIndex.set(-1);\n                break;\n            case 'Tab': {\n                const selected = options[this.highlightedIndex()];\n                if (selected) {\n                    this.selectPayee(selected.name);\n                } else {\n                    this.isPayeeDropdownOpen.set(false);\n                }\n                break;\n            }\n        }\n    }\n\n    toggleType(): void {\n        this.isExpense.update((v: boolean) => !v);\n    }\n\n    close(): void {\n        this.isPayeeDropdownOpen.set(false);\n        this.highlightedIndex.set(-1);\n        this.visible.set(false);\n        this.closed.emit();\n        this.errorMessage.set(null);\n    }\n\n    onBackdropClick(event: MouseEvent): void {\n        if (event.target === event.currentTarget) {\n            this.close();\n        }\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        if (event.key === 'Escape') {\n            this.close();\n        }\n    }\n\n    async saveTransaction(): Promise<void> {\n        this.errorMessage.set(null);\n\n        const firstActive = this.activeAccounts()[0];\n        const accountId = this.selectedAccountId() || (firstActive ? firstActive.id : '');\n        if (!accountId) {\n            this.errorMessage.set('Please select an account.');\n            return;\n        }\n\n        const payeeName = this.payee().trim();\n        if (!payeeName) {\n            this.errorMessage.set('Please enter a payee.');\n            return;\n        }\n\n        const amountCents = Money.parseCurrencyInput(this.amountString());\n        if (amountCents === 0) {\n            this.errorMessage.set('Please enter a valid non-zero amount.');\n            return;\n        }\n\n        const finalAmount = this.isExpense() ? -Math.abs(amountCents) : Math.abs(amountCents);\n        const todayStr = new Date().toISOString().split('T')[0] ?? '';\n        const txId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;\n        const now = new Date().toISOString();\n\n        const matchedPayee = this.payees().find(\n            p => p.name.toLowerCase() === payeeName.toLowerCase()\n        );\n        const payeeId = matchedPayee ? matchedPayee.id : `payee-${Date.now()}`;\n\n        const newTx: ITransaction = {\n            id: txId,\n            accountId,\n            payeeId,\n            date: this.date() || todayStr,\n            payee: payeeName,\n            memo: this.category().trim(),\n            totalAmount: finalAmount,\n            status: TransactionStatus.Cleared,\n            checkNumber: null,\n            importHash: `quick-${txId}`,\n            splits: [\n                {\n                    id: `split-${txId}-1`,\n                    amount: finalAmount,\n                    memo: this.category().trim(),\n                    categoryId: KnownCategory.Uncategorized\n                }\n            ],\n            createdAt: now,\n            updatedAt: now\n        };\n\n        this.isSubmitting.set(true);\n        try {\n            await this.ledgerStore.addTransaction(newTx);\n            this.payee.set('');\n            this.amountString.set('');\n            this.category.set('');\n            this.showSuccess.set(true);\n            setTimeout(() => {\n                this.showSuccess.set(false);\n                this.close();\n            }, 1000);\n        } catch (err: unknown) {\n            const msg = err instanceof Error ? err.message : 'Failed to save transaction';\n            this.errorMessage.set(msg);\n        } finally {\n            this.isSubmitting.set(false);\n        }\n    }\n}\n",
+            "sourceCode": "import { CommonModule } from '@angular/common';\nimport {\n    ChangeDetectionStrategy,\n    Component,\n    computed,\n    effect,\n    inject,\n    input,\n    model,\n    output,\n    signal\n} from '@angular/core';\nimport { FormsModule } from '@angular/forms';\nimport type { IAccount, ITransaction } from '@core';\nimport { KnownCategory, Money, TransactionStatus } from '@core';\n\nimport { LedgerStore } from '../../../services/ledger-store/ledger.store';\nimport { PayeeAutocompleteComponent } from '../../payees/payee-autocomplete/payee-autocomplete.component';\n\n/**\n * Animated Fast Transaction Capture Popup Modal for the Dashboard and Portfolio.\n */\n@Component({\n    selector: 'quick-entry-widget',\n    standalone: true,\n    imports: [CommonModule, FormsModule, PayeeAutocompleteComponent],\n    templateUrl: './quick-entry-widget.component.html',\n    styleUrl: './quick-entry-widget.component.css',\n    changeDetection: ChangeDetectionStrategy.OnPush\n})\nexport class QuickEntryWidgetComponent {\n    private readonly ledgerStore: LedgerStore = inject(LedgerStore);\n\n    readonly visible = model<boolean>(true);\n    readonly preselectedAccountId = input<string | null>(null);\n    readonly closed = output();\n\n    readonly accounts = this.ledgerStore.accounts;\n    readonly payees = this.ledgerStore.payees;\n\n    // Form fields\n    readonly selectedAccountId = signal<string>('');\n    readonly payee = signal<string>('');\n    readonly category = signal<string>('');\n    readonly amountString = signal<string>('');\n    readonly isExpense = signal<boolean>(true);\n    readonly date = signal<string>(new Date().toISOString().split('T')[0] ?? '');\n\n    readonly isSubmitting = signal<boolean>(false);\n    readonly showSuccess = signal<boolean>(false);\n    readonly errorMessage = signal<string | null>(null);\n\n    readonly activeAccounts = computed((): Array<IAccount> => {\n        return this.accounts().filter((a: IAccount): boolean => a.isActive);\n    });\n\n    readonly selectedAccount = computed((): IAccount | undefined => {\n        const id = this.selectedAccountId();\n        return this.accounts().find((a: IAccount): boolean => a.id === id);\n    });\n\n    constructor() {\n        // Auto-select initial account or react to preselectedAccountId input\n        effect(() => {\n            const preselected = this.preselectedAccountId();\n            if (preselected) {\n                this.selectedAccountId.set(preselected);\n            } else if (!this.selectedAccountId()) {\n                const first = this.accounts()[0];\n                if (first) {\n                    this.selectedAccountId.set(first.id);\n                }\n            }\n        });\n    }\n\n    toggleType(): void {\n        this.isExpense.update((v: boolean) => !v);\n    }\n\n    close(): void {\n        this.visible.set(false);\n        this.closed.emit();\n        this.errorMessage.set(null);\n    }\n\n    onBackdropClick(event: MouseEvent): void {\n        if (event.target === event.currentTarget) {\n            this.close();\n        }\n    }\n\n    onKeyDown(event: KeyboardEvent): void {\n        if (event.key === 'Escape') {\n            this.close();\n        }\n    }\n\n    async saveTransaction(): Promise<void> {\n        this.errorMessage.set(null);\n\n        const firstActive = this.activeAccounts()[0];\n        const accountId = this.selectedAccountId() || (firstActive ? firstActive.id : '');\n        if (!accountId) {\n            this.errorMessage.set('Please select an account.');\n            return;\n        }\n\n        const payeeName = this.payee().trim();\n        if (!payeeName) {\n            this.errorMessage.set('Please enter a payee.');\n            return;\n        }\n\n        const amountCents = Money.parseCurrencyInput(this.amountString());\n        if (amountCents === 0) {\n            this.errorMessage.set('Please enter a valid non-zero amount.');\n            return;\n        }\n\n        const finalAmount = this.isExpense() ? -Math.abs(amountCents) : Math.abs(amountCents);\n        const todayStr = new Date().toISOString().split('T')[0] ?? '';\n        const txId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;\n        const now = new Date().toISOString();\n\n        const matchedPayee = this.payees().find(\n            p => p.name.toLowerCase() === payeeName.toLowerCase()\n        );\n        const payeeId = matchedPayee ? matchedPayee.id : `payee-${Date.now()}`;\n\n        const newTx: ITransaction = {\n            id: txId,\n            accountId,\n            payeeId,\n            date: this.date() || todayStr,\n            payee: payeeName,\n            memo: this.category().trim(),\n            totalAmount: finalAmount,\n            status: TransactionStatus.Cleared,\n            checkNumber: null,\n            importHash: `quick-${txId}`,\n            splits: [\n                {\n                    id: `split-${txId}-1`,\n                    amount: finalAmount,\n                    memo: this.category().trim(),\n                    categoryId: KnownCategory.Uncategorized\n                }\n            ],\n            createdAt: now,\n            updatedAt: now\n        };\n\n        this.isSubmitting.set(true);\n        try {\n            await this.ledgerStore.addTransaction(newTx);\n            this.payee.set('');\n            this.amountString.set('');\n            this.category.set('');\n            this.showSuccess.set(true);\n            setTimeout(() => {\n                this.showSuccess.set(false);\n                this.close();\n            }, 1000);\n        } catch (err: unknown) {\n            const msg = err instanceof Error ? err.message : 'Failed to save transaction';\n            this.errorMessage.set(msg);\n        } finally {\n            this.isSubmitting.set(false);\n        }\n    }\n}\n",
             "styleUrl": "./quick-entry-widget.component.css",
             "assetsDirs": [],
             "styleUrlsData": "",
@@ -29585,10 +29624,10 @@
                 "deprecated": false,
                 "deprecationMessage": "",
                 "args": [],
-                "line": 72
+                "line": 60
             },
             "extends": [],
-            "templateData": "@if (visible()) {\n    <div\n        class=\"quick-entry-overlay fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-surface-950/60 dark:bg-surface-950/80 backdrop-blur-sm\"\n        (click)=\"onBackdropClick($event)\"\n        (keydown)=\"onKeyDown($event)\"\n        tabindex=\"-1\"\n    >\n        <div\n            class=\"quick-entry-modal w-full sm:max-w-lg bg-surface-0 dark:bg-surface-900 border-t sm:border border-surface-200/90 dark:border-surface-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto max-h-[92dvh] sm:max-h-none p-5 sm:p-8 space-y-4 sm:space-y-5 relative\"\n            role=\"dialog\"\n            aria-modal=\"true\"\n            aria-labelledby=\"quick-entry-title\"\n        >\n            <!-- Mobile Pull / Grab Handle -->\n            <div class=\"sm:hidden flex justify-center w-full -mt-1 mb-1\" aria-hidden=\"true\">\n                <div class=\"w-12 h-1.5 rounded-full bg-surface-300 dark:bg-surface-700\"></div>\n            </div>\n\n            <!-- Header Row -->\n            <div\n                class=\"flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-surface-100 dark:border-surface-800\"\n            >\n                <div class=\"flex items-center gap-3\">\n                    <div\n                        class=\"w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center ring-1 ring-emerald-500/20\"\n                    >\n                        <i class=\"pi pi-bolt text-sm sm:text-base\"></i>\n                    </div>\n                    <div>\n                        <h2\n                            id=\"quick-entry-title\"\n                            class=\"text-base sm:text-lg font-bold text-surface-900 dark:text-surface-100 leading-tight\"\n                        >\n                            Quick Entry\n                        </h2>\n                        <p class=\"text-xs text-surface-500 font-medium\">\n                            @if (selectedAccount()) {\n                                Posting to\n                                <span\n                                    class=\"font-semibold text-surface-700 dark:text-surface-300\"\n                                    >{{ selectedAccount()?.name }}</span\n                                >\n                            } @else {\n                                Instant ledger capture &bull; Today\n                            }\n                        </p>\n                    </div>\n                </div>\n\n                <!-- Close Dialog Button -->\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    aria-label=\"Close Quick Entry\"\n                    class=\"w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer shrink-0\"\n                >\n                    <i class=\"pi pi-times text-sm\"></i>\n                </button>\n            </div>\n\n            <!-- Expense / Income Segmented Control -->\n            <div\n                role=\"group\"\n                aria-label=\"Transaction Type\"\n                class=\"grid grid-cols-2 p-1 rounded-2xl bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 gap-1\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(true)\"\n                    [attr.aria-pressed]=\"isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"isExpense()\"\n                    [class.dark:bg-surface-900]=\"isExpense()\"\n                    [class.text-red-600]=\"isExpense()\"\n                    [class.dark:text-red-400]=\"isExpense()\"\n                    [class.shadow-xs]=\"isExpense()\"\n                    [class.text-surface-600]=\"!isExpense()\"\n                    [class.dark:text-surface-400]=\"!isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-down-left text-xs\"></i>\n                    Expense\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(false)\"\n                    [attr.aria-pressed]=\"!isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"!isExpense()\"\n                    [class.dark:bg-surface-900]=\"!isExpense()\"\n                    [class.text-emerald-700]=\"!isExpense()\"\n                    [class.dark:text-emerald-400]=\"!isExpense()\"\n                    [class.shadow-xs]=\"!isExpense()\"\n                    [class.text-surface-600]=\"isExpense()\"\n                    [class.dark:text-surface-400]=\"isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-up-right text-xs\"></i>\n                    Income\n                </button>\n            </div>\n\n            <!-- Feedback Alerts with Live Regions for A11y -->\n            <div aria-live=\"polite\" aria-atomic=\"true\">\n                @if (showSuccess()) {\n                    <div\n                        class=\"p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-bounce-subtle\"\n                    >\n                        <i class=\"pi pi-check-circle text-base\"></i>\n                        <span>Transaction captured successfully! Closing...</span>\n                    </div>\n                }\n\n                @if (errorMessage()) {\n                    <div\n                        id=\"quick-entry-error\"\n                        class=\"p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2\"\n                    >\n                        <i class=\"pi pi-exclamation-triangle text-base\"></i>\n                        <span>{{ errorMessage() }}</span>\n                    </div>\n                }\n            </div>\n\n            <!-- Form Fields -->\n            <div class=\"space-y-3.5 sm:space-y-4\">\n                <!-- Payee Input with In-DOM Accessible Combobox -->\n                <div class=\"space-y-1 sm:space-y-1.5 relative\">\n                    <label\n                        for=\"quick-entry-payee\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                    >\n                        Payee <span class=\"text-red-600 dark:text-red-400\">*</span>\n                    </label>\n                    <div class=\"relative\">\n                        <input\n                            id=\"quick-entry-payee\"\n                            type=\"text\"\n                            role=\"combobox\"\n                            aria-autocomplete=\"list\"\n                            [attr.aria-expanded]=\"isPayeeDropdownOpen()\"\n                            aria-controls=\"quick-entry-payee-listbox\"\n                            [attr.aria-activedescendant]=\"\n                                highlightedIndex() >= 0 ? 'payee-opt-' + highlightedIndex() : null\n                            \"\n                            [ngModel]=\"payee()\"\n                            (ngModelChange)=\"onPayeeInput($event)\"\n                            (focus)=\"onPayeeFocus()\"\n                            (blur)=\"onPayeeBlur()\"\n                            (keydown)=\"onPayeeKeyDown($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            aria-required=\"true\"\n                            placeholder=\"e.g. Netflix, Trader Joe's\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            autocomplete=\"off\"\n                        />\n\n                        <!-- In-DOM Accessible Payee Dropdown Menu -->\n                        @if (isPayeeDropdownOpen() && filteredPayees().length > 0) {\n                            <ul\n                                id=\"quick-entry-payee-listbox\"\n                                role=\"listbox\"\n                                aria-label=\"Suggested Payees\"\n                                class=\"absolute top-full left-0 right-0 mt-1.5 z-30 max-h-60 sm:max-h-48 overflow-y-auto rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/90 dark:border-surface-700 shadow-xl py-1.5 divide-y divide-surface-100 dark:divide-surface-800\"\n                            >\n                                @for (p of filteredPayees(); track p.id; let i = $index) {\n                                    <li\n                                        [id]=\"'payee-opt-' + i\"\n                                        role=\"option\"\n                                        [attr.aria-selected]=\"highlightedIndex() === i\"\n                                        (mousedown)=\"selectPayee(p.name)\"\n                                        class=\"min-h-[44px] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between cursor-pointer transition-colors\"\n                                        [class]=\"\n                                            highlightedIndex() === i\n                                                ? 'bg-primary/10 text-primary'\n                                                : 'text-surface-800 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'\n                                        \"\n                                    >\n                                        <div class=\"flex items-center gap-3 truncate\">\n                                            <div\n                                                class=\"w-7 h-7 rounded-lg bg-surface-100 dark:bg-surface-800 flex items-center justify-center shrink-0 border border-surface-200/60 dark:border-surface-700/60\"\n                                            >\n                                                <i\n                                                    class=\"pi pi-building text-surface-400 text-xs shrink-0\"\n                                                ></i>\n                                            </div>\n                                            <span\n                                                class=\"truncate text-xs sm:text-sm font-bold sm:font-semibold\"\n                                                >{{ p.name }}</span\n                                            >\n                                        </div>\n                                        <i\n                                            class=\"pi pi-arrow-up-left text-xs text-surface-400 shrink-0 opacity-60\"\n                                        ></i>\n                                    </li>\n                                }\n                            </ul>\n                        }\n                    </div>\n                </div>\n\n                <!-- Category and Amount Row -->\n                <div class=\"grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4\">\n                    <!-- Category Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-category\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Category / Memo\n                        </label>\n                        <input\n                            id=\"quick-entry-category\"\n                            type=\"text\"\n                            [ngModel]=\"category()\"\n                            (ngModelChange)=\"category.set($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            placeholder=\"e.g. Groceries\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                        />\n                    </div>\n\n                    <!-- Amount Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-amount\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Amount ($) <span class=\"text-red-600 dark:text-red-400\">*</span>\n                        </label>\n                        <div class=\"relative\">\n                            <span\n                                class=\"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono font-bold text-surface-400 text-xs\"\n                            >\n                                $\n                            </span>\n                            <input\n                                id=\"quick-entry-amount\"\n                                type=\"text\"\n                                [ngModel]=\"amountString()\"\n                                (ngModelChange)=\"amountString.set($event)\"\n                                (keyup.enter)=\"saveTransaction()\"\n                                aria-required=\"true\"\n                                placeholder=\"0.00\"\n                                class=\"w-full pl-8 pr-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-bold font-mono text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            />\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Footer Actions -->\n            <div\n                class=\"flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-surface-100 dark:border-surface-800 pb-2 sm:pb-0\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    class=\"min-h-[42px] px-5 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-bold transition-all cursor-pointer\"\n                >\n                    Cancel\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"saveTransaction()\"\n                    [disabled]=\"isSubmitting()\"\n                    class=\"min-h-[42px] px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed\"\n                >\n                    @if (isSubmitting()) {\n                        <i class=\"pi pi-spinner pi-spin text-xs\"></i>\n                        <span>Saving...</span>\n                    } @else {\n                        <i class=\"pi pi-check text-xs\"></i>\n                        <span>Save</span>\n                    }\n                </button>\n            </div>\n        </div>\n    </div>\n}\n"
+            "templateData": "@if (visible()) {\n    <div\n        class=\"quick-entry-overlay fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-surface-950/60 dark:bg-surface-950/80 backdrop-blur-sm\"\n        (click)=\"onBackdropClick($event)\"\n        (keydown)=\"onKeyDown($event)\"\n        tabindex=\"-1\"\n    >\n        <div\n            class=\"quick-entry-modal w-full sm:max-w-lg bg-surface-0 dark:bg-surface-900 border-t sm:border border-surface-200/90 dark:border-surface-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto max-h-[92dvh] sm:max-h-none p-5 sm:p-8 space-y-4 sm:space-y-5 relative\"\n            role=\"dialog\"\n            aria-modal=\"true\"\n            aria-labelledby=\"quick-entry-title\"\n        >\n            <!-- Mobile Pull / Grab Handle -->\n            <div class=\"sm:hidden flex justify-center w-full -mt-1 mb-1\" aria-hidden=\"true\">\n                <div class=\"w-12 h-1.5 rounded-full bg-surface-300 dark:bg-surface-700\"></div>\n            </div>\n\n            <!-- Header Row -->\n            <div\n                class=\"flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-surface-100 dark:border-surface-800\"\n            >\n                <div class=\"flex items-center gap-3\">\n                    <div\n                        class=\"w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center ring-1 ring-emerald-500/20\"\n                    >\n                        <i class=\"pi pi-bolt text-sm sm:text-base\"></i>\n                    </div>\n                    <div>\n                        <h2\n                            id=\"quick-entry-title\"\n                            class=\"text-base sm:text-lg font-bold text-surface-900 dark:text-surface-100 leading-tight\"\n                        >\n                            Quick Entry\n                        </h2>\n                        <p class=\"text-xs text-surface-500 font-medium\">\n                            @if (selectedAccount()) {\n                                Posting to\n                                <span\n                                    class=\"font-semibold text-surface-700 dark:text-surface-300\"\n                                    >{{ selectedAccount()?.name }}</span\n                                >\n                            } @else {\n                                Instant ledger capture &bull; Today\n                            }\n                        </p>\n                    </div>\n                </div>\n\n                <!-- Close Dialog Button -->\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    aria-label=\"Close Quick Entry\"\n                    class=\"w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer shrink-0\"\n                >\n                    <i class=\"pi pi-times text-sm\"></i>\n                </button>\n            </div>\n\n            <!-- Expense / Income Segmented Control -->\n            <div\n                role=\"group\"\n                aria-label=\"Transaction Type\"\n                class=\"grid grid-cols-2 p-1 rounded-2xl bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 gap-1\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(true)\"\n                    [attr.aria-pressed]=\"isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"isExpense()\"\n                    [class.dark:bg-surface-900]=\"isExpense()\"\n                    [class.text-red-600]=\"isExpense()\"\n                    [class.dark:text-red-400]=\"isExpense()\"\n                    [class.shadow-xs]=\"isExpense()\"\n                    [class.text-surface-600]=\"!isExpense()\"\n                    [class.dark:text-surface-400]=\"!isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-down-left text-xs\"></i>\n                    Expense\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"isExpense.set(false)\"\n                    [attr.aria-pressed]=\"!isExpense()\"\n                    class=\"py-2.5 sm:py-2 px-4 min-h-[44px] sm:min-h-[38px] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer\"\n                    [class.bg-surface-0]=\"!isExpense()\"\n                    [class.dark:bg-surface-900]=\"!isExpense()\"\n                    [class.text-emerald-700]=\"!isExpense()\"\n                    [class.dark:text-emerald-400]=\"!isExpense()\"\n                    [class.shadow-xs]=\"!isExpense()\"\n                    [class.text-surface-600]=\"isExpense()\"\n                    [class.dark:text-surface-400]=\"isExpense()\"\n                >\n                    <i class=\"pi pi-arrow-up-right text-xs\"></i>\n                    Income\n                </button>\n            </div>\n\n            <!-- Feedback Alerts with Live Regions for A11y -->\n            <div aria-live=\"polite\" aria-atomic=\"true\">\n                @if (showSuccess()) {\n                    <div\n                        class=\"p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 animate-bounce-subtle\"\n                    >\n                        <i class=\"pi pi-check-circle text-base\"></i>\n                        <span>Transaction captured successfully! Closing...</span>\n                    </div>\n                }\n\n                @if (errorMessage()) {\n                    <div\n                        id=\"quick-entry-error\"\n                        class=\"p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2\"\n                    >\n                        <i class=\"pi pi-exclamation-triangle text-base\"></i>\n                        <span>{{ errorMessage() }}</span>\n                    </div>\n                }\n            </div>\n\n            <!-- Form Fields -->\n            <div class=\"space-y-3.5 sm:space-y-4\">\n                <!-- Payee Input using PayeeAutocompleteComponent -->\n                <div class=\"space-y-1 sm:space-y-1.5\">\n                    <label\n                        for=\"quick-entry-payee\"\n                        class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                    >\n                        Payee <span class=\"text-red-600 dark:text-red-400\">*</span>\n                    </label>\n                    <payee-autocomplete\n                        inputId=\"quick-entry-payee\"\n                        name=\"payee\"\n                        [ngModel]=\"payee()\"\n                        (ngModelChange)=\"payee.set($event)\"\n                        placeholder=\"e.g. Netflix, Trader Joe's\"\n                        (keyup.enter)=\"saveTransaction()\"\n                    ></payee-autocomplete>\n                </div>\n\n                <!-- Category and Amount Row -->\n                <div class=\"grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4\">\n                    <!-- Category Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-category\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Category / Memo\n                        </label>\n                        <input\n                            id=\"quick-entry-category\"\n                            type=\"text\"\n                            [ngModel]=\"category()\"\n                            (ngModelChange)=\"category.set($event)\"\n                            (keyup.enter)=\"saveTransaction()\"\n                            placeholder=\"e.g. Groceries\"\n                            class=\"w-full px-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-semibold text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                        />\n                    </div>\n\n                    <!-- Amount Input -->\n                    <div class=\"space-y-1 sm:space-y-1.5\">\n                        <label\n                            for=\"quick-entry-amount\"\n                            class=\"text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400\"\n                        >\n                            Amount ($) <span class=\"text-red-600 dark:text-red-400\">*</span>\n                        </label>\n                        <div class=\"relative\">\n                            <span\n                                class=\"absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none font-mono font-bold text-surface-400 text-xs\"\n                            >\n                                $\n                            </span>\n                            <input\n                                id=\"quick-entry-amount\"\n                                type=\"text\"\n                                [ngModel]=\"amountString()\"\n                                (ngModelChange)=\"amountString.set($event)\"\n                                (keyup.enter)=\"saveTransaction()\"\n                                aria-required=\"true\"\n                                placeholder=\"0.00\"\n                                class=\"w-full pl-8 pr-4 py-2.5 bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl text-xs font-bold font-mono text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all min-h-[42px]\"\n                            />\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <!-- Footer Actions -->\n            <div\n                class=\"flex items-center justify-end gap-3 pt-3 sm:pt-4 border-t border-surface-100 dark:border-surface-800 pb-2 sm:pb-0\"\n            >\n                <button\n                    type=\"button\"\n                    (click)=\"close()\"\n                    class=\"min-h-[42px] px-5 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 text-xs font-bold transition-all cursor-pointer\"\n                >\n                    Cancel\n                </button>\n                <button\n                    type=\"button\"\n                    (click)=\"saveTransaction()\"\n                    [disabled]=\"isSubmitting()\"\n                    class=\"min-h-[42px] px-6 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed\"\n                >\n                    @if (isSubmitting()) {\n                        <i class=\"pi pi-spinner pi-spin text-xs\"></i>\n                        <span>Saving...</span>\n                    } @else {\n                        <i class=\"pi pi-check text-xs\"></i>\n                        <span>Save</span>\n                    }\n                </button>\n            </div>\n        </div>\n    </div>\n}\n"
         },
         {
             "name": "ReconciliationDialogComponent",
@@ -37821,6 +37860,16 @@
                 "defaultValue": "3"
             },
             {
+                "name": "nextId",
+                "ctype": "miscellaneous",
+                "subtype": "variable",
+                "file": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
+                "deprecated": false,
+                "deprecationMessage": "",
+                "type": "number",
+                "defaultValue": "0"
+            },
+            {
                 "name": "PAGE_SIZE_OPTIONS",
                 "ctype": "miscellaneous",
                 "subtype": "variable",
@@ -44112,6 +44161,18 @@
                     "defaultValue": "[\n    {\n        type: AccountType.Checking,\n        icon: 'pi-building-columns',\n        label: 'Checking',\n        description: 'Daily spending & income'\n    },\n    {\n        type: AccountType.Savings,\n        icon: 'pi-money-bill',\n        label: 'Savings',\n        description: 'Long-term goals'\n    },\n    {\n        type: AccountType.Credit,\n        icon: 'pi-credit-card',\n        label: 'Credit Card',\n        description: 'Track spending & debt'\n    },\n    {\n        type: AccountType.Cash,\n        icon: 'pi-wallet',\n        label: 'Cash',\n        description: 'Physical currency'\n    }\n]"
                 }
             ],
+            "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts": [
+                {
+                    "name": "nextId",
+                    "ctype": "miscellaneous",
+                    "subtype": "variable",
+                    "file": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
+                    "deprecated": false,
+                    "deprecationMessage": "",
+                    "type": "number",
+                    "defaultValue": "0"
+                }
+            ],
             "app/src/app/components/ledger/reconciliation-dialog/reconciliation-dialog.component.ts": [
                 {
                     "name": "PAGE_SIZE_OPTIONS",
@@ -49774,8 +49835,8 @@
                 "type": "component",
                 "linktype": "component",
                 "name": "QuickEntryWidgetComponent",
-                "coveragePercent": 3,
-                "coverageCount": "1/33",
+                "coveragePercent": 4,
+                "coverageCount": "1/25",
                 "status": "low"
             },
             {
@@ -50211,8 +50272,27 @@
                 "type": "component",
                 "linktype": "component",
                 "name": "PayeeAutocompleteComponent",
+                "coveragePercent": 3,
+                "coverageCount": "1/29",
+                "status": "low"
+            },
+            {
+                "filePath": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
+                "type": "interface",
+                "linktype": "interface",
+                "name": "IPayeeSuggestion",
                 "coveragePercent": 0,
-                "coverageCount": "0/20",
+                "coverageCount": "0/4",
+                "status": "low"
+            },
+            {
+                "filePath": "app/src/app/components/payees/payee-autocomplete/payee-autocomplete.component.ts",
+                "type": "variable",
+                "linktype": "miscellaneous",
+                "linksubtype": "variable",
+                "name": "nextId",
+                "coveragePercent": 0,
+                "coverageCount": "0/1",
                 "status": "low"
             },
             {

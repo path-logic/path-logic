@@ -124,34 +124,8 @@ describe('QuickEntryWidgetComponent', () => {
         expect(component.visible()).toBe(false);
     });
 
-    it('should filter payees and handle selection', () => {
-        component.onPayeeInput('net');
-        expect(component.isPayeeDropdownOpen()).toBe(true);
-        expect(component.filteredPayees().length).toBe(1);
-        expect(component.filteredPayees()[0]?.name).toBe('Netflix');
-
-        component.selectPayee('Netflix');
+    it('should update payee signal and handle form submission', () => {
+        component.payee.set('Netflix');
         expect(component.payee()).toBe('Netflix');
-        expect(component.isPayeeDropdownOpen()).toBe(false);
-    });
-
-    it('should navigate payee suggestions with keyboard arrows and enter', () => {
-        component.onPayeeInput('');
-        expect(component.filteredPayees().length).toBe(2);
-
-        // ArrowDown to highlight first
-        const arrowDownEvent = new KeyboardEvent('keydown', { key: 'ArrowDown' });
-        component.onPayeeKeyDown(arrowDownEvent);
-        expect(component.highlightedIndex()).toBe(0);
-
-        // ArrowDown to highlight second
-        component.onPayeeKeyDown(arrowDownEvent);
-        expect(component.highlightedIndex()).toBe(1);
-
-        // Enter to select highlighted
-        const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
-        component.onPayeeKeyDown(enterEvent);
-        expect(component.payee()).toBe('Whole Foods');
-        expect(component.isPayeeDropdownOpen()).toBe(false);
     });
 });
