@@ -120,12 +120,21 @@ describe('PayeesPageComponent', () => {
         expect(component.expandedId()).toBeNull();
     });
 
-    it('should open merge dialog and preselect source payee when initiated from a row', () => {
+    it('should open merge dialog and preselect source payee on desktop viewports', () => {
+        Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true });
         expect(component.isMergeDialogOpen()).toBe(false);
 
         component.openMergePayees('p-1');
         expect(component.isMergeDialogOpen()).toBe(true);
         expect(component.preselectedMergeSourceId()).toBe('p-1');
+    });
+
+    it('should NOT open merge dialog on mobile viewports (< 768px)', () => {
+        Object.defineProperty(window, 'innerWidth', { value: 390, writable: true });
+        component.isMergeDialogOpen.set(false);
+
+        component.openMergePayees('p-1');
+        expect(component.isMergeDialogOpen()).toBe(false);
     });
 
     it('should close expanded rows when merge completes', () => {

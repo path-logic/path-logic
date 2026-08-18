@@ -84,6 +84,9 @@ export class PayeesPageComponent {
     }
 
     openMergePayees(sourceId?: string): void {
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+            return;
+        }
         this.preselectedMergeSourceId.set(sourceId ?? null);
         this.isMergeDialogOpen.set(true);
     }

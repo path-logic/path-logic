@@ -13,7 +13,7 @@
                 <button
                     type="button"
                     (click)="openMergePayees()"
-                    class="min-h-[44px] px-4 bg-surface-100 hover:bg-surface-200/80 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-xl text-sm font-semibold border border-surface-200/80 dark:border-surface-700 flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+                    class="hidden md:flex min-h-[44px] px-4 bg-surface-100 hover:bg-surface-200/80 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-xl text-sm font-semibold border border-surface-200/80 dark:border-surface-700 items-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                     <i class="pi pi-clone text-base text-primary"></i>
                     Merge Payees
@@ -214,7 +214,7 @@
                                                 <button
                                                     type="button"
                                                     (click)="openMergePayees(payee.id)"
-                                                    class="h-7 px-4 flex items-center justify-center bg-surface-100/80 hover:bg-surface-200 text-surface-700 dark:bg-surface-800 dark:hover:bg-surface-700 dark:text-surface-300 text-[9px] uppercase font-black border border-surface-200 dark:border-surface-700 tracking-widest rounded-sm transition-all cursor-pointer"
+                                                    class="hidden md:flex h-7 px-4 items-center justify-center bg-surface-100/80 hover:bg-surface-200 text-surface-700 dark:bg-surface-800 dark:hover:bg-surface-700 dark:text-surface-300 text-[9px] uppercase font-black border border-surface-200 dark:border-surface-700 tracking-widest rounded-sm transition-all cursor-pointer"
                                                 >
                                                     Merge Payee
                                                 </button>
