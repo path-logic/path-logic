@@ -137,6 +137,18 @@ describe('PayeesPageComponent', () => {
         expect(component.isMergeDialogOpen()).toBe(false);
     });
 
+    it('should include or completely exclude merge buttons from DOM based on isMediumOrLarge signal', () => {
+        component.isMediumOrLarge.set(true);
+        fixture.detectChanges();
+        let mergeHeaderBtn = fixture.nativeElement.querySelector('button i.pi-clone');
+        expect(mergeHeaderBtn).toBeTruthy();
+
+        component.isMediumOrLarge.set(false);
+        fixture.detectChanges();
+        mergeHeaderBtn = fixture.nativeElement.querySelector('button i.pi-clone');
+        expect(mergeHeaderBtn).toBeNull();
+    });
+
     it('should close expanded rows when merge completes', () => {
         component.expandedId.set('p-1');
         component.handlePayeesMerged();

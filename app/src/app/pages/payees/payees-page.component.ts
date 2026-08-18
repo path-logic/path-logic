@@ -35,6 +35,11 @@ export class PayeesPageComponent {
     readonly expandedId = signal<string | null>(null);
     readonly searchQuery = signal<string>('');
 
+    // Viewport State
+    readonly isMediumOrLarge = signal<boolean>(
+        typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+    );
+
     // Edit Dialog state
     readonly isDialogOpen = signal<boolean>(false);
     readonly selectedPayee = signal<IPayee | null>(null);
@@ -45,6 +50,15 @@ export class PayeesPageComponent {
 
     // Store Signals
     readonly payees = this.ledgerStore.payees;
+
+    constructor() {
+        if (typeof window !== 'undefined') {
+            const updateViewport = (): void => {
+                this.isMediumOrLarge.set(window.innerWidth >= 768);
+            };
+            window.addEventListener('resize', updateViewport, { passive: true });
+        }
+    }
 
     // Computed
     readonly filteredPayees = computed(() => {

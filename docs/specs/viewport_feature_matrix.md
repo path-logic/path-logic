@@ -1,87 +1,100 @@
 # Path Logic: Viewport Feature & Capability Matrix
 
-This document defines the comprehensive breakdown of all application features, views, workflows, and dialogs in **Path Logic**, categorizing their target availability, form-factor adaptations, and rationale across three standardized viewport tiers:
+This specification defines the comprehensive breakdown of all application features, views, workflows, and dialogs in **Path Logic**, categorizing their target availability, form-factor adaptations, and interaction models across three standardized viewport tiers:
 
-- 📱 **Mobile** (`< 768px`, e.g. iPhone 14/15/SE, Pixel 7/8)
-- 📟 **Tablet / Medium** (`768px – 1023px`, e.g. iPad, iPad Mini, Surface portrait)
-- 💻 **Desktop / Large** (`1024px+`, e.g. MacBook, 1440p/4K Workstations)
-
----
-
-## 1. Executive Summary & Responsive Design Principles
-
-Path Logic operates on a **Local-First, High-Density, Mobile-Complementary** architectural philosophy:
-
-1. **Desktop / Large Viewports (`1024px+`)**: Power-user workflow center with dense Bloomberg-style grids, multi-column split transaction inline editors, side-by-side reconciliation dialogs, full-database export/import, and administrative batch actions (e.g. Payee Merging).
-2. **Tablet / Medium Viewports (`768px – 1023px`)**: Adaptive touch-and-pointer experience with interactive calendar matrices, modal dialogs, touch-optimized tables, and complete management features.
-3. **Mobile Viewports (`< 768px`)**: Quick-capture, high-clarity on-the-go experience with bottom sheets, 44px minimum touch targets, simplified stream cards, single-column forms routed to dedicated paths (`/new`, `/edit`), hiding high-cognitive-load or multi-step bulk data administrative operations.
+- 📱 **Small Viewports (`< 768px`)**: Mobile Smartphones / **Touch-Only** Interaction
+- 📟 **Medium Viewports (`768px – 1023px`)**: Tablets & Compact Convertibles / **Touch & Pointer** Interaction
+- 💻 **Large Viewports (`1024px+`)**: Desktop & Laptop Workstations / **Mouse & Keyboard-First** Interaction
 
 ---
 
-## 2. Feature & Capability Availability Matrix
+## 1. Interaction Paradigms & Form-Factor Principles
 
-| Feature Area              | Specific Capability                  |         Mobile (<768px)          |   Tablet (768px-1023px)   |     Desktop (1024px+)      | UX Adaptation / Form Factor                                                                                                   |
-| :------------------------ | :----------------------------------- | :------------------------------: | :-----------------------: | :------------------------: | :---------------------------------------------------------------------------------------------------------------------------- |
-| **Portfolio & Dashboard** | Net Position & Balance Cards         |                ✅                |            ✅             |             ✅             | Multi-column grid on Desktop; stacked summary cards on Mobile                                                                 |
-|                           | 90-Day Cashflow Forecast Chart       |          ⚠️ Simplified           |          ✅ Full          |          ✅ Full           | Simplified single-series sparkline on Mobile; full multi-series interactive area chart on Tablet/Desktop                      |
-|                           | Quick Entry Trigger Button           |          ✅ Primary FAB          |     ✅ Header Action      |      ✅ Header Action      | Floating bottom-right Action Button on Mobile; prominent header action on Tablet/Desktop                                      |
-|                           | Quick Entry Modal / Form             |         ✅ Bottom Sheet          |      ✅ Modal Dialog      |      ✅ Modal Dialog       | Swipe-friendly full-width bottom sheet on Mobile; centered backdrop modal on Desktop                                          |
-|                           | Account Sparklines & Cards           |            ✅ Stacked            |       ✅ 2-Col Grid       |      ✅ 3/4-Col Grid       | Horizontally scrollable or stacked on mobile                                                                                  |
-|                           | Sync & Drive Reauth Banners          |            ✅ Banner             |         ✅ Banner         |         ✅ Banner          | Responsive alert bar at top of layout                                                                                         |
-| **Accounts Directory**    | Account List & Balances              |        ✅ Sectioned Cards        |     ✅ Table / Cards      |      ✅ Table / Cards      | High-density rows on Desktop; touchable cards with clear balance badges on Mobile                                             |
-|                           | Add Account Workflow                 |   🔄 Routed (`/accounts/new`)    |      🪟 Modal Dialog      |      🪟 Modal Dialog       | Dedicated full-page form on mobile to prevent modal keyboard squishing                                                        |
-|                           | Edit Account Workflow                | 🔄 Routed (`/accounts/:id/edit`) |      🪟 Modal Dialog      |      🪟 Modal Dialog       | Full-page form on mobile; modal dialog on tablet/desktop                                                                      |
-|                           | Loan / Mortgage Amortization         |         ⚠️ Summary Only          |      ✅ Interactive       |       ✅ Interactive       | Basic monthly payment & balance on mobile; full amortization schedule table on desktop                                        |
-|                           | Trashed / Archive Account Manager    |          ⚠️ Basic list           |      ✅ Full Drawer       |       ✅ Full Drawer       | Soft-delete & restore accessible across all devices                                                                           |
-| **Ledger & Transactions** | High-Density Virtual Ledger Table    |           ❌ Replaced            |     ✅ Compact Table      |  ✅ Full Bloomberg Table   | Virtualized TanStack-style dense table with keyboard navigation on Desktop                                                    |
-|                           | Mobile Card Stream & Feed            |        ✅ Optimized Feed         |        ❌ Replaced        |        ❌ Replaced         | Touch-friendly expandable transaction cards with date sticky headers on Mobile                                                |
-|                           | Inline Ledger Row Editing            |           ❌ Disabled            |        ❌ Disabled        |     ✅ Keyboard-First      | Direct in-cell editing (<kbd>Enter</kbd> to save, <kbd>Tab</kbd> to next column) on Desktop                                   |
-|                           | Mobile Fast Entry Bottom Sheet       |         ✅ Full Feature          |     ✅ Optional Sheet     |   ❌ Replaced by Inline    | Thumb-friendly bottom sheet with large 44px inputs on Mobile/Tablet                                                           |
-|                           | Split Transaction Editor             |          ⚠️ Basic Sheet          |      ✅ Modal Wizard      |    ✅ Multi-row Inline     | Multi-row balanced sub-ledger editor (Gross, Tax, Insurance) on Desktop/Tablet                                                |
-|                           | In-DOM Payee Combobox                |        ✅ Touch-friendly         |     ✅ Full Combobox      |      ✅ Full Combobox      | Custom accessible in-DOM dropdown with 44px touch targets on Mobile                                                           |
-|                           | Bank Statement Reconciliation Wizard |       ❌ Disabled / Notice       |      ✅ Modal Wizard      |     ✅ Full Split View     | Complex side-by-side statement clearing wizard restricted to Tablet & Desktop                                                 |
-|                           | QIF / CSV File Import & Mapping      |       ⚠️ File picker only        |      ✅ Full Wizard       |    ✅ Drag & Drop Zone     | Full preview & deduplication hash review on Tablet/Desktop; basic file pick on mobile                                         |
-| **Payee Management**      | Payee Directory & Search             |        ✅ Searchable List        |    ✅ Searchable List     |     ✅ Searchable List     | Instant filtering by name, city, notes                                                                                        |
-|                           | Payee Details Drawer / Card          |        ✅ Expandable Card        |       ✅ Split Card       |    ✅ Side Panel / Card    | Address, GPS coordinates, contact details                                                                                     |
-|                           | Add Payee                            |    🔄 Routed (`/payees/new`)     |      🪟 Modal Dialog      |      🪟 Modal Dialog       | Dedicated clean page on mobile; modal on tablet/desktop                                                                       |
-|                           | Edit Payee                           |  🔄 Routed (`/payees/:id/edit`)  |      🪟 Modal Dialog      |      🪟 Modal Dialog       | Dedicated clean page on mobile; modal on tablet/desktop                                                                       |
-|                           | **Payee Merging Mechanism**          |      ❌ **Hidden (<768px)**      | ✅ **Available (768px+)** | ✅ **Available (1024px+)** | Reassigns transactions/schedules and deletes duplicate. Restricted to medium/large viewports for safety and ergonomic clarity |
-| **Recurring Schedules**   | Recurring List & Frequency Stream    |           ✅ List View           |       ✅ Split View       |       ✅ Full Table        | Clear recurrence badges (monthly, bi-weekly, etc.)                                                                            |
-|                           | 2-Week Calendar Forecast Matrix      |            ❌ Hidden             |     ✅ Calendar Grid      |    ✅ Full Month Matrix    | High-density day-by-day cashflow balance calendar on Tablet/Desktop                                                           |
-|                           | Agenda / Next Due Feed               |         ✅ Primary View          |     ✅ Secondary View     |     ✅ Secondary View      | Chronological list of upcoming due transactions on Mobile                                                                     |
-|                           | Add / Edit Recurring Schedule        |   🔄 Routed (`/recurring/new`)   |      🪟 Modal Dialog      |      🪟 Modal Dialog       | Full-page form on mobile; modal dialog on tablet/desktop                                                                      |
-| **Sync & Backup**         | Google Drive BYOS Sync               |       ✅ Background / Auto       |      ✅ Full Status       |       ✅ Full Status       | Automated local-first SQLite sync to user's Google Drive                                                                      |
-|                           | SQLite Database Export / Import      |       ⚠️ Export file only        |      ✅ Full Wizard       |       ✅ Full Wizard       | Raw database backup file download on mobile; full conflict inspector on desktop                                               |
-|                           | Sync Conflict Resolution Tool        |       ⚠️ Last-Write Prompt       |   ✅ Side-by-Side Diff    |    ✅ Side-by-Side Diff    | Visual side-by-side transaction field diff comparison on Tablet/Desktop                                                       |
-| **Settings & Developer**  | Theme Switcher (Dark/Light/Auto)     |           ✅ Available           |       ✅ Available        |        ✅ Available        | Full CSS variables and smooth transitions across all viewports                                                                |
-|                           | Developer Mock Data Seeder           |         ⚠️ Settings page         |     ✅ Settings page      |      ✅ Settings page      | Quick test state reset & QIF mock generator                                                                                   |
+### 1.1 Small Viewports (`< 768px` — Mobile Smartphone / Touch-Only)
+
+- **Primary Input**: Single-hand thumb gestures, touch taps, and mobile OS virtual keyboards.
+- **Target Ergonomics**:
+    - **44px Minimum Touch Targets**: Enforced on all buttons, select inputs, and interactive list items.
+    - **Bottom Sheets over Centered Modals**: Fast data entry utilizes swipeable bottom sheets to prevent content squishing and backdrop lockups when virtual keyboards expand.
+    - **Routed Full-Page Forms (`/new`, `/:id/edit`)**: Multi-field entity creation (Accounts, Payees, Recurring Schedules) routes to dedicated full-page views to guarantee clean vertical scrolling without modal clipping.
+    - **Card Streams & Timelines**: High-density tables are transformed into readable, swipeable card streams with sticky date headers.
+    - **Omission of Complex Batch/Administrative Tools**: High-risk, irreversible multi-step operations (e.g. Payee Merging, Statement Reconciliation Grid) are completely removed from the DOM (`@if`) to prevent accidental destruction or cramped layout errors.
+
+### 1.2 Medium Viewports (`768px – 1023px` — Tablet & 2-in-1 / Touch & Pointer)
+
+- **Primary Input**: Dual-hand touch, stylus/pencil, and trackpad/mouse accessories (e.g. iPad Magic Keyboard).
+- **Target Ergonomics**:
+    - **Adaptive 2-Column Grids**: Dashboards, account lists, and summary cards arrange into dual-column layouts.
+    - **Modal Wizards**: Full dialog workflows (Account creation, Payee editing, Payee Merging) open in centered backdrop dialogs (`z-[100]`) with comfortable padding.
+    - **Touch-Friendly Tables**: Compact tabular views with generous row heights (48px+) and clear action icons.
+    - **Complete Feature Availability**: Full management features (including Payee Merging and Statement Reconciliation) are active and fully supported.
+
+### 1.3 Large Viewports (`1024px+` — Desktop Workstation / Mouse & Keyboard)
+
+- **Primary Input**: Precision mouse pointer and high-speed mechanical/laptop keyboards.
+- **Target Ergonomics**:
+    - **Bloomberg-Style High-Density Tables**: Virtualized TanStack-style ledger grids with 10+ visible columns, tight typography, and sorting/filtering.
+    - **Keyboard-First Inline Editing**: Direct in-cell navigation (<kbd>↑</kbd>, <kbd>↓</kbd>, <kbd>Tab</kbd> to traverse columns, <kbd>Enter</kbd> to commit, <kbd>Esc</kbd> to discard).
+    - **Side-by-Side Split Views**: Multi-panel layouts (e.g. Statement Reconciliation showing Ledger on the left and Statement Checklist on the right; Payee Merge showing Side-by-Side entity comparison).
+    - **Drag-and-Drop Dropzones**: Direct QIF/CSV file dropzones on the ledger screen.
 
 ---
 
-## 3. Viewport Breakdown Details & Justifications
+## 2. Comprehensive Feature Matrix: Small vs Medium vs Large Viewports
 
-### 3.1 Payee Merging Feature Availability
+| Feature Area              | Specific Capability               |   Small (`<768px`)<br>_(Mobile / Touch)_   | Medium (`768px–1023px`)<br>_(Tablet / Touch & Pointer)_ | Large (`1024px+`)<br>_(Desktop / Mouse & Keyboard)_ | Form-Factor UX Adaptation & Behavior                                                                               |
+| :------------------------ | :-------------------------------- | :----------------------------------------: | :-----------------------------------------------------: | :-------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------- |
+| **Portfolio & Dashboard** | **Net Position & Balance Cards**  |              ✅ Stacked Cards              |                    ✅ 2-Column Grid                     |               ✅ 4-Column Header Grid               | Stacked high-contrast cards on mobile; multi-metric horizontal grid on desktop.                                    |
+|                           | **90-Day Cashflow Forecast**      |            ⚠️ Compact Sparkline            |                ✅ Interactive Area Chart                |             ✅ Interactive Multi-Series             | Touch-scrub curve on mobile; hover tooltip curve with daily delta breakdowns on desktop.                           |
+|                           | **Quick Entry Trigger**           |      ✅ Floating Action Button (FAB)       |                 ✅ Header Action Button                 |               ✅ Header Action Button               | Floating circular thumb-button (bottom right) on mobile; prominent top header button on tablet/desktop.            |
+|                           | **Quick Entry Form**              |           ✅ Bottom Sheet Modal            |                   ✅ Centered Dialog                    |                 ✅ Centered Dialog                  | Bottom sheet modal with 44px touch targets on mobile; modal dialog on tablet/desktop.                              |
+|                           | **Account Quick Cards**           |         ✅ Vertically Stacked Feed         |                    ✅ 2-Column Grid                     |           ✅ Multi-Column Sparkline Grid            | Scrollable cards with touch feedback on mobile; dense grid with mini sparklines on desktop.                        |
+|                           | **Drive & Sync Alerts**           |             ✅ Top Alert Strip             |                   ✅ Top Alert Strip                    |                 ✅ Top Alert Strip                  | High-contrast notice bar across all screen sizes.                                                                  |
+| **Accounts Directory**    | **Account List & Balances**       |           ✅ Grouped Card Stream           |                ✅ Compact Table / Cards                 |                ✅ High-Density Table                | Card stream with tap-to-drilldown on mobile; Bloomberg grid with inline balance totals on desktop.                 |
+|                           | **Add Account**                   |   🔄 Routed Full Page (`/accounts/new`)    |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Dedicated page prevents keyboard squish on mobile; dialog modal on tablet/desktop.                                 |
+|                           | **Edit Account**                  | 🔄 Routed Full Page (`/accounts/:id/edit`) |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Full-page form on mobile; centered modal on tablet/desktop.                                                        |
+|                           | **Loan / Mortgage Calculator**    |          ⚠️ Monthly Summary Badge          |                  ✅ Interactive Panel                   |            ✅ Full Amortization Schedule            | Payment summary badge on mobile; interactive schedule table with principal/interest curve on desktop.              |
+|                           | **Trashed Account Manager**       |             ⚠️ Simplified List             |                  ✅ Full Drawer Panel                   |                ✅ Full Drawer Panel                 | Soft-delete & restore management accessible across all form factors.                                               |
+| **Ledger & Transactions** | **Virtualized Ledger Table**      |          ❌ Replaced by Card Feed          |                     ✅ Compact Grid                     |               ✅ Full Bloomberg Table               | Dense virtualized multi-column table with keyboard shortcuts on desktop.                                           |
+|                           | **Transaction Card Stream**       |          ✅ Optimized Touch Feed           |                  ❌ Replaced by Table                   |                ❌ Replaced by Table                 | Sticky date separators, swipe actions, and clear category badges on mobile.                                        |
+|                           | **Inline Cell Keyboard Editing**  |                ❌ Disabled                 |                       ❌ Disabled                       | ✅ Keyboard-First (<kbd>Tab</kbd>/<kbd>Enter</kbd>) | Spreadsheet-style in-cell editing on desktop; tap-to-open bottom sheet on touch devices.                           |
+|                           | **Mobile Fast Entry Sheet**       |           ✅ Primary Entry Sheet           |                 ✅ Optional Entry Sheet                 |              ❌ Inline Form Preferred               | Bottom sheet with 44px thumb targets and large numpad on mobile.                                                   |
+|                           | **Split-Transaction Editor**      |            ⚠️ Stacked Sub-Form             |                   ✅ Modal Sub-Ledger                   |              ✅ Multi-Row Inline Split              | Stacked splits on mobile; multi-row balanced grid (Gross, Taxes, Deductions) on desktop.                           |
+|                           | **In-DOM Payee Combobox**         |           ✅ 44px Touch Targets            |                 ✅ Accessible Combobox                  |               ✅ Accessible Combobox                | Custom in-DOM combobox with 44px targets, badge icons, and full keyboard navigation.                               |
+|                           | **Bank Statement Reconciliation** |            ❌ Disabled / Notice            |                     ✅ Modal Wizard                     |             ✅ Side-by-Side Split View              | Side-by-side statement clearing wizard on tablet/desktop; hidden on mobile.                                        |
+|                           | **QIF / CSV File Import**         |           ⚠️ Native File Picker            |                  ✅ Full Import Wizard                  |              ✅ Drag & Drop File Zone               | Drag & drop file zone with deduplication preview on desktop; file picker on mobile.                                |
+| **Payee Management**      | **Payee Directory & Search**      |           ✅ Instant Filter Feed           |                 ✅ Instant Filter Feed                  |               ✅ Instant Filter Feed                | Live search across name, city, notes with touch-friendly cards.                                                    |
+|                           | **Payee Details Inspection**      |             ✅ Expandable Card             |                      ✅ Split Card                      |               ✅ Side Panel / Drawer                | Address, GPS coordinates, phone, notes in expandable drawer.                                                       |
+|                           | **Add / Edit Payee**              |    🔄 Routed Full Page (`/payees/new`)     |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Full-page form on mobile; modal dialog on tablet/desktop.                                                          |
+|                           | **Payee Merging Mechanism**       |      ❌ **Removed from DOM (`@if`)**       |                ✅ **Available (768px+)**                |             ✅ **Available (1024px+)**              | Reassigns transactions and deletes duplicate. Completely omitted from DOM on mobile for safety and layout clarity. |
+| **Recurring Schedules**   | **Recurring Directory**           |           ✅ Agenda Card Stream            |               ✅ Split Stream / Calendar                |               ✅ Full Forecast Table                | Upcoming recurrence stream on mobile; multi-column table on desktop.                                               |
+|                           | **2-Week Cashflow Calendar**      |                 ❌ Hidden                  |                    ✅ Calendar Grid                     |              ✅ Full Month Matrix Grid              | Day-by-day balance projection matrix on tablet/desktop; hidden on mobile.                                          |
+|                           | **Agenda / Next Due Feed**        |              ✅ Primary Feed               |                   ✅ Secondary Panel                    |                 ✅ Secondary Panel                  | Chronological upcoming payment cards on mobile.                                                                    |
+|                           | **Add / Edit Schedule**           |   🔄 Routed Full Page (`/recurring/new`)   |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Dedicated page on mobile; modal dialog on tablet/desktop.                                                          |
+| **Sync & Security**       | **Google Drive BYOS Sync**        |            ✅ Background / Auto            |                ✅ Full Status Dashboard                 |              ✅ Full Status Dashboard               | Background encrypted sync across all devices.                                                                      |
+|                           | **SQLite Database Backup**        |           ⚠️ Single File Export            |                     ✅ Full Wizard                      |                   ✅ Full Wizard                    | Instant `.db` file download on mobile; inspection wizard on desktop.                                               |
+|                           | **Sync Conflict Resolver**        |            ⚠️ Last-Write Prompt            |                  ✅ Side-by-Side Diff                   |                ✅ Side-by-Side Diff                 | Visual side-by-side transaction field diff comparison on tablet/desktop.                                           |
+| **Settings & Dev**        | **Theme Switcher**                |           ✅ Dark / Light / Auto           |                 ✅ Dark / Light / Auto                  |               ✅ Dark / Light / Auto                | Smooth CSS variable transitions on all viewports.                                                                  |
+|                           | **Developer Seeder & Reset**      |              ⚠️ Settings Page              |                    ✅ Settings Page                     |                  ✅ Settings Page                   | Quick state reset and mock QIF generator.                                                                          |
 
-- **Decision**: Enabled on **Medium & Large Viewports (`>= 768px`)**; hidden on Mobile (`< 768px`).
+---
+
+## 3. Deep-Dive Rationale for Viewport Restrictions
+
+### 3.1 Payee Merging Mechanism
+
+- **Availability**: **Medium (`768px – 1023px`)** and **Large (`1024px+`)** viewports only. Completely removed from the DOM via `@if (isMediumOrLarge())` on Small (`< 768px`) viewports.
 - **Rationale**:
-    1. Payee merging is an **administrative, destructive, and permanent operation** that reassigns historical transactions, updates database foreign keys, and soft-deletes records.
-    2. The merge comparison flow requires side-by-side visual validation (`[Duplicate: "Starbucks #1234"] ---> [Primary: "Starbucks"]`) and impact analysis (transaction count & schedule count review) which is error-prone on small vertical touch screens.
-    3. Power users performing batch cleanups and duplicate resolution naturally perform this work at a desk or on an iPad/tablet.
+    1. **Destructive Administrative Action**: Payee merging permanently updates transaction history, rewrites foreign keys, updates recurring schedules, and soft-deletes the duplicate payee.
+    2. **Side-by-Side Visual Verification**: The merge confirmation flow requires visual inspection of the source duplicate entity vs the target primary entity along with real-time transaction count and schedule impact cards. On small smartphone screens, this comparison creates significant vertical crowding and increases the probability of accidental merges.
+    3. **DOM & Screen Reader Cleanliness**: Using `@if (isMediumOrLarge())` ensures that mobile screen readers and tab keyboard traversal never encounter inaccessible or hidden merge triggers.
 
 ### 3.2 Bank Statement Reconciliation Wizard
 
-- **Decision**: Available on Tablet and Desktop; replaced by simple status toggling on Mobile.
-- **Rationale**: Reconciling against an official PDF or paper bank statement requires viewing multiple columns (Target Ending Balance, Cleared Balance, Difference, Cleared Deposits, Cleared Debits) simultaneously. Small screens do not provide sufficient horizontal space without extreme scrolling friction.
+- **Availability**: Medium and Large viewports only; replaced by simple per-transaction status toggles on Mobile.
+- **Rationale**: Reconciling a physical or PDF bank statement requires simultaneous visibility of statement beginning balance, cleared deposits, cleared withdrawals, target ending balance, and difference calculation. Tablets and desktops provide the horizontal width needed for dual-column ledger inspection.
 
-### 3.3 Form Handling (Modal vs Routed Full-Page)
+### 3.3 Form Handling: Modal Dialog vs Routed Full Page
 
-- **Decision**: On Mobile (`< 1024px`), creation/edit actions navigate to dedicated routed pages (`/accounts/new`, `/payees/new`, `/recurring/new`); on Desktop (`1024px+`), creation/edit opens centered modal dialogs.
-- **Rationale**: On mobile smartphones, virtual on-screen keyboards cover up to 50% of the viewport. Centered modal dialogs become unusable, squished, or experience scroll-lock bugs. Full-page routed forms provide a natural top-to-bottom thumb flow with native OS virtual keyboard behaviors.
-
----
-
-## 4. Next Steps for UX & Responsive Auditing
-
-1. **Review Matrix with Engineering & Design**: Validate proposed restrictions and form-factor adaptations.
-2. **Automated Viewport Verification**: Ensure all Playwright responsive matrix tests (`e2e/src/flows/responsive-matrix.spec.ts`) validate both visibility on desktop/tablet and clean omission on mobile.
-3. **Continuous Enforcement**: Keep this matrix updated as new features (e.g. advanced reports, multi-currency conversion, tax sub-ledger exports) are introduced.
+- **Availability**: Routed full-page forms (`/accounts/new`, `/payees/new`, `/recurring/new`) on Small viewports; Centered modal dialogs on Medium and Large viewports.
+- **Rationale**: Virtual mobile keyboards occupy 40–50% of vertical screen space. Centered modal dialogs frequently experience scroll chaining, viewport clipping, and obscured action buttons when the keyboard activates. Dedicated full-page routes offer reliable native scrolling and ergonomics.
