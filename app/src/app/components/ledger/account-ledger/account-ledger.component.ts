@@ -151,9 +151,21 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     readonly importMatches = this.importService.matches;
     readonly importStats = this.importService.stats;
 
+    // Viewport State
+    readonly isMediumOrLarge = signal<boolean>(
+        typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+    );
+
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     constructor() {
+        if (typeof window !== 'undefined') {
+            const updateViewport = (): void => {
+                this.isMediumOrLarge.set(window.innerWidth >= 768);
+            };
+            window.addEventListener('resize', updateViewport, { passive: true });
+        }
+
         // Open the appropriate dialog when import finishes
         effect(() => {
             const stage = this.importService.progress().stage;

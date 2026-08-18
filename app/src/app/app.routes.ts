@@ -48,6 +48,13 @@ export const appRoutes: Routes = [
                     )
             },
             {
+                path: 'accounts/:accountId/transactions/:transactionId/splits',
+                loadComponent: () =>
+                    import(
+                        './pages/ledger/split-transaction-page/split-transaction-page.component'
+                    ).then(m => m.SplitTransactionPageComponent)
+            },
+            {
                 path: 'accounts/:accountId/info',
                 loadComponent: () =>
                     import('./pages/account-detail/info/account-info.component').then(

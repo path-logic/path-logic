@@ -360,22 +360,24 @@
     [transaction]="editingTransaction()"
 />
 
-<!-- Express Import dialog -->
-<express-import-dialog
-    [(isOpen)]="expressImportOpen"
-    [matches]="importMatches()"
-    [importStats]="importStats()"
-    (reviewFirst)="handleReviewFirst()"
-    (confirmed)="handleReconciliationConfirmed($event)"
-/>
+@if (isMediumOrLarge()) {
+    <!-- Express Import dialog -->
+    <express-import-dialog
+        [(isOpen)]="expressImportOpen"
+        [matches]="importMatches()"
+        [importStats]="importStats()"
+        (reviewFirst)="handleReviewFirst()"
+        (confirmed)="handleReconciliationConfirmed($event)"
+    />
 
-<!-- Reconciliation dialog -->
-<reconciliation-dialog
-    [(isOpen)]="reconciliationOpen"
-    [matches]="importMatches()"
-    [importStats]="importStats()"
-    (confirmed)="handleReconciliationConfirmed($event)"
-/>
+    <!-- Reconciliation dialog -->
+    <reconciliation-dialog
+        [(isOpen)]="reconciliationOpen"
+        [matches]="importMatches()"
+        [importStats]="importStats()"
+        (confirmed)="handleReconciliationConfirmed($event)"
+    />
+}
 
 <!-- Category Mapping dialog -->
 <category-mapping-dialog />

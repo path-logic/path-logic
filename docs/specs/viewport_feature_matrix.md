@@ -15,19 +15,19 @@ This specification defines the comprehensive breakdown of all application featur
 - **Primary Input**: Single-hand thumb gestures, touch taps, and mobile OS virtual keyboards.
 - **Target Ergonomics**:
     - **44px Minimum Touch Targets**: Enforced on all buttons, select inputs, and interactive list items.
-    - **Bottom Sheets over Centered Modals**: Fast data entry utilizes swipeable bottom sheets to prevent content squishing and backdrop lockups when virtual keyboards expand.
-    - **Routed Full-Page Forms (`/new`, `/:id/edit`)**: Multi-field entity creation (Accounts, Payees, Recurring Schedules) routes to dedicated full-page views to guarantee clean vertical scrolling without modal clipping.
+    - **Bottom Sheets over Centered Modals**: Fast single-entity data entry utilizes swipeable bottom sheets to prevent content squishing and backdrop lockups when virtual keyboards expand.
+    - **Routed Full-Page Forms (`/new`, `/:id/edit`, `/splits`)**: Multi-field entity creation (Accounts, Payees, Recurring Schedules, and Split Transactions) routes to dedicated full-page views to guarantee clean vertical scrolling without modal clipping.
     - **Card Streams & Timelines**: High-density tables are transformed into readable, swipeable card streams with sticky date headers.
-    - **Omission of Complex Batch/Administrative Tools**: High-risk, irreversible multi-step operations (e.g. Payee Merging, Statement Reconciliation Grid) are completely removed from the DOM (`@if`) to prevent accidental destruction or cramped layout errors.
+    - **Complete DOM Removal of Unapproved Tools**: High-risk, irreversible multi-step operations (e.g. **Payee Merging**, **Statement Reconciliation**, and **QIF / CSV File Import**) are completely removed from the DOM (`@if`) to prevent accidental destruction, screen reader clutter, or cramped layout errors.
 
 ### 1.2 Medium Viewports (`768px – 1023px` — Tablet & 2-in-1 / Touch & Pointer)
 
 - **Primary Input**: Dual-hand touch, stylus/pencil, and trackpad/mouse accessories (e.g. iPad Magic Keyboard).
 - **Target Ergonomics**:
     - **Adaptive 2-Column Grids**: Dashboards, account lists, and summary cards arrange into dual-column layouts.
-    - **Modal Wizards**: Full dialog workflows (Account creation, Payee editing, Payee Merging) open in centered backdrop dialogs (`z-[100]`) with comfortable padding.
+    - **Modal Wizards**: Full dialog workflows (Account creation, Payee editing, Payee Merging, and Split Entry) open in centered backdrop dialogs (`z-[100]`) with comfortable padding.
     - **Touch-Friendly Tables**: Compact tabular views with generous row heights (48px+) and clear action icons.
-    - **Complete Feature Availability**: Full management features (including Payee Merging and Statement Reconciliation) are active and fully supported.
+    - **Complete Feature Availability**: Full management features (including Payee Merging, QIF Import, and Statement Reconciliation) are active and fully supported.
 
 ### 1.3 Large Viewports (`1024px+` — Desktop Workstation / Mouse & Keyboard)
 
@@ -55,14 +55,14 @@ This specification defines the comprehensive breakdown of all application featur
 |                           | **Edit Account**                  | 🔄 Routed Full Page (`/accounts/:id/edit`) |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Full-page form on mobile; centered modal on tablet/desktop.                                                        |
 |                           | **Loan / Mortgage Calculator**    |          ⚠️ Monthly Summary Badge          |                  ✅ Interactive Panel                   |            ✅ Full Amortization Schedule            | Payment summary badge on mobile; interactive schedule table with principal/interest curve on desktop.              |
 |                           | **Trashed Account Manager**       |             ⚠️ Simplified List             |                  ✅ Full Drawer Panel                   |                ✅ Full Drawer Panel                 | Soft-delete & restore management accessible across all form factors.                                               |
-| **Ledger & Transactions** | **Virtualized Ledger Table**      |          ❌ Replaced by Card Feed          |                     ✅ Compact Grid                     |               ✅ Full Bloomberg Table               | Dense virtualized multi-column table with keyboard shortcuts on desktop.                                           |
+| **Ledger & Transactions** | **Virtualized Ledger Table**      |          ❌ Replaced by Card Feed          |               ✅ Compact Grid (48px rows)               |               ✅ Full Bloomberg Table               | Dense virtualized multi-column table with keyboard shortcuts on desktop.                                           |
 |                           | **Transaction Card Stream**       |          ✅ Optimized Touch Feed           |                  ❌ Replaced by Table                   |                ❌ Replaced by Table                 | Sticky date separators, swipe actions, and clear category badges on mobile.                                        |
 |                           | **Inline Cell Keyboard Editing**  |                ❌ Disabled                 |                       ❌ Disabled                       | ✅ Keyboard-First (<kbd>Tab</kbd>/<kbd>Enter</kbd>) | Spreadsheet-style in-cell editing on desktop; tap-to-open bottom sheet on touch devices.                           |
 |                           | **Mobile Fast Entry Sheet**       |           ✅ Primary Entry Sheet           |                 ✅ Optional Entry Sheet                 |              ❌ Inline Form Preferred               | Bottom sheet with 44px thumb targets and large numpad on mobile.                                                   |
-|                           | **Split-Transaction Editor**      |            ⚠️ Stacked Sub-Form             |                   ✅ Modal Sub-Ledger                   |              ✅ Multi-Row Inline Split              | Stacked splits on mobile; multi-row balanced grid (Gross, Taxes, Deductions) on desktop.                           |
+|                           | **Split-Transaction Editor**      |    🔄 **Routed Full-Page (`/splits`)**     |        🪟 **Modal Dialog (`SplitEntryDialog`)**         |           🪟 **Modal / Multi-Row Inline**           | Dedicated unconstrained vertical form on mobile; modal dialog on tablet/desktop.                                   |
 |                           | **In-DOM Payee Combobox**         |           ✅ 44px Touch Targets            |                 ✅ Accessible Combobox                  |               ✅ Accessible Combobox                | Custom in-DOM combobox with 44px targets, badge icons, and full keyboard navigation.                               |
-|                           | **Bank Statement Reconciliation** |            ❌ Disabled / Notice            |                     ✅ Modal Wizard                     |             ✅ Side-by-Side Split View              | Side-by-side statement clearing wizard on tablet/desktop; hidden on mobile.                                        |
-|                           | **QIF / CSV File Import**         |           ⚠️ Native File Picker            |                  ✅ Full Import Wizard                  |              ✅ Drag & Drop File Zone               | Drag & drop file zone with deduplication preview on desktop; file picker on mobile.                                |
+|                           | **Bank Statement Reconciliation** |      ❌ **Removed from DOM (`@if`)**       |                ✅ **Available (768px+)**                |           ✅ **Side-by-Side Split View**            | Side-by-side statement clearing wizard on tablet/desktop; completely removed on mobile.                            |
+|                           | **QIF / CSV File Import**         |      ❌ **Removed from DOM (`@if`)**       |                ✅ **Full Import Wizard**                |            ✅ **Drag & Drop File Zone**             | Drag & drop file zone on desktop; full wizard on tablet; completely omitted on mobile.                             |
 | **Payee Management**      | **Payee Directory & Search**      |           ✅ Instant Filter Feed           |                 ✅ Instant Filter Feed                  |               ✅ Instant Filter Feed                | Live search across name, city, notes with touch-friendly cards.                                                    |
 |                           | **Payee Details Inspection**      |             ✅ Expandable Card             |                      ✅ Split Card                      |               ✅ Side Panel / Drawer                | Address, GPS coordinates, phone, notes in expandable drawer.                                                       |
 |                           | **Add / Edit Payee**              |    🔄 Routed Full Page (`/payees/new`)     |                     🪟 Modal Dialog                     |                   🪟 Modal Dialog                   | Full-page form on mobile; modal dialog on tablet/desktop.                                                          |
@@ -75,7 +75,7 @@ This specification defines the comprehensive breakdown of all application featur
 |                           | **SQLite Database Backup**        |           ⚠️ Single File Export            |                     ✅ Full Wizard                      |                   ✅ Full Wizard                    | Instant `.db` file download on mobile; inspection wizard on desktop.                                               |
 |                           | **Sync Conflict Resolver**        |            ⚠️ Last-Write Prompt            |                  ✅ Side-by-Side Diff                   |                ✅ Side-by-Side Diff                 | Visual side-by-side transaction field diff comparison on tablet/desktop.                                           |
 | **Settings & Dev**        | **Theme Switcher**                |           ✅ Dark / Light / Auto           |                 ✅ Dark / Light / Auto                  |               ✅ Dark / Light / Auto                | Smooth CSS variable transitions on all viewports.                                                                  |
-|                           | **Developer Seeder & Reset**      |              ⚠️ Settings Page              |                    ✅ Settings Page                     |                  ✅ Settings Page                   | Quick state reset and mock QIF generator.                                                                          |
+|                           | **Developer Seeder & Reset**      |              ⚠️ Settings Page              |                    ✅ Settings Page                     |                  ✅ Settings Page                   | Quick test state reset and mock QIF generator.                                                                     |
 
 ---
 
@@ -84,17 +84,19 @@ This specification defines the comprehensive breakdown of all application featur
 ### 3.1 Payee Merging Mechanism
 
 - **Availability**: **Medium (`768px – 1023px`)** and **Large (`1024px+`)** viewports only. Completely removed from the DOM via `@if (isMediumOrLarge())` on Small (`< 768px`) viewports.
-- **Rationale**:
-    1. **Destructive Administrative Action**: Payee merging permanently updates transaction history, rewrites foreign keys, updates recurring schedules, and soft-deletes the duplicate payee.
-    2. **Side-by-Side Visual Verification**: The merge confirmation flow requires visual inspection of the source duplicate entity vs the target primary entity along with real-time transaction count and schedule impact cards. On small smartphone screens, this comparison creates significant vertical crowding and increases the probability of accidental merges.
-    3. **DOM & Screen Reader Cleanliness**: Using `@if (isMediumOrLarge())` ensures that mobile screen readers and tab keyboard traversal never encounter inaccessible or hidden merge triggers.
+- **Rationale**: Destructive administrative reassignment requiring side-by-side entity validation. Removed from mobile to eliminate catastrophic accidental merges and screen reader confusion.
 
-### 3.2 Bank Statement Reconciliation Wizard
+### 3.2 QIF / CSV Import Omission on Mobile
+
+- **Availability**: **Medium (`768px – 1023px`)** and **Large (`1024px+`)** viewports only. Completely removed from the DOM via `@if (isMediumOrLarge())` on Small (`< 768px`) viewports.
+- **Rationale**: Banking portals do not provide viable mobile QIF download/import flows to local mobile browsers. Removing the buttons and dialogs keeps mobile ledger headers uncluttered.
+
+### 3.3 Split-Transaction Full-Page Routing on Mobile
+
+- **Availability**: Routed full-page (`/accounts/:id/transactions/:txId/splits`) on Small viewports; Centered modal dialog (`SplitEntryDialogComponent`) on Medium and Large viewports.
+- **Rationale**: Editing 4–8 split lines (Gross, Federal Tax, State Tax, 401(k), Insurance) inside a bottom sheet alongside an on-screen virtual keyboard causes severe vertical squishing. A full-height page provides ample room for live penny-perfect math calculation, deduction toggling, and category selection.
+
+### 3.4 Bank Statement Reconciliation Wizard
 
 - **Availability**: Medium and Large viewports only; replaced by simple per-transaction status toggles on Mobile.
-- **Rationale**: Reconciling a physical or PDF bank statement requires simultaneous visibility of statement beginning balance, cleared deposits, cleared withdrawals, target ending balance, and difference calculation. Tablets and desktops provide the horizontal width needed for dual-column ledger inspection.
-
-### 3.3 Form Handling: Modal Dialog vs Routed Full Page
-
-- **Availability**: Routed full-page forms (`/accounts/new`, `/payees/new`, `/recurring/new`) on Small viewports; Centered modal dialogs on Medium and Large viewports.
-- **Rationale**: Virtual mobile keyboards occupy 40–50% of vertical screen space. Centered modal dialogs frequently experience scroll chaining, viewport clipping, and obscured action buttons when the keyboard activates. Dedicated full-page routes offer reliable native scrolling and ergonomics.
+- **Rationale**: Dual-pane statement ledger reconciliation requires side-by-side horizontal space for balance differences, cleared deposits, and withdrawals.

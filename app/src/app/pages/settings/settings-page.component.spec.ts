@@ -104,4 +104,15 @@ describe('SettingsPageComponent', () => {
         }
         expect(component.devKeySet()).toBe(!initialDev);
     });
+
+    it('should include or exclude restore backup action and dialog based on isMediumOrLarge signal', () => {
+        component.isMediumOrLarge.set(true);
+        component.showImportDialog.set(true);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('app-import-dialog')).toBeTruthy();
+
+        component.isMediumOrLarge.set(false);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('app-import-dialog')).toBeNull();
+    });
 });

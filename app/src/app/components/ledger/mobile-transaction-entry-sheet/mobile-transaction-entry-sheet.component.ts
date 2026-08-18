@@ -11,6 +11,7 @@ import {
     signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { DialogModule } from 'primeng/dialog';
 import type { ICategory, IPayee, ISODateString, ISplit, ITransaction } from '../../../core';
@@ -49,6 +50,7 @@ export class MobileTransactionEntrySheetComponent {
     readonly saved = output<ITransaction>();
 
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly router = inject(Router);
 
     // State signals
     readonly mode = signal<EntryMode>('expense');
@@ -184,7 +186,19 @@ export class MobileTransactionEntrySheetComponent {
     }
 
     openSplitDialog(): void {
-        this.isSplitDialogOpen.set(true);
+        const tx = this.currentTransaction();
+        if (typeof window !== 'undefined' && window.innerWidth < 768 && tx) {
+            this.close();
+            void this.router.navigate([
+                '/accounts',
+                this.accountId(),
+                'transactions',
+                tx.id,
+                'splits'
+            ]);
+        } else {
+            this.isSplitDialogOpen.set(true);
+        }
     }
 
     handleSplitsSaved(event: { splits: Array<ISplit>; newTotal?: number }): void {

@@ -381,36 +381,38 @@
                         </div>
 
                         <!-- Action 2: Restore -->
-                        <div
-                            class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        >
-                            <div class="flex items-start gap-3">
-                                <div
-                                    class="w-8 h-8 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
-                                >
-                                    <i class="pi pi-upload text-xs font-bold"></i>
-                                </div>
-                                <div>
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-wider text-surface-900"
-                                    >
-                                        Restore Data Backup
-                                    </h3>
-                                    <p class="text-[11px] text-surface-500 font-normal mt-0.5">
-                                        Import an existing backup archive into your local SQLite
-                                        store
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                (click)="showImportDialog.set(true)"
-                                class="h-10 px-4 rounded-lg bg-surface-100 hover:bg-surface-200 text-surface-900 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 flex-none"
+                        @if (isMediumOrLarge()) {
+                            <div
+                                class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                             >
-                                <i class="pi pi-upload text-xs"></i>
-                                <span>Restore Backup</span>
-                            </button>
-                        </div>
+                                <div class="flex items-start gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
+                                    >
+                                        <i class="pi pi-upload text-xs font-bold"></i>
+                                    </div>
+                                    <div>
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-wider text-surface-900"
+                                        >
+                                            Restore Data Backup
+                                        </h3>
+                                        <p class="text-[11px] text-surface-500 font-normal mt-0.5">
+                                            Import an existing backup archive into your local SQLite
+                                            store
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    (click)="showImportDialog.set(true)"
+                                    class="h-10 px-4 rounded-lg bg-surface-100 hover:bg-surface-200 text-surface-900 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 flex-none"
+                                >
+                                    <i class="pi pi-upload text-xs"></i>
+                                    <span>Restore Backup</span>
+                                </button>
+                            </div>
+                        }
 
                         <!-- Action 3: Manage Backups -->
                         <div
@@ -651,7 +653,9 @@
 
         <!-- Export/Import Modals -->
         <app-export-dialog [(visible)]="showExportDialog"></app-export-dialog>
-        <app-import-dialog [(visible)]="showImportDialog"></app-import-dialog>
+        @if (isMediumOrLarge()) {
+            <app-import-dialog [(visible)]="showImportDialog"></app-import-dialog>
+        }
         <app-export-manager-dialog
             [(visible)]="showExportManagerDialog"
         ></app-export-manager-dialog>

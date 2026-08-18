@@ -178,7 +178,18 @@ export class SettingsPageComponent {
         }
     }
 
+    readonly isMediumOrLarge = signal<boolean>(
+        typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+    );
+
     constructor() {
+        if (typeof window !== 'undefined') {
+            const updateViewport = (): void => {
+                this.isMediumOrLarge.set(window.innerWidth >= 768);
+            };
+            window.addEventListener('resize', updateViewport, { passive: true });
+        }
+
         effect(() => {
             const key = this.apiKey();
             const provider = this.selectedProvider();

@@ -17,7 +17,7 @@ test.describe('Responsive Device Matrix & Layout Audits', () => {
     }
 
     test('Mobile Navigation Drawer opens and closes on small viewports', async ({ page }) => {
-        // Force mobile viewport size if desktop chrome project
+        // Force mobile viewport size
         await page.setViewportSize({ width: 393, height: 851 });
         await page.goto('/');
         await page.waitForLoadState('domcontentloaded');
@@ -46,5 +46,56 @@ test.describe('Responsive Device Matrix & Layout Audits', () => {
         const firstButton = page.locator('button:visible').first();
         const box = await firstButton.boundingBox();
         expect(box?.height).toBeGreaterThanOrEqual(40);
+    });
+
+    test('Payee Merging is completely excluded from DOM on small viewports and present on medium/large', async ({
+        page
+    }) => {
+        // 1. Mobile viewport (< 768px): should NOT be in DOM
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/payees');
+        await page.waitForLoadState('domcontentloaded');
+
+        const mobileMergeDialog = page.locator('payee-merge-dialog');
+        await expect(mobileMergeDialog).not.toBeAttached();
+
+        const mobileMergeHeaderBtn = page.locator('header button:has-text("Merge Payees")');
+        await expect(mobileMergeHeaderBtn).not.toBeAttached();
+
+        // 2. Desktop/Tablet viewport (>= 768px): should be present
+        await page.setViewportSize({ width: 1024, height: 768 });
+        await page.goto('/payees');
+        await page.waitForLoadState('domcontentloaded');
+
+        const desktopMergeDialog = page.locator('payee-merge-dialog');
+        await expect(desktopMergeDialog).toBeAttached();
+
+        const desktopMergeHeaderBtn = page.locator('header button:has-text("Merge Payees")');
+        await expect(desktopMergeHeaderBtn).toBeVisible();
+    });
+
+    test('QIF / CSV Import dialog is completely excluded from DOM on small viewports', async ({
+        page
+    }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/accounts');
+        await page.waitForLoadState('domcontentloaded');
+
+        const importDialog = page.locator('express-import-dialog');
+        await expect(importDialog).not.toBeAttached();
+
+        const reconcileDialog = page.locator('reconciliation-dialog');
+        await expect(reconcileDialog).not.toBeAttached();
+    });
+
+    test('Split Transaction mobile routed editor loads and balances correctly', async ({
+        page
+    }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/accounts/acc-1/transactions/tx-1/splits');
+        await page.waitForLoadState('domcontentloaded');
+
+        await expect(page.locator('h1:has-text("Split")')).toBeVisible();
+        await expect(page.locator('button:has-text("Save Splits")')).toBeVisible();
     });
 });

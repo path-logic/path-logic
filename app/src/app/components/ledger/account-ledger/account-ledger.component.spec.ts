@@ -174,4 +174,16 @@ describe('AccountLedgerComponent', () => {
         component.openReconciliation();
         expect(component.reconciliationOpen()).toBe(true);
     });
+
+    it('should include or exclude import and reconciliation dialogs based on isMediumOrLarge signal', () => {
+        component.isMediumOrLarge.set(true);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('express-import-dialog')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('reconciliation-dialog')).toBeTruthy();
+
+        component.isMediumOrLarge.set(false);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('express-import-dialog')).toBeNull();
+        expect(fixture.nativeElement.querySelector('reconciliation-dialog')).toBeNull();
+    });
 });
