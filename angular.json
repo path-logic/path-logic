@@ -24,7 +24,14 @@
                             }
                         ],
                         "styles": ["app/src/styles.css"],
-                        "scripts": []
+                        "scripts": [],
+                        "allowedCommonJsDependencies": [
+                            "cytoscape-fcose",
+                            "@braintree/sanitize-url",
+                            "dayjs",
+                            "elkjs",
+                            "cytoscape-cose-bilkent"
+                        ]
                     },
                     "configurations": {
                         "production": {
@@ -115,7 +122,9 @@
                 },
                 "test": {
                     "builder": "@angular/build:unit-test",
-                    "options": {}
+                    "options": {
+                        "runnerConfig": true
+                    }
                 }
             }
         }
