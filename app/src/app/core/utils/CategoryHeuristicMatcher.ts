@@ -83,7 +83,7 @@ export function sanitizeName(raw: string): string {
  */
 export function matchUnknowns(
     unknowns: Array<string>,
-    categories: Array<ICategory>
+    categories: Array<Pick<ICategory, 'id' | 'name'>>
 ): Record<string, string> {
     const matches: Record<string, string> = {};
 

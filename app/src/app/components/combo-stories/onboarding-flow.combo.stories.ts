@@ -1,7 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
+import { expect, userEvent, within } from 'storybook/test';
 
-import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
+import { provideStoryFixtures, StoryPreset } from '../../testing/story-fixtures';
 import { NewAccountDialogComponent } from '../onboarding/new-account-dialog/new-account-dialog.component';
 import { WelcomeWizardComponent } from '../onboarding/welcome-wizard/welcome-wizard.component';
 
@@ -30,11 +32,6 @@ export class ComboOnboardingComponent {
     dialogOpen = signal(false);
 }
 
-const mockSettingsStore = {
-    getSetting: () => 'false',
-    updateSetting: () => {}
-};
-
 const meta: Meta<ComboOnboardingComponent> = {
     title: 'Combo Compositions/3. Onboarding Flow',
     component: ComboOnboardingComponent,
@@ -43,7 +40,7 @@ const meta: Meta<ComboOnboardingComponent> = {
     },
     decorators: [
         applicationConfig({
-            providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
+            providers: provideStoryFixtures({ preset: StoryPreset.Empty })
         })
     ]
 };
@@ -51,4 +48,38 @@ const meta: Meta<ComboOnboardingComponent> = {
 export default meta;
 type Story = StoryObj<ComboOnboardingComponent>;
 
-export const FullWizardWithDialog: Story = {};
+export const FullWizardWithDialog: Story = {
+    play: async ({ canvasElement }) => {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const canvas = within(canvasElement);
+        const body = within(canvasElement.ownerDocument.body);
+
+        // 1. Verify Welcome Wizard baseline cards
+        expect(await canvas.findByText(/Welcome to Path Logic/i)).toBeInTheDocument();
+        expect(await canvas.findByText(/Checking Account/i)).toBeInTheDocument();
+
+        // 2. Open New Account Dialog via Simulate button
+        const simulateBtn = await canvas.findByRole('button', { name: /simulate dialog open/i });
+        await userEvent.click(simulateBtn);
+
+        // 3. Verify dialog opens and select Checking
+        const dialog = await body.findByRole('dialog');
+        await expect(dialog).toBeInTheDocument();
+        const checkingOption = await within(dialog).findByText(/Checking/i);
+        await userEvent.click(checkingOption);
+
+        // 4. Verify step 2 (enter details) rendered
+        await expect(
+            await within(dialog).findByText(/Daily spending & income/i)
+        ).toBeInTheDocument();
+
+        // 5. Enter starting balance
+        const balanceInput = await within(dialog).findByLabelText(/starting balance/i);
+        await userEvent.clear(balanceInput);
+        await userEvent.type(balanceInput, '2500');
+
+        // 6. Verify Create Only button is enabled
+        const createBtn = await within(dialog).findByRole('button', { name: /create only/i });
+        await expect(createBtn).toBeEnabled();
+    }
+};

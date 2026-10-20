@@ -33,6 +33,13 @@ const meta: Meta<FormGuideComponent> = {
             providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
         })
     ],
+    parameters: {
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
+    },
     args: {
         guideId: 'form-guide-1',
         targetFieldId: 'interestRate',

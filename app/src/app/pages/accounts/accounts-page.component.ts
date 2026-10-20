@@ -13,7 +13,9 @@ import { AccountType, type IAccount, Money } from '@core';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { NewAccountDialogComponent } from '../../components/onboarding/new-account-dialog/new-account-dialog.component';
 import { WelcomeWizardComponent } from '../../components/onboarding/welcome-wizard/welcome-wizard.component';
+import { SkeletonComponent } from '../../components/ui/skeleton';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
+import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 
 export type AccountCategoryFilter = 'all' | 'banking' | 'credit' | 'loans' | 'trash';
 
@@ -29,7 +31,8 @@ export type AccountCategoryFilter = 'all' | 'banking' | 'credit' | 'loans' | 'tr
         RouterLink,
         WelcomeWizardComponent,
         NewAccountDialogComponent,
-        AppShellComponent
+        AppShellComponent,
+        SkeletonComponent
     ],
     templateUrl: './accounts-page.component.html',
     styleUrls: ['./accounts-page.component.css'],
@@ -37,8 +40,19 @@ export type AccountCategoryFilter = 'all' | 'banking' | 'credit' | 'loans' | 'tr
 })
 export class AccountsPageComponent {
     private readonly ledgerStore = inject(LedgerStore);
+    private readonly userSettingsStore = inject(UserSettingsStore);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+
+    readonly primaryAccountId = this.userSettingsStore.primaryAccountId;
+
+    async togglePrimaryAccount(accountId: string): Promise<void> {
+        if (this.primaryAccountId() === accountId) {
+            await this.userSettingsStore.setPrimaryAccountId(null);
+        } else {
+            await this.userSettingsStore.setPrimaryAccountId(accountId);
+        }
+    }
 
     // State
     readonly expandedId = signal<string | null>(null);
@@ -52,6 +66,9 @@ export class AccountsPageComponent {
     readonly accounts = this.ledgerStore.accounts;
     readonly trashedAccounts = this.ledgerStore.trashedAccounts;
     readonly isDbReady = this.ledgerStore.isInitialized;
+    readonly isLoading = computed(
+        () => !this.ledgerStore.isInitialized() || this.ledgerStore.isLoading()
+    );
 
     // Counts
     readonly bankingCount = computed(

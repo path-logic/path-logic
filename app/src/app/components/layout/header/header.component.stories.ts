@@ -2,15 +2,19 @@ import { signal } from '@angular/core';
 import { provideRouter, withDisabledInitialNavigation } from '@angular/router';
 import { TransactionStatus } from '@core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
+import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { ThemeService } from '../../../services/theme/theme.service';
 import { HeaderComponent } from './header.component';
 
 // Mock LedgerStore to provide a fake balance calculation
 const createMockLedgerStore = (clearedTotal: number, pendingTotal: number) => {
     return {
-        transactions: signal([
+        transactions: signal<Array<any>>([
             { status: TransactionStatus.Cleared, totalAmount: clearedTotal },
             { status: TransactionStatus.Pending, totalAmount: pendingTotal }
         ]),
@@ -26,22 +30,48 @@ const createMockAuthService = (displayName: string | null, email: string) => {
             email,
             photoURL: null
         }),
-        signOut: async () => {}
+        signOut: fn(async () => {})
     };
 };
+
+const createMockThemeService = () => ({
+    resolvedTheme: signal('light'),
+    setTheme: fn()
+});
+
+const createMockAiAssistantService = () => ({
+    toggle: fn(),
+    isOpen: signal(false)
+});
+
+const createMockCommandPaletteService = () => ({
+    open: fn(),
+    close: fn(),
+    isOpen: signal(false)
+});
 
 const meta: Meta<HeaderComponent> = {
     title: 'Layout/HeaderComponent',
     component: HeaderComponent,
     tags: ['autodocs'],
+    parameters: {
+        layout: 'fullscreen',
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
+    },
     decorators: [
         applicationConfig({
-            providers: [provideRouter([], withDisabledInitialNavigation())]
+            providers: [
+                provideRouter([], withDisabledInitialNavigation()),
+                { provide: ThemeService, useValue: createMockThemeService() },
+                { provide: AiAssistantService, useValue: createMockAiAssistantService() },
+                { provide: CommandPaletteService, useValue: createMockCommandPaletteService() }
+            ]
         })
-    ],
-    parameters: {
-        layout: 'fullscreen'
-    }
+    ]
 };
 
 export default meta;
@@ -61,7 +91,26 @@ export const Default: Story = {
                 }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        // Verify balance and nav links
+        await expect(canvas.getByText('Net Position')).toBeInTheDocument();
+        await expect(canvas.getByText('$14,500.00')).toBeInTheDocument();
+        await expect(canvas.getByText('Overview')).toBeInTheDocument();
+        await expect(canvas.getByText('Accounts')).toBeInTheDocument();
+
+        // Open User Menu
+        const userMenuBtn = canvas.getByRole('button', { name: /User menu/i });
+        await expect(userMenuBtn).toBeInTheDocument();
+        await userEvent.click(userMenuBtn);
+
+        // Verify dropdown content
+        await expect(canvas.getByText('Jane Doe')).toBeInTheDocument();
+        await expect(canvas.getByText('jane@example.com')).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: /Sign Out/i })).toBeInTheDocument();
+    }
 };
 
 /**
@@ -78,7 +127,11 @@ export const NegativeBalance: Story = {
                 }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText('-$700.00')).toBeInTheDocument();
+    }
 };
 
 /**
@@ -95,5 +148,13 @@ export const NoDisplayName: Story = {
                 }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        const userMenuBtn = canvas.getByRole('button', { name: /User menu/i });
+        await userEvent.click(userMenuBtn);
+        await expect(canvas.getByText('User')).toBeInTheDocument();
+        await expect(canvas.getByText('anonymous@example.com')).toBeInTheDocument();
+    }
 };

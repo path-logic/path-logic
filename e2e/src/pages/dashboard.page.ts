@@ -17,13 +17,13 @@ export class DashboardPage {
         this.page = page;
         this.appShell = new AppShellPage(page);
 
-        this.heading = page.getByRole('heading', { name: /Financial/ });
+        this.heading = page.getByRole('heading', { name: /Overview|Financial/i, level: 1 });
         this.netPositionCard = page.getByRole('main').getByText('Net Position').first();
         this.clearedBalanceLabel = page.getByRole('main').getByText('Cleared').first();
         this.pendingBalanceLabel = page.getByRole('main').getByText('Pending').first();
         this.projectionChart = page.locator('projection-chart');
         this.recentActivityHeading = page.getByText('Recent Activity');
-        this.myAccountsHeading = page.getByText('My Accounts');
+        this.myAccountsHeading = page.getByText(/Account Portfolio|My Accounts/i);
     }
 
     async navigateTo(): Promise<void> {

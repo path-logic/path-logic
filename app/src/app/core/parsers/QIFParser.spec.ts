@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { QIFAccountType, QIFParser } from './QIFParser';
+import { QifClearedStatus, TransactionStatus } from '../domain/types';
+import { QIFAccountType, QIFParser, resolveImportTransactionStatus } from './QIFParser';
 
 describe('QIF Parser', () => {
     const parser: QIFParser = new QIFParser();
@@ -503,6 +504,96 @@ PAmazon
 `;
             const result = parser.parse(qif);
             expect(result.transactions).toHaveLength(1);
+        });
+    });
+
+    describe('Cleared Status Parsing (C tag)', () => {
+        it('parses C* as Cleared', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\nC*\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('cleared');
+        });
+
+        it('parses Cc as Cleared (lowercase)', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\nCc\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('cleared');
+        });
+
+        it('parses CX as Reconciled', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\nCX\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('reconciled');
+        });
+
+        it('parses CR as Reconciled', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\nCR\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('reconciled');
+        });
+
+        it('parses missing C tag as Uncleared', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('uncleared');
+        });
+
+        it('parses empty or question mark C tag as Uncleared', () => {
+            const qif: string = `!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon\nC?\n^`;
+            const result = parser.parse(qif);
+            expect(result.transactions[0]?.clearedStatus).toBe('uncleared');
+        });
+    });
+
+    describe('resolveImportTransactionStatus', () => {
+        const today = '2026-09-07';
+
+        it('returns Reconciled when clearedStatus is Reconciled', () => {
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Reconciled, date: '2026-01-01' },
+                    today
+                )
+            ).toBe(TransactionStatus.Reconciled);
+        });
+
+        it('returns Cleared when clearedStatus is Cleared regardless of date', () => {
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Cleared, date: '2026-10-15' },
+                    today
+                )
+            ).toBe(TransactionStatus.Cleared);
+        });
+
+        it('returns Cleared for historical unmarked/uncleared transaction (date <= today)', () => {
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Uncleared, date: '2026-09-01' },
+                    today
+                )
+            ).toBe(TransactionStatus.Cleared);
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Uncleared, date: '2026-09-07' },
+                    today
+                )
+            ).toBe(TransactionStatus.Cleared);
+        });
+
+        it('returns Pending for future/post-dated unmarked/uncleared transaction (date > today)', () => {
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Uncleared, date: '2026-09-08' },
+                    today
+                )
+            ).toBe(TransactionStatus.Pending);
+            expect(
+                resolveImportTransactionStatus(
+                    { clearedStatus: QifClearedStatus.Uncleared, date: '2026-10-31' },
+                    today
+                )
+            ).toBe(TransactionStatus.Pending);
         });
     });
 });

@@ -81,8 +81,23 @@ User Query:
 ===========
 ${userText}
 
-Instruction:
-Provide a concise, highly analytical, and direct response. Use markdown formatting (such as bullet points, bold text, or inline tables) where helpful. Always format dollar amounts using standard currency formatting. Keep the response to 2-3 short paragraphs maximum.
+Instruction & Presentation Guidelines:
+1. STRUCTURE & TYPOGRAPHY:
+   - Provide a concise, highly analytical, and professional response.
+   - Use bold text for key dollar amounts and metrics.
+   - Use bullet points for key takeaways, insights, or risks.
+   - Always format dollar amounts using standard currency format ($#,##0.00).
+2. TABULAR DATA:
+   - When comparing categories, balances, or line items, ALWAYS use clean GitHub-flavored Markdown tables (| Category | Amount |) with clear headers.
+3. VISUAL CHARTS & DIAGRAMS (MERMAID):
+   - Whenever the user asks for a chart, diagram, visual breakdown, graphic, or flow, or when financial data is best visualized, ALWAYS include a valid Mermaid diagram enclosed in \`\`\`mermaid code blocks.
+   - For category spending distribution: use 'pie title <Title>'.
+   - For money flows, paycheck allocations, or account transfers: use 'flowchart TD' or 'flowchart LR'.
+   - For timelines, schedules, or comparisons: use 'xychart-beta' or 'flowchart'.
+4. STRICT PROHIBITION:
+   - NEVER generate ASCII bar charts, ASCII block art (such as '██████'), or pseudographics. Always use Mermaid charts and Markdown tables instead.
+5. CONCISENESS:
+   - Keep narrative explanations to 2-3 focused paragraphs maximum.
 `;
 
             const reply = await this.geminiService.generateContent(systemPrompt);

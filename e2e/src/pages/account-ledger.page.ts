@@ -45,16 +45,20 @@ export class AccountLedgerPage {
         this.splitBtn = form.getByRole('button', { name: /Split|Splits/i }).first();
 
         // Split dialog
-        this.splitDialog = page.locator('.split-entry-dialog');
+        this.splitDialog = page.locator(
+            '.split-entry-dialog, [aria-label="Split Transaction Detail"]'
+        );
 
         // QIF import elements
         this.importBtn = page.getByRole('button', { name: /Import QIF/i });
         this.fileInput = page.locator('input[type="file"]');
         this.reconciliationDialog = page.locator('.reconciliation-dialog');
-        this.commitBtn = page.getByRole('button', { name: /Commit|Apply/i });
+        this.commitBtn = page.getByRole('button', { name: /Commit All Decisions|Commit|Apply/i });
 
         // Ledger table row locator
-        this.transactionRows = page.locator('transaction-table div[role="button"]');
+        this.transactionRows = page
+            .locator('transaction-table .group\\/row, transaction-table .group\\/card')
+            .filter({ visible: true });
     }
 
     async navigateTo(accountId: string): Promise<void> {
@@ -133,8 +137,9 @@ export class AccountLedgerPage {
 
     async deleteTransaction(payee: string): Promise<void> {
         const row = await this.getRowByPayee(payee);
+        await row.hover();
         const deleteBtn = row.getByRole('button', { name: /Delete|Remove/i });
-        await deleteBtn.click();
+        await deleteBtn.click({ force: true });
 
         const confirmBtn = this.page.getByRole('button', { name: /Confirm|Yes|OK/i });
         if (await confirmBtn.isVisible().catch(() => false)) {
@@ -142,16 +147,30 @@ export class AccountLedgerPage {
         }
     }
 
+    getVisiblePayee(payee: string): Locator {
+        return this.page.getByText(payee).filter({ visible: true }).first();
+    }
+
     async getRowByPayee(payee: string): Promise<Locator> {
         return this.page
-            .getByText(payee)
-            .locator('xpath=ancestor::div[@role="button" or contains(@class, "group/row")]')
+            .locator('.group\\/row, div[role="button"]')
+            .filter({ hasText: payee, visible: true })
             .first();
     }
 
     async uploadQifFile(filePath: string): Promise<void> {
-        await this.importBtn.click();
-        await this.fileInput.setInputFiles(filePath);
+        console.log('[E2E uploadQifFile] Setting input files:', filePath);
+        await this.fileInput.first().setInputFiles(filePath);
+        console.log('[E2E uploadQifFile] Waiting for ignoreBtn or reconciliation dialog...');
+        const ignoreBtn = this.page.getByRole('button', { name: /Ignore & Continue/i });
+        try {
+            await ignoreBtn.waitFor({ state: 'visible', timeout: 8000 });
+            console.log('[E2E uploadQifFile] Found ignoreBtn, clicking it!');
+            await ignoreBtn.click();
+            console.log('[E2E uploadQifFile] Clicked ignoreBtn!');
+        } catch {
+            console.log('[E2E uploadQifFile] ignoreBtn not found or not visible within 8s');
+        }
     }
 
     async commitReconciliation(): Promise<void> {

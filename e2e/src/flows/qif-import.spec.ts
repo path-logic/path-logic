@@ -6,6 +6,11 @@ import { AccountsPage } from '../pages/accounts.page';
 const FIXTURES_DIR = path.join(__dirname, '../fixtures');
 
 test.describe('QIF Import & Reconciliation', () => {
+    test.beforeEach(async ({ page }) => {
+        page.on('console', msg => console.log('BROWSER CONSOLE:', msg.type(), msg.text()));
+        page.on('pageerror', err => console.log('BROWSER EXCEPTION:', err.message, err.stack));
+    });
+
     test('import a QIF file into an account', async ({ page }) => {
         const accountsPage = new AccountsPage(page);
         await accountsPage.createCheckingAccount('QIF Import Account', '0');

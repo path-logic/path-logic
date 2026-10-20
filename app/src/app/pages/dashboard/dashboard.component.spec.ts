@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { AccountType, TransactionStatus } from '@core';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -91,6 +90,7 @@ describe('DashboardComponent', () => {
             schedules: mockSchedules,
             payees: signal([]),
             isInitialized: signal(true),
+            isLoading: signal(false),
             syncStatus: signal('synced'),
             authError: signal(false),
             hasLocalFallback: signal(true),
@@ -106,7 +106,6 @@ describe('DashboardComponent', () => {
         await TestBed.configureTestingModule({
             imports: [DashboardComponent],
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 ThemeService,
                 { provide: AuthService, useValue: mockAuth },
@@ -154,5 +153,54 @@ describe('DashboardComponent', () => {
 
         component.closeQuickEntry();
         expect(component.isQuickEntryOpen()).toBe(false);
+    });
+
+    it('should split primary accounts into heroAccount and remainingAccounts', () => {
+        expect(component.heroAccount()?.id).toBe('acc-1');
+        expect(component.remainingAccounts().length).toBe(1);
+        expect(component.remainingAccounts()[0]?.id).toBe('acc-2');
+    });
+
+    it('should sort primary accounts with primary/hero account first', async () => {
+        expect(component.primaryAccounts()[0]?.id).toBe('acc-1');
+
+        await component.togglePrimaryAccount('acc-2');
+        expect(component.primaryAccountId()).toBe('acc-2');
+        expect(component.primaryAccounts()[0]?.id).toBe('acc-2');
+        expect(component.heroAccount()?.id).toBe('acc-2');
+        expect(component.remainingAccounts()[0]?.id).toBe('acc-1');
+
+        // Toggle again to unstar
+        await component.togglePrimaryAccount('acc-2');
+        expect(component.primaryAccountId()).toBeNull();
+    });
+
+    it('should compute isLoading and render skeleton placeholders while loading', () => {
+        const store = TestBed.inject(LedgerStore);
+        (store.isLoading as any).set(true);
+        fixture.detectChanges();
+
+        expect(component.isLoading()).toBe(true);
+        const skeletons = fixture.nativeElement.querySelectorAll('app-skeleton');
+        expect(skeletons.length).toBeGreaterThan(0);
+
+        // Zero state should NOT be visible while loading
+        const text = fixture.nativeElement.textContent;
+        expect(text).not.toContain('No accounts connected');
+    });
+
+    it('should show zero states only after loading completes and data is confirmed empty', () => {
+        const store = TestBed.inject(LedgerStore);
+        (store.isLoading as any).set(false);
+        mockAccounts.set([]);
+        mockTransactions.set([]);
+        mockSchedules.set([]);
+        fixture.detectChanges();
+
+        expect(component.isLoading()).toBe(false);
+        const text = fixture.nativeElement.textContent;
+        expect(text).toContain('No accounts connected');
+        expect(text).toContain('No transactions recorded yet');
+        expect(text).toContain('No scheduled bills due');
     });
 });

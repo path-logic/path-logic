@@ -1,5 +1,4 @@
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
 import { expect, within } from 'storybook/test';
@@ -112,10 +111,7 @@ const meta: Meta<MobileTransactionEntrySheetComponent> = {
     component: MobileTransactionEntrySheetComponent,
     decorators: [
         applicationConfig({
-            providers: [
-                provideNoopAnimations(),
-                { provide: LedgerStore, useValue: mockLedgerStore }
-            ]
+            providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
         }),
         moduleMetadata({
             imports: [MobileTransactionEntrySheetComponent]

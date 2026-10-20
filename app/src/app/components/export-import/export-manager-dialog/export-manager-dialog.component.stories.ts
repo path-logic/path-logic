@@ -1,5 +1,4 @@
 import { importProvidersFrom } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
 import { expect, within } from 'storybook/test';
@@ -80,7 +79,7 @@ const meta: Meta<ExportManagerDialogComponent> = {
     component: ExportManagerDialogComponent,
     decorators: [
         applicationConfig({
-            providers: [importProvidersFrom(BrowserAnimationsModule)]
+            providers: [importProvidersFrom()]
         }),
         moduleMetadata({
             imports: [ExportManagerDialogComponent]

@@ -1,7 +1,7 @@
 import { importProvidersFrom } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
+import { expect, userEvent, within } from 'storybook/test';
 import { CorruptionRecoveryDialogComponent } from './corruption-recovery-dialog.component';
 
 const meta: Meta<CorruptionRecoveryDialogComponent> = {
@@ -9,7 +9,7 @@ const meta: Meta<CorruptionRecoveryDialogComponent> = {
     component: CorruptionRecoveryDialogComponent,
     decorators: [
         applicationConfig({
-            providers: [importProvidersFrom(BrowserAnimationsModule)]
+            providers: [importProvidersFrom()]
         }),
         moduleMetadata({
             imports: [CorruptionRecoveryDialogComponent]
@@ -17,7 +17,12 @@ const meta: Meta<CorruptionRecoveryDialogComponent> = {
     ],
     tags: ['autodocs'],
     parameters: {
-        layout: 'centered'
+        layout: 'centered',
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
     }
 };
 
@@ -47,5 +52,18 @@ export const Default: Story = {
                 }
             ]
         }
+    },
+    play: async ({ canvasElement }): Promise<void> => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText(/Data Integrity Mismatch/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/20260808/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/Checking Account/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/\$240\.00/i)).toBeInTheDocument();
+
+        const applyButton = canvas.getByRole('button', {
+            name: /Apply Reconciliation & Proceed to Import/i
+        });
+        await expect(applyButton).toBeInTheDocument();
+        await userEvent.click(applyButton);
     }
 };

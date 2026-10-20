@@ -1,121 +1,373 @@
 <article
-    class="account-sparkline-card group p-6 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/80 dark:border-surface-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-all duration-300 shadow-sm hover:shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[175px] cursor-pointer"
+    class="account-sparkline-card group p-6 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/80 dark:border-surface-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-all duration-300 shadow-sm hover:shadow-lg relative overflow-hidden flex flex-col justify-between cursor-pointer"
+    [class.sm:p-7]="isFullWidth()"
 >
     <!-- Full-Card Click Target Overlay Anchor -->
     <a
-        [routerLink]="['/accounts', account().id]"
+        [routerLink]="['/accounts', account().id, 'info']"
         class="absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
-        [attr.aria-label]="'View ledger for ' + account().name"
+        [attr.aria-label]="'Configure settings for ' + account().name"
     ></a>
 
-    <!-- Top Row: Icon + Title & Type + Trend Badge -->
-    <div class="flex items-start justify-between gap-3 mb-3 relative z-10 pointer-events-none">
-        <div class="flex items-center gap-3 min-w-0 pointer-events-auto">
-            <div
-                class="w-10 h-10 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs"
-            >
-                <i [class]="'pi ' + accountIcon() + ' text-base'"></i>
-            </div>
-            <div class="min-w-0">
-                <span
-                    class="text-base font-bold text-surface-900 dark:text-surface-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate block"
-                >
-                    {{ account().name }}
-                </span>
-                <p class="text-xs font-medium text-surface-500 truncate">
-                    {{ account().institutionName || typeDisplayName() }}
-                </p>
-            </div>
-        </div>
-
-        @if (trendPercent()) {
-            <span
-                class="px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 relative z-10"
-                [class.bg-emerald-500-10]="!trendPercent()?.startsWith('-')"
-                [class.text-emerald-700]="!trendPercent()?.startsWith('-')"
-                [class.dark:text-emerald-400]="!trendPercent()?.startsWith('-')"
-                [class.border-emerald-500-20]="!trendPercent()?.startsWith('-')"
-                [class.bg-red-500-10]="trendPercent()?.startsWith('-')"
-                [class.text-red-600]="trendPercent()?.startsWith('-')"
-                [class.border-red-500-20]="trendPercent()?.startsWith('-')"
-            >
-                {{ trendPercent() }}
-            </span>
-        }
-    </div>
-
-    <!-- Balance & Sparkline Row -->
-    <div class="flex items-end justify-between gap-4 my-2 relative z-10 pointer-events-none">
-        <div>
-            <span
-                class="text-[10px] font-bold uppercase tracking-wider text-surface-500 block mb-0.5"
-            >
-                {{ isCredit() ? 'Balance Due' : 'Current Balance' }}
-            </span>
-            <span
-                class="text-3xl font-black tracking-tight font-mono text-surface-900 dark:text-surface-100"
-                [class.text-red-600]="isNegative()"
-                [class.dark:text-red-400]="isNegative()"
-            >
-                {{ formattedBalance() }}
-            </span>
-        </div>
-
-        <!-- SVG Mini Sparkline Curve -->
-        <div class="w-28 h-12 shrink-0 opacity-85 group-hover:opacity-100 transition-opacity">
-            <svg viewBox="0 0 100 45" fill="none" class="w-full h-full overflow-visible">
-                <defs>
-                    <linearGradient
-                        [id]="'sparkline-grad-' + account().id"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
+    @if (isFullWidth()) {
+        <!-- ════════════════════════════════════════════════════════════════════
+             ROBUST HERO ACCOUNT VIEW (Full-Width Tier)
+        ═══════════════════════════════════════════════════════════════════════ -->
+        <div class="space-y-4 relative z-10">
+            <!-- 1. Hero Header Row: Account Identity & Badges + Star -->
+            <div class="flex items-start justify-between gap-3 pointer-events-none">
+                <div class="flex items-center gap-3.5 min-w-0 pointer-events-none">
+                    <div
+                        class="w-11 h-11 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs"
                     >
-                        <stop
-                            offset="0%"
-                            [attr.stop-color]="sparklineStrokeColor()"
-                            stop-opacity="0.25"
-                        />
-                        <stop
-                            offset="100%"
-                            [attr.stop-color]="sparklineStrokeColor()"
-                            stop-opacity="0.0"
-                        />
-                    </linearGradient>
-                </defs>
-                <path
-                    [attr.d]="sparklinePath()"
-                    [attr.stroke]="sparklineStrokeColor()"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
-            </svg>
+                        <i [class]="'pi ' + accountIcon() + ' text-lg'"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span
+                                class="font-bold text-lg sm:text-xl text-surface-900 dark:text-surface-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate"
+                            >
+                                {{ account().name }}
+                            </span>
+                            @if (isPrimary()) {
+                                <span
+                                    class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs"
+                                >
+                                    Primary Hero
+                                </span>
+                            }
+                            <span
+                                class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 border border-surface-200/60 dark:border-surface-700/60"
+                            >
+                                {{ typeDisplayName() }}
+                            </span>
+                        </div>
+                        <p
+                            class="text-xs font-medium text-surface-500 dark:text-surface-400 mt-0.5 truncate"
+                        >
+                            {{
+                                account().institutionName ? account().institutionName + ' • ' : ''
+                            }}Active Ledger
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pointer-events-auto shrink-0 relative z-10">
+                    @if (trendPercent()) {
+                        <span
+                            [class]="
+                                'px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ' +
+                                trendBadgeClass()
+                            "
+                        >
+                            {{ trendPercent() }} 30d
+                        </span>
+                    }
+
+                    <!-- Primary / Hero Account Star Toggle Button -->
+                    <button
+                        type="button"
+                        (click)="$event.stopPropagation(); starToggled.emit(account().id)"
+                        class="w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer border shadow-2xs"
+                        [class.bg-amber-50]="isPrimary()"
+                        [class.border-amber-300]="isPrimary()"
+                        [class.text-amber-500]="isPrimary()"
+                        [class.border-surface-200]="!isPrimary()"
+                        [class.dark:border-surface-700]="!isPrimary()"
+                        [class.text-surface-400]="!isPrimary()"
+                        [class.hover:text-amber-500]="!isPrimary()"
+                        [title]="
+                            isPrimary()
+                                ? 'Primary Hero Account (Click to remove)'
+                                : 'Set as Primary Hero Account'
+                        "
+                        [attr.aria-label]="
+                            isPrimary() ? 'Primary Hero Account' : 'Set as Primary Hero Account'
+                        "
+                    >
+                        <i
+                            [class]="
+                                isPrimary()
+                                    ? 'pi pi-star-fill text-amber-500 text-sm'
+                                    : 'pi pi-star text-sm'
+                            "
+                        ></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Hero Content Grid: Balance Telemetry + Sparkline + Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center pt-1 pb-1">
+                <!-- Zone A: Balance & Cleared Telemetry (Col 5) -->
+                <div class="md:col-span-5 space-y-1.5 pointer-events-none">
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400 block"
+                    >
+                        {{ isCredit() ? 'Total Balance Due' : 'Current Working Balance' }}
+                    </span>
+                    <div
+                        class="font-black tracking-tight font-mono text-3xl sm:text-4xl text-surface-900 dark:text-surface-100"
+                        [class.text-red-600]="isNegative()"
+                        [class.dark:text-red-400]="isNegative()"
+                    >
+                        {{ formattedBalance() }}
+                    </div>
+                    <div
+                        class="flex items-center gap-3 text-xs font-medium text-surface-500 dark:text-surface-400 pt-0.5"
+                    >
+                        <span
+                            class="inline-flex items-center gap-1 text-surface-600 dark:text-surface-300"
+                        >
+                            <i class="pi pi-check text-[10px] text-primary"></i>
+                            Cleared:
+                            <strong class="font-mono">{{ formattedClearedBalance() }}</strong>
+                        </span>
+                        @if (hasPendingTransactions()) {
+                            <span
+                                class="text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold"
+                            >
+                                ({{ formattedPendingDifference() }} pending)
+                            </span>
+                        } @else {
+                            <span
+                                class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold"
+                            >
+                                • Reconciled
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Zone B: Wider Sparkline Visual (Col 4) -->
+                <div
+                    class="md:col-span-4 flex flex-col justify-center space-y-1 pointer-events-none"
+                >
+                    <div
+                        class="h-14 sm:h-16 w-full opacity-90 group-hover:opacity-100 transition-opacity"
+                    >
+                        <svg
+                            viewBox="0 0 100 45"
+                            fill="none"
+                            class="w-full h-full overflow-visible"
+                        >
+                            <defs>
+                                <linearGradient
+                                    [id]="'hero-sparkline-grad-' + account().id"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0%"
+                                        [attr.stop-color]="sparklineStrokeColor()"
+                                        stop-opacity="0.35"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        [attr.stop-color]="sparklineStrokeColor()"
+                                        stop-opacity="0.0"
+                                    />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                [attr.d]="sparklinePath()"
+                                [attr.stroke]="sparklineStrokeColor()"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                        </svg>
+                    </div>
+                    <span
+                        class="text-[10px] font-medium text-surface-400 dark:text-surface-500 text-center block"
+                    >
+                        30-day velocity trajectory
+                    </span>
+                </div>
+
+                <!-- Zone C: Action Buttons Tray (Col 3) -->
+                <div
+                    class="md:col-span-3 flex flex-row md:flex-col gap-2 justify-end pointer-events-auto"
+                >
+                    <button
+                        type="button"
+                        (click)="$event.stopPropagation(); quickEntryRequested.emit(account().id)"
+                        [attr.aria-label]="'Quick Entry for ' + account().name"
+                        class="flex-1 md:flex-none min-h-[40px] px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs group/btn"
+                    >
+                        <i
+                            class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"
+                        ></i>
+                        <span>+ Quick Entry</span>
+                    </button>
+
+                    <a
+                        [routerLink]="['/accounts', account().id]"
+                        (click)="$event.stopPropagation()"
+                        [attr.aria-label]="'View ledger for ' + account().name"
+                        class="flex-1 md:flex-none min-h-[40px] px-4 py-2 rounded-xl bg-surface-100 dark:bg-surface-800/80 hover:bg-surface-200 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                        <span>View Ledger</span>
+                        <i
+                            class="pi pi-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"
+                        ></i>
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
+    } @else {
+        <!-- ════════════════════════════════════════════════════════════════════
+             STANDARD SUB-GRID CARD VIEW
+        ═══════════════════════════════════════════════════════════════════════ -->
+        <!-- Top Row: Icon + Title & Type + Trend Badge & Star Button -->
+        <div class="flex items-start justify-between gap-3 mb-3 relative z-10 pointer-events-none">
+            <div class="flex items-center gap-3 min-w-0 pointer-events-none">
+                <div
+                    class="w-10 h-10 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs"
+                >
+                    <i [class]="'pi ' + accountIcon() + ' text-base'"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span
+                            class="font-bold text-base text-surface-900 dark:text-surface-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate block"
+                        >
+                            {{ account().name }}
+                        </span>
+                        @if (isPrimary()) {
+                            <span
+                                class="px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                            >
+                                Primary
+                            </span>
+                        }
+                    </div>
+                    <p class="text-xs font-medium text-surface-500 truncate">
+                        {{ account().institutionName || typeDisplayName() }}
+                    </p>
+                </div>
+            </div>
 
-    <!-- Bottom Action Row: Direct Quick Entry Popup Trigger & Ledger Link -->
-    <div
-        class="flex items-center justify-between pt-3 mt-1 border-t border-surface-100 dark:border-surface-800/80 gap-2 relative z-10"
-    >
-        <button
-            type="button"
-            (click)="$event.stopPropagation(); quickEntryRequested.emit(account().id)"
-            [attr.aria-label]="'Quick Entry for ' + account().name"
-            class="min-h-[44px] sm:min-h-[36px] px-4 py-2 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer group/btn"
-        >
-            <i class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"></i>
-            <span>+ Quick Entry</span>
-        </button>
+            <div class="flex items-center gap-2 pointer-events-auto shrink-0 relative z-10">
+                @if (trendPercent()) {
+                    <span
+                        [class]="
+                            'px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ' +
+                            trendBadgeClass()
+                        "
+                    >
+                        {{ trendPercent() }}
+                    </span>
+                }
 
-        <span
-            class="min-h-[44px] sm:min-h-[36px] px-3.5 py-2 sm:py-1.5 rounded-xl text-surface-600 dark:text-surface-400 group-hover:text-surface-900 dark:group-hover:text-surface-100 text-xs font-semibold flex items-center gap-1 transition-colors pointer-events-none"
+                <!-- Primary / Hero Account Star Toggle Button -->
+                <button
+                    type="button"
+                    (click)="$event.stopPropagation(); starToggled.emit(account().id)"
+                    class="w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border"
+                    [class.bg-amber-50]="isPrimary()"
+                    [class.border-amber-300]="isPrimary()"
+                    [class.text-amber-500]="isPrimary()"
+                    [class.border-surface-200]="!isPrimary()"
+                    [class.text-surface-300]="!isPrimary()"
+                    [class.hover:text-amber-500]="!isPrimary()"
+                    [title]="
+                        isPrimary()
+                            ? 'Primary Hero Account (Click to remove)'
+                            : 'Set as Primary Hero Account'
+                    "
+                    [attr.aria-label]="
+                        isPrimary() ? 'Primary Hero Account' : 'Set as Primary Hero Account'
+                    "
+                >
+                    <i
+                        [class]="
+                            isPrimary()
+                                ? 'pi pi-star-fill text-amber-500 text-xs'
+                                : 'pi pi-star text-xs'
+                        "
+                    ></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Balance & Sparkline Row -->
+        <div class="flex items-end justify-between gap-4 my-2 relative z-10 pointer-events-none">
+            <div>
+                <span
+                    class="text-[10px] font-bold uppercase tracking-wider text-surface-500 block mb-0.5"
+                >
+                    {{ isCredit() ? 'Balance Due' : 'Current Balance' }}
+                </span>
+                <span
+                    class="font-black tracking-tight font-mono text-3xl text-surface-900 dark:text-surface-100"
+                    [class.text-red-600]="isNegative()"
+                    [class.dark:text-red-400]="isNegative()"
+                >
+                    {{ formattedBalance() }}
+                </span>
+            </div>
+
+            <!-- SVG Mini Sparkline Curve -->
+            <div class="w-28 h-12 shrink-0 opacity-85 group-hover:opacity-100 transition-opacity">
+                <svg viewBox="0 0 100 45" fill="none" class="w-full h-full overflow-visible">
+                    <defs>
+                        <linearGradient
+                            [id]="'sparkline-grad-' + account().id"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
+                            <stop
+                                offset="0%"
+                                [attr.stop-color]="sparklineStrokeColor()"
+                                stop-opacity="0.25"
+                            />
+                            <stop
+                                offset="100%"
+                                [attr.stop-color]="sparklineStrokeColor()"
+                                stop-opacity="0.0"
+                            />
+                        </linearGradient>
+                    </defs>
+                    <path
+                        [attr.d]="sparklinePath()"
+                        [attr.stroke]="sparklineStrokeColor()"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Bottom Action Row: Direct Quick Entry Popup Trigger & Ledger Link -->
+        <div
+            class="flex items-center justify-between pt-3 mt-1 border-t border-surface-100 dark:border-surface-800/80 gap-2 relative z-10"
         >
-            <span>Ledger</span>
-            <i
-                class="pi pi-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"
-            ></i>
-        </span>
-    </div>
+            <button
+                type="button"
+                (click)="$event.stopPropagation(); quickEntryRequested.emit(account().id)"
+                [attr.aria-label]="'Quick Entry for ' + account().name"
+                class="min-h-[44px] sm:min-h-[36px] px-4 py-2 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer group/btn"
+            >
+                <i class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"></i>
+                <span>+ Quick Entry</span>
+            </button>
+
+            <a
+                [routerLink]="['/accounts', account().id]"
+                (click)="$event.stopPropagation()"
+                [attr.aria-label]="'View ledger for ' + account().name"
+                class="min-h-[44px] sm:min-h-[36px] px-3.5 py-2 sm:py-1.5 rounded-xl text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+            >
+                <span>Ledger</span>
+                <i
+                    class="pi pi-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"
+                ></i>
+            </a>
+        </div>
+    }
 </article>

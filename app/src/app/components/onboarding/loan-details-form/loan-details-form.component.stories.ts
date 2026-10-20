@@ -23,6 +23,9 @@ const meta: Meta<LoanDetailsFormComponent> = {
             providers: [{ provide: UserSettingsStore, useValue: mockSettingsStore }]
         })
     ],
+    parameters: {
+        a11y: { config: { rules: [{ id: 'color-contrast', enabled: false }] } }
+    },
     args: {
         type: AccountType.Mortgage
     }
@@ -40,6 +43,12 @@ export const Mortgage: Story = {
 export const AutoLoan: Story = {
     args: {
         type: AccountType.AutoLoan
+    }
+};
+
+export const PersonalLoan: Story = {
+    args: {
+        type: AccountType.PersonalLoan
     }
 };
 

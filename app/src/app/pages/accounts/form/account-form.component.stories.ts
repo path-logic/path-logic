@@ -1,5 +1,4 @@
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -19,7 +18,6 @@ const meta: Meta<AccountFormComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 {
                     provide: LedgerStore,
@@ -72,7 +70,7 @@ export const Step1SelectType: Story = {
         await expect(canvas.getByText(/Checking/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Savings/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Credit Card/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Cash/i)).toBeInTheDocument();
+        await expect(canvas.getByRole('heading', { name: /Cash/i })).toBeInTheDocument();
     }
 };
 

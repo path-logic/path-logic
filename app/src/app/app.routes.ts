@@ -62,6 +62,10 @@ export const appRoutes: Routes = [
                     )
             },
             {
+                path: 'accounts/:accountId/settings',
+                redirectTo: ({ params }) => `/accounts/${params['accountId']}/info`
+            },
+            {
                 path: 'payees',
                 children: [
                     {

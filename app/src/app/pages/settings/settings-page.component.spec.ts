@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { AuthService } from '../../services/auth/auth.service';
@@ -28,11 +27,7 @@ describe('SettingsPageComponent', () => {
 
         await TestBed.configureTestingModule({
             imports: [SettingsPageComponent],
-            providers: [
-                provideNoopAnimations(),
-                provideRouter([]),
-                { provide: AuthService, useValue: mockAuthService }
-            ]
+            providers: [provideRouter([]), { provide: AuthService, useValue: mockAuthService }]
         }).compileComponents();
 
         fixture = TestBed.createComponent(SettingsPageComponent);

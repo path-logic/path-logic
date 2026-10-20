@@ -1,5 +1,4 @@
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { applicationConfig, moduleMetadata, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -44,7 +43,6 @@ const meta: Meta<PayeeFormComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 {
                     provide: LedgerStore,

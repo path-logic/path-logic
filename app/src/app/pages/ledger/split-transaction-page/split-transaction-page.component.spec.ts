@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -131,7 +130,6 @@ describe('SplitTransactionPageComponent', () => {
         await TestBed.configureTestingModule({
             imports: [SplitTransactionPageComponent],
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },

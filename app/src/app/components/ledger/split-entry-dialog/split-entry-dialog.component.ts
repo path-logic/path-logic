@@ -68,6 +68,29 @@ export class SplitEntryDialogComponent {
         return this.difference() === 0;
     });
 
+    readonly remainingAbs = computed(() => {
+        return Math.abs(this.difference());
+    });
+
+    readonly isOverallocated = computed(() => {
+        if (this.totalAmount() < 0) {
+            return this.sumSplits() < this.totalAmount();
+        }
+        return this.sumSplits() > this.totalAmount();
+    });
+
+    readonly remainingLabel = computed(() => {
+        if (this.isBalanced()) return 'Status';
+        return this.isOverallocated() ? 'Overallocated' : 'Remaining';
+    });
+
+    readonly quickBalanceLabel = computed(() => {
+        const formatted = this.formatCurrency(this.remainingAbs());
+        return this.isOverallocated()
+            ? `Trim ${formatted} from Last Split`
+            : `Auto-Fill Remainder (${formatted})`;
+    });
+
     readonly transactionType = computed(() => {
         const total = this.totalAmount();
         const p = this.payee().toLowerCase();
@@ -254,6 +277,43 @@ export class SplitEntryDialogComponent {
 
     centsToDollars(cents: number): number {
         return Money.centsToDollars(cents);
+    }
+
+    getSplitDisplayDollars(split: ISplit): number {
+        if (!split) return 0;
+        return Math.abs(split.amount) / 100;
+    }
+
+    updateSplitFromInput(
+        id: string,
+        dollars: number,
+        forceType?: 'earnings' | 'taxes' | 'deductions'
+    ): void {
+        const isExplicitNegative = dollars < 0;
+        const cents = isNaN(dollars) ? 0 : Math.round(Math.abs(dollars) * 100);
+        let finalAmount = cents;
+
+        if (this.isPaycheck()) {
+            if (forceType === 'taxes' || forceType === 'deductions') {
+                finalAmount = -cents;
+            } else if (forceType === 'earnings') {
+                finalAmount = cents;
+            } else {
+                const current = this.splits().find(s => s.id === id);
+                finalAmount = current && current.amount < 0 ? -cents : cents;
+            }
+        } else {
+            // Standard mode
+            if (this.totalAmount() < 0) {
+                // Expense: normal splits are negative; explicit negative flips to positive (rebate/refund)
+                finalAmount = isExplicitNegative ? cents : -cents;
+            } else {
+                // Deposit: normal splits are positive; explicit negative flips to negative (deduction)
+                finalAmount = isExplicitNegative ? -cents : cents;
+            }
+        }
+
+        this.handleUpdateSplit(id, { amount: finalAmount });
     }
 
     onClose(): void {

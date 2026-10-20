@@ -9,9 +9,11 @@ import { AccountSparklineCardComponent } from '../../components/dashboard/accoun
 import { ProjectionChartComponent } from '../../components/dashboard/projection-chart/projection-chart.component';
 import { QuickEntryWidgetComponent } from '../../components/dashboard/quick-entry-widget/quick-entry-widget.component';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
+import { SkeletonComponent } from '../../components/ui/skeleton';
 import { LocalDatePipe } from '../../pipes/local-date.pipe';
 import { AuthService } from '../../services/auth/auth.service';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
+import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 
 export interface IUpcomingItem {
     id: string;
@@ -35,7 +37,8 @@ export interface IUpcomingItem {
         AppShellComponent,
         ProjectionChartComponent,
         AccountSparklineCardComponent,
-        QuickEntryWidgetComponent
+        QuickEntryWidgetComponent,
+        SkeletonComponent
     ],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.css',
@@ -44,12 +47,18 @@ export interface IUpcomingItem {
 export class DashboardComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly authService: AuthService = inject(AuthService);
+    private readonly userSettingsStore: UserSettingsStore = inject(UserSettingsStore);
     private readonly router = inject(Router);
 
     readonly transactions = this.ledgerStore.transactions;
     readonly accounts = this.ledgerStore.accounts;
     readonly schedules = this.ledgerStore.schedules;
     readonly isInitialized = this.ledgerStore.isInitialized;
+    readonly isLoading = computed(
+        () => !this.ledgerStore.isInitialized() || this.ledgerStore.isLoading()
+    );
+
+    readonly primaryAccountId = this.userSettingsStore.primaryAccountId;
 
     readonly searchQuery = signal<string>('');
     readonly isQuickEntryOpen = signal<boolean>(false);
@@ -150,10 +159,32 @@ export class DashboardComponent {
     });
 
     /**
-     * Primary 4 accounts for the 2x2 sparkline grid.
+     * Primary accounts sorted with the user's selected primary/hero account first.
      */
     readonly primaryAccounts = computed((): Array<IAccount> => {
-        return this.accounts().slice(0, 4);
+        const all = this.accounts();
+        const primaryId = this.primaryAccountId();
+        if (!primaryId) return all.slice(0, 4);
+
+        const primary = all.find(a => a.id === primaryId);
+        if (!primary) return all.slice(0, 4);
+
+        const others = all.filter(a => a.id !== primaryId);
+        return [primary, ...others].slice(0, 4);
+    });
+
+    /**
+     * Selected primary hero account (or first available account).
+     */
+    readonly heroAccount = computed((): IAccount | null => {
+        return this.primaryAccounts()[0] ?? null;
+    });
+
+    /**
+     * Remaining accounts for the sub-grid in Variant B.
+     */
+    readonly remainingAccounts = computed((): Array<IAccount> => {
+        return this.primaryAccounts().slice(1);
     });
 
     getTrendPercent(index: number): string {
@@ -163,6 +194,14 @@ export class DashboardComponent {
 
     formatCurrency(amount: number): string {
         return Money.formatCurrency(amount);
+    }
+
+    async togglePrimaryAccount(accountId: string): Promise<void> {
+        if (this.primaryAccountId() === accountId) {
+            await this.userSettingsStore.setPrimaryAccountId(null);
+        } else {
+            await this.userSettingsStore.setPrimaryAccountId(accountId);
+        }
     }
 
     openQuickEntry(accountId?: string): void {

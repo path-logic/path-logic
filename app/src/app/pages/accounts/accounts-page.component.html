@@ -1,13 +1,33 @@
 <shell [noPadding]="accounts().length === 0">
-    @if (!isDbReady()) {
-        <!-- DB is still initializing — show a loading state -->
-        <div class="w-full min-h-full flex flex-col items-center justify-center gap-4 pt-24">
-            <div
-                class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
-            ></div>
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-primary animate-pulse">
-                Loading your data...
-            </p>
+    @if (isLoading()) {
+        <!-- Skeleton Loading Layout for Accounts -->
+        <div class="w-full space-y-6 pb-12" role="status" aria-busy="true">
+            <header class="flex justify-between items-center gap-4">
+                <div class="space-y-1">
+                    <app-skeleton width="180px" height="32px" />
+                    <app-skeleton width="240px" height="16px" />
+                </div>
+                <app-skeleton width="130px" height="44px" styleClass="rounded-xl" />
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @for (hero of [1, 2, 3]; track hero) {
+                    <app-skeleton shape="card" width="100%" height="150px" styleClass="w-full" />
+                }
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex gap-2">
+                    @for (tab of [1, 2, 3, 4]; track tab) {
+                        <app-skeleton shape="pill" width="90px" height="32px" />
+                    }
+                </div>
+                <div class="space-y-2">
+                    @for (row of [1, 2, 3, 4]; track row) {
+                        <app-skeleton shape="card" width="100%" height="72px" styleClass="w-full" />
+                    }
+                </div>
+            </div>
         </div>
     } @else if (isOnboarding()) {
         <div class="w-full min-h-full flex flex-col items-center justify-start pt-12 px-4">
@@ -120,18 +140,15 @@
                     <div class="space-y-3">
                         @for (account of accounts(); track account.id) {
                             <div
-                                class="bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-primary/50 transition-all group relative cursor-pointer active:scale-[0.99]"
+                                class="bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-primary/50 transition-all group relative cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                [attr.aria-expanded]="expandedId() === account.id"
+                                (click)="toggleExpand(account.id)"
+                                (keydown.enter)="toggleExpand(account.id)"
+                                (keydown.space)="$event.preventDefault(); toggleExpand(account.id)"
                             >
-                                <!-- Full-Card Click Target Overlay Anchor -->
-                                <a
-                                    [routerLink]="['/accounts', account.id]"
-                                    class="absolute inset-0 z-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                    [attr.aria-label]="'View ledger for ' + account.name"
-                                ></a>
-
-                                <div
-                                    class="flex items-center justify-between gap-3 relative z-10 pointer-events-none"
-                                >
+                                <div class="flex items-center justify-between gap-3 relative z-10">
                                     <div class="flex items-center gap-3 min-w-0">
                                         <div
                                             class="w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 text-base"
@@ -140,11 +157,20 @@
                                             <i [class]="'pi ' + getAccountIcon(account.type)"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <h3
-                                                class="text-sm sm:text-base font-bold text-surface-900 group-hover:text-primary transition-colors truncate"
-                                            >
-                                                {{ account.name }}
-                                            </h3>
+                                            <div class="flex items-center gap-1.5">
+                                                <h3
+                                                    class="text-sm sm:text-base font-bold text-surface-900 group-hover:text-primary transition-colors truncate"
+                                                >
+                                                    {{ account.name }}
+                                                </h3>
+                                                @if (account.id === primaryAccountId()) {
+                                                    <span
+                                                        class="px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                                    >
+                                                        Primary
+                                                    </span>
+                                                }
+                                            </div>
                                             <p
                                                 class="text-xs text-surface-500 font-medium truncate"
                                             >
@@ -181,11 +207,163 @@
                                             </span>
                                         </div>
 
+                                        <!-- Primary / Hero Account Star Toggle Button -->
+                                        <button
+                                            type="button"
+                                            (click)="
+                                                $event.stopPropagation();
+                                                togglePrimaryAccount(account.id)
+                                            "
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer border pointer-events-auto shrink-0"
+                                            [class.bg-amber-500-10]="
+                                                account.id === primaryAccountId()
+                                            "
+                                            [class.border-amber-500-30]="
+                                                account.id === primaryAccountId()
+                                            "
+                                            [class.text-amber-500]="
+                                                account.id === primaryAccountId()
+                                            "
+                                            [class.border-surface-200-80]="
+                                                account.id !== primaryAccountId()
+                                            "
+                                            [class.text-surface-300]="
+                                                account.id !== primaryAccountId()
+                                            "
+                                            [class.hover:text-amber-500]="
+                                                account.id !== primaryAccountId()
+                                            "
+                                            [class.hover:border-amber-400-50]="
+                                                account.id !== primaryAccountId()
+                                            "
+                                            [class.hover:bg-amber-50-50]="
+                                                account.id !== primaryAccountId()
+                                            "
+                                            [title]="
+                                                account.id === primaryAccountId()
+                                                    ? 'Primary Hero Account (Click to remove)'
+                                                    : 'Set as Primary Hero Account'
+                                            "
+                                            [attr.aria-label]="
+                                                account.id === primaryAccountId()
+                                                    ? 'Primary Hero Account'
+                                                    : 'Set as Primary Hero Account'
+                                            "
+                                        >
+                                            <i
+                                                [class]="
+                                                    account.id === primaryAccountId()
+                                                        ? 'pi pi-star-fill text-amber-500 text-xs'
+                                                        : 'pi pi-star text-xs'
+                                                "
+                                            ></i>
+                                        </button>
+
+                                        @if (expandedId() === account.id) {
+                                            <!-- Delete Account Icon Button in top right when expanded -->
+                                            <button
+                                                type="button"
+                                                (click)="requestDeleteAccount(account.id, $event)"
+                                                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 pointer-events-auto shrink-0 animate-fade-in"
+                                                title="Delete Account"
+                                                aria-label="Delete Account"
+                                            >
+                                                <i class="pi pi-trash text-xs"></i>
+                                            </button>
+                                        } @else {
+                                            <!-- Dedicated View Ledger Button when collapsed -->
+                                            <a
+                                                [routerLink]="['/accounts', account.id]"
+                                                (click)="$event.stopPropagation()"
+                                                [attr.aria-label]="
+                                                    'View ledger for ' + account.name
+                                                "
+                                                class="min-h-[36px] px-3 py-1.5 rounded-lg bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer pointer-events-auto shrink-0 shadow-2xs"
+                                            >
+                                                <span>View Ledger</span>
+                                                <i class="pi pi-arrow-right text-[10px]"></i>
+                                            </a>
+                                        }
+
+                                        <!-- Expand/Collapse Chevron Indicator -->
                                         <i
-                                            class="pi pi-chevron-right text-xs text-surface-400 group-hover:text-primary transition-colors"
+                                            class="pi pi-chevron-down text-xs text-surface-400 group-hover:text-primary transition-transform duration-200"
+                                            [class.rotate-180]="expandedId() === account.id"
                                         ></i>
                                     </div>
                                 </div>
+
+                                <!-- Expanded Account Drawer -->
+                                @if (expandedId() === account.id) {
+                                    <div
+                                        class="pt-4 mt-4 border-t border-surface-100 dark:border-surface-800 space-y-4 animate-fade-in"
+                                        (click)="$event.stopPropagation()"
+                                    >
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                            <div>
+                                                <span
+                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                    >Account Type</span
+                                                >
+                                                <span
+                                                    class="font-medium text-surface-800 dark:text-surface-200"
+                                                    >{{ account.type }}</span
+                                                >
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                    >Institution</span
+                                                >
+                                                <span
+                                                    class="font-medium text-surface-800 dark:text-surface-200"
+                                                    >{{ account.institutionName || 'None' }}</span
+                                                >
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                    >Cleared Balance</span
+                                                >
+                                                <span
+                                                    class="font-mono font-medium text-emerald-600 dark:text-emerald-400"
+                                                    >{{
+                                                        formatCurrency(account.clearedBalance)
+                                                    }}</span
+                                                >
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                    >Pending Balance</span
+                                                >
+                                                <span
+                                                    class="font-mono font-medium text-amber-600 dark:text-amber-400"
+                                                    >{{
+                                                        formatCurrency(account.pendingBalance)
+                                                    }}</span
+                                                >
+                                            </div>
+                                        </div>
+
+                                        <!-- Bottom Action Row: Slid-down View Ledger Button -->
+                                        <div
+                                            class="flex items-center justify-end pt-2 border-t border-surface-100/60 dark:border-surface-800/60"
+                                        >
+                                            <a
+                                                [routerLink]="['/accounts', account.id]"
+                                                (click)="$event.stopPropagation()"
+                                                [attr.aria-label]="
+                                                    'View ledger for ' + account.name
+                                                "
+                                                class="min-h-[36px] px-4 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                            >
+                                                <span>View Ledger</span>
+                                                <i class="pi pi-arrow-right text-[10px]"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
@@ -237,7 +415,11 @@
     }
 
     <!-- Add Account Dialog -->
-    <new-account-dialog [isOpen]="isAddDialogOpen()" (closed)="isAddDialogOpen.set(false)" />
+    <new-account-dialog
+        [isOpen]="isAddDialogOpen()"
+        (closed)="isAddDialogOpen.set(false)"
+        (accountCreated)="handleAccountCreated($event)"
+    />
 
     <!-- Delete Confirmation Modal -->
     @if (isDeleteConfirmOpen()) {

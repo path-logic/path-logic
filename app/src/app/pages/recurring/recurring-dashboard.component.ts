@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import type { OnDestroy, TemplateRef } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    effect,
+    inject,
+    signal,
+    viewChild
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import type { ISODateString, ITransaction } from '@core';
@@ -24,6 +33,11 @@ import { AppShellComponent } from '../../components/layout/app-shell/app-shell.c
 import { RecurringPaymentFormComponent } from '../../components/recurring/recurring-form/recurring-form.component';
 import { LocalDatePipe } from '../../pipes/local-date.pipe';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
+import { SidebarContextService } from '../../services/sidebar-context/sidebar-context.service';
+
+import { AiFeatureDialogComponent } from '../../components/ui/ai-feature-dialog/ai-feature-dialog.component';
+import { SkeletonComponent } from '../../components/ui/skeleton';
+import { GeminiService } from '../../services/gemini/gemini.service';
 
 export interface ICalendarDayView {
     dateStr: string;
@@ -48,18 +62,28 @@ export interface ICalendarDayView {
         DialogModule,
         RecurringPaymentFormComponent,
         AppShellComponent,
-        LocalDatePipe
+        LocalDatePipe,
+        SkeletonComponent,
+        AiFeatureDialogComponent
     ],
     templateUrl: './recurring-dashboard.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RecurringDashboardComponent {
+export class RecurringDashboardComponent implements OnDestroy {
     private ledgerStore = inject(LedgerStore);
     private router = inject(Router);
+    private readonly sidebarContext = inject(SidebarContextService);
+    readonly geminiService = inject(GeminiService);
+
+    // Sidebar tools template ref
+    readonly recurringSidebarTools = viewChild<TemplateRef<unknown>>('recurringSidebarTools');
 
     readonly schedules = this.ledgerStore.schedules;
     readonly accounts = this.ledgerStore.accounts;
     readonly transactions = this.ledgerStore.transactions;
+    readonly isLoading = computed(
+        () => !this.ledgerStore.isInitialized() || this.ledgerStore.isLoading()
+    );
 
     readonly isDialogVisible = signal(false);
     readonly selectedSchedule = signal<Partial<IRecurringSchedule>>({});
@@ -67,11 +91,15 @@ export class RecurringDashboardComponent {
     // Filter & Sidebar State
     readonly activeFilter = signal<'all' | 'due-soon' | 'autopost' | 'ai'>('all');
 
+    // Selected Date for Day Inspection
+    readonly selectedDate = signal<string | null>(null);
+
     // 2-Week Calendar State
     readonly calendarBaseDate = signal<Date>(new Date());
 
     // Analyze panel
     readonly isAnalyzeOpen = signal(false);
+    readonly isAiExplanationOpen = signal(false);
     readonly detectedPatterns = signal<Array<IDetectedPattern>>([]);
     readonly skippedPatternPayees = signal<Set<string>>(new Set());
 
@@ -96,6 +124,56 @@ export class RecurringDashboardComponent {
     readonly autoPostCount = computed(
         () => this.schedules().filter(s => s.isActive && s.autoPost).length
     );
+
+    readonly displayedSchedules = computed(() => {
+        const date = this.selectedDate();
+        let list = this.schedules();
+
+        if (date) {
+            list = list.filter(
+                s =>
+                    s.isActive &&
+                    (s.nextDueDate === date ||
+                        RecurringEngine.isDueOnDate(s, date as ISODateString))
+            );
+        }
+
+        const filter = this.activeFilter();
+        if (filter === 'due-soon') {
+            const now = new Date();
+            list = list.filter(s => {
+                if (!s.isActive) return false;
+                const due = new Date(s.nextDueDate);
+                const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 7;
+            });
+        } else if (filter === 'autopost') {
+            list = list.filter(s => s.isActive && s.autoPost);
+        }
+
+        return list;
+    });
+
+    selectDate(dateStr: string): void {
+        this.selectedDate.update(current => (current === dateStr ? null : dateStr));
+    }
+
+    clearSelectedDate(): void {
+        this.selectedDate.set(null);
+    }
+
+    constructor() {
+        effect(() => {
+            const tools = this.recurringSidebarTools();
+            if (tools) {
+                this.sidebarContext.setContext(tools);
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.sidebarContext.clearContext();
+    }
 
     /**
      * Computes the 14-day rolling calendar view with daily Start & End of Day balances.
@@ -126,8 +204,13 @@ export class RecurringDashboardComponent {
                 .filter(tx => tx.status === TransactionStatus.Pending && tx.date === dateStr)
                 .reduce((sum, tx) => sum + tx.totalAmount, 0);
 
-            // Find scheduled items due on this date
-            const daySchedules = allSchedules.filter(s => s.isActive && s.nextDueDate === dateStr);
+            // Find scheduled items due on this date (including recurring intervals)
+            const daySchedules = allSchedules.filter(
+                s =>
+                    s.isActive &&
+                    (s.nextDueDate === dateStr ||
+                        RecurringEngine.isDueOnDate(s, dateStr as ISODateString))
+            );
             const daySchedAmount = daySchedules.reduce((sum, s) => {
                 const isCredit =
                     s.type === ScheduleType.Deposit || s.type === ScheduleType.Paycheck;
@@ -197,6 +280,10 @@ export class RecurringDashboardComponent {
         return Money.formatCurrency(amount);
     }
 
+    formatConfidence(confidence: number): string {
+        return Math.round(confidence * 100) + '%';
+    }
+
     getAccountName(id: string): string {
         return this.accounts().find(a => a.id === id)?.name || 'Unknown Account';
     }
@@ -234,31 +321,57 @@ export class RecurringDashboardComponent {
 
     // Actions
     openNew(): void {
-        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-            void this.router.navigate(['/recurring/new']);
-        } else {
-            const today = new Date().toISOString().slice(0, 10) as ISODateString;
-            this.selectedSchedule.set({
-                type: ScheduleType.Debit,
-                frequency: Frequency.Monthly,
-                paymentMethod: PaymentMethod.ElectronicTransfer,
-                startDate: today,
-                nextDueDate: today,
-                autoPost: false,
-                isActive: true,
-                memo: '',
-                splits: []
-            });
-            this.isDialogVisible.set(true);
-        }
+        const today = new Date().toISOString().slice(0, 10) as ISODateString;
+        this.selectedSchedule.set({
+            type: ScheduleType.Debit,
+            frequency: Frequency.Monthly,
+            paymentMethod: PaymentMethod.ElectronicTransfer,
+            startDate: today,
+            nextDueDate: today,
+            autoPost: false,
+            isActive: true,
+            memo: '',
+            splits: []
+        });
+        this.isDialogVisible.set(true);
+    }
+
+    openNewForSelectedDate(): void {
+        const date = (this.selectedDate() ||
+            new Date().toISOString().slice(0, 10)) as ISODateString;
+        this.selectedSchedule.set({
+            type: ScheduleType.Debit,
+            frequency: Frequency.Monthly,
+            paymentMethod: PaymentMethod.ElectronicTransfer,
+            startDate: date,
+            nextDueDate: date,
+            autoPost: false,
+            isActive: true,
+            memo: '',
+            splits: []
+        });
+        this.isDialogVisible.set(true);
     }
 
     runAnalysis(): void {
+        if (!this.geminiService.hasKey()) {
+            this.isAiExplanationOpen.set(true);
+            return;
+        }
+        this.executePatternDetection();
+    }
+
+    executePatternDetection(): void {
         const allTransactions = this.ledgerStore.transactions();
         const patterns = detectRecurringPatterns(allTransactions);
         this.detectedPatterns.set(patterns);
         this.skippedPatternPayees.set(new Set());
         this.isAnalyzeOpen.set(true);
+    }
+
+    handleRunOfflinePatterns(): void {
+        this.isAiExplanationOpen.set(false);
+        this.executePatternDetection();
     }
 
     acceptPattern(pattern: IDetectedPattern): void {
@@ -300,12 +413,13 @@ export class RecurringDashboardComponent {
     }
 
     editSchedule(schedule: IRecurringSchedule): void {
-        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-            void this.router.navigate(['/recurring', schedule.id, 'edit']);
-        } else {
-            this.selectedSchedule.set({ ...schedule });
-            this.isDialogVisible.set(true);
-        }
+        this.selectedSchedule.set({ ...schedule });
+        this.isDialogVisible.set(true);
+    }
+
+    handleDelete(scheduleId: string): void {
+        void this.ledgerStore.removeSchedule(scheduleId);
+        this.isDialogVisible.set(false);
     }
 
     /**
@@ -365,14 +479,23 @@ export class RecurringDashboardComponent {
     }
 
     handleSave(schedule: IRecurringSchedule | Partial<IRecurringSchedule>): void {
-        if (schedule.id) {
-            void this.ledgerStore.updateSchedule(schedule as IRecurringSchedule);
+        const sched = { ...schedule };
+        if (sched.nextDueDate && typeof sched.nextDueDate === 'object') {
+            sched.nextDueDate = (sched.nextDueDate as Date)
+                .toISOString()
+                .slice(0, 10) as ISODateString;
+        }
+        if (sched.startDate && typeof sched.startDate === 'object') {
+            sched.startDate = (sched.startDate as Date).toISOString().slice(0, 10) as ISODateString;
+        }
+        if (sched.id) {
+            void this.ledgerStore.updateSchedule(sched as IRecurringSchedule);
         } else {
             const newSchedule: IRecurringSchedule = {
-                ...(schedule as IRecurringSchedule),
+                ...(sched as IRecurringSchedule),
                 id: 'sched-' + Date.now(),
                 isActive: true,
-                type: schedule.type || ScheduleType.Debit
+                type: sched.type || ScheduleType.Debit
             };
             void this.ledgerStore.addSchedule(newSchedule);
         }

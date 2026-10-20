@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import type { ICategory, ISplit } from '@core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -48,7 +47,7 @@ describe('SplitEntryDialogComponent', () => {
         vi.clearAllMocks();
 
         await TestBed.configureTestingModule({
-            imports: [SplitEntryDialogComponent, NoopAnimationsModule],
+            imports: [SplitEntryDialogComponent],
             providers: [
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: PostHogService, useValue: mockPosthogService }
@@ -142,5 +141,52 @@ describe('SplitEntryDialogComponent', () => {
             newTotal: 7500
         });
         expect(component.isOpen()).toBe(false);
+    });
+
+    it('should handle negative total amounts (expenses) without sign inversion', () => {
+        fixture.componentRef.setInput('totalAmount', -17550);
+        const splits: Array<ISplit> = [
+            { id: 's-1', amount: -17550, memo: 'Plumbing repair', categoryId: 'cat-1' }
+        ];
+        fixture.componentRef.setInput('initialSplits', splits);
+        fixture.detectChanges();
+
+        expect(component.isBalanced()).toBe(true);
+        expect(component.difference()).toBe(0);
+        expect(component.sumSplits()).toBe(-17550);
+        expect(component.remainingAbs()).toBe(0);
+    });
+
+    it('should calculate remaining amount and auto-balance for expense splits', () => {
+        fixture.componentRef.setInput('totalAmount', -17550);
+        const splits: Array<ISplit> = [
+            { id: 's-1', amount: -10000, memo: 'Part 1', categoryId: 'cat-1' },
+            { id: 's-2', amount: 0, memo: 'Part 2', categoryId: 'cat-2' }
+        ];
+        fixture.componentRef.setInput('initialSplits', splits);
+        fixture.detectChanges();
+
+        expect(component.isBalanced()).toBe(false);
+        expect(component.remainingAbs()).toBe(7550);
+        expect(component.quickBalanceLabel()).toContain('$75.50');
+        expect(component.quickBalanceLabel()).not.toContain('-$');
+        expect(component.quickBalanceLabel()).not.toContain('$-');
+
+        component.handleQuickBalance();
+        expect(component.isBalanced()).toBe(true);
+        expect(component.splits()[1]?.amount).toBe(-7550);
+    });
+
+    it('should correctly update split amounts from positive dollar input for expenses', () => {
+        fixture.componentRef.setInput('totalAmount', -10000);
+        const splits: Array<ISplit> = [
+            { id: 's-1', amount: -10000, memo: 'Split 1', categoryId: 'cat-1' }
+        ];
+        fixture.componentRef.setInput('initialSplits', splits);
+        fixture.detectChanges();
+
+        component.updateSplitFromInput('s-1', 60.0);
+        expect(component.splits()[0]?.amount).toBe(-6000);
+        expect(component.getSplitDisplayDollars(component.splits()[0]!)).toBe(60);
     });
 });

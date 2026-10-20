@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { moduleMetadata } from '@storybook/angular';
+import { expect, userEvent, within } from 'storybook/test';
 
 @Component({
     selector: 'app-animation-demo',
@@ -238,7 +239,7 @@ import { moduleMetadata } from '@storybook/angular';
         </div>
     `
 })
-class AnimationDemoComponent {
+export class AnimationDemoComponent {
     readonly showElements = signal(true);
 
     triggerReplay(): void {
@@ -265,4 +266,12 @@ const meta: Meta<AnimationDemoComponent> = {
 export default meta;
 type Story = StoryObj<AnimationDemoComponent>;
 
-export const Gallery: Story = {};
+export const Gallery: Story = {
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText('Animation Design System')).toBeInTheDocument();
+        const replayButton = canvas.getByRole('button', { name: /replay animations/i });
+        await expect(replayButton).toBeInTheDocument();
+        await userEvent.click(replayButton);
+    }
+};

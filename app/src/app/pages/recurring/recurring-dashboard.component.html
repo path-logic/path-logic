@@ -1,4 +1,120 @@
 <shell>
+    <ng-template #recurringSidebarTools>
+        <div class="space-y-4">
+            <!-- Quick Action: Add Schedule -->
+            <button
+                type="button"
+                (click)="openNew()"
+                class="w-full min-h-[40px] px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold shadow-premium flex items-center justify-center gap-2 transition-all"
+            >
+                <i class="pi pi-plus text-xs"></i>
+                Add Schedule
+            </button>
+
+            <!-- Filter Schedules Panel -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between pb-1 border-b border-surface-100">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-surface-500">
+                        Filter Schedules
+                    </span>
+                    <span
+                        class="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-400"
+                    >
+                        {{ schedules().length }} total
+                    </span>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <button
+                        type="button"
+                        (click)="activeFilter.set('all')"
+                        class="w-full min-h-[36px] px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-medium transition-colors text-left"
+                        [ngClass]="{
+                            'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
+                                activeFilter() === 'all',
+                            'text-surface-700 hover:bg-surface-100': activeFilter() !== 'all'
+                        }"
+                    >
+                        <span class="flex items-center gap-2">
+                            <i class="pi pi-calendar text-xs"></i>
+                            Active Schedules
+                        </span>
+                        <span
+                            class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
+                        >
+                            {{ activeSchedulesCount() }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        (click)="activeFilter.set('due-soon')"
+                        class="w-full min-h-[36px] px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-medium transition-colors text-left"
+                        [ngClass]="{
+                            'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
+                                activeFilter() === 'due-soon',
+                            'text-surface-700 hover:bg-surface-100': activeFilter() !== 'due-soon'
+                        }"
+                    >
+                        <span class="flex items-center gap-2">
+                            <i class="pi pi-clock text-amber-500 text-xs"></i>
+                            Due This Week
+                        </span>
+                        <span
+                            class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold"
+                        >
+                            {{ dueSoonCount() }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        (click)="activeFilter.set('autopost')"
+                        class="w-full min-h-[36px] px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-medium transition-colors text-left"
+                        [ngClass]="{
+                            'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
+                                activeFilter() === 'autopost',
+                            'text-surface-700 hover:bg-surface-100': activeFilter() !== 'autopost'
+                        }"
+                    >
+                        <span class="flex items-center gap-2">
+                            <i class="pi pi-sync text-emerald-500 text-xs"></i>
+                            Auto-Post Rules
+                        </span>
+                        <span
+                            class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
+                        >
+                            {{ autoPostCount() }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        (click)="runAnalysis()"
+                        class="w-full min-h-[36px] px-3 py-1.5 rounded-lg flex items-center justify-between text-xs font-medium transition-colors text-left"
+                        [ngClass]="{
+                            'text-emerald-700 dark:text-emerald-400 font-bold':
+                                activeFilter() === 'ai',
+                            'text-surface-700 hover:bg-surface-100': activeFilter() !== 'ai'
+                        }"
+                    >
+                        <span class="flex items-center gap-2">
+                            <i
+                                class="pi pi-sparkles text-emerald-700 dark:text-emerald-400 text-xs"
+                            ></i>
+                            AI Patterns
+                        </span>
+                        <span
+                            class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold"
+                        >
+                            {{ detectedPatterns().length }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
     <div class="w-full space-y-6 pb-12">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -18,7 +134,7 @@
                     (click)="runAnalysis()"
                     class="min-h-[44px] px-4 text-xs font-bold uppercase tracking-wider border border-emerald-600/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 rounded-xl transition-colors flex items-center gap-2 shadow-xs"
                 >
-                    <i class="pi pi-bolt text-sm text-emerald-700 dark:text-emerald-400"></i>
+                    <i class="pi pi-sparkles text-sm text-emerald-700 dark:text-emerald-400"></i>
                     Analyze Patterns
                     @if (detectedPatterns().length > 0) {
                         <span
@@ -39,165 +155,149 @@
             </div>
         </div>
 
-        <!-- Main Desktop Workspace: Left Sidebar + Center 2-Week Calendar + Right Scheduled Table -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left Sidebar Contextual Filter Panel -->
-            <div class="lg:col-span-3 space-y-4">
-                <div
-                    class="bg-surface-0 border border-surface-200/60 rounded-2xl p-4 shadow-sm space-y-2"
+        <!-- Mobile Horizontal Filter Row (< 1024px) -->
+        <div
+            aria-label="Schedule Filter"
+            class="flex lg:hidden items-center gap-2 overflow-x-auto pb-1 no-scrollbar"
+        >
+            <button
+                type="button"
+                (click)="activeFilter.set('all')"
+                class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer"
+                [ngClass]="{
+                    'bg-emerald-700 text-white': activeFilter() === 'all',
+                    'bg-surface-100 text-surface-700 hover:bg-surface-200': activeFilter() !== 'all'
+                }"
+            >
+                <span>All</span>
+                <span
+                    class="text-[10px] px-1.5 py-0.2 rounded-full bg-surface-200 dark:bg-surface-800 text-surface-700 dark:text-surface-300"
+                    >{{ activeSchedulesCount() }}</span
                 >
-                    <div class="flex items-center justify-between pb-2 border-b border-surface-100">
-                        <span class="text-xs font-bold uppercase tracking-wider text-surface-500"
-                            >Filter Schedules</span
-                        >
-                        <span
-                            class="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-400"
-                            >{{ schedules().length }} total</span
-                        >
+            </button>
+            <button
+                type="button"
+                (click)="activeFilter.set('due-soon')"
+                class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer"
+                [ngClass]="{
+                    'bg-emerald-700 text-white': activeFilter() === 'due-soon',
+                    'bg-surface-100 text-surface-700 hover:bg-surface-200':
+                        activeFilter() !== 'due-soon'
+                }"
+            >
+                <span>Due Soon</span>
+                <span
+                    class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold"
+                    >{{ dueSoonCount() }}</span
+                >
+            </button>
+            <button
+                type="button"
+                (click)="activeFilter.set('autopost')"
+                class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer"
+                [ngClass]="{
+                    'bg-emerald-700 text-white': activeFilter() === 'autopost',
+                    'bg-surface-100 text-surface-700 hover:bg-surface-200':
+                        activeFilter() !== 'autopost'
+                }"
+            >
+                <span>Auto-Post</span>
+                <span
+                    class="text-[10px] px-1.5 py-0.2 rounded-full bg-surface-200 dark:bg-surface-800 text-surface-700 dark:text-surface-300"
+                    >{{ autoPostCount() }}</span
+                >
+            </button>
+        </div>
+
+        <!-- Main Desktop Workspace: Center 2-Week Calendar + Scheduled Table -->
+        <div class="space-y-6">
+            <!-- 2-Week Rolling Calendar Section -->
+            <section
+                class="bg-surface-0 border border-surface-200/60 rounded-2xl p-5 shadow-premium space-y-4"
+            >
+                <div class="flex justify-between items-center pb-3 border-b border-surface-100">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-calendar text-emerald-700 dark:text-emerald-400"></i>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-surface-900">
+                            2-Week Rolling Horizon
+                        </h2>
                     </div>
-
-                    <div
-                        class="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0"
-                    >
+                    <div class="flex items-center gap-2">
                         <button
                             type="button"
-                            (click)="activeFilter.set('all')"
-                            class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                            [ngClass]="{
-                                'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
-                                    activeFilter() === 'all',
-                                'text-surface-700 hover:bg-surface-100': activeFilter() !== 'all'
-                            }"
+                            (click)="prevTwoWeeks()"
+                            class="px-3 py-1.5 border border-surface-200 hover:bg-surface-100 rounded-lg text-xs font-semibold text-surface-700 transition-colors flex items-center gap-1 min-h-[36px]"
                         >
-                            <span class="flex items-center gap-2.5">
-                                <i class="pi pi-calendar"></i>
-                                Active Schedules
-                            </span>
-                            <span
-                                class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                            >
-                                {{ activeSchedulesCount() }}
-                            </span>
+                            <i class="pi pi-chevron-left text-xs"></i> Prev 2 Weeks
                         </button>
-
                         <button
                             type="button"
-                            (click)="activeFilter.set('due-soon')"
-                            class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                            [ngClass]="{
-                                'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
-                                    activeFilter() === 'due-soon',
-                                'text-surface-700 hover:bg-surface-100':
-                                    activeFilter() !== 'due-soon'
-                            }"
+                            (click)="resetToCurrentWeek()"
+                            class="px-3 py-1.5 bg-surface-100 hover:bg-surface-200 rounded-lg text-xs font-semibold text-surface-700 transition-colors min-h-[36px]"
                         >
-                            <span class="flex items-center gap-2.5">
-                                <i class="pi pi-clock text-amber-500"></i>
-                                Due This Week
-                            </span>
-                            <span
-                                class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold"
-                            >
-                                {{ dueSoonCount() }}
-                            </span>
+                            Today
                         </button>
-
                         <button
                             type="button"
-                            (click)="activeFilter.set('autopost')"
-                            class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                            [ngClass]="{
-                                'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold':
-                                    activeFilter() === 'autopost',
-                                'text-surface-700 hover:bg-surface-100':
-                                    activeFilter() !== 'autopost'
-                            }"
+                            (click)="nextTwoWeeks()"
+                            class="px-3 py-1.5 border border-surface-200 hover:bg-surface-100 rounded-lg text-xs font-semibold text-surface-700 transition-colors flex items-center gap-1 min-h-[36px]"
                         >
-                            <span class="flex items-center gap-2.5">
-                                <i class="pi pi-sync text-emerald-500"></i>
-                                Auto-Post Rules
-                            </span>
-                            <span
-                                class="text-xs px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-800 text-surface-600"
-                            >
-                                {{ autoPostCount() }}
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            (click)="runAnalysis()"
-                            class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between text-sm font-medium transition-colors text-left"
-                            [ngClass]="{
-                                'text-emerald-700 dark:text-emerald-400 font-bold':
-                                    activeFilter() === 'ai',
-                                'text-surface-700 hover:bg-surface-100': activeFilter() !== 'ai'
-                            }"
-                        >
-                            <span class="flex items-center gap-2.5">
-                                <i
-                                    class="pi pi-sparkles text-emerald-700 dark:text-emerald-400"
-                                ></i>
-                                AI Detected Patterns
-                            </span>
-                            <span
-                                class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold"
-                            >
-                                {{ detectedPatterns().length }}
-                            </span>
+                            Next 2 Weeks <i class="pi pi-chevron-right text-xs"></i>
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Center/Right Main Content Area -->
-            <div class="lg:col-span-9 space-y-6">
-                <!-- 2-Week Rolling Calendar Section -->
-                <section
-                    class="bg-surface-0 border border-surface-200/60 rounded-2xl p-5 shadow-premium space-y-4"
-                >
-                    <div class="flex justify-between items-center pb-3 border-b border-surface-100">
-                        <div class="flex items-center gap-2">
-                            <i class="pi pi-calendar text-emerald-700 dark:text-emerald-400"></i>
-                            <h2 class="text-sm font-bold uppercase tracking-wider text-surface-900">
-                                2-Week Rolling Horizon
-                            </h2>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button
-                                type="button"
-                                (click)="prevTwoWeeks()"
-                                class="px-3 py-1.5 border border-surface-200 hover:bg-surface-100 rounded-lg text-xs font-semibold text-surface-700 transition-colors flex items-center gap-1 min-h-[36px]"
-                            >
-                                <i class="pi pi-chevron-left text-xs"></i> Prev 2 Weeks
-                            </button>
-                            <button
-                                type="button"
-                                (click)="resetToCurrentWeek()"
-                                class="px-3 py-1.5 bg-surface-100 hover:bg-surface-200 rounded-lg text-xs font-semibold text-surface-700 transition-colors min-h-[36px]"
-                            >
-                                Today
-                            </button>
-                            <button
-                                type="button"
-                                (click)="nextTwoWeeks()"
-                                class="px-3 py-1.5 border border-surface-200 hover:bg-surface-100 rounded-lg text-xs font-semibold text-surface-700 transition-colors flex items-center gap-1 min-h-[36px]"
-                            >
-                                Next 2 Weeks <i class="pi pi-chevron-right text-xs"></i>
-                            </button>
-                        </div>
+                @if (isLoading()) {
+                    <div
+                        class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5"
+                        role="status"
+                        aria-busy="true"
+                    >
+                        @for (
+                            placeholder of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+                            track placeholder
+                        ) {
+                            <app-skeleton
+                                shape="card"
+                                width="100%"
+                                height="110px"
+                                styleClass="w-full"
+                            />
+                        }
                     </div>
-
+                } @else {
                     <!-- 14-Day Calendar Grid (Desktop >= 1024px) -->
                     <div class="hidden lg:grid grid-cols-7 gap-2.5">
                         @for (day of twoWeekDays(); track day.dateStr) {
                             <div
-                                class="p-2.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px]"
-                                [class.border-primary]="day.isToday"
-                                [class.bg-primary-5]="day.isToday"
-                                [class.border-surface-200-60]="!day.isToday"
-                                [class.bg-surface-50-50]="!day.isToday && !day.hasBills"
-                                [class.bg-surface-0]="day.hasBills && !day.isToday"
+                                (click)="selectDate(day.dateStr)"
+                                (keydown.enter)="selectDate(day.dateStr)"
+                                (keydown.space)="selectDate(day.dateStr); $event.preventDefault()"
+                                role="button"
+                                tabindex="0"
+                                [attr.aria-pressed]="selectedDate() === day.dateStr"
+                                [attr.aria-label]="
+                                    day.dayName +
+                                    ' ' +
+                                    day.dayNumber +
+                                    (day.isToday ? ', Today' : '') +
+                                    (selectedDate() === day.dateStr ? ', selected' : '')
+                                "
+                                class="p-2.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] cursor-pointer select-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                [ngClass]="{
+                                    'ring-2 ring-emerald-600 dark:ring-emerald-400 border-emerald-600 dark:border-emerald-500 bg-emerald-500/10 shadow-sm':
+                                        selectedDate() === day.dateStr,
+                                    'border-primary bg-primary-5 hover:border-emerald-400':
+                                        selectedDate() !== day.dateStr && day.isToday,
+                                    'border-surface-200/60 bg-surface-50/50 hover:border-surface-400 hover:bg-surface-100/60':
+                                        selectedDate() !== day.dateStr &&
+                                        !day.isToday &&
+                                        !day.hasBills,
+                                    'border-surface-200/60 bg-surface-0 hover:border-surface-400 hover:bg-surface-50':
+                                        selectedDate() !== day.dateStr &&
+                                        !day.isToday &&
+                                        day.hasBills
+                                }"
                             >
                                 <!-- Day Header: Day Name + Date Number + Today Tag -->
                                 <div
@@ -253,7 +353,9 @@
                                         @for (sched of day.schedules.slice(0, 2); track sched.id) {
                                             <div
                                                 class="px-1.5 py-0.5 rounded-md text-[10px] font-bold truncate flex justify-between items-center cursor-pointer hover:opacity-80 transition-opacity"
-                                                (click)="editSchedule(sched)"
+                                                (click)="
+                                                    $event.stopPropagation(); editSchedule(sched)
+                                                "
                                                 [class.bg-emerald-500-10]="
                                                     sched.type === 'deposit' ||
                                                     sched.type === 'paycheck'
@@ -306,11 +408,30 @@
                             <div class="space-y-3">
                                 @for (day of agendaDays(); track day.dateStr) {
                                     <div
-                                        class="p-4 rounded-xl border transition-all"
-                                        [class.border-primary]="day.isToday"
-                                        [class.bg-primary-5]="day.isToday"
-                                        [class.border-surface-200-60]="!day.isToday"
-                                        [class.bg-surface-0]="!day.isToday"
+                                        (click)="selectDate(day.dateStr)"
+                                        (keydown.enter)="selectDate(day.dateStr)"
+                                        (keydown.space)="
+                                            selectDate(day.dateStr); $event.preventDefault()
+                                        "
+                                        role="button"
+                                        tabindex="0"
+                                        [attr.aria-pressed]="selectedDate() === day.dateStr"
+                                        [attr.aria-label]="
+                                            day.dayName +
+                                            ' ' +
+                                            day.dateStr +
+                                            (day.isToday ? ', Today' : '') +
+                                            (selectedDate() === day.dateStr ? ', selected' : '')
+                                        "
+                                        class="p-4 rounded-xl border transition-all cursor-pointer select-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                        [ngClass]="{
+                                            'ring-2 ring-emerald-600 dark:ring-emerald-400 border-emerald-600 dark:border-emerald-500 bg-emerald-500/10 shadow-sm':
+                                                selectedDate() === day.dateStr,
+                                            'border-primary bg-primary-5 hover:border-emerald-400':
+                                                selectedDate() !== day.dateStr && day.isToday,
+                                            'border-surface-200/60 bg-surface-0 hover:border-surface-400 hover:bg-surface-50':
+                                                selectedDate() !== day.dateStr && !day.isToday
+                                        }"
                                     >
                                         <!-- Agenda Day Header -->
                                         <div
@@ -453,22 +574,158 @@
                             </div>
                         }
                     </div>
-                </section>
+                }
+            </section>
 
-                <!-- Scheduled Transactions Table Section (Desktop) & Cards (Mobile) -->
-                <section class="space-y-3">
-                    <div class="flex justify-between items-center">
+            <!-- Scheduled Transactions Table Section (Desktop) & Cards (Mobile) -->
+            <section class="space-y-3">
+                <div
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                >
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h2 class="text-sm font-bold uppercase tracking-wider text-surface-500">
                             Scheduled Transactions
                         </h2>
+                        @if (selectedDate()) {
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                            >
+                                <i class="pi pi-calendar text-[10px]"></i>
+                                {{ selectedDate() | localDate: 'medium' }}
+                                <button
+                                    type="button"
+                                    (click)="clearSelectedDate()"
+                                    class="ml-1 hover:text-emerald-900 dark:hover:text-emerald-200 cursor-pointer"
+                                    title="Show all scheduled transactions"
+                                    aria-label="Clear date filter"
+                                >
+                                    <i class="pi pi-times text-[10px]"></i>
+                                </button>
+                            </span>
+                        }
                     </div>
+                    <div class="flex items-center gap-2">
+                        @if (selectedDate()) {
+                            <button
+                                type="button"
+                                (click)="clearSelectedDate()"
+                                class="text-xs font-semibold text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 transition-colors cursor-pointer"
+                            >
+                                View All Schedules
+                            </button>
+                        }
+                        <button
+                            type="button"
+                            (click)="openNewForSelectedDate()"
+                            class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer min-h-[36px]"
+                        >
+                            <i class="pi pi-plus text-xs"></i>
+                            {{ selectedDate() ? 'Add on this Date' : 'Add Schedule' }}
+                        </button>
+                    </div>
+                </div>
 
-                    <!-- Desktop High-Density Data Table (hidden on mobile) -->
+                <!-- Desktop High-Density Data Table (hidden on mobile) -->
+                @if (isLoading()) {
+                    <div
+                        class="hidden md:block bg-surface-0 border border-surface-200/60 rounded-2xl p-4 shadow-premium space-y-3"
+                        role="status"
+                        aria-busy="true"
+                    >
+                        @for (row of [1, 2, 3, 4, 5]; track row) {
+                            <div
+                                class="flex items-center justify-between py-2 border-b border-surface-100"
+                            >
+                                <div class="flex items-center gap-3 flex-1">
+                                    <app-skeleton shape="pill" width="70px" height="24px" />
+                                    <app-skeleton width="100px" height="16px" />
+                                    <app-skeleton width="140px" height="16px" />
+                                    <app-skeleton width="100px" height="16px" />
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <app-skeleton width="80px" height="16px" />
+                                    <app-skeleton
+                                        width="70px"
+                                        height="32px"
+                                        styleClass="rounded-lg"
+                                    />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="md:hidden space-y-3" role="status" aria-busy="true">
+                        @for (card of [1, 2, 3]; track card) {
+                            <app-skeleton
+                                shape="card"
+                                width="100%"
+                                height="110px"
+                                styleClass="w-full"
+                            />
+                        }
+                    </div>
+                } @else if (displayedSchedules().length === 0) {
+                    <div
+                        class="bg-surface-0 border border-dashed border-surface-200/80 dark:border-surface-700 rounded-2xl p-10 text-center space-y-3"
+                    >
+                        <div
+                            class="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto"
+                        >
+                            <i class="pi pi-calendar-times text-xl"></i>
+                        </div>
+                        @if (selectedDate()) {
+                            <div>
+                                <p class="text-sm font-bold text-surface-900 dark:text-surface-100">
+                                    No scheduled transactions on
+                                    {{ selectedDate() | localDate: 'medium' }}
+                                </p>
+                                <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">
+                                    There are no recurring bills, deposits, or paychecks scheduled
+                                    for this day.
+                                </p>
+                            </div>
+                            <div class="flex items-center justify-center gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    (click)="openNewForSelectedDate()"
+                                    class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 cursor-pointer"
+                                >
+                                    <i class="pi pi-plus text-xs"></i>
+                                    Add Schedule for this Date
+                                </button>
+                                <button
+                                    type="button"
+                                    (click)="clearSelectedDate()"
+                                    class="px-4 py-2 border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-700 dark:text-surface-300 rounded-xl text-xs font-semibold cursor-pointer"
+                                >
+                                    View All Schedules
+                                </button>
+                            </div>
+                        } @else {
+                            <div>
+                                <p class="text-sm font-bold text-surface-900 dark:text-surface-100">
+                                    No scheduled transactions
+                                </p>
+                                <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">
+                                    Create a recurring bill, salary, or transfer to track
+                                    projections.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                (click)="openNew()"
+                                class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 mx-auto cursor-pointer"
+                            >
+                                <i class="pi pi-plus text-xs"></i>
+                                Add Schedule
+                            </button>
+                        }
+                    </div>
+                } @else {
                     <div
                         class="hidden md:block bg-surface-0 border border-surface-200/60 rounded-2xl overflow-hidden shadow-premium"
                     >
                         <p-table
-                            [value]="schedules()"
+                            [value]="displayedSchedules()"
                             [tableStyle]="{ 'min-width': '50rem' }"
                             styleClass="p-datatable-sm"
                         >
@@ -487,7 +744,9 @@
                             </ng-template>
                             <ng-template pTemplate="body" let-schedule>
                                 <tr
-                                    class="border-b border-surface-100 hover:bg-surface-50/50 transition-colors text-sm"
+                                    (click)="editSchedule(schedule)"
+                                    class="border-b border-surface-100 hover:bg-surface-50/50 dark:hover:bg-surface-800/40 transition-colors text-sm cursor-pointer"
+                                    title="Click to edit schedule"
                                 >
                                     <td>
                                         <p-tag
@@ -534,17 +793,24 @@
                                     <td class="flex justify-center gap-1.5 py-2">
                                         <button
                                             type="button"
-                                            (click)="postSchedule(schedule)"
-                                            class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-colors min-h-[32px]"
+                                            (click)="
+                                                $event.stopPropagation(); postSchedule(schedule)
+                                            "
+                                            class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-colors min-h-[32px] cursor-pointer"
                                             title="Post to Ledger Now"
                                         >
                                             Post Now
                                         </button>
                                         <button
                                             type="button"
-                                            (click)="editSchedule(schedule)"
-                                            class="p-1.5 border border-surface-200 hover:bg-surface-100 text-surface-600 rounded-lg text-xs transition-colors min-h-[32px] w-[32px] flex items-center justify-center"
+                                            (click)="
+                                                $event.stopPropagation(); editSchedule(schedule)
+                                            "
+                                            class="p-1.5 border border-surface-200 hover:bg-surface-100 text-surface-600 rounded-lg text-xs transition-colors min-h-[32px] w-[32px] flex items-center justify-center cursor-pointer"
                                             title="Edit Schedule"
+                                            [attr.aria-label]="
+                                                'Edit Schedule for ' + schedule.payee
+                                            "
                                         >
                                             <i class="pi pi-pencil text-xs"></i>
                                         </button>
@@ -556,7 +822,7 @@
 
                     <!-- Mobile Cards View (< 768px) with Clean Plain-Text Frequency Metadata -->
                     <div class="md:hidden space-y-3">
-                        @for (schedule of schedules(); track schedule.id) {
+                        @for (schedule of displayedSchedules(); track schedule.id) {
                             <div
                                 (click)="editSchedule(schedule)"
                                 class="p-4 bg-surface-0 border border-surface-200/60 hover:border-emerald-500/40 rounded-2xl shadow-sm space-y-3 cursor-pointer transition-all hover:shadow-md group/card"
@@ -627,8 +893,8 @@
                             </div>
                         }
                     </div>
-                </section>
-            </div>
+                }
+            </section>
         </div>
     </div>
 
@@ -636,16 +902,205 @@
     <p-dialog
         [(visible)]="isDialogVisible"
         [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
         [header]="selectedSchedule().id ? 'Edit Recurring Schedule' : 'New Recurring Schedule'"
-        [style]="{ width: '50rem' }"
-        styleClass="p-fluid"
+        [style]="{ width: '52rem', maxWidth: '95vw' }"
+        styleClass="p-fluid font-sans"
+        appendTo="body"
     >
         <ng-template pTemplate="content">
             <recurring-payment-form
                 [schedule]="selectedSchedule()"
+                [accounts]="accounts()"
                 (saved)="handleSave($event)"
                 (cancelled)="handleCancel()"
+                (deleted)="handleDelete($event)"
             ></recurring-payment-form>
         </ng-template>
+    </p-dialog>
+    <!-- AI Educational Activation Dialog (A.1 Pattern) -->
+    <ai-feature-dialog
+        [(visible)]="isAiExplanationOpen"
+        featureName="AI Recurring Pattern Discovery"
+        description="Path Logic analyzes your historical ledger transactions to detect recurring subscriptions, utility bills, and paychecks with smart frequency and confidence scoring."
+        [benefits]="[
+            'Identifies repeating payees and calculates median transaction amounts',
+            'Determines interval frequencies (Weekly, Bi-weekly, Monthly, etc.)',
+            'Enables 1-click conversion into automated recurring schedules',
+            'Enhances 90-day cashflow forecasts with discovered schedules'
+        ]"
+        [canRunOffline]="true"
+        offlineActionLabel="Run Offline Detection"
+        (runOffline)="handleRunOfflinePatterns()"
+    ></ai-feature-dialog>
+
+    <!-- Discovered Patterns Dialog -->
+    <p-dialog
+        [(visible)]="isAnalyzeOpen"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+        header="Discovered Recurring Patterns"
+        ariaLabel="Discovered Recurring Patterns"
+        styleClass="w-full max-w-[700px] font-sans"
+        [contentStyle]="{ padding: '0' }"
+        appendTo="body"
+    >
+        <div class="p-6 space-y-5">
+            <!-- Header status banner -->
+            <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-surface-200 dark:border-surface-700"
+            >
+                <div>
+                    <h3
+                        class="text-sm font-bold text-surface-900 dark:text-surface-100 flex items-center gap-2"
+                    >
+                        <i class="pi pi-sparkles text-emerald-600 dark:text-emerald-400"></i>
+                        Detected Repeating Patterns
+                    </h3>
+                    <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
+                        Historical interval frequency analysis based on ledger entries
+                    </p>
+                </div>
+                @if (geminiService.hasKey()) {
+                    <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 self-start sm:self-center"
+                    >
+                        <i class="pi pi-sparkles text-[10px]"></i>
+                        AI Enhanced
+                    </span>
+                } @else {
+                    <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 border border-surface-200 dark:border-surface-700 self-start sm:self-center"
+                    >
+                        <i class="pi pi-chart-line text-[10px]"></i>
+                        Offline Statistical Analysis
+                    </span>
+                }
+            </div>
+
+            <!-- Pattern List / Empty State -->
+            @if (visiblePatterns.length === 0) {
+                <div class="py-12 px-4 text-center space-y-3">
+                    <div
+                        class="w-12 h-12 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center mx-auto text-surface-400"
+                    >
+                        <i class="pi pi-search text-xl"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-bold text-surface-800 dark:text-surface-200">
+                            No Recurring Patterns Detected
+                        </h4>
+                        <p
+                            class="text-xs text-surface-500 dark:text-surface-400 max-w-[360px] mx-auto leading-relaxed"
+                        >
+                            Path Logic needs at least 3 historical transactions for a payee to
+                            calculate interval periodicity. Keep importing or adding transactions
+                            and run analysis again anytime.
+                        </p>
+                    </div>
+                </div>
+            } @else {
+                <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                    @for (
+                        pattern of visiblePatterns;
+                        track pattern.accountId + '::' + pattern.payee
+                    ) {
+                        <div
+                            class="p-3.5 bg-surface-50 dark:bg-surface-850 border border-surface-200 dark:border-surface-700 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-surface-300 dark:hover:border-surface-600 transition-colors"
+                        >
+                            <!-- Pattern Details -->
+                            <div class="space-y-1 min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span
+                                        class="text-xs font-bold text-surface-900 dark:text-surface-100 truncate"
+                                    >
+                                        {{ pattern.payee }}
+                                    </span>
+                                    <span
+                                        class="px-2 py-0.5 text-[10px] font-semibold rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                    >
+                                        {{ pattern.suggestedFrequency }}
+                                    </span>
+                                    <span
+                                        class="px-2 py-0.5 text-[10px] font-bold rounded-md"
+                                        [ngClass]="{
+                                            'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400':
+                                                pattern.confidence >= 0.7,
+                                            'bg-amber-500/10 text-amber-700 dark:text-amber-400':
+                                                pattern.confidence < 0.7
+                                        }"
+                                    >
+                                        {{ formatConfidence(pattern.confidence) }} confidence
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 text-[11px] text-surface-500 dark:text-surface-400"
+                                >
+                                    <span>{{ getAccountName(pattern.accountId) }}</span>
+                                    <span>•</span>
+                                    <span
+                                        >Matched across
+                                        {{ pattern.sampleDates.length }} occurrences</span
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- Amount & Action Buttons -->
+                            <div
+                                class="flex items-center gap-3 sm:gap-4 justify-between sm:justify-end flex-none"
+                            >
+                                <span
+                                    class="text-xs font-mono font-bold"
+                                    [class.text-red-600]="pattern.suggestedAmount < 0"
+                                    [class.dark:text-red-400]="pattern.suggestedAmount < 0"
+                                    [class.text-emerald-600]="pattern.suggestedAmount > 0"
+                                    [class.dark:text-emerald-400]="pattern.suggestedAmount > 0"
+                                >
+                                    {{ formatCurrency(pattern.suggestedAmount) }}
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <button
+                                        type="button"
+                                        (click)="skipPattern(pattern)"
+                                        aria-label="Skip Pattern"
+                                        title="Skip this pattern"
+                                        class="px-2.5 py-1.5 text-xs text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200/60 dark:hover:bg-surface-700/60 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        Skip
+                                    </button>
+                                    <button
+                                        type="button"
+                                        (click)="acceptPattern(pattern)"
+                                        aria-label="Add to Schedules"
+                                        class="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <i class="pi pi-plus text-[10px]"></i>
+                                        <span>Add Schedule</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Dialog Footer -->
+            <div
+                class="flex items-center justify-between pt-3 border-t border-surface-200 dark:border-surface-700"
+            >
+                <span class="text-xs text-surface-500 font-medium">
+                    {{ visiblePatterns.length }} pattern(s) remaining
+                </span>
+                <button
+                    type="button"
+                    (click)="isAnalyzeOpen.set(false)"
+                    class="px-4 py-2 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-xl transition-colors cursor-pointer border border-surface-200 dark:border-surface-700"
+                >
+                    Done
+                </button>
+            </div>
+        </div>
     </p-dialog>
 </shell>

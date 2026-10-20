@@ -18,7 +18,6 @@ import { AccountType, TypeGuards } from '@core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Step, StepList, StepPanel, StepPanels, Stepper } from 'primeng/stepper';
-import { CategoryMappingDialogComponent } from '../../ledger/category-mapping-dialog/category-mapping-dialog.component';
 
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { PostHogService } from '../../../services/posthog/posthog.service';
@@ -162,8 +161,7 @@ const TYPE_THEMING: Record<
         Step,
         StepPanel,
         Button,
-        Dialog,
-        CategoryMappingDialogComponent
+        Dialog
     ],
     templateUrl: './new-account-dialog.component.html',
     styleUrls: ['./new-account-dialog.component.css'],
@@ -382,7 +380,7 @@ export class NewAccountDialogComponent {
 
     private startImportFromFile(file: File): void {
         const accountId = this.createdAccount()?.id ?? '';
-        this.importService.startImport(file, accountId);
+        this.importService.startImport(file, accountId, { deferCategoryMapping: true });
     }
 
     skipImport(): void {
@@ -402,17 +400,11 @@ export class NewAccountDialogComponent {
             }
         }
 
-        setTimeout(() => {
-            if (accountId) {
-                void this.router.navigate(['/accounts', accountId]).then(() => {
-                    this.closed.emit();
-                    this.isNavigating.set(false);
-                });
-            } else {
-                this.closed.emit();
-                this.isNavigating.set(false);
-            }
-        }, 50);
+        this.closed.emit();
+        this.isNavigating.set(false);
+        if (accountId) {
+            await this.router.navigate(['/accounts', accountId]);
+        }
     }
 
     handleCancel(): void {

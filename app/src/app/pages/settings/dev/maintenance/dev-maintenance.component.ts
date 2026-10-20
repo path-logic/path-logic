@@ -1,18 +1,44 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    effect,
+    inject,
+    Injectable,
+    signal
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { environment } from '../../../../../environments/environment';
 import { AppShellComponent } from '../../../../components/layout/app-shell/app-shell.component';
-import { factoryResetDrive } from '../../../../lib/storage/GoogleDriveAdapter';
-import { clearLocalFallback } from '../../../../lib/storage/LocalPersistenceAdapter';
-import {
-    deleteCategory,
-    deletePayee,
-    softDeleteAccount
-} from '../../../../lib/storage/SQLiteAdapter';
+import * as GoogleDriveAdapter from '../../../../lib/storage/GoogleDriveAdapter';
+import * as LocalPersistenceAdapter from '../../../../lib/storage/LocalPersistenceAdapter';
+import * as SQLiteAdapter from '../../../../lib/storage/SQLiteAdapter';
 import { AuthService } from '../../../../services/auth/auth.service';
 import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
+
+@Injectable({ providedIn: 'root' })
+export class DevMaintenanceStorageService {
+    async factoryResetDrive(token: string): Promise<void> {
+        return GoogleDriveAdapter.factoryResetDrive(token);
+    }
+
+    async clearLocalSnapshot(): Promise<void> {
+        return LocalPersistenceAdapter.clearLocalSnapshot();
+    }
+
+    softDeleteAccount(id: string): void {
+        SQLiteAdapter.softDeleteAccount(id);
+    }
+
+    deletePayee(id: string): void {
+        SQLiteAdapter.deletePayee(id);
+    }
+
+    deleteCategory(id: string): void {
+        SQLiteAdapter.deleteCategory(id);
+    }
+}
 
 /**
  * Developer tool for environment-level data destruction and entity management.
@@ -28,6 +54,7 @@ import { LedgerStore } from '../../../../services/ledger-store/ledger.store';
 })
 export class DevMaintenanceComponent {
     private readonly authService = inject(AuthService);
+    private readonly storage = inject(DevMaintenanceStorageService);
     readonly ledgerStore = inject(LedgerStore);
 
     // UI State
@@ -65,7 +92,7 @@ export class DevMaintenanceComponent {
             const token = this.authService.accessToken();
             if (token) {
                 try {
-                    await factoryResetDrive(token);
+                    await this.storage.factoryResetDrive(token);
                 } catch (cloudError) {
                     console.warn(
                         '[Maintenance] Cloud wipe failed, proceeding with local wipe:',
@@ -79,7 +106,7 @@ export class DevMaintenanceComponent {
             }
 
             // 2. Clear Local Cache (IndexedDB)
-            await clearLocalFallback();
+            await this.storage.clearLocalSnapshot();
 
             // 3. Reset In-Memory Store & SQLite
             this.ledgerStore.reset();
@@ -105,7 +132,7 @@ export class DevMaintenanceComponent {
 
         this.isResetting.set(true);
         try {
-            await clearLocalFallback();
+            await this.storage.clearLocalSnapshot();
             this.ledgerStore.reset();
             this.resetSuccess.set(true);
         } catch (error) {
@@ -118,19 +145,19 @@ export class DevMaintenanceComponent {
 
     async handleDeleteAccount(id: string): Promise<void> {
         if (!confirm('Soft delete this account?')) return;
-        softDeleteAccount(id);
+        this.storage.softDeleteAccount(id);
         await this.ledgerStore.initialize();
     }
 
     async handleDeletePayee(id: string): Promise<void> {
         if (!confirm('Mark this payee as deleted?')) return;
-        deletePayee(id);
+        this.storage.deletePayee(id);
         await this.ledgerStore.initialize();
     }
 
     async handleDeleteCategory(id: string): Promise<void> {
         if (!confirm('Mark this category as deleted?')) return;
-        deleteCategory(id);
+        this.storage.deleteCategory(id);
         await this.ledgerStore.initialize();
     }
 

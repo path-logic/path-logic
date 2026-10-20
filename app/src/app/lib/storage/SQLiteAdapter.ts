@@ -294,6 +294,15 @@ export const SQL_QUERIES = {
     INSERT_SPLIT: `
         INSERT INTO splits (id, transactionId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            transactionId = excluded.transactionId,
+            categoryId = excluded.categoryId,
+            memo = excluded.memo,
+            amount = excluded.amount,
+            isDeleted = 0,
+            deletedAt = NULL,
+            clientId = excluded.clientId,
+            updatedAt = excluded.updatedAt
     `,
 
     SELECT_SPLITS_BY_TRANSACTION: `
@@ -371,7 +380,15 @@ SELECT * FROM recurring_schedules WHERE isDeleted = 0 ORDER BY nextDueDate ASC
 
     INSERT_RECURRING_SPLIT: `
         INSERT INTO recurring_splits(id, scheduleId, categoryId, memo, amount, isDeleted, clientId, updatedAt)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            scheduleId = excluded.scheduleId,
+            categoryId = excluded.categoryId,
+            memo = excluded.memo,
+            amount = excluded.amount,
+            isDeleted = 0,
+            clientId = excluded.clientId,
+            updatedAt = excluded.updatedAt
     `,
 
     SELECT_RECURRING_SPLITS_BY_SCHEDULE: `

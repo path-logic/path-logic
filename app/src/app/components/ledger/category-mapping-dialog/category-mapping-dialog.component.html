@@ -12,50 +12,96 @@
     appendTo="body"
 >
     <div class="p-6">
-        <!-- Action Required Header -->
+        <!-- Helpful Smart Mapping & AI Discovery Panel -->
         <div
-            class="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            class="ai-mapping-panel mb-4 p-4 bg-surface-50 dark:bg-surface-850 border border-surface-200 dark:border-surface-700 rounded-xl flex flex-col gap-3 transition-all"
         >
-            <div class="flex-1">
-                <h3 class="text-sm font-bold text-amber-500 flex items-center gap-2 mb-1">
-                    <i class="pi pi-exclamation-triangle"></i>
-                    Action Required
-                </h3>
-                <p class="text-xs text-surface-400">
-                    The imported QIF file contains unrecognized categories or merchants. Please map
-                    these to existing categories. We'll remember your choices for future imports.
-                </p>
-            </div>
-            <div class="flex-none">
-                @if (geminiService.hasKey()) {
-                    @if (isAiLoading()) {
-                        <p-button
-                            label="Cancel AI"
-                            icon="pi pi-times"
-                            (onClick)="cancelAiAutoMap()"
-                            size="small"
-                            severity="danger"
-                            variant="outlined"
-                            styleClass="rounded-md"
-                        />
-                    } @else {
-                        <p-button
-                            label="AI Auto-Map"
-                            icon="pi pi-sparkles"
-                            (onClick)="runAiSuggest()"
-                            size="small"
-                            severity="primary"
-                            styleClass="pl-btn-primary rounded-md"
-                        />
-                    }
-                } @else {
-                    <span
-                        class="text-[9px] uppercase tracking-wider font-bold text-surface-450 block border border-surface-200/50 rounded-md p-2 bg-surface-50 max-w-[200px]"
+            <div class="banner-content-container flex flex-col gap-3">
+                <div>
+                    <h3
+                        class="text-sm font-bold text-surface-900 dark:text-surface-100 flex items-center gap-2 mb-1"
                     >
-                        💡 Configure AI Key in Settings to enable AI Auto-Mapping
-                    </span>
+                        <i class="pi pi-sparkles text-primary"></i>
+                        Smart Category &amp; Payee Mapping
+                    </h3>
+                    <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
+                        We detected new merchants or category labels in your import. Map them to
+                        your ledger below, or choose to ignore and categorize later.
+                    </p>
+                </div>
+
+                @if (geminiService.hasKey()) {
+                    <div class="ai-actions-row flex items-center gap-2.5 flex-wrap pt-0.5">
+                        @if (isAiLoading()) {
+                            <p-button
+                                label="Cancel AI"
+                                icon="pi pi-times"
+                                (onClick)="cancelAiAutoMap()"
+                                size="small"
+                                severity="danger"
+                                variant="outlined"
+                                styleClass="rounded-lg"
+                            />
+                        } @else {
+                            <p-button
+                                label="AI Auto-Map"
+                                icon="pi pi-sparkles"
+                                (onClick)="runAiSuggest()"
+                                size="small"
+                                severity="primary"
+                                styleClass="pl-btn-primary rounded-lg shadow-xs"
+                            />
+                            <p-button
+                                label="Run in Background &amp; Open Ledger"
+                                icon="pi pi-bolt"
+                                (onClick)="handleAutoCategorizeInBackground()"
+                                size="small"
+                                severity="help"
+                                variant="outlined"
+                                styleClass="rounded-lg"
+                            />
+                        }
+                    </div>
                 }
             </div>
+
+            <!-- Helpful AI guidance when AI key is not yet configured -->
+            @if (!geminiService.hasKey()) {
+                <div
+                    class="pt-3 border-t border-surface-200 dark:border-surface-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                    <div class="flex items-start gap-2.5 flex-1">
+                        <div
+                            class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-none mt-0.5"
+                        >
+                            <i class="pi pi-lightbulb text-xs text-primary"></i>
+                        </div>
+                        <div class="space-y-0.5">
+                            <h4
+                                class="text-xs font-semibold text-surface-800 dark:text-surface-200"
+                            >
+                                Automatic AI Category Discovery
+                            </h4>
+                            <p
+                                class="text-[11px] text-surface-500 dark:text-surface-400 leading-relaxed"
+                            >
+                                Path Logic can match merchants and categories automatically using AI
+                                (Gemini, Claude, or OpenAI) while keeping your financial records
+                                completely local. To enable, add your free API key in
+                                <strong>Settings &rarr; AI &amp; Intelligence</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        (click)="goToSettings()"
+                        class="flex-none inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary hover:text-primary-emphasis bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors cursor-pointer self-start sm:self-center"
+                    >
+                        <span>Configure in Settings</span>
+                        <i class="pi pi-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            }
         </div>
 
         <!-- Real-Time AI Progress Box -->

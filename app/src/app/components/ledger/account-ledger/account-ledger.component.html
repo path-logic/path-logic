@@ -1,5 +1,71 @@
+<ng-template #sidebarTools>
+    <div class="space-y-4">
+        <!-- Account Actions Menu -->
+        <div class="space-y-1">
+            <span
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block px-1 mb-1"
+            >
+                Account Actions
+            </span>
+            <a
+                routerLink="/recurring"
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors"
+            >
+                <i class="pi pi-bolt text-primary text-xs"></i>
+                <span>Recurring Bills</span>
+            </a>
+            <button
+                type="button"
+                (click)="openReconciliation()"
+                [disabled]="!canReconcile()"
+                [title]="
+                    !canReconcile()
+                        ? 'No pending statement import to reconcile'
+                        : 'Reconcile Account'
+                "
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer disabled:opacity-40 disabled:pointer-events-none bg-transparent border-0 border-transparent shadow-none"
+            >
+                <i class="pi pi-balance-scale text-primary text-xs"></i>
+                <span>Reconcile Account</span>
+            </button>
+            <button
+                type="button"
+                (click)="triggerImport()"
+                [disabled]="
+                    importProgress().stage !== 'idle' &&
+                    importProgress().stage !== 'done' &&
+                    importProgress().stage !== 'error'
+                "
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer disabled:opacity-50 bg-transparent border-0 border-transparent shadow-none"
+            >
+                <i class="pi pi-upload text-primary text-xs"></i>
+                <span>Import QIF / CSV</span>
+            </button>
+            @if (hasUncategorizedTransactions()) {
+                <button
+                    type="button"
+                    (click)="autoCategorizeActiveAccount()"
+                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors text-left cursor-pointer bg-transparent border-0 border-transparent shadow-none"
+                >
+                    <i class="pi pi-sparkles text-primary text-xs"></i>
+                    <span>Auto-Categorize with AI</span>
+                </button>
+            }
+            @if (activeAccountId()) {
+                <a
+                    [routerLink]="['/accounts', activeAccountId(), 'info']"
+                    class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors"
+                >
+                    <i class="pi pi-cog text-surface-400 text-xs"></i>
+                    <span>Account Settings</span>
+                </a>
+            }
+        </div>
+    </div>
+</ng-template>
+
 <div
-    class="flex flex-col lg:flex-row h-full w-full gap-3 sm:gap-4 lg:gap-6 overflow-hidden bg-brand-base p-3 sm:p-4 lg:p-6"
+    class="flex flex-col h-full w-full gap-3 sm:gap-4 lg:gap-6 overflow-hidden bg-brand-base p-3 sm:p-4 lg:p-6"
 >
     <input
         #fileInput
@@ -8,110 +74,6 @@
         accept=".qif,.csv"
         class="hidden"
     />
-
-    <!-- Desktop Sidebar (>= 1024px) -->
-    <aside class="hidden lg:flex w-72 flex-col gap-4 flex-none overflow-y-auto pr-1">
-        <div
-            class="bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm space-y-4"
-        >
-            <!-- Account Dropdown Switcher -->
-            <div class="space-y-1.5">
-                <div class="flex justify-between items-center">
-                    <label class="text-xs font-bold uppercase tracking-wider text-content-muted"
-                        >Active Account</label
-                    >
-                    <sync-indicator />
-                </div>
-                <account-dropdown
-                    [accounts]="accounts()"
-                    [(selectedAccountId)]="activeAccountId"
-                    [getAccountBalance]="getAccountBalanceBound"
-                    (addAccount)="isAddDialogOpen.set(true)"
-                    ariaLabel="Active Account"
-                />
-            </div>
-
-            <!-- Cleared / Pending Balance Metrics -->
-            <div class="flex flex-col gap-2 pt-3 border-t border-brand-border">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-content-muted uppercase tracking-wider"
-                        >Cleared</span
-                    >
-                    <span
-                        class="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-sm"
-                    >
-                        {{ formatCurrency(clearedBalance()) }}
-                    </span>
-                </div>
-                <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-content-muted uppercase tracking-wider"
-                        >Pending</span
-                    >
-                    <span class="font-mono font-bold text-amber-500 text-sm">
-                        {{ formatCurrency(pendingBalance()) }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="h-px bg-brand-border my-1"></div>
-
-            <!-- Account Tasks Menu -->
-            <div class="space-y-1">
-                <span
-                    class="text-xs font-bold uppercase tracking-wider text-content-muted block mb-2"
-                    >Account Actions</span
-                >
-                <a
-                    routerLink="/recurring"
-                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
-                >
-                    <i class="pi pi-bolt text-primary"></i>
-                    Recurring Bills
-                </a>
-                <button
-                    type="button"
-                    (click)="openReconciliation()"
-                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors text-left cursor-pointer"
-                >
-                    <i class="pi pi-balance-scale text-primary"></i>
-                    Reconcile Account
-                </button>
-                <a
-                    routerLink="/settings"
-                    class="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-content-primary hover:bg-brand-elevated hover:text-primary transition-colors"
-                >
-                    <i class="pi pi-cog text-content-muted"></i>
-                    Account Rules
-                </a>
-            </div>
-
-            <!-- Divider -->
-            <div class="h-px bg-brand-border my-1"></div>
-
-            <!-- Import QIF/CSV Drag & Drop Zone with Button -->
-            <div
-                class="p-4 border-2 border-dashed border-brand-border hover:border-primary/50 rounded-xl bg-brand-base flex flex-col items-center justify-center text-center gap-2 transition-colors"
-            >
-                <i class="pi pi-upload text-xl text-primary"></i>
-                <button
-                    type="button"
-                    (click)="triggerImport()"
-                    [disabled]="
-                        importProgress().stage !== 'idle' &&
-                        importProgress().stage !== 'done' &&
-                        importProgress().stage !== 'error'
-                    "
-                    class="min-h-[44px] px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                    Import QIF/CSV
-                </button>
-                <span class="text-xs text-content-muted font-medium"
-                    >or drag & drop files here</span
-                >
-            </div>
-        </div>
-    </aside>
 
     <!-- Tablet Portrait Toolbar (640px – 1023px) -->
     <div
@@ -215,7 +177,13 @@
                 <button
                     type="button"
                     (click)="openReconciliation()"
-                    class="h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition"
+                    [disabled]="!canReconcile()"
+                    [title]="
+                        !canReconcile()
+                            ? 'No pending statement import to reconcile'
+                            : 'Reconcile Account'
+                    "
+                    class="h-8 px-3 rounded-xl bg-brand-elevated border border-brand-border text-xs font-bold text-content-primary hover:text-primary hover:border-primary/40 flex items-center gap-1.5 transition disabled:opacity-40 disabled:pointer-events-none"
                 >
                     <i class="pi pi-balance-scale text-primary text-xs"></i>
                     <span>Reconcile</span>
@@ -299,6 +267,9 @@
 
     <!-- Main Ledger Area -->
     <div class="flex-1 flex flex-col gap-4 overflow-hidden min-h-0 relative">
+        <!-- AI Auto-Matching Banner -->
+        <ai-matching-banner />
+
         <!-- Ledger table + overlays -->
         <div
             class="bg-brand-surface border border-brand-border rounded-2xl flex-1 min-h-0 relative overflow-hidden flex flex-col group transition-all shadow-sm"
@@ -325,6 +296,7 @@
             @if (filteredTransactions(); as txData) {
                 <transaction-table
                     [data]="txData"
+                    [isLoading]="isLoading()"
                     (editClicked)="editTransaction($event)"
                     (deleted)="deleteTransaction($event)"
                 />

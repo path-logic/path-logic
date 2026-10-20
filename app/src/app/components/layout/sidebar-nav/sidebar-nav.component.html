@@ -53,16 +53,19 @@
         <!-- Net Position Pill -->
         @if (!isCollapsed()) {
             <div
-                class="p-3 rounded-xl bg-surface-50 border border-surface-200/80 flex flex-col gap-1 shadow-xs transition-all animate-in fade-in duration-200"
+                class="px-3.5 py-2.5 rounded-xl bg-surface-50 dark:bg-surface-800/50 border border-surface-200/80 dark:border-surface-700/80 flex items-center justify-between shadow-2xs transition-all animate-in fade-in duration-200"
             >
-                <span class="text-[10px] font-bold uppercase tracking-wider text-surface-500">
+                <span
+                    class="text-[10px] font-bold uppercase tracking-wider text-surface-500 whitespace-nowrap"
+                >
                     Net Position
                 </span>
                 <span
-                    class="text-base font-black tracking-tight"
+                    class="text-sm font-mono font-bold tracking-tight"
                     [class.text-red-600]="netBalance() < 0"
                     [class.dark:text-red-400]="netBalance() < 0"
                     [class.text-surface-900]="netBalance() >= 0"
+                    [class.dark:text-surface-100]="netBalance() >= 0"
                 >
                     {{ formattedNetBalance() }}
                 </span>
@@ -89,86 +92,170 @@
             </div>
         }
 
-        <!-- Search / Command Palette Button -->
-        <button
-            type="button"
-            (click)="openCommandPalette()"
-            aria-label="Open Command Palette"
-            [title]="isCollapsed() ? 'Search or Jump (⌘K)' : 'Search or Jump to view (⌘K)'"
-            class="w-full flex items-center rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 dark:hover:bg-surface-800 border border-surface-200/80 dark:border-surface-700/80 cursor-pointer shadow-2xs"
-            [class.px-3.5]="!isCollapsed()"
-            [class.py-2]="!isCollapsed()"
-            [class.justify-between]="!isCollapsed()"
-            [class.p-2.5]="isCollapsed()"
-            [class.justify-center]="isCollapsed()"
-        >
+        <!-- Reusable Navigation Section Template -->
+        <ng-template #navSectionTemplate>
             <div
-                class="flex items-center"
-                [class.gap-3]="!isCollapsed()"
-                [class.justify-center]="isCollapsed()"
+                class="space-y-1.5"
+                [class.pt-3]="
+                    sidebarContext.navPosition() === 'bottom' &&
+                    sidebarContext.hasContext() &&
+                    !isCollapsed()
+                "
+                [class.border-t]="
+                    sidebarContext.navPosition() === 'bottom' &&
+                    sidebarContext.hasContext() &&
+                    !isCollapsed()
+                "
+                [class.border-surface-200]="
+                    sidebarContext.navPosition() === 'bottom' &&
+                    sidebarContext.hasContext() &&
+                    !isCollapsed()
+                "
             >
-                <i class="pi pi-search text-base text-surface-500"></i>
-                @if (!isCollapsed()) {
-                    <span class="text-xs font-medium text-surface-500">Search...</span>
+                @if (!isCollapsed() && sidebarContext.hasContext()) {
+                    <div class="flex items-center justify-between px-2 py-0.5">
+                        <span
+                            class="text-[10px] font-bold uppercase tracking-wider text-surface-400"
+                        >
+                            Navigation
+                        </span>
+                        <div class="flex items-center gap-1">
+                            <!-- A/B Test Position Switcher -->
+                            <button
+                                type="button"
+                                (click)="sidebarContext.toggleNavPosition()"
+                                class="text-[9px] px-1.5 py-0.5 rounded border-0 border-transparent bg-transparent text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors flex items-center gap-1 cursor-pointer shadow-none"
+                                [title]="
+                                    'A/B Test: Nav position is ' +
+                                    sidebarContext.navPosition() +
+                                    '. Click to switch to ' +
+                                    (sidebarContext.navPosition() === 'top' ? 'bottom' : 'top')
+                                "
+                                aria-label="Toggle Navigation Position"
+                            >
+                                <i
+                                    class="pi text-[8px]"
+                                    [class.pi-arrow-up]="sidebarContext.navPosition() === 'top'"
+                                    [class.pi-arrow-down]="
+                                        sidebarContext.navPosition() === 'bottom'
+                                    "
+                                ></i>
+                                <span class="uppercase font-bold tracking-wider">{{
+                                    sidebarContext.navPosition()
+                                }}</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                (click)="sidebarContext.toggleNavSection()"
+                                class="text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 p-0.5 rounded cursor-pointer transition-colors border-0 border-transparent bg-transparent shadow-none"
+                                [title]="
+                                    sidebarContext.isNavSectionCollapsed()
+                                        ? 'Expand Navigation'
+                                        : 'Collapse Navigation'
+                                "
+                                [attr.aria-label]="
+                                    sidebarContext.isNavSectionCollapsed()
+                                        ? 'Expand Navigation'
+                                        : 'Collapse Navigation'
+                                "
+                            >
+                                <i
+                                    class="pi text-xs transition-transform duration-200"
+                                    [class.pi-chevron-down]="
+                                        !sidebarContext.isNavSectionCollapsed()
+                                    "
+                                    [class.pi-chevron-right]="
+                                        sidebarContext.isNavSectionCollapsed()
+                                    "
+                                ></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                @if (
+                    !sidebarContext.isNavSectionCollapsed() ||
+                    isCollapsed() ||
+                    !sidebarContext.hasContext()
+                ) {
+                    <!-- Navigation Links -->
+                    <nav class="space-y-1.5" aria-label="Primary Navigation">
+                        @for (item of navItems; track item.name) {
+                            <a
+                                [routerLink]="item.href"
+                                routerLinkActive="active-nav-link text-primary bg-primary/10 border-primary font-bold shadow-xs"
+                                [routerLinkActiveOptions]="{ exact: item.href === '/' }"
+                                [title]="item.name"
+                                class="group flex items-center rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 border border-transparent"
+                                [class.px-3.5]="!isCollapsed()"
+                                [class.py-2.5]="!isCollapsed()"
+                                [class.justify-between]="!isCollapsed()"
+                                [class.p-2.5]="isCollapsed()"
+                                [class.justify-center]="isCollapsed()"
+                            >
+                                <div
+                                    class="flex items-center"
+                                    [class.gap-3]="!isCollapsed()"
+                                    [class.justify-center]="isCollapsed()"
+                                >
+                                    <i
+                                        [class]="
+                                            'pi ' +
+                                            item.icon +
+                                            ' text-base group-hover:text-primary transition-colors'
+                                        "
+                                    ></i>
+                                    @if (!isCollapsed()) {
+                                        <span class="truncate">{{ item.name }}</span>
+                                    }
+                                </div>
+
+                                @if (item.badge && item.badge()) {
+                                    @if (!isCollapsed()) {
+                                        <span
+                                            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-200 text-surface-700 group-hover:bg-primary/20 group-hover:text-primary transition-colors"
+                                        >
+                                            {{ item.badge!() }}
+                                        </span>
+                                    } @else {
+                                        <span
+                                            class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary"
+                                        ></span>
+                                    }
+                                }
+                            </a>
+                        }
+                    </nav>
                 }
             </div>
-            @if (!isCollapsed()) {
-                <kbd
-                    class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded text-surface-600 dark:text-surface-300"
-                >
-                    ⌘K
-                </kbd>
-            }
-        </button>
+        </ng-template>
 
-        <!-- Navigation Links -->
-        <nav class="space-y-1.5" aria-label="Primary Navigation">
-            @for (item of navItems; track item.name) {
-                <a
-                    [routerLink]="item.href"
-                    routerLinkActive="active-nav-link text-primary bg-primary/10 border-primary font-bold shadow-xs"
-                    [routerLinkActiveOptions]="{ exact: item.href === '/' }"
-                    [title]="item.name"
-                    class="group flex items-center rounded-xl text-sm font-medium transition-all text-surface-600 hover:text-surface-900 hover:bg-surface-100 border border-transparent"
-                    [class.px-3.5]="!isCollapsed()"
-                    [class.py-2.5]="!isCollapsed()"
-                    [class.justify-between]="!isCollapsed()"
-                    [class.p-2.5]="isCollapsed()"
-                    [class.justify-center]="isCollapsed()"
+        <!-- Dynamic Contextual Page Tools Template -->
+        <ng-template #dynamicContextTemplate>
+            @if (!isCollapsed() && sidebarContext.hasContext()) {
+                <div
+                    class="dynamic-sidebar-context space-y-3 animate-in fade-in duration-200"
+                    [class.pt-3]="sidebarContext.navPosition() === 'top'"
+                    [class.border-t]="sidebarContext.navPosition() === 'top'"
+                    [class.border-surface-200]="sidebarContext.navPosition() === 'top'"
                 >
-                    <div
-                        class="flex items-center"
-                        [class.gap-3]="!isCollapsed()"
-                        [class.justify-center]="isCollapsed()"
-                    >
-                        <i
-                            [class]="
-                                'pi ' +
-                                item.icon +
-                                ' text-base group-hover:text-primary transition-colors'
-                            "
-                        ></i>
-                        @if (!isCollapsed()) {
-                            <span class="truncate">{{ item.name }}</span>
-                        }
-                    </div>
-
-                    @if (item.badge && item.badge()) {
-                        @if (!isCollapsed()) {
-                            <span
-                                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-200 text-surface-700 group-hover:bg-primary/20 group-hover:text-primary transition-colors"
-                            >
-                                {{ item.badge!() }}
-                            </span>
-                        } @else {
-                            <span
-                                class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary"
-                            ></span>
-                        }
-                    }
-                </a>
+                    <ng-container *ngTemplateOutlet="sidebarContext.customTemplate()" />
+                </div>
             }
-        </nav>
+        </ng-template>
+
+        <!-- Variant A: Navigation on Top, Dynamic Context on Bottom -->
+        @if (
+            sidebarContext.navPosition() === 'top' || !sidebarContext.hasContext() || isCollapsed()
+        ) {
+            <ng-container *ngTemplateOutlet="navSectionTemplate" />
+            <ng-container *ngTemplateOutlet="dynamicContextTemplate" />
+        } @else {
+            <!-- Variant B: Dynamic Context on Top, Navigation on Bottom -->
+            <ng-container *ngTemplateOutlet="dynamicContextTemplate" />
+            <ng-container *ngTemplateOutlet="navSectionTemplate" />
+        }
     </div>
 
     <!-- Bottom Utility Zone -->

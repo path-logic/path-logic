@@ -9,7 +9,8 @@ export const RecurringEngine = {
         frequency: Frequency,
         lastDueDate?: ISODateString
     ): ISODateString {
-        const baseDateString = lastDueDate || startDate;
+        const raw = lastDueDate || startDate;
+        const baseDateString = (raw.includes('T') ? raw.split('T')[0] : raw) as ISODateString;
         const baseDate = new Date(baseDateString + 'T00:00:00Z');
 
         switch (frequency) {

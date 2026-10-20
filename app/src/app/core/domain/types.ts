@@ -34,6 +34,15 @@ export enum TransactionStatus {
 }
 
 /**
+ * Status parsed directly from external format (e.g. QIF 'C' tag).
+ */
+export enum QifClearedStatus {
+    Cleared = 'cleared',
+    Reconciled = 'reconciled',
+    Uncleared = 'uncleared'
+}
+
+/**
  * Core supported account types.
  */
 export enum AccountType {
@@ -338,4 +347,5 @@ export interface IParsedTransaction {
     category: string | null;
     splits: Array<IParsedSplit>;
     importHash: string;
+    clearedStatus?: QifClearedStatus;
 }

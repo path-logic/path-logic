@@ -5,9 +5,9 @@
     [resizable]="false"
     [closable]="false"
     [dismissableMask]="true"
-    position="bottom"
-    maskStyleClass="mobile-bottom-sheet-mask"
-    styleClass="mobile-bottom-sheet w-full max-w-2xl sm:rounded-3xl rounded-t-3xl rounded-b-none border-t sm:border border-brand-border bg-brand-surface text-content-primary shadow-2xl max-h-[92dvh] flex flex-col z-50"
+    position="center"
+    maskStyleClass="split-dialog-mask sm:p-4"
+    styleClass="split-entry-dialog w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border-t sm:border border-brand-border bg-brand-surface text-content-primary shadow-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col z-50"
     ariaLabel="Split Transaction Detail"
     appendTo="body"
 >
@@ -81,54 +81,58 @@
             </div>
         }
 
-        <!-- Summary Banner with Target Total, Allocated, and Remaining -->
-        <div
-            class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3.5 bg-brand-base rounded-2xl border border-brand-border"
-        >
-            <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
-                    Target Total
-                </p>
-                <p class="font-mono font-extrabold text-base sm:text-lg text-content-primary">
-                    {{ formatCurrency(totalAmount()) }}
-                </p>
-            </div>
+        <!-- Summary Banner with Target Total, Allocated, and Remaining/Status -->
+        <div class="p-3.5 sm:p-4 bg-brand-base rounded-2xl border border-brand-border space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 items-center">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
+                        Target Total
+                    </p>
+                    <p class="font-mono font-extrabold text-base sm:text-lg text-content-primary">
+                        {{ formatCurrency(totalAmount()) }}
+                    </p>
+                </div>
 
-            <div class="hidden sm:block">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
-                    Allocated
-                </p>
-                <p class="font-mono font-extrabold text-base sm:text-lg text-content-primary">
-                    {{ formatCurrency(sumSplits()) }}
-                </p>
-            </div>
+                <div class="hidden sm:block">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
+                        Allocated
+                    </p>
+                    <p class="font-mono font-extrabold text-base sm:text-lg text-content-primary">
+                        {{ formatCurrency(sumSplits()) }}
+                    </p>
+                </div>
 
-            <div class="text-right">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
-                    Remaining
-                </p>
-                <p
-                    class="font-mono font-extrabold text-base sm:text-lg"
-                    [class]="
-                        isBalanced()
-                            ? 'text-emerald-700 dark:text-emerald-400'
-                            : 'text-red-500 dark:text-red-400'
-                    "
-                >
-                    {{ formatCurrency(difference()) }}
-                </p>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-content-muted">
+                        {{ remainingLabel() }}
+                    </p>
+                    @if (isBalanced()) {
+                        <div
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-bold font-mono"
+                        >
+                            <i class="pi pi-check text-[10px]"></i>
+                            <span>Balanced ($0.00)</span>
+                        </div>
+                    } @else {
+                        <p
+                            class="font-mono font-extrabold text-base sm:text-lg text-red-500 dark:text-red-400"
+                        >
+                            {{ formatCurrency(remainingAbs()) }}
+                        </p>
+                    }
+                </div>
             </div>
 
             @if (!isBalanced()) {
-                <div class="col-span-2 sm:col-span-3 pt-1">
+                <div class="pt-1 border-t border-brand-border/60">
                     <button
                         type="button"
                         aria-label="Quick balance"
                         (click)="handleQuickBalance()"
-                        class="w-full py-1.5 px-3 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        class="w-full py-2 px-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
                         <i class="pi pi-bolt text-xs"></i>
-                        <span>Allocate {{ formatCurrency(difference()) }} to Last Split</span>
+                        <span>{{ quickBalanceLabel() }}</span>
                     </button>
                 </div>
             }
@@ -193,12 +197,8 @@
                                         step="0.01"
                                         placeholder="0.00"
                                         [attr.aria-label]="'Split amount ' + (idx + 1)"
-                                        [ngModel]="centsToDollars(split.amount)"
-                                        (ngModelChange)="
-                                            handleUpdateSplit(split.id, {
-                                                amount: dollarsToCents($event)
-                                            })
-                                        "
+                                        [ngModel]="getSplitDisplayDollars(split)"
+                                        (ngModelChange)="updateSplitFromInput(split.id, $event)"
                                         class="w-full min-h-[40px] pl-6 pr-3 bg-brand-surface border border-brand-border rounded-xl text-xs font-mono font-bold text-right text-content-primary focus:ring-2 focus:ring-primary focus:outline-none"
                                     />
                                 </div>
@@ -240,12 +240,8 @@
                                     step="0.01"
                                     placeholder="0.00"
                                     [attr.aria-label]="'Split amount ' + (idx + 1)"
-                                    [ngModel]="centsToDollars(split.amount)"
-                                    (ngModelChange)="
-                                        handleUpdateSplit(split.id, {
-                                            amount: dollarsToCents($event)
-                                        })
-                                    "
+                                    [ngModel]="getSplitDisplayDollars(split)"
+                                    (ngModelChange)="updateSplitFromInput(split.id, $event)"
                                     class="w-full min-h-[38px] pl-6 pr-3 bg-brand-surface border border-brand-border rounded-xl text-xs font-mono font-bold text-right text-content-primary focus:ring-2 focus:ring-primary focus:outline-none"
                                 />
                             </div>
@@ -318,11 +314,9 @@
                                     type="number"
                                     step="0.01"
                                     placeholder="0.00"
-                                    [ngModel]="centsToDollars(split.amount)"
+                                    [ngModel]="getSplitDisplayDollars(split)"
                                     (ngModelChange)="
-                                        handleUpdateSplit(split.id, {
-                                            amount: dollarsToCents($event)
-                                        })
+                                        updateSplitFromInput(split.id, $event, 'earnings')
                                     "
                                     class="w-full min-h-[36px] pl-5 pr-2 bg-brand-surface border border-brand-border rounded-xl text-xs font-mono font-bold text-right text-content-primary focus:ring-2 focus:ring-primary focus:outline-none"
                                 />
@@ -386,11 +380,9 @@
                                     type="number"
                                     step="0.01"
                                     placeholder="0.00"
-                                    [ngModel]="centsToDollars(split.amount)"
+                                    [ngModel]="getSplitDisplayDollars(split)"
                                     (ngModelChange)="
-                                        handleUpdateSplit(split.id, {
-                                            amount: dollarsToCents($event)
-                                        })
+                                        updateSplitFromInput(split.id, $event, 'taxes')
                                     "
                                     class="w-full min-h-[36px] pl-5 pr-2 bg-brand-surface border border-brand-border rounded-xl text-xs font-mono font-bold text-right text-content-primary focus:ring-2 focus:ring-primary focus:outline-none"
                                 />

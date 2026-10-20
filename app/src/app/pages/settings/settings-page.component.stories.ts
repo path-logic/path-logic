@@ -1,4 +1,3 @@
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -13,7 +12,7 @@ const meta: Meta<SettingsPageComponent> = {
     },
     decorators: [
         applicationConfig({
-            providers: [provideNoopAnimations(), provideRouter([])]
+            providers: [provideRouter([])]
         })
     ]
 };

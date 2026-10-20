@@ -1,171 +1,314 @@
 <div class="split-editor-container">
     <!-- Debit / Deposit Mode -->
     @if (scheduleType !== ScheduleType.Paycheck) {
-        <div>
-            <p-table
-                [value]="editingSplits"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="p-datatable-sm"
+        <div class="space-y-2">
+            <div
+                class="border border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden bg-surface-0 dark:bg-surface-900 shadow-2xs"
             >
-                <ng-template pTemplate="header">
-                    <tr>
-                        <th>Category</th>
-                        <th>Memo</th>
-                        <th>Amount</th>
-                        <th style="width: 4rem"><span class="sr-only">Actions</span></th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-split let-i="rowIndex">
-                    <tr>
-                        <td>
-                            <input
-                                pInputText
-                                aria-label="Split category"
-                                [attr.aria-label]="'Split category ' + (i + 1)"
-                                [ngModel]="split.categoryId"
-                                (ngModelChange)="updateSplit(i, 'categoryId', $event)"
-                                class="w-full text-sm"
-                                placeholder="Category ID..."
-                            />
-                        </td>
-                        <td>
-                            <input
-                                pInputText
-                                aria-label="Split memo"
-                                [attr.aria-label]="'Split memo ' + (i + 1)"
-                                [ngModel]="split.memo"
-                                (ngModelChange)="updateSplit(i, 'memo', $event)"
-                                class="w-full text-sm"
-                                placeholder="Memo..."
-                            />
-                        </td>
-                        <td>
-                            <calculator-input
-                                [ngModel]="split.amount"
-                                (ngModelChange)="updateSplit(i, 'amount', $event)"
-                                [placeholder]="'$0.00'"
-                                ariaLabel="Split amount"
-                            ></calculator-input>
-                        </td>
-                        <td>
-                            <p-button
-                                icon="pi pi-times"
-                                [rounded]="true"
-                                [text]="true"
-                                severity="danger"
-                                ariaLabel="Remove split line"
-                                [attr.aria-label]="'Remove split line'"
-                                (onClick)="removeSplit(split.id)"
+                <table class="w-full text-xs table-fixed split-editor-table">
+                    <colgroup>
+                        <col class="w-[38%]" />
+                        <col class="w-auto" />
+                        <col class="w-40 sm:w-48" />
+                        <col class="w-10" />
+                    </colgroup>
+                    <thead
+                        class="bg-surface-50 dark:bg-surface-850 border-b border-surface-200 dark:border-surface-700 text-surface-500 font-bold uppercase tracking-wider text-[10px]"
+                    >
+                        <tr>
+                            <th class="py-2 px-3 text-left">Category</th>
+                            <th class="py-2 px-3 text-left">Memo</th>
+                            <th class="py-2 pr-10 pl-3 text-right">Amount</th>
+                            <th class="py-2 px-1 text-center">
+                                <span class="sr-only">Actions</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-100 dark:divide-surface-800">
+                        @for (split of editingSplits; track split.id; let i = $index) {
+                            <tr
+                                class="hover:bg-surface-50/50 dark:hover:bg-surface-850/50 transition-colors"
                             >
-                                <span class="sr-only">Remove split line</span>
-                            </p-button>
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
-            <div class="mt-4 flex justify-end">
-                <p-button
-                    label="Add Split"
-                    icon="pi pi-plus"
-                    size="small"
-                    [outlined]="true"
-                    (onClick)="addSplit()"
-                ></p-button>
+                                <td class="py-1 px-3">
+                                    <input
+                                        type="text"
+                                        aria-label="Split category"
+                                        [attr.aria-label]="'Split category ' + (i + 1)"
+                                        [ngModel]="split.categoryId"
+                                        (ngModelChange)="updateSplit(i, 'categoryId', $event)"
+                                        placeholder="Category ID..."
+                                        class="w-full !h-8 text-xs !border-0 !border-none !shadow-none !ring-0 !outline-none !bg-transparent hover:!bg-surface-100/50 dark:hover:!bg-surface-800/50 focus:!bg-surface-0 dark:focus:!bg-surface-900 focus:!ring-1 focus:!ring-primary/40 !rounded !px-2.5 font-medium text-surface-800 dark:text-surface-200"
+                                    />
+                                </td>
+                                <td class="py-1 px-3">
+                                    <input
+                                        type="text"
+                                        aria-label="Split memo"
+                                        [attr.aria-label]="'Split memo ' + (i + 1)"
+                                        [ngModel]="split.memo"
+                                        (ngModelChange)="updateSplit(i, 'memo', $event)"
+                                        placeholder="Memo..."
+                                        class="w-full !h-8 text-xs !border-0 !border-none !shadow-none !ring-0 !outline-none !bg-transparent hover:!bg-surface-100/50 dark:hover:!bg-surface-800/50 focus:!bg-surface-0 dark:focus:!bg-surface-900 focus:!ring-1 focus:!ring-primary/40 !rounded !px-2.5 font-medium text-surface-800 dark:text-surface-200"
+                                    />
+                                </td>
+                                <td class="py-1 px-3">
+                                    <calculator-input
+                                        class="block w-full"
+                                        [borderless]="true"
+                                        [ngModel]="split.amount"
+                                        (ngModelChange)="updateSplit(i, 'amount', $event)"
+                                        placeholder="0.00"
+                                        ariaLabel="Split amount"
+                                        styleClass="!h-8 text-xs"
+                                    ></calculator-input>
+                                </td>
+                                <td class="py-1 px-1 text-center">
+                                    <button
+                                        type="button"
+                                        (click)="removeSplit(split.id)"
+                                        class="w-7 h-7 flex items-center justify-center text-surface-400 hover:text-red-500 rounded transition-colors cursor-pointer !border-0 !border-none !bg-transparent !shadow-none !outline-none !ring-0 hover:!bg-red-50 dark:hover:!bg-red-950/30"
+                                        title="Remove split line"
+                                        aria-label="Remove split line"
+                                        [attr.aria-label]="'Remove split line ' + (i + 1)"
+                                    >
+                                        <i class="pi pi-trash text-xs"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (editingSplits.length === 0) {
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-surface-400 italic">
+                                    No splits added yet. Click "+ Add Split" below.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <button
+                    type="button"
+                    (click)="addSplit()"
+                    class="text-xs font-semibold text-primary hover:text-primary-emphasis flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded hover:bg-primary/5 transition-colors"
+                >
+                    <i class="pi pi-plus text-[10px]"></i>
+                    <span>+ Add Split</span>
+                </button>
             </div>
         </div>
     }
 
     <!-- Paycheck Mode -->
     @if (scheduleType === ScheduleType.Paycheck) {
-        <div class="flex flex-col gap-6">
-            <!-- Wages -->
-            <div class="p-fluid">
-                <h4
-                    class="text-sm font-semibold text-surface-600 uppercase tracking-wider mb-2 border-b pb-1"
-                >
-                    Wages
-                </h4>
-                <div class="flex items-center justify-between py-2">
-                    <label for="grossPay" class="w-1/3 text-sm">Gross Pay</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.grossPay"
-                            (ngModelChange)="updatePaycheckField('grossPay', $event)"
-                        ></calculator-input>
+        <div class="flex flex-col">
+            <!-- Summary Banner -->
+            <div
+                class="flex items-center justify-between p-2 px-3 rounded-lg bg-surface-50 dark:bg-surface-850 border border-surface-200 dark:border-surface-700 mb-2.5 text-xs"
+            >
+                <div class="flex items-center gap-4">
+                    <div>
+                        <span class="text-surface-500 font-medium block">Total Wages</span>
+                        <span class="font-mono font-bold text-surface-900 dark:text-surface-0">{{
+                            formatCurrency(totalWages)
+                        }}</span>
                     </div>
+                    <div class="h-6 w-px bg-surface-200 dark:bg-surface-700"></div>
+                    <div>
+                        <span class="text-surface-500 font-medium block">Total Deductions</span>
+                        <span class="font-mono font-bold text-rose-600 dark:text-rose-400"
+                            >-{{ formatCurrency(totalDeductions) }}</span
+                        >
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-surface-500 font-medium block text-[11px]">Net Paycheck</span>
+                    <span
+                        class="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400"
+                    >
+                        {{ formatCurrency(netPay) }}
+                    </span>
                 </div>
             </div>
 
-            <!-- Taxes -->
-            <div class="p-fluid">
-                <h4
-                    class="text-sm font-semibold text-surface-600 uppercase tracking-wider mb-2 border-b pb-1"
+            <!-- Tab Pills (Order: Wages, Pre-Tax, Taxes, Post-Tax) -->
+            <div
+                class="flex items-center gap-1 p-1 bg-surface-100 dark:bg-surface-800 rounded-lg mb-2.5 text-xs font-semibold"
+            >
+                <!-- 1. Wages -->
+                <button
+                    type="button"
+                    (click)="setTab('wages')"
+                    [class]="
+                        'flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ' +
+                        (activePaycheckTab === 'wages'
+                            ? 'bg-surface-0 dark:bg-surface-700 text-surface-900 dark:text-surface-0 shadow-sm font-bold'
+                            : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200')
+                    "
                 >
-                    Taxes
-                </h4>
-                <div class="flex items-center justify-between py-2">
-                    <label for="federalTax" class="w-1/3 text-sm">Federal Tax</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.federalTax"
-                            (ngModelChange)="updatePaycheckField('federalTax', $event)"
-                        ></calculator-input>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between py-2">
-                    <label for="stateTax" class="w-1/3 text-sm">State Tax</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.stateTax"
-                            (ngModelChange)="updatePaycheckField('stateTax', $event)"
-                        ></calculator-input>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between py-2">
-                    <label for="socialSecurity" class="w-1/3 text-sm">Social Security</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.socialSecurity"
-                            (ngModelChange)="updatePaycheckField('socialSecurity', $event)"
-                        ></calculator-input>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between py-2">
-                    <label for="medicare" class="w-1/3 text-sm">Medicare</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.medicare"
-                            (ngModelChange)="updatePaycheckField('medicare', $event)"
-                        ></calculator-input>
-                    </div>
-                </div>
+                    <span>Wages</span>
+                    @if (totalWages > 0) {
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono"
+                            >({{ formatCurrency(totalWages) }})</span
+                        >
+                    }
+                </button>
+
+                <!-- 2. Pre-Tax -->
+                <button
+                    type="button"
+                    (click)="setTab('pre-tax')"
+                    [class]="
+                        'flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ' +
+                        (activePaycheckTab === 'pre-tax'
+                            ? 'bg-surface-0 dark:bg-surface-700 text-surface-900 dark:text-surface-0 shadow-sm font-bold'
+                            : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200')
+                    "
+                >
+                    <span>Pre-Tax</span>
+                    @if (totalPreTax > 0) {
+                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-mono"
+                            >(-{{ formatCurrency(totalPreTax) }})</span
+                        >
+                    }
+                </button>
+
+                <!-- 3. Taxes -->
+                <button
+                    type="button"
+                    (click)="setTab('taxes')"
+                    [class]="
+                        'flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ' +
+                        (activePaycheckTab === 'taxes'
+                            ? 'bg-surface-0 dark:bg-surface-700 text-surface-900 dark:text-surface-0 shadow-sm font-bold'
+                            : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200')
+                    "
+                >
+                    <span>Taxes</span>
+                    @if (totalTaxes > 0) {
+                        <span class="text-[10px] text-rose-600 dark:text-rose-400 font-mono"
+                            >(-{{ formatCurrency(totalTaxes) }})</span
+                        >
+                    }
+                </button>
+
+                <!-- 4. Post-Tax -->
+                <button
+                    type="button"
+                    (click)="setTab('post-tax')"
+                    [class]="
+                        'flex-1 py-1.5 px-2 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ' +
+                        (activePaycheckTab === 'post-tax'
+                            ? 'bg-surface-0 dark:bg-surface-700 text-surface-900 dark:text-surface-0 shadow-sm font-bold'
+                            : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-200')
+                    "
+                >
+                    <span>Post-Tax</span>
+                    @if (totalPostTax > 0) {
+                        <span class="text-[10px] text-purple-600 dark:text-purple-400 font-mono"
+                            >(-{{ formatCurrency(totalPostTax) }})</span
+                        >
+                    }
+                </button>
             </div>
 
-            <!-- Pre-Tax Deductions -->
-            <div class="p-fluid">
-                <h4
-                    class="text-sm font-semibold text-surface-600 uppercase tracking-wider mb-2 border-b pb-1"
+            <!-- Tab Content Panel: Horizontal Table-Like Form with Customizable Items & Borderless Amounts -->
+            <div class="space-y-2">
+                <div
+                    class="border border-surface-200 dark:border-surface-700 rounded-lg overflow-hidden bg-surface-0 dark:bg-surface-900 shadow-2xs"
                 >
-                    Pre-Tax Deductions
-                </h4>
-                <div class="flex items-center justify-between py-2">
-                    <label for="fourOhOneK" class="w-1/3 text-sm">401k / Retirement</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.fourOhOneK"
-                            (ngModelChange)="updatePaycheckField('fourOhOneK', $event)"
-                        ></calculator-input>
-                    </div>
+                    <table class="w-full text-xs table-fixed split-editor-table">
+                        <colgroup>
+                            <col class="w-auto" />
+                            <col class="w-40 sm:w-48" />
+                            <col class="w-10" />
+                        </colgroup>
+                        <thead
+                            class="bg-surface-50 dark:bg-surface-850 border-b border-surface-200 dark:border-surface-700 text-surface-500 font-bold uppercase tracking-wider text-[10px]"
+                        >
+                            <tr>
+                                <th class="py-2 px-3 text-left">Item / Description</th>
+                                <th class="py-2 pr-10 pl-3 text-right">Amount</th>
+                                <th class="py-2 px-1 text-center">
+                                    <span class="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-100 dark:divide-surface-800">
+                            @for (item of paycheckItems[activePaycheckTab]; track item.id) {
+                                <tr
+                                    class="hover:bg-surface-50/50 dark:hover:bg-surface-850/50 transition-colors"
+                                >
+                                    <td class="py-1 px-3">
+                                        <span class="sr-only">{{ item.memo }}</span>
+                                        <input
+                                            type="text"
+                                            [(ngModel)]="item.memo"
+                                            (ngModelChange)="emitPaycheckUpdates()"
+                                            [placeholder]="getItemPlaceholder(activePaycheckTab)"
+                                            [attr.aria-label]="
+                                                'Item description ' + (item.memo || 'unnamed')
+                                            "
+                                            class="w-full !h-8 text-xs !border-0 !border-none !shadow-none !ring-0 !outline-none !bg-transparent hover:!bg-surface-100/50 dark:hover:!bg-surface-800/50 focus:!bg-surface-0 dark:focus:!bg-surface-900 focus:!ring-1 focus:!ring-primary/40 !rounded !px-2 font-medium text-surface-800 dark:text-surface-200"
+                                        />
+                                    </td>
+                                    <td class="py-1 px-3">
+                                        <calculator-input
+                                            class="block w-full"
+                                            [borderless]="true"
+                                            [inputId]="item.key || item.id"
+                                            [(ngModel)]="item.amount"
+                                            (ngModelChange)="emitPaycheckUpdates()"
+                                            placeholder="0.00"
+                                            styleClass="!h-8 text-xs"
+                                        ></calculator-input>
+                                    </td>
+                                    <td class="py-1 px-1 text-center">
+                                        <button
+                                            type="button"
+                                            (click)="removeLineItem(activePaycheckTab, item.id)"
+                                            class="w-7 h-7 flex items-center justify-center text-surface-400 hover:text-red-500 rounded transition-colors cursor-pointer !border-0 !border-none !bg-transparent !shadow-none !outline-none !ring-0 hover:!bg-red-50 dark:hover:!bg-red-950/30"
+                                            [title]="getItemRemoveLabel(activePaycheckTab, item)"
+                                            [attr.aria-label]="
+                                                getItemRemoveLabel(activePaycheckTab, item)
+                                            "
+                                        >
+                                            <i class="pi pi-trash text-xs"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                            @if (paycheckItems[activePaycheckTab].length === 0) {
+                                <tr>
+                                    <td
+                                        colspan="3"
+                                        class="py-4 text-center text-surface-400 italic"
+                                    >
+                                        No items in this section. Click below to add one.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <div class="flex items-center justify-between py-2">
-                    <label for="healthInsurance" class="w-1/3 text-sm">Health Insurance</label>
-                    <div class="w-2/3">
-                        <calculator-input
-                            [ngModel]="paycheckState.healthInsurance"
-                            (ngModelChange)="updatePaycheckField('healthInsurance', $event)"
-                        ></calculator-input>
-                    </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <button
+                        type="button"
+                        (click)="addCustomField(activePaycheckTab)"
+                        class="text-xs font-semibold text-primary hover:text-primary-emphasis flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded hover:bg-primary/5 transition-colors"
+                    >
+                        <i class="pi pi-plus text-[10px]"></i>
+                        <span>{{ getAddButtonLabel(activePaycheckTab) }}</span>
+                    </button>
+                    <button
+                        type="button"
+                        (click)="resetSectionDefaults(activePaycheckTab)"
+                        class="text-[11px] text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 cursor-pointer py-1 px-2 rounded hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                    >
+                        Reset Defaults
+                    </button>
                 </div>
             </div>
         </div>

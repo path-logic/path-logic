@@ -6,6 +6,7 @@ export {
     AccountType,
     Frequency,
     PaymentMethod,
+    QifClearedStatus,
     ScheduleType,
     TransactionStatus
 } from './domain/types';
@@ -54,7 +55,7 @@ export type {
 
 // === Parsers ===
 export { QIFExporter } from './parsers/QIFExporter';
-export { QIFAccountType, QIFParser } from './parsers/QIFParser';
+export { QIFAccountType, QIFParser, resolveImportTransactionStatus } from './parsers/QIFParser';
 export type { IParseError, IParseWarning, IQIFParseResult } from './parsers/QIFParser';
 
 // === Utils ===

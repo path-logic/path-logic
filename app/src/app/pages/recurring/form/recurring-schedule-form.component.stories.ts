@@ -1,5 +1,4 @@
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
 import { expect, userEvent, within } from 'storybook/test';
@@ -85,7 +84,6 @@ const meta: Meta<RecurringScheduleFormComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 {
                     provide: LedgerStore,

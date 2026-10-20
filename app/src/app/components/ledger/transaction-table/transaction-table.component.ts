@@ -29,6 +29,8 @@ import { injectVirtualizer } from '@tanstack/angular-virtual';
 import { LocalDatePipe } from '../../../pipes/local-date.pipe';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 
+import { SkeletonComponent } from '../../ui/skeleton';
+
 /**
  * High-density transaction table component.
  * Uses TanStack Table for logic and TanStack Virtual for performance.
@@ -37,7 +39,7 @@ import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 @Component({
     selector: 'transaction-table',
     standalone: true,
-    imports: [CommonModule, FormsModule, LocalDatePipe],
+    imports: [CommonModule, FormsModule, LocalDatePipe, SkeletonComponent],
     templateUrl: './transaction-table.component.html',
     styleUrls: ['./transaction-table.component.css'],
     providers: [DecimalPipe, DatePipe],
@@ -50,6 +52,7 @@ export class TransactionTableComponent {
 
     // Inputs
     readonly data = input.required<Array<ITransaction>>();
+    readonly isLoading = input<boolean>(false);
     readonly className = input<string>('');
 
     // Outputs

@@ -340,7 +340,7 @@ export class WelcomeWizardComponent {
 
     private startImportFromFile(file: File): void {
         const accountId = this.createdAccount()?.id ?? '';
-        this.importService.startImport(file, accountId);
+        this.importService.startImport(file, accountId, { deferCategoryMapping: true });
     }
 
     skipImport(): void {
@@ -360,18 +360,11 @@ export class WelcomeWizardComponent {
             }
         }
 
-        // Yield to let the spinner render before heavy routing
-        setTimeout(() => {
-            if (accountId) {
-                void this.router.navigate(['/accounts', accountId]).then(() => {
-                    this.wizardCompleted.emit();
-                    this.isNavigating.set(false);
-                });
-            } else {
-                this.wizardCompleted.emit();
-                this.isNavigating.set(false);
-            }
-        }, 50);
+        this.wizardCompleted.emit();
+        this.isNavigating.set(false);
+        if (accountId) {
+            await this.router.navigate(['/accounts', accountId]);
+        }
     }
 
     getTypeTheming(type: AccountType): {

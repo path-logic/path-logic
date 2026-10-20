@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -18,6 +17,7 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
+import { SidebarContextService } from '../../../services/sidebar-context/sidebar-context.service';
 import { SyncService } from '../../../services/sync/sync.service';
 import { AccountLedgerComponent } from './account-ledger.component';
 
@@ -75,6 +75,7 @@ describe('AccountLedgerComponent', () => {
 
     const mockLedgerStore = {
         isInitialized: signal(true),
+        isLoading: signal(false),
         accounts: signal(mockAccounts),
         transactions: signal(mockTransactions),
         payees: signal<Array<IPayee>>([]),
@@ -89,7 +90,7 @@ describe('AccountLedgerComponent', () => {
 
     const mockImportService = {
         progress: signal({ stage: 'idle', percent: 0, message: '' }),
-        matches: signal([]),
+        matches: signal<Array<any>>([]),
         stats: signal(null),
         unknownCategories: signal<Array<string>>([]),
         handleFile: vi.fn(),
@@ -120,7 +121,7 @@ describe('AccountLedgerComponent', () => {
         vi.clearAllMocks();
 
         await TestBed.configureTestingModule({
-            imports: [AccountLedgerComponent, NoopAnimationsModule],
+            imports: [AccountLedgerComponent],
             providers: [
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
@@ -170,7 +171,21 @@ describe('AccountLedgerComponent', () => {
         expect(component.editingTransaction()).toEqual(tx);
     });
 
-    it('should open reconciliation dialog', () => {
+    it('should disable openReconciliation when no import matches exist, and open when matches exist', () => {
+        expect(component.canReconcile()).toBe(false);
+        component.openReconciliation();
+        expect(component.reconciliationOpen()).toBe(false);
+
+        // When matches exist
+        mockImportService.matches.set([
+            {
+                type: 'none',
+                parsedTx: { date: '2026-08-15', payee: 'Test', amount: 100 },
+                confidence: 1,
+                existingTxId: null
+            } as any
+        ]);
+        expect(component.canReconcile()).toBe(true);
         component.openReconciliation();
         expect(component.reconciliationOpen()).toBe(true);
     });
@@ -185,5 +200,32 @@ describe('AccountLedgerComponent', () => {
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('express-import-dialog')).toBeNull();
         expect(fixture.nativeElement.querySelector('reconciliation-dialog')).toBeNull();
+    });
+
+    it('should register sidebar tools template with SidebarContextService', () => {
+        const sidebarContext = TestBed.inject(SidebarContextService);
+        expect(sidebarContext.hasContext()).toBe(true);
+        expect(sidebarContext.customTemplate()).toBeTruthy();
+    });
+
+    it('should compute isLoading based on ledgerStore initialization and loading state', () => {
+        mockLedgerStore.isInitialized.set(false);
+        expect(component.isLoading()).toBe(true);
+
+        mockLedgerStore.isInitialized.set(true);
+        mockLedgerStore.isLoading.set(true);
+        expect(component.isLoading()).toBe(true);
+
+        mockLedgerStore.isLoading.set(false);
+        expect(component.isLoading()).toBe(false);
+    });
+
+    it('should clear sidebar context on destroy', () => {
+        const sidebarContext = TestBed.inject(SidebarContextService);
+        expect(sidebarContext.hasContext()).toBe(true);
+
+        fixture.destroy();
+        expect(sidebarContext.hasContext()).toBe(false);
+        expect(sidebarContext.customTemplate()).toBeNull();
     });
 });

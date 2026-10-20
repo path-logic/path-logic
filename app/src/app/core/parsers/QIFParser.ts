@@ -1,4 +1,11 @@
-import type { Cents, IParsedSplit, IParsedTransaction, ISODateString } from '../domain/types';
+import {
+    QifClearedStatus,
+    TransactionStatus,
+    type Cents,
+    type IParsedSplit,
+    type IParsedTransaction,
+    type ISODateString
+} from '../domain/types';
 import { generateImportHash } from '../engine/hashing';
 
 export enum QIFAccountType {
@@ -137,6 +144,7 @@ export class QIFParser {
         let memo: string = '';
         let checkNumber: string | null = null;
         let category: string | null = null;
+        let clearedStatus: QifClearedStatus = QifClearedStatus.Uncleared;
         const splits: Array<IParsedSplit> = new Array<IParsedSplit>();
 
         let lineIdx: number = startLine;
@@ -193,9 +201,18 @@ export class QIFParser {
                     category = value;
                     break;
 
-                case 'C': // Cleared status (X=cleared, *=reconciled, or empty)
-                    // Parser ignores this field for now, but we handle it to avoid warnings
+                case 'C': {
+                    // Cleared status (X=cleared, *=reconciled, or empty)
+                    const s: string = value.trim().toUpperCase();
+                    if (s === '*' || s === 'C') {
+                        clearedStatus = QifClearedStatus.Cleared;
+                    } else if (s === 'X' || s === 'R') {
+                        clearedStatus = QifClearedStatus.Reconciled;
+                    } else {
+                        clearedStatus = QifClearedStatus.Uncleared;
+                    }
                     break;
+                }
 
                 case 'S': // Split category (multi-line)
                     {
@@ -315,7 +332,8 @@ export class QIFParser {
             checkNumber,
             category,
             splits,
-            importHash
+            importHash,
+            clearedStatus
         } satisfies IParsedTransaction;
 
         return result;
@@ -396,4 +414,30 @@ interface ITransactionParseResult {
     errors: Array<IParseError>;
     warnings: Array<IParseWarning>;
     nextLine: number;
+}
+
+/**
+ * Resolves the ledger TransactionStatus for an imported transaction.
+ *
+ * Rules:
+ * 1. If explicitly tagged as Reconciled (CX, CR), returns TransactionStatus.Reconciled.
+ * 2. If explicitly tagged as Cleared (C*, Cc), returns TransactionStatus.Cleared.
+ * 3. For unmarked or uncleared transactions (typical in historical QIF exports where past items lack explicit C tags):
+ *    - Future/post-dated items (date > today) default to TransactionStatus.Pending.
+ *    - Historical items (date <= today) default to TransactionStatus.Cleared.
+ */
+export function resolveImportTransactionStatus(
+    parsed: Pick<IParsedTransaction, 'clearedStatus' | 'date'>,
+    todayIso: string = new Date().toISOString().slice(0, 10)
+): TransactionStatus {
+    if (parsed.clearedStatus === QifClearedStatus.Reconciled) {
+        return TransactionStatus.Reconciled;
+    }
+    if (parsed.clearedStatus === QifClearedStatus.Cleared) {
+        return TransactionStatus.Cleared;
+    }
+    if (parsed.date > todayIso) {
+        return TransactionStatus.Pending;
+    }
+    return TransactionStatus.Cleared;
 }

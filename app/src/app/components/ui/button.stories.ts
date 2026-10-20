@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { moduleMetadata } from '@storybook/angular';
 import { ButtonModule } from 'primeng/button';
+import { expect, within } from 'storybook/test';
 
 @Component({
     selector: 'app-button-demo',
@@ -94,7 +95,7 @@ import { ButtonModule } from 'primeng/button';
         </div>
     `
 })
-class ButtonDemoComponent {}
+export class ButtonDemoComponent {}
 
 const meta: Meta<ButtonDemoComponent> = {
     title: 'UI/Button',
@@ -112,4 +113,11 @@ const meta: Meta<ButtonDemoComponent> = {
 export default meta;
 type Story = StoryObj<ButtonDemoComponent>;
 
-export const Gallery: Story = {};
+export const Gallery: Story = {
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText('Button Design System')).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: 'Primary' })).toBeInTheDocument();
+        await expect(canvas.getByRole('button', { name: 'Disabled' })).toBeDisabled();
+    }
+};

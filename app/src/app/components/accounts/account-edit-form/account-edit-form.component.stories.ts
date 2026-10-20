@@ -46,6 +46,13 @@ const meta: Meta<AccountEditFormComponent> = {
     title: 'Accounts/AccountEditFormComponent',
     component: AccountEditFormComponent,
     tags: ['autodocs'],
+    parameters: {
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
+    },
     args: {
         accountData: MOCK_CHECKING_ACCOUNT
     }

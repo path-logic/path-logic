@@ -1,4 +1,5 @@
-import { signal } from '@angular/core';
+import type { TemplateRef } from '@angular/core';
+import { Component, signal, ViewChild } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -8,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { SidebarContextService } from '../../../services/sidebar-context/sidebar-context.service';
 import { SyncService } from '../../../services/sync/sync.service';
 import { ThemeService } from '../../../services/theme/theme.service';
 import { SidebarNavComponent } from './sidebar-nav.component';
@@ -161,4 +163,79 @@ describe('SidebarNavComponent', () => {
         component.onEscape();
         expect(component.showUserMenu()).toBe(false);
     });
+
+    it('should render dynamic context template when sidebarContext has template', () => {
+        const sidebarContext = TestBed.inject(SidebarContextService);
+        expect(fixture.nativeElement.querySelector('.dynamic-sidebar-context')).toBeNull();
+
+        // Create a host component with a template
+        const hostFixture = TestBed.createComponent(TestDynamicHostComponent);
+        hostFixture.detectChanges();
+        sidebarContext.setContext(hostFixture.componentInstance.template);
+
+        fixture.detectChanges();
+        const contextEl = fixture.nativeElement.querySelector('.dynamic-sidebar-context');
+        expect(contextEl).toBeTruthy();
+        expect(contextEl.textContent).toContain('Dynamic Content Injected');
+
+        sidebarContext.clearContext();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.dynamic-sidebar-context')).toBeNull();
+    });
+
+    it('should toggle navigation section when toggle button is clicked with active context', () => {
+        const sidebarContext = TestBed.inject(SidebarContextService);
+        const hostFixture = TestBed.createComponent(TestDynamicHostComponent);
+        hostFixture.detectChanges();
+        sidebarContext.setContext(hostFixture.componentInstance.template);
+
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('nav')).toBeTruthy();
+
+        // Toggle navigation section collapsed
+        sidebarContext.toggleNavSection();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('nav')).toBeNull();
+
+        // Toggle back
+        sidebarContext.toggleNavSection();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('nav')).toBeTruthy();
+    });
+
+    it('should support A/B testing nav position (top vs bottom)', () => {
+        const sidebarContext = TestBed.inject(SidebarContextService);
+        const hostFixture = TestBed.createComponent(TestDynamicHostComponent);
+        hostFixture.detectChanges();
+        sidebarContext.setContext(hostFixture.componentInstance.template);
+        sidebarContext.setNavPosition('top');
+        fixture.detectChanges();
+
+        expect(sidebarContext.navPosition()).toBe('top');
+
+        const toggleBtn = fixture.nativeElement.querySelector(
+            'button[aria-label="Toggle Navigation Position"]'
+        );
+        expect(toggleBtn).toBeTruthy();
+        expect(toggleBtn.textContent.toLowerCase()).toContain('top');
+
+        // Click toggle
+        toggleBtn.click();
+        fixture.detectChanges();
+
+        expect(sidebarContext.navPosition()).toBe('bottom');
+        const updatedToggleBtn = fixture.nativeElement.querySelector(
+            'button[aria-label="Toggle Navigation Position"]'
+        );
+        expect(updatedToggleBtn).toBeTruthy();
+        expect(updatedToggleBtn.textContent.toLowerCase()).toContain('bottom');
+    });
 });
+
+@Component({
+    standalone: true,
+    template: `<ng-template #dynamicTemplate><div>Dynamic Content Injected</div></ng-template>`
+})
+class TestDynamicHostComponent {
+    @ViewChild('dynamicTemplate', { static: true }) template!: TemplateRef<unknown>;
+}

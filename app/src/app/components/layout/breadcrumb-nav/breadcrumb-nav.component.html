@@ -1,14 +1,103 @@
-@if (breadcrumbs().length > 0) {
-    <div
-        class="flex-none w-full border-b border-surface-200/50 px-4 backdrop-blur-sm"
-        style="background-color: color-mix(in srgb, var(--p-surface-0) 60%, transparent)"
-    >
-        <div class="max-w-7xl mx-auto py-2.5 sm:py-3">
-            <p-breadcrumb
-                [model]="breadcrumbs()"
-                [home]="home()"
-                styleClass="!bg-transparent !border-0 !p-0 text-[10px] uppercase font-bold tracking-wider"
-            ></p-breadcrumb>
+<div
+    class="flex-none w-full border-b border-surface-200/50 dark:border-surface-800/80 px-4 backdrop-blur-sm transition-all select-none"
+    style="background-color: color-mix(in srgb, var(--p-surface-0) 60%, transparent)"
+>
+    <div class="max-w-7xl mx-auto py-2 flex items-center justify-between gap-4">
+        <!-- Left: Breadcrumbs Trail -->
+        <nav class="flex items-center gap-2 min-w-0 flex-1" aria-label="Breadcrumb">
+            <ol class="flex items-center gap-2 text-xs font-semibold tracking-wide truncate">
+                <!-- Home / First Segment -->
+                <li class="flex items-center gap-2 shrink-0">
+                    @if (home().icon) {
+                        <a
+                            [routerLink]="home().routerLink"
+                            class="flex items-center gap-1.5 text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 transition-colors"
+                        >
+                            <i [class]="home().icon"></i>
+                            @if (home().label) {
+                                <span>{{ home().label }}</span>
+                            }
+                        </a>
+                    } @else {
+                        <a
+                            [routerLink]="home().routerLink"
+                            class="text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 transition-colors uppercase text-[10px] font-bold tracking-wider"
+                        >
+                            {{ home().label }}
+                        </a>
+                    }
+                </li>
+
+                <!-- Account Dropdown or Static Label if on an Account Route -->
+                @if (currentAccountId()) {
+                    <li
+                        class="flex items-center gap-2 shrink-0 text-surface-300 dark:text-surface-600"
+                    >
+                        <i class="pi pi-chevron-right text-[10px]" aria-hidden="true"></i>
+                        @if (hasMultipleAccounts()) {
+                            <div class="w-56 sm:w-64">
+                                <account-dropdown
+                                    [accounts]="accounts()"
+                                    [selectedAccountId]="currentAccountId()"
+                                    (selectedAccountIdChange)="onAccountSelect($event)"
+                                    [getAccountBalance]="getAccountBalance"
+                                    [showAddOption]="false"
+                                    size="sm"
+                                    ariaLabel="Switch active account"
+                                />
+                            </div>
+                        } @else {
+                            <div
+                                class="flex items-center gap-1.5 px-2 py-1 text-surface-800 dark:text-surface-200 font-semibold text-xs"
+                            >
+                                <i class="pi pi-building text-[11px] text-surface-400"></i>
+                                <span>{{ currentAccountName() }}</span>
+                                @if (currentAccountBalanceFormatted(); as bal) {
+                                    <span
+                                        class="text-[10px] text-surface-500 font-mono font-normal"
+                                    >
+                                        ({{ bal }})
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </li>
+                }
+
+                <!-- Remaining Sub-Segments (e.g. Details, Splits) -->
+                @for (crumb of remainingCrumbs(); track crumb.routerLink) {
+                    <li
+                        class="flex items-center gap-2 shrink-0 text-surface-300 dark:text-surface-600"
+                    >
+                        <i class="pi pi-chevron-right text-[10px]" aria-hidden="true"></i>
+                        <a
+                            [routerLink]="crumb.routerLink"
+                            class="text-surface-700 dark:text-surface-300 hover:text-primary uppercase text-[10px] font-bold tracking-wider transition-colors"
+                        >
+                            {{ crumb.label }}
+                        </a>
+                    </li>
+                }
+            </ol>
+        </nav>
+
+        <!-- Right: Global Search Trigger -->
+        <div class="flex items-center gap-2 shrink-0">
+            <button
+                type="button"
+                (click)="openCommandPalette()"
+                aria-label="Open Command Palette"
+                title="Search or Jump to view (⌘K)"
+                class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-medium text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 bg-surface-100/80 dark:bg-surface-800/80 hover:bg-surface-200/80 dark:hover:bg-surface-700/80 border border-surface-200/80 dark:border-surface-700/80 transition-all cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+                <i class="pi pi-search text-xs text-surface-400"></i>
+                <span class="hidden sm:inline">Search...</span>
+                <kbd
+                    class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded text-surface-500 dark:text-surface-400"
+                >
+                    ⌘K
+                </kbd>
+            </button>
         </div>
     </div>
-}
+</div>

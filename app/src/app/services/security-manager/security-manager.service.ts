@@ -1,5 +1,5 @@
-import type { WritableSignal } from '@angular/core';
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import type { Signal, WritableSignal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import type { TimerHandle } from '@core';
 
 import { environment } from '../../../environments/environment';
@@ -8,6 +8,7 @@ import { LedgerStore } from '../ledger-store/ledger.store';
 
 const IDLE_TIMEOUT_MS: number = 10 * 60 * 1000; // 10 minutes to logout
 const WARNING_TIMEOUT_MS: number = 5 * 60 * 1000; // 5 minutes to show overlay
+const EXTENDED_TIMEOUT_MULTIPLIER: number = 3; // 3x multiplier during imports and AI operations
 
 /**
  * Angular service replacing the React `useSecurityManager` hook.
@@ -21,10 +22,50 @@ export class SecurityManagerService {
 
     readonly isIdle: WritableSignal<boolean> = signal<boolean>(false);
 
+    private readonly activeExtendedOperations: WritableSignal<Set<string>> = signal<Set<string>>(
+        new Set<string>()
+    );
+
+    /**
+     * Whether the session idle timeout is currently extended by 3x.
+     */
+    readonly isExtendedTimeout: Signal<boolean> = computed<boolean>(
+        () => this.activeExtendedOperations().size > 0
+    );
+
     private idleTimer: TimerHandle | null = null;
     private logoutTimer: TimerHandle | null = null;
     private activityListener: (() => void) | null = null;
     private beforeUnloadListener: ((e: BeforeUnloadEvent) => void) | null = null;
+
+    /**
+     * Acquire extended session timeout (3x) for an active long-running operation.
+     * Returns a release function to be called when the operation finishes.
+     */
+    acquireExtendedTimeout(operationId: string): () => void {
+        this.activeExtendedOperations.update(ops => {
+            const next = new Set(ops);
+            next.add(operationId);
+            return next;
+        });
+        this.resetTimers();
+
+        return () => {
+            this.releaseExtendedTimeout(operationId);
+        };
+    }
+
+    /**
+     * Release extended session timeout for an operation.
+     */
+    releaseExtendedTimeout(operationId: string): void {
+        this.activeExtendedOperations.update(ops => {
+            const next = new Set(ops);
+            next.delete(operationId);
+            return next;
+        });
+        this.resetTimers();
+    }
 
     /**
      * Call from the AppShell component's constructor to start monitoring.
@@ -56,21 +97,29 @@ export class SecurityManagerService {
             return;
         }
 
-        // Warning overlay after 5 minutes
+        const multiplier = this.isExtendedTimeout() ? EXTENDED_TIMEOUT_MULTIPLIER : 1;
+        const warningMs = WARNING_TIMEOUT_MS * multiplier;
+        const idleMs = IDLE_TIMEOUT_MS * multiplier;
+
+        // Warning overlay
         this.idleTimer = setTimeout((): void => {
             if (this.authService.currentUser()) {
-                console.log('[SecurityManager] Session idle: showing overlay');
+                console.log(
+                    `[SecurityManager] Session idle: showing overlay (extended: ${this.isExtendedTimeout()})`
+                );
                 this.isIdle.set(true);
             }
-        }, WARNING_TIMEOUT_MS);
+        }, warningMs);
 
-        // Auto-logout after 10 minutes
+        // Auto-logout
         this.logoutTimer = setTimeout((): void => {
             if (this.authService.currentUser()) {
-                console.log('[SecurityManager] Session timeout: logging out');
+                console.log(
+                    `[SecurityManager] Session timeout: logging out (extended: ${this.isExtendedTimeout()})`
+                );
                 void this.authService.signOut();
             }
-        }, IDLE_TIMEOUT_MS);
+        }, idleMs);
     }
 
     private setupActivityListeners(): void {

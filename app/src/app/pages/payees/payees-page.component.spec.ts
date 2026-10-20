@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import type { IPayee, IRecurringSchedule, ITransaction } from '@core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -59,6 +58,7 @@ describe('PayeesPageComponent', () => {
         schedules: mockSchedules,
         accounts: signal([]),
         isInitialized: signal(true),
+        isLoading: signal(false),
         syncStatus: signal('synced'),
         authError: signal(false),
         hasLocalFallback: signal(true),
@@ -85,7 +85,6 @@ describe('PayeesPageComponent', () => {
         await TestBed.configureTestingModule({
             imports: [PayeesPageComponent],
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 { provide: AuthService, useValue: mockAuth },
                 { provide: LedgerStore, useValue: mockLedgerStore },
@@ -127,6 +126,29 @@ describe('PayeesPageComponent', () => {
         component.openMergePayees('p-1');
         expect(component.isMergeDialogOpen()).toBe(true);
         expect(component.preselectedMergeSourceId()).toBe('p-1');
+    });
+
+    it('should compute isLoading and display skeleton placeholders while loading', () => {
+        mockLedgerStore.isLoading.set(true);
+        fixture.detectChanges();
+
+        expect(component.isLoading()).toBe(true);
+        const skeletons = fixture.nativeElement.querySelectorAll('app-skeleton');
+        expect(skeletons.length).toBeGreaterThan(0);
+
+        // Zero state should NOT be visible while loading
+        const text = fixture.nativeElement.textContent;
+        expect(text).not.toContain('No payees registered yet');
+    });
+
+    it('should display zero state only after loading completes and payees list is empty', () => {
+        mockLedgerStore.isLoading.set(false);
+        mockPayees.set([]);
+        fixture.detectChanges();
+
+        expect(component.isLoading()).toBe(false);
+        const text = fixture.nativeElement.textContent;
+        expect(text).toContain('No payees registered yet');
     });
 
     it('should NOT open merge dialog on mobile viewports (< 768px)', () => {

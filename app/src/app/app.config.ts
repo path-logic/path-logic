@@ -7,7 +7,6 @@ import {
     provideZonelessChangeDetection
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import Lara from '@primeuix/themes/lara';
 import { providePrimeNG } from 'primeng/config';
@@ -76,7 +75,6 @@ export const appConfig: ApplicationConfig = {
         provideBrowserGlobalErrorListeners(),
         provideZonelessChangeDetection(),
         provideRouter(appRoutes, withComponentInputBinding()),
-        provideAnimationsAsync(),
         providePrimeNG({
             theme: {
                 preset: PremiumPreset,

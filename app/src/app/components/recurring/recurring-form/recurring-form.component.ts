@@ -49,6 +49,7 @@ export class RecurringPaymentFormComponent {
     };
     @Output() saved = new EventEmitter<Partial<IRecurringSchedule>>();
     @Output() cancelled = new EventEmitter<void>();
+    @Output() deleted = new EventEmitter<string>();
 
     @Input() accounts: Array<{ id: string; name: string }> = [];
 
@@ -64,11 +65,28 @@ export class RecurringPaymentFormComponent {
     }));
 
     handleSave(): void {
+        const sched = { ...this.schedule };
+        if (sched.nextDueDate && typeof sched.nextDueDate === 'object') {
+            const d = sched.nextDueDate as Date;
+            sched.nextDueDate = d.toISOString().slice(0, 10);
+            this.schedule.nextDueDate = sched.nextDueDate;
+        }
+        if (sched.startDate && typeof sched.startDate === 'object') {
+            const d = sched.startDate as Date;
+            sched.startDate = d.toISOString().slice(0, 10);
+            this.schedule.startDate = sched.startDate;
+        }
         this.saved.emit(this.schedule);
     }
 
     handleCancel(): void {
         this.cancelled.emit();
+    }
+
+    handleDelete(): void {
+        if (this.schedule.id) {
+            this.deleted.emit(this.schedule.id);
+        }
     }
 
     onTypeChange(type: ScheduleType): void {

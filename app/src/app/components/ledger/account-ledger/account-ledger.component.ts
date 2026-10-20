@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import type { ElementRef, OnDestroy, OnInit } from '@angular/core';
+import type { ElementRef, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -15,17 +15,27 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { IPayee, ISODateString, ITransaction } from '@core';
-import { AccountType, KnownCategory, Money, TransactionStatus } from '@core';
+import {
+    AccountType,
+    KnownCategory,
+    Money,
+    TransactionStatus,
+    resolveImportTransactionStatus
+} from '@core';
 import { MessageService } from 'primeng/api';
 
 import type { IAccount } from '@core';
+import { AiAutoCategorizeService } from '../../../services/ai-auto-categorize/ai-auto-categorize.service';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import type { ReconciliationDecision } from '../../../services/import/import.types';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
+import { SidebarContextService } from '../../../services/sidebar-context/sidebar-context.service';
+import { UserSettingsStore } from '../../../services/user-settings-store/user-settings.store';
 import { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
 import { AccountDropdownComponent } from '../account-dropdown/account-dropdown.component';
+import { AiMatchingBannerComponent } from '../ai-matching-banner/ai-matching-banner.component';
 import { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';
 import { ExpressImportDialogComponent } from '../express-import-dialog/express-import-dialog.component';
 import { ImportProgressOverlayComponent } from '../import-progress-overlay/import-progress-overlay.component';
@@ -50,6 +60,7 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         ExpressImportDialogComponent,
         ImportProgressOverlayComponent,
         CategoryMappingDialogComponent,
+        AiMatchingBannerComponent,
         NewAccountDialogComponent
     ],
     providers: [MessageService],
@@ -61,15 +72,33 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     private readonly ledgerStore = inject(LedgerStore);
     private readonly posthogService = inject(PostHogService);
     readonly importService = inject(ImportOrchestrationService);
+    readonly aiCategorizeService = inject(AiAutoCategorizeService);
     private readonly messageService = inject(MessageService);
+    private readonly sidebarContext = inject(SidebarContextService);
+    private readonly userSettingsStore = inject(UserSettingsStore);
 
     // Inputs
     readonly initialAccountId = input<string | null>(null);
 
     // State
     readonly activeAccountId = signal<string | null>(null);
+    readonly isCurrentAccountPrimary = computed(() => {
+        const active = this.activeAccountId();
+        const primary = this.userSettingsStore.primaryAccountId();
+        return !!active && active === primary;
+    });
     readonly statusFilter = signal<'all' | 'cleared' | 'pending'>('all');
     readonly getAccountBalanceBound = (id: string): number => this.getAccountBalance(id);
+
+    async toggleActiveAccountPrimary(): Promise<void> {
+        const active = this.activeAccountId();
+        if (!active) return;
+        if (this.isCurrentAccountPrimary()) {
+            await this.userSettingsStore.setPrimaryAccountId(null);
+        } else {
+            await this.userSettingsStore.setPrimaryAccountId(active);
+        }
+    }
 
     // Mobile Entry Sheet & Edit State
     readonly isMobileEntrySheetOpen = signal<boolean>(false);
@@ -88,9 +117,17 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     // File input ref
     readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
+    // Sidebar tools template
+    readonly sidebarTools = viewChild<TemplateRef<unknown>>('sidebarTools');
+
     // Computed from store
     readonly accounts = this.ledgerStore.accounts;
     readonly transactions = this.ledgerStore.transactions;
+    readonly isLoading = computed(
+        () =>
+            !this.ledgerStore.isInitialized() ||
+            (this.ledgerStore.isLoading ? this.ledgerStore.isLoading() : false)
+    );
 
     readonly filteredTransactions = computed(() => {
         const accId = this.activeAccountId();
@@ -128,7 +165,27 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
         return accs.find(a => a.id === id) ?? null;
     });
 
+    readonly hasUncategorizedTransactions = computed(() => {
+        return this.filteredTransactions().some(tx =>
+            tx.splits.some(s => !s.categoryId || s.categoryId === KnownCategory.Uncategorized)
+        );
+    });
+
+    autoCategorizeActiveAccount(): void {
+        const txs = this.filteredTransactions().filter(tx =>
+            tx.splits.some(s => !s.categoryId || s.categoryId === KnownCategory.Uncategorized)
+        );
+        if (txs.length > 0) {
+            void this.aiCategorizeService.startBackgroundCategorization(txs);
+        }
+    }
+
+    readonly canReconcile = computed(() => this.importMatches().length > 0);
+
     openReconciliation(): void {
+        if (!this.canReconcile()) {
+            return;
+        }
         this.reconciliationOpen.set(true);
     }
 
@@ -188,6 +245,22 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                 });
             }
         });
+
+        // Register dynamic sidebar tools when template is available
+        effect(() => {
+            const tools = this.sidebarTools();
+            if (tools) {
+                this.sidebarContext.setContext(tools);
+            }
+        });
+
+        // Reactively sync activeAccountId when initialAccountId input changes (e.g. from breadcrumbs)
+        effect(() => {
+            const id = this.initialAccountId();
+            if (id) {
+                this.activeAccountId.set(id);
+            }
+        });
     }
 
     ngOnInit(): void {
@@ -195,6 +268,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.sidebarContext.clearContext();
         this.importService.reset();
     }
 
@@ -333,7 +407,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
                     payee: overriddenPayeeName,
                     memo: parsed.memo,
                     totalAmount: parsed.amount,
-                    status: TransactionStatus.Cleared,
+                    status: resolveImportTransactionStatus(parsed),
                     checkNumber: parsed.checkNumber,
                     importHash: parsed.importHash,
                     splits:

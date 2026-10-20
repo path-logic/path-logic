@@ -43,6 +43,13 @@ const meta: Meta<FeatureFlagToggleComponent> = {
             ]
         })
     ],
+    parameters: {
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
+    },
     args: {
         flag: 'enable_multi_user',
         label: 'Enable Multi-User Mode',

@@ -58,5 +58,10 @@ export class AccountInfoComponent {
         this.router.navigate(['/accounts', this.accountId()]);
     }
 
-    // Lucide Icons
+    formatCurrency(cents: number): string {
+        return (cents / 100).toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        });
+    }
 }

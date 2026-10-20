@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
 import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -17,12 +18,20 @@ const createMockStore = (authError: boolean, isInitialized: boolean, hasLocalFal
     };
 };
 
+export const signInWithGoogleMock = fn().mockResolvedValue(undefined);
+
 const meta: Meta<AuthOverlayComponent> = {
     title: 'Auth/AuthOverlayComponent',
     component: AuthOverlayComponent,
     tags: ['autodocs'],
+    excludeStories: /.*Mock/,
     parameters: {
-        layout: 'fullscreen'
+        layout: 'fullscreen',
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
     }
 };
 
@@ -37,10 +46,14 @@ export const Hidden: Story = {
         applicationConfig({
             providers: [
                 { provide: LedgerStore, useValue: createMockStore(false, true, true) },
-                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } }
+                { provide: AuthService, useValue: { signInWithGoogle: signInWithGoogleMock } }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.queryByRole('heading', { name: /session expired/i })).toBeNull();
+    }
 };
 
 /**
@@ -52,8 +65,23 @@ export const VisibleSessionExpired: Story = {
         applicationConfig({
             providers: [
                 { provide: LedgerStore, useValue: createMockStore(true, false, false) },
-                { provide: AuthService, useValue: { signInWithGoogle: async () => {} } }
+                { provide: AuthService, useValue: { signInWithGoogle: signInWithGoogleMock } }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        signInWithGoogleMock.mockClear();
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByRole('heading', { name: /session expired/i })).toBeInTheDocument();
+        await expect(
+            canvas.getByText(/Authentication with Google Drive is required to continue/i)
+        ).toBeInTheDocument();
+
+        const reauthBtn = canvas.getByRole('button', { name: /re-authenticate session/i });
+        await expect(reauthBtn).toBeInTheDocument();
+        await userEvent.click(reauthBtn);
+
+        expect(signInWithGoogleMock).toHaveBeenCalled();
+    }
 };

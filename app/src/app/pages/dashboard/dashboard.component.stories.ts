@@ -1,5 +1,4 @@
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { AccountType, TransactionStatus } from '@core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
@@ -126,7 +125,6 @@ const meta: Meta<DashboardComponent> = {
     decorators: [
         applicationConfig({
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
@@ -168,5 +166,16 @@ export const DarkMode: Story = {
 export const LightMode: Story = {
     parameters: {
         theme: 'light'
+    }
+};
+
+export const HeroAccountLayout: Story = {
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getAllByText(/90-Day Cashflow Forecast/i)[0]).toBeInTheDocument();
+        await expect(canvas.getByText(/Account Portfolio/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/Checking Account/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/Recent Activity/i)).toBeInTheDocument();
+        await expect(canvas.getByText(/Upcoming/i)).toBeInTheDocument();
     }
 };

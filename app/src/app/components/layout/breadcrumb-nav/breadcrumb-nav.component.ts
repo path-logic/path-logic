@@ -1,9 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import type { IAccount } from '@core';
 import { type MenuItem } from 'primeng/api';
-import { Breadcrumb } from 'primeng/breadcrumb';
 
+import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { AccountDropdownComponent } from '../../ledger/account-dropdown/account-dropdown.component';
+
+/**
+ * Breadcrumb item interface for semantic navigation.
+ */
+export interface IBreadcrumbItem {
+    label: string;
+    routerLink: string;
+    icon?: string;
+}
 
 /**
  * Map of route segments to their human-readable labels.
@@ -21,11 +32,12 @@ const routeLabels: Record<string, string> = {
 
 /**
  * Breadcrumb navigation component that dynamically resolves labels based on the current URL.
+ * Embeds an interactive AccountDropdown on account routes and exposes a global Command Palette trigger.
  */
 @Component({
     selector: 'breadcrumb-nav',
     standalone: true,
-    imports: [Breadcrumb],
+    imports: [RouterLink, AccountDropdownComponent],
     templateUrl: './breadcrumb-nav.component.html',
     styleUrl: './breadcrumb-nav.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,55 +45,146 @@ const routeLabels: Record<string, string> = {
 export class BreadcrumbNavComponent {
     private readonly router: Router = inject(Router);
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
+    private readonly commandPaletteService: CommandPaletteService = inject(CommandPaletteService);
+
+    readonly currentUrl = computed((): string => this.router.url.split('?')[0] ?? '');
+    readonly segments = computed((): Array<string> => this.currentUrl().split('/').filter(Boolean));
 
     /**
-     * The "home" slot holds the first route segment so PrimeNG never
-     * renders a separator before it. Subsequent segments go into `model`.
+     * Identifies the current account ID when within an account route (/accounts/:accountId).
      */
-    readonly home = computed((): MenuItem => {
-        const url: string = this.router.url.split('?')[0] ?? '';
-        const segments: Array<string> = url.split('/').filter(Boolean);
-        const first = segments[0];
-        if (!first) return { icon: 'pi pi-home', routerLink: '/' };
+    readonly currentAccountId = computed((): string | null => {
+        const segs: Array<string> = this.segments();
+        if (segs.length >= 2 && segs[0] === 'accounts') {
+            const id: string | undefined = segs[1];
+            if (id && id !== 'new') {
+                return id;
+            }
+        }
+        return null;
+    });
 
-        const label = routeLabels[first] ?? first.charAt(0).toUpperCase() + first.slice(1);
+    /**
+     * The first route segment (or Home/Overview if at root).
+     */
+    readonly home = computed((): IBreadcrumbItem => {
+        const segs: Array<string> = this.segments();
+        const first: string | undefined = segs[0];
+        if (!first) return { icon: 'pi pi-home', label: 'Overview', routerLink: '/' };
+
+        const label: string = routeLabels[first] ?? first.charAt(0).toUpperCase() + first.slice(1);
         return { label, routerLink: `/${first}` };
     });
 
     /**
-     * Computed signal that builds the breadcrumb list from the current URL.
-     * Only segments after the first are included — the first is in `home`.
+     * Subsequent breadcrumb items beyond the home/account segment.
      */
-    readonly breadcrumbs = computed((): Array<MenuItem> => {
-        const url: string = this.router.url.split('?')[0] ?? '';
-        const segments: Array<string> = url.split('/').filter(Boolean);
+    readonly remainingCrumbs = computed((): Array<IBreadcrumbItem> => {
+        const segs: Array<string> = this.segments();
 
-        // Need at least 2 segments to show breadcrumbs beyond the home item
-        if (segments.length < 2) {
-            return new Array<MenuItem>();
+        if (this.currentAccountId()) {
+            if (segs.length <= 2) return [];
+            return segs.slice(2).map((segment: string, idx: number): IBreadcrumbItem => {
+                const absoluteIndex: number = idx + 2;
+                const routerLink: string = `/${segs.slice(0, absoluteIndex + 1).join('/')}`;
+                let label: string = routeLabels[segment] ?? segment;
+                if (segment === 'info') label = 'Account Details';
+                else if (segment === 'splits') label = 'Split Transaction';
+                else if (label === segment)
+                    label = segment.charAt(0).toUpperCase() + segment.slice(1);
+                return { label, routerLink };
+            });
         }
 
-        // Skip index 0 — that's handled by the home slot above
-        return segments.slice(1).map((segment: string, index: number): MenuItem => {
-            const absoluteIndex = index + 1; // index relative to full segments array
-            const routerLink: string = `/${segments.slice(0, absoluteIndex + 1).join('/')}`;
-
+        if (segs.length < 2) return [];
+        return segs.slice(1).map((segment: string, idx: number): IBreadcrumbItem => {
+            const absoluteIndex: number = idx + 1;
+            const routerLink: string = `/${segs.slice(0, absoluteIndex + 1).join('/')}`;
             let label: string = routeLabels[segment] ?? segment;
-
-            // Resolve account ID to name if in accounts path
-            if (segments[absoluteIndex - 1] === 'accounts') {
-                const account = this.ledgerStore.accounts().find(a => a.id === segment);
-                if (account) {
-                    label = account.name;
-                }
-            }
-
-            // Capitalize if no specific label found
-            if (label === segment) {
-                label = segment.charAt(0).toUpperCase() + segment.slice(1);
-            }
-
+            if (label === segment) label = segment.charAt(0).toUpperCase() + segment.slice(1);
             return { label, routerLink };
         });
     });
+
+    /**
+     * PrimeNG MenuItem compatibility for legacy stories/consumers.
+     */
+    readonly breadcrumbs = computed((): Array<MenuItem> => {
+        const crumbs: Array<IBreadcrumbItem> = this.remainingCrumbs();
+        return crumbs.map(
+            (c: IBreadcrumbItem): MenuItem => ({ label: c.label, routerLink: c.routerLink })
+        );
+    });
+
+    /**
+     * List of all accounts for the switcher.
+     */
+    readonly accounts = computed((): Array<IAccount> => {
+        return typeof this.ledgerStore.accounts === 'function' ? this.ledgerStore.accounts() : [];
+    });
+
+    /**
+     * Whether multiple accounts exist to warrant a selectable dropdown.
+     */
+    readonly hasMultipleAccounts = computed((): boolean => this.accounts().length > 1);
+
+    /**
+     * The active account object if currently on an account route.
+     */
+    readonly currentAccount = computed((): IAccount | null => {
+        const id = this.currentAccountId();
+        if (!id) return null;
+        return this.accounts().find(a => a.id === id) ?? null;
+    });
+
+    /**
+     * The active account display name.
+     */
+    readonly currentAccountName = computed((): string => {
+        return this.currentAccount()?.name ?? 'Account';
+    });
+
+    /**
+     * Formatted balance for the active single account.
+     */
+    readonly currentAccountBalanceFormatted = computed((): string | null => {
+        const id = this.currentAccountId();
+        if (!id) return null;
+        const balanceCents = this.getAccountBalance(id);
+        return (balanceCents / 100).toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        });
+    });
+
+    /**
+     * Account balance lookup bound function.
+     */
+    readonly getAccountBalance = (id: string): number => {
+        const txs =
+            typeof this.ledgerStore.transactions === 'function'
+                ? this.ledgerStore.transactions()
+                : [];
+        return txs.filter(t => t.accountId === id).reduce((sum, t) => sum + t.totalAmount, 0);
+    };
+
+    /**
+     * Handles account switching from the breadcrumbs dropdown.
+     */
+    onAccountSelect(accountId: string | null): void {
+        if (!accountId) return;
+        const segs: Array<string> = this.segments();
+        if (segs.length > 2 && segs[2] === 'info') {
+            void this.router.navigate(['/accounts', accountId, 'info']);
+        } else {
+            void this.router.navigate(['/accounts', accountId]);
+        }
+    }
+
+    /**
+     * Opens the global command palette.
+     */
+    openCommandPalette(): void {
+        this.commandPaletteService.open();
+    }
 }

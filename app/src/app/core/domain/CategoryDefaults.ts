@@ -54,6 +54,9 @@ export const KnownCategory = {
     Investments: 'cat-investments',
     FourOhOneK: 'cat-401k',
     HSA: 'cat-hsa',
+    Roth401k: 'cat-roth-401k',
+    LifeInsurance: 'cat-life-insurance',
+    DisabilityInsurance: 'cat-disability-insurance',
     Uncategorized: 'cat-uncategorized'
 } as const;
 

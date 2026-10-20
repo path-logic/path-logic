@@ -72,4 +72,84 @@ describe('AccountSparklineCardComponent', () => {
 
         expect(emittedId).toBe('acc-1');
     });
+
+    it('should display star icon and emit starToggled when clicked', () => {
+        let emittedId: string | null = null;
+        component.starToggled.subscribe((id: string) => {
+            emittedId = id;
+        });
+
+        // Initially not primary
+        expect(fixture.nativeElement.querySelector('.pi-star')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('.pi-star-fill')).toBeNull();
+
+        // Click star button
+        const starBtn = fixture.nativeElement.querySelector(
+            'button[aria-label="Set as Primary Hero Account"]'
+        ) as HTMLButtonElement;
+        expect(starBtn).toBeTruthy();
+        starBtn.click();
+
+        expect(emittedId).toBe('acc-1');
+
+        // Set isPrimary to true
+        fixture.componentRef.setInput('isPrimary', true);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.pi-star-fill')).toBeTruthy();
+    });
+
+    it('should apply full width hero styling when isFullWidth is true', () => {
+        fixture.componentRef.setInput('isFullWidth', true);
+        fixture.detectChanges();
+
+        const card = fixture.nativeElement.querySelector('article');
+        expect(card).toBeTruthy();
+        const balanceEl = fixture.nativeElement.querySelector('.font-mono.font-black');
+        expect(balanceEl.classList.contains('sm:text-4xl')).toBe(true);
+        expect(fixture.nativeElement.textContent).toContain('Cleared: $14,870.50');
+    });
+
+    it('should compute pending difference correctly when pending and cleared differ', () => {
+        const pendingAccount: IAccount = {
+            ...mockAccount,
+            clearedBalance: 100000,
+            pendingBalance: 125000
+        };
+        fixture.componentRef.setInput('account', pendingAccount);
+        fixture.componentRef.setInput('isFullWidth', true);
+        fixture.detectChanges();
+
+        expect(component.formattedClearedBalance()).toBe('$1,000.00');
+        expect(component.hasPendingTransactions()).toBe(true);
+        expect(component.formattedPendingDifference()).toBe('+$250.00');
+        expect(fixture.nativeElement.textContent).toContain('+$250.00 pending');
+    });
+
+    it('should link to account settings via full card click target overlay in standard mode', () => {
+        const settingsOverlayLink = fixture.nativeElement.querySelector(
+            'a[aria-label="Configure settings for Chase Checking"]'
+        ) as HTMLAnchorElement;
+        expect(settingsOverlayLink).toBeTruthy();
+        expect(settingsOverlayLink.tagName.toLowerCase()).toBe('a');
+        expect(settingsOverlayLink.getAttribute('href')).toBe('/accounts/acc-1/info');
+    });
+
+    it('should have a working View Ledger link and a Settings overlay in full width hero mode', () => {
+        fixture.componentRef.setInput('isFullWidth', true);
+        fixture.detectChanges();
+
+        const settingsOverlayLink = fixture.nativeElement.querySelector(
+            'a[aria-label="Configure settings for Chase Checking"]'
+        ) as HTMLAnchorElement;
+        expect(settingsOverlayLink).toBeTruthy();
+        expect(settingsOverlayLink.getAttribute('href')).toBe('/accounts/acc-1/info');
+
+        const viewLedgerLink = fixture.nativeElement.querySelector(
+            'a[aria-label="View ledger for Chase Checking"]'
+        ) as HTMLAnchorElement;
+        expect(viewLedgerLink).toBeTruthy();
+        expect(viewLedgerLink.tagName.toLowerCase()).toBe('a');
+        expect(viewLedgerLink.getAttribute('href')).toBe('/accounts/acc-1');
+    });
 });

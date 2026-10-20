@@ -340,208 +340,227 @@
         <!-- ════════════════════════ SMALL DATASET MODE (card per entry) ══════════════ -->
     } @else {
         <div class="flex-1 bg-surface-100/10 p-2 space-y-4">
-            @for (match of matches(); track $index; let idx = $index) {
-                @let decision = decisions()[idx];
+            @if (matches().length === 0) {
                 <div
-                    class="p-4 rounded-sm border-2 transition-all relative overflow-hidden shadow-md"
-                    [class]="{
-                        'border-primary/50 bg-primary/5 shadow-primary/20': decision === 'import',
-                        'border-amber-500/50 bg-amber-800/5 shadow-amber-500/20':
-                            decision === 'match',
-                        'border-surface-200/50 bg-surface-100/20 opacity-80 shadow-none':
-                            decision === 'ignore'
-                    }"
+                    class="flex flex-col items-center justify-center p-8 text-center text-surface-500 space-y-2 border border-dashed border-surface-200 rounded-sm"
                 >
-                    <!-- Status Ribbon -->
+                    <i class="pi pi-inbox text-3xl text-surface-400"></i>
+                    <p class="text-xs font-bold uppercase tracking-wider text-surface-600 m-0">
+                        No Statement Transactions To Reconcile
+                    </p>
+                    <p class="text-[11px] text-surface-400 max-w-sm m-0">
+                        Import a QIF or CSV statement file first to review and reconcile
+                        transactions.
+                    </p>
+                </div>
+            } @else {
+                @for (match of matches(); track $index; let idx = $index) {
+                    @let decision = decisions()[idx];
                     <div
-                        class="absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-sm rounded-bl-md"
-                        [class.bg-primary]="decision === 'import'"
-                        [class.text-white]="decision === 'import' || decision === 'match'"
-                        [class.bg-amber-700]="decision === 'match'"
-                        [class.bg-surface-100]="decision === 'ignore'"
-                        [class.text-surface-500]="decision === 'ignore'"
+                        class="p-4 rounded-sm border-2 transition-all relative overflow-hidden shadow-md"
+                        [class]="{
+                            'border-primary/50 bg-primary/5 shadow-primary/20':
+                                decision === 'import',
+                            'border-amber-500/50 bg-amber-800/5 shadow-amber-500/20':
+                                decision === 'match',
+                            'border-surface-200/50 bg-surface-100/20 opacity-80 shadow-none':
+                                decision === 'ignore'
+                        }"
                     >
-                        {{ decision }}
-                    </div>
-
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="px-2 py-0.5 text-[9px] font-black uppercase rounded-none border"
-                                [class.bg-surface-100]="match.type === 'fuzzy'"
-                                [class.border-transparent]="match.type === 'fuzzy'"
-                                [class.border-surface-200]="match.type !== 'fuzzy'"
-                            >
-                                {{ match.type === 'fuzzy' ? 'Ambiguous' : 'New Transaction' }}
-                            </span>
-                            <span class="text-xs font-mono font-bold text-surface-800">
-                                {{ match.parsedTx.date | date: globalDateFormat }}
-                            </span>
-                        </div>
+                        <!-- Status Ribbon -->
                         <div
-                            class="text-lg font-mono font-black text-emerald-700 dark:text-emerald-400 tabular-nums"
+                            class="absolute top-0 right-0 px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-sm rounded-bl-md"
+                            [class.bg-primary]="decision === 'import'"
+                            [class.text-white]="decision === 'import' || decision === 'match'"
+                            [class.bg-amber-700]="decision === 'match'"
+                            [class.bg-surface-100]="decision === 'ignore'"
+                            [class.text-surface-500]="decision === 'ignore'"
                         >
-                            {{ formatCurrency(match.parsedTx.amount) }}
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-12 gap-6 items-center">
-                        <div class="col-span-5 space-y-1">
-                            <span
-                                class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
-                            >
-                                Statement Entry
-                            </span>
-                            <div class="h-9 w-full">
-                                <payee-autocomplete
-                                    [ngModel]="payeeOverrides()[idx] || match.parsedTx.payee"
-                                    (ngModelChange)="setPayeeOverride(idx, $event)"
-                                    inputStyleClass="w-full h-8 text-sm font-black text-surface-800 uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
-                                ></payee-autocomplete>
-                            </div>
-                            <div class="h-9 w-full mt-2">
-                                <p-select
-                                    [options]="categories()"
-                                    optionLabel="name"
-                                    optionValue="id"
-                                    ariaLabel="Select Category"
-                                    [ngModel]="
-                                        categoryOverrides()[idx] ||
-                                        match.parsedTx.category ||
-                                        'cat-uncategorized'
-                                    "
-                                    (ngModelChange)="setCategoryOverride(idx, $event)"
-                                    styleClass="text-xs w-full h-8 font-black uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
-                                    placeholder="Select Category"
-                                    [disabled]="decision === 'ignore' || decision === 'match'"
-                                ></p-select>
-                            </div>
-                            @if (match.parsedTx.memo) {
-                                <div class="text-[10px] text-surface-800 italic truncate mt-2">
-                                    {{ match.parsedTx.memo }}
-                                </div>
-                            }
+                            {{ decision }}
                         </div>
 
-                        <div class="col-span-1 flex justify-center">
-                            @if (decision === 'match') {
-                                <i class="pi pi-link text-xl text-amber-600"></i>
-                            } @else if (decision === 'import') {
-                                <i class="pi pi-plus-circle text-xl text-primary"></i>
-                            } @else {
-                                <i class="pi pi-times-circle text-xl text-surface-300"></i>
-                            }
-                        </div>
-
-                        <div class="col-span-6 space-y-1">
-                            <span
-                                class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
-                            >
-                                Matched Record
-                            </span>
-                            @if (match.type === 'fuzzy') {
-                                @let effectiveId = getEffectiveMatchId(idx, match.existingTxId);
-                                @let existing = getExistingTx(effectiveId);
-                                <div
-                                    class="bg-surface-50/50 border border-amber-800/20 p-2 rounded-sm relative"
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="px-2 py-0.5 text-[9px] font-black uppercase rounded-none border"
+                                    [class.bg-surface-100]="match.type === 'fuzzy'"
+                                    [class.border-transparent]="match.type === 'fuzzy'"
+                                    [class.border-surface-200]="match.type !== 'fuzzy'"
                                 >
-                                    <div
-                                        class="flex items-center justify-between text-[10px] font-bold text-amber-800 mb-1"
-                                    >
-                                        <div class="flex items-center gap-2">
-                                            <i class="pi pi-link text-xs"></i>
-                                            MATCH FOUND
-                                            {{
-                                                effectiveId === match.existingTxId
-                                                    ? '(' +
-                                                      (match.confidence * 100).toFixed(0) +
-                                                      '%)'
-                                                    : '(Manual Override)'
-                                            }}
-                                        </div>
-                                        <button
-                                            (click)="
-                                                editingMatchIdx.set(
-                                                    editingMatchIdx() === idx ? null : idx
-                                                )
-                                            "
-                                            class="hover:text-amber-900 transition-colors"
-                                        >
-                                            <i class="pi pi-pencil text-[9px]"></i> Edit
-                                        </button>
+                                    {{ match.type === 'fuzzy' ? 'Ambiguous' : 'New Transaction' }}
+                                </span>
+                                <span class="text-xs font-mono font-bold text-surface-800">
+                                    {{ match.parsedTx.date | date: globalDateFormat }}
+                                </span>
+                            </div>
+                            <div
+                                class="text-lg font-mono font-black text-emerald-700 dark:text-emerald-400 tabular-nums"
+                            >
+                                {{ formatCurrency(match.parsedTx.amount) }}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-6 items-center">
+                            <div class="col-span-5 space-y-1">
+                                <span
+                                    class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
+                                >
+                                    Statement Entry
+                                </span>
+                                <div class="h-9 w-full">
+                                    <payee-autocomplete
+                                        [ngModel]="payeeOverrides()[idx] || match.parsedTx.payee"
+                                        (ngModelChange)="setPayeeOverride(idx, $event)"
+                                        inputStyleClass="w-full h-8 text-sm font-black text-surface-800 uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                    ></payee-autocomplete>
+                                </div>
+                                <div class="h-9 w-full mt-2">
+                                    <p-select
+                                        [options]="categories()"
+                                        optionLabel="name"
+                                        optionValue="id"
+                                        ariaLabel="Select Category"
+                                        [ngModel]="
+                                            categoryOverrides()[idx] ||
+                                            match.parsedTx.category ||
+                                            'cat-uncategorized'
+                                        "
+                                        (ngModelChange)="setCategoryOverride(idx, $event)"
+                                        styleClass="text-xs w-full h-8 font-black uppercase tracking-tight bg-surface-0/60 border border-surface-200/60 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                                        placeholder="Select Category"
+                                        [disabled]="decision === 'ignore' || decision === 'match'"
+                                    ></p-select>
+                                </div>
+                                @if (match.parsedTx.memo) {
+                                    <div class="text-[10px] text-surface-800 italic truncate mt-2">
+                                        {{ match.parsedTx.memo }}
                                     </div>
-                                    @if (editingMatchIdx() === idx) {
-                                        <select
-                                            [ngModel]="effectiveId"
-                                            (ngModelChange)="setMatchOverride(idx, $event)"
-                                            class="w-full text-[10px] mb-2 border border-amber-800/20 rounded-sm px-1 py-1 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                                        >
-                                            @for (
-                                                cand of getCandidateTransactions(
-                                                    match.parsedTx.date
-                                                );
-                                                track cand.id
-                                            ) {
-                                                <option [value]="cand.id">
-                                                    {{ cand.date | date: globalDateFormat }} -
-                                                    {{ cand.payee }} ({{
-                                                        formatCurrency(cand.totalAmount / 100)
-                                                    }})
-                                                </option>
-                                            }
-                                        </select>
-                                    } @else {
+                                }
+                            </div>
+
+                            <div class="col-span-1 flex justify-center">
+                                @if (decision === 'match') {
+                                    <i class="pi pi-link text-xl text-amber-600"></i>
+                                } @else if (decision === 'import') {
+                                    <i class="pi pi-plus-circle text-xl text-primary"></i>
+                                } @else {
+                                    <i class="pi pi-times-circle text-xl text-surface-300"></i>
+                                }
+                            </div>
+
+                            <div class="col-span-6 space-y-1">
+                                <span
+                                    class="text-[8px] font-black text-surface-800 uppercase tracking-widest block mb-2"
+                                >
+                                    Matched Record
+                                </span>
+                                @if (match.type === 'fuzzy') {
+                                    @let effectiveId = getEffectiveMatchId(idx, match.existingTxId);
+                                    @let existing = getExistingTx(effectiveId);
+                                    <div
+                                        class="bg-surface-50/50 border border-amber-800/20 p-2 rounded-sm relative"
+                                    >
                                         <div
-                                            class="text-[11px] font-black text-surface-800 truncate"
+                                            class="flex items-center justify-between text-[10px] font-bold text-amber-800 mb-1"
                                         >
-                                            {{ existing?.payee || effectiveId }}
-                                        </div>
-                                        <div class="flex justify-between items-center mt-1">
-                                            <div class="text-[10px] font-mono text-surface-600">
-                                                {{ existing?.date | date: globalDateFormat }}
-                                            </div>
-                                            <div
-                                                class="text-[10px] font-mono font-bold text-surface-800"
-                                            >
+                                            <div class="flex items-center gap-2">
+                                                <i class="pi pi-link text-xs"></i>
+                                                MATCH FOUND
                                                 {{
-                                                    formatCurrency(
-                                                        (existing?.totalAmount ?? 0) / 100
-                                                    )
+                                                    effectiveId === match.existingTxId
+                                                        ? '(' +
+                                                          (match.confidence * 100).toFixed(0) +
+                                                          '%)'
+                                                        : '(Manual Override)'
                                                 }}
                                             </div>
+                                            <button
+                                                (click)="
+                                                    editingMatchIdx.set(
+                                                        editingMatchIdx() === idx ? null : idx
+                                                    )
+                                                "
+                                                class="hover:text-amber-900 transition-colors"
+                                            >
+                                                <i class="pi pi-pencil text-[9px]"></i> Edit
+                                            </button>
                                         </div>
-                                    }
-                                </div>
-                            } @else {
-                                <div
-                                    class="text-[10px] text-surface-800/80 italic border border-dashed border-surface-200 p-2 rounded-sm"
-                                >
-                                    No similar transaction found in the current account ledger.
-                                </div>
-                            }
+                                        @if (editingMatchIdx() === idx) {
+                                            <select
+                                                [ngModel]="effectiveId"
+                                                (ngModelChange)="setMatchOverride(idx, $event)"
+                                                class="w-full text-[10px] mb-2 border border-amber-800/20 rounded-sm px-1 py-1 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                            >
+                                                @for (
+                                                    cand of getCandidateTransactions(
+                                                        match.parsedTx.date
+                                                    );
+                                                    track cand.id
+                                                ) {
+                                                    <option [value]="cand.id">
+                                                        {{ cand.date | date: globalDateFormat }} -
+                                                        {{ cand.payee }} ({{
+                                                            formatCurrency(cand.totalAmount / 100)
+                                                        }})
+                                                    </option>
+                                                }
+                                            </select>
+                                        } @else {
+                                            <div
+                                                class="text-[11px] font-black text-surface-800 truncate"
+                                            >
+                                                {{ existing?.payee || effectiveId }}
+                                            </div>
+                                            <div class="flex justify-between items-center mt-1">
+                                                <div class="text-[10px] font-mono text-surface-600">
+                                                    {{ existing?.date | date: globalDateFormat }}
+                                                </div>
+                                                <div
+                                                    class="text-[10px] font-mono font-bold text-surface-800"
+                                                >
+                                                    {{
+                                                        formatCurrency(
+                                                            (existing?.totalAmount ?? 0) / 100
+                                                        )
+                                                    }}
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                } @else {
+                                    <div
+                                        class="text-[10px] text-surface-800/80 italic border border-dashed border-surface-200 p-2 rounded-sm"
+                                    >
+                                        No similar transaction found in the current account ledger.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div
+                            class="mt-6 flex justify-end gap-2 pt-4 border-t border-surface-200/10"
+                        >
+                            <p-selectButton
+                                [options]="decisionOptions"
+                                [ngModel]="decision"
+                                (ngModelChange)="setDecision(idx, $event)"
+                                optionLabel="label"
+                                optionValue="value"
+                                styleClass="reconciliation-decision-toggle"
+                            >
+                                <ng-template let-item pTemplate>
+                                    <div class="flex items-center gap-2 px-2 py-0.5">
+                                        <i [class]="item.icon + ' text-[10px]'"></i>
+                                        <span
+                                            class="text-[9px] font-black uppercase tracking-widest"
+                                            >{{ item.label }}</span
+                                        >
+                                    </div>
+                                </ng-template>
+                            </p-selectButton>
                         </div>
                     </div>
-
-                    <div class="mt-6 flex justify-end gap-2 pt-4 border-t border-surface-200/10">
-                        <p-selectButton
-                            [options]="decisionOptions"
-                            [ngModel]="decision"
-                            (ngModelChange)="setDecision(idx, $event)"
-                            optionLabel="label"
-                            optionValue="value"
-                            styleClass="reconciliation-decision-toggle"
-                        >
-                            <ng-template let-item pTemplate>
-                                <div class="flex items-center gap-2 px-2 py-0.5">
-                                    <i [class]="item.icon + ' text-[10px]'"></i>
-                                    <span class="text-[9px] font-black uppercase tracking-widest">{{
-                                        item.label
-                                    }}</span>
-                                </div>
-                            </ng-template>
-                        </p-selectButton>
-                    </div>
-                </div>
+                }
             }
         </div>
     }
@@ -559,7 +578,7 @@
             <p-button
                 (click)="handleApply()"
                 [label]="isProcessing() ? 'Synchronizing...' : 'Commit All Decisions'"
-                [disabled]="isProcessing()"
+                [disabled]="isProcessing() || matches().length === 0"
                 [loading]="isProcessing()"
                 severity="primary"
                 styleClass="pl-btn-primary h-10 px-6 text-[11px] font-black uppercase tracking-widest rounded-md"

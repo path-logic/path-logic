@@ -17,10 +17,31 @@ import { AccountType, Money } from '@core';
 export class AccountSparklineCardComponent {
     readonly account = input.required<IAccount>();
     readonly trendPercent = input<string | null>(null);
+    readonly isFullWidth = input<boolean>(false);
+    readonly isPrimary = input<boolean>(false);
     readonly quickEntryRequested = output<string>();
+    readonly starToggled = output<string>();
 
     readonly formattedBalance = computed((): string => {
         return Money.formatCurrency(this.account().pendingBalance);
+    });
+
+    readonly formattedClearedBalance = computed((): string => {
+        return Money.formatCurrency(this.account().clearedBalance);
+    });
+
+    readonly pendingDifference = computed((): number => {
+        return this.account().pendingBalance - this.account().clearedBalance;
+    });
+
+    readonly hasPendingTransactions = computed((): boolean => {
+        return this.pendingDifference() !== 0;
+    });
+
+    readonly formattedPendingDifference = computed((): string => {
+        const diff = this.pendingDifference();
+        const formatted = Money.formatCurrency(Math.abs(diff));
+        return diff > 0 ? `+${formatted}` : `-${formatted}`;
     });
 
     readonly isCredit = computed((): boolean => {
@@ -93,5 +114,13 @@ export class AccountSparklineCardComponent {
             return '#38bdf8'; // Cyan / blue accent for credit in dark mode
         }
         return '#10b981'; // Emerald
+    });
+
+    readonly trendBadgeClass = computed((): string => {
+        const trend = this.trendPercent();
+        if (trend?.startsWith('-')) {
+            return 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 border-red-200 dark:border-red-900/40';
+        }
+        return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/40';
     });
 }

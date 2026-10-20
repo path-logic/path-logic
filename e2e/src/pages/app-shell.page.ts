@@ -10,7 +10,7 @@ export class AppShellPage {
 
     constructor(page: Page) {
         this.page = page;
-        this.header = page.locator('.app-header');
+        this.header = page.locator('sidebar-nav, .app-header').filter({ visible: true }).first();
         this.footer = page.locator('footer');
         this.syncIndicator = page.locator('sync-indicator');
         this.resumeSessionBtn = page.getByRole('button', { name: /Resume Session/i });
@@ -29,7 +29,9 @@ export class AppShellPage {
      * Wait for the app shell's header to be visible.
      */
     async waitForAppShell(): Promise<void> {
-        await expect(this.header).toBeVisible({ timeout: 10_000 });
+        await expect(
+            this.page.locator('sidebar-nav, .app-header').filter({ visible: true }).first()
+        ).toBeVisible({ timeout: 10_000 });
     }
 
     /**

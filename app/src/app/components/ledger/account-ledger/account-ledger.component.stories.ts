@@ -1,9 +1,8 @@
 import { signal } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
-import { expect, within } from 'storybook/test';
+import { expect, fn, within } from 'storybook/test';
 import {
     AccountType,
     TransactionStatus,
@@ -14,12 +13,19 @@ import {
     type ISODateString,
     type ITransaction
 } from '../../../core';
+import { AiAutoCategorizeService } from '../../../services/ai-auto-categorize/ai-auto-categorize.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { PostHogService } from '../../../services/posthog/posthog.service';
 import { SyncService } from '../../../services/sync/sync.service';
 import { AccountLedgerComponent } from './account-ledger.component';
+
+const mockPostHogService = {
+    capture: () => {},
+    identify: () => {},
+    reset: () => {}
+};
 
 const mockAccounts: Array<IAccount> = [
     {
@@ -82,6 +88,8 @@ const mockTransactions: Array<ITransaction> = [
 ];
 
 const mockLedgerStore = {
+    isInitialized: signal(true),
+    isLoading: signal(false),
     accounts: signal(mockAccounts),
     transactions: signal(mockTransactions),
     payees: signal<Array<IPayee>>([]),
@@ -107,20 +115,28 @@ const mockAuthService = {
     logout: () => {}
 };
 
+const mockHandleFile = fn();
+
 const mockImportService = {
     progress: signal({ stage: 'idle', percent: 0, message: '' }),
     matches: signal([]),
     stats: signal(null),
     unknownCategories: signal<Array<string>>([]),
-    handleFile: () => {},
+    handleFile: mockHandleFile,
     cancel: () => {},
     reset: () => {}
 };
 
-const mockPostHogService = {
-    posthog: {
-        capture: () => {}
-    }
+const mockAiService = {
+    status: signal('idle'),
+    progress: signal({ pct: 0, processed: 0, total: 0, message: '' }),
+    suggestions: signal([]),
+    error: signal(null),
+    targetTransactions: signal([]),
+    startBackgroundCategorization: () => {},
+    acceptAll: async () => 0,
+    cancel: () => {},
+    dismiss: () => {}
 };
 
 const meta: Meta<AccountLedgerComponent> = {
@@ -128,13 +144,14 @@ const meta: Meta<AccountLedgerComponent> = {
     component: AccountLedgerComponent,
     decorators: [
         moduleMetadata({
-            imports: [BrowserAnimationsModule]
+            imports: []
         }),
         applicationConfig({
             providers: [
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: ImportOrchestrationService, useValue: mockImportService },
+                { provide: AiAutoCategorizeService, useValue: mockAiService },
                 { provide: PostHogService, useValue: mockPostHogService },
                 { provide: SyncService, useValue: mockSyncService },
                 { provide: AuthService, useValue: mockAuthService }
@@ -152,8 +169,9 @@ type Story = StoryObj<AccountLedgerComponent>;
 export const DesktopView: Story = {
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
-        await expect(canvas.getByText(/Active Account/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Recurring Bills/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Main Checking/i).length).toBeGreaterThan(0);
+        await expect(canvas.getByText(/Whole Foods Market/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Cleared:/i).length).toBeGreaterThan(0);
     }
 };
 
@@ -176,5 +194,32 @@ export const TabletPortraitView: Story = {
 export const DarkMode: Story = {
     parameters: {
         theme: 'dark'
+    }
+};
+
+/**
+ * Story testing drag-and-drop file import interaction on the ledger table.
+ */
+export const DragAndDropTableImport: Story = {
+    play: async ({ canvasElement }) => {
+        mockHandleFile.mockClear();
+
+        const file = new File(
+            ['!Type:Bank\nD1/15/2026\nT-50.00\nPAmazon.com\n^'],
+            'bank_export.qif',
+            { type: 'application/x-qif' }
+        );
+
+        // Dispatch dragover event to assert drop overlay display
+        const dragOverEvent = new DragEvent('dragover', {
+            bubbles: true,
+            cancelable: true
+        });
+        canvasElement.dispatchEvent(dragOverEvent);
+
+        // Verify hidden file input exists for manual file selection
+        const fileInput = canvasElement.querySelector('input[type="file"]') as HTMLInputElement;
+        await expect(fileInput).not.toBeNull();
+        await expect(fileInput.accept).toContain('.qif');
     }
 };

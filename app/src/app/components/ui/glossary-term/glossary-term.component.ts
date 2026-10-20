@@ -125,9 +125,14 @@ export class GlossaryTermComponent {
     /** The canonical term to look up and display (if no ng-content is provided). */
     readonly term = input.required<string>();
 
+    /** Optional custom definition override. If not provided, looks up term in GLOSSARY. */
+    readonly customDefinition = input<string | null>(null);
+
     readonly isVisible = signal(false);
 
     readonly definition = computed((): string | null => {
+        const custom = this.customDefinition();
+        if (custom) return custom;
         const key = this.term().toLowerCase().trim();
         return GLOSSARY[key] ?? null;
     });

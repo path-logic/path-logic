@@ -1,9 +1,10 @@
 import { Injectable, NgZone, inject, signal } from '@angular/core';
 import type { IPayee, IReconciliationMatch, ISODateString, ITransaction } from '@core';
-import { KnownCategory, TransactionStatus } from '@core';
+import { KnownCategory, resolveImportTransactionStatus } from '@core';
 import { ReconciliationEngine } from '../../core/engine/ReconciliationEngine';
 import { QIFParser } from '../../core/parsers/QIFParser';
 import { LedgerStore } from '../ledger-store/ledger.store';
+import { SecurityManagerService } from '../security-manager/security-manager.service';
 import { SyncService } from '../sync/sync.service';
 import type {
     IImportProgress,
@@ -42,11 +43,13 @@ const IDLE_PROGRESS: IImportProgress = {
  * - Spawn a Web Worker for medium and large imports
  * - Emit reactive signals for progress and results
  * - Provide a cancel() method that terminates the worker
+ * - Extend session idle timeout during active imports
  */
 @Injectable({ providedIn: 'root' })
 export class ImportOrchestrationService {
     private readonly ledgerStore = inject(LedgerStore);
     private readonly syncService = inject(SyncService);
+    private readonly securityManager = inject(SecurityManagerService);
     private readonly zone = inject(NgZone);
 
     // ── Public reactive state ────────────────────────────────────────────────
@@ -61,9 +64,11 @@ export class ImportOrchestrationService {
 
     private worker: Worker | null = null;
     private currentAccountId: string = '';
+    private deferCategoryMapping: boolean = false;
     private pendingMatches: Array<IReconciliationMatch> | null = null;
     private pendingTier: ImportTier | null = null;
     private pendingStats: IImportStats | null = null;
+    private timeoutReleaseFn: (() => void) | null = null;
 
     // ── Public API ───────────────────────────────────────────────────────────
 
@@ -79,9 +84,14 @@ export class ImportOrchestrationService {
     /**
      * Start an import. Automatically selects inline vs. worker strategy.
      */
-    startImport(file: File, accountId: string): void {
+    startImport(file: File, accountId: string, options?: { deferCategoryMapping?: boolean }): void {
         this.reset();
         this.currentAccountId = accountId;
+        this.deferCategoryMapping = options?.deferCategoryMapping ?? false;
+
+        if (!this.timeoutReleaseFn) {
+            this.timeoutReleaseFn = this.securityManager.acquireExtendedTimeout('qif_import');
+        }
 
         const tier = this.classifyFile(file);
         this.progress.set({ stage: 'reading', pct: 2, processed: 0, total: 0, tier });
@@ -110,7 +120,16 @@ export class ImportOrchestrationService {
             this.worker.terminate();
             this.worker = null;
         }
+        if (this.timeoutReleaseFn) {
+            this.timeoutReleaseFn();
+            this.timeoutReleaseFn = null;
+        }
         this.progress.update(p => ({ ...p, stage: 'cancelled', pct: 0 }));
+        this.unknownCategories.set([]);
+        this.matches.set([]);
+        this.pendingMatches = null;
+        this.pendingTier = null;
+        this.pendingStats = null;
     }
 
     /**
@@ -118,15 +137,30 @@ export class ImportOrchestrationService {
      */
     reset(): void {
         this.cancel();
+        if (this.timeoutReleaseFn) {
+            this.timeoutReleaseFn();
+            this.timeoutReleaseFn = null;
+        }
         this.progress.set(IDLE_PROGRESS);
         this.matches.set([]);
         this.stats.set(null);
         this.error.set(null);
         this.unknownCategories.set([]);
         this.currentAccountId = '';
+        this.deferCategoryMapping = false;
         this.pendingMatches = null;
         this.pendingTier = null;
         this.pendingStats = null;
+    }
+
+    /**
+     * Resolves categories allowing unmapped items to fall back to Uncategorized,
+     * immediately completing import so background categorization can run.
+     */
+    async resolveWithBackgroundCategorization(
+        mappings: Record<string, string> = {}
+    ): Promise<void> {
+        await this.resolveUnknownCategories(mappings, true);
     }
 
     // ── Category Mapping ─────────────────────────────────────────────────────
@@ -434,14 +468,14 @@ export class ImportOrchestrationService {
             }
         }
 
-        if (unknowns.size > 0) {
+        if (unknowns.size > 0 && !this.deferCategoryMapping) {
             this.unknownCategories.set(Array.from(unknowns));
             this.pendingMatches = matches;
             this.pendingStats = stats;
             this.pendingTier = tier;
             this.progress.set({
                 stage: 'mapping_categories',
-                pct: 80,
+                pct: Math.max(80, this.progress().pct),
                 processed: stats.totalCount,
                 total: stats.totalCount,
                 tier
@@ -487,9 +521,9 @@ export class ImportOrchestrationService {
      * Commits all matched/parsed transactions directly.
      * Used primarily by onboarding wizards (new accounts) where no reconciliation is needed.
      */
-    async commitImport(accountId: string): Promise<void> {
+    async commitImport(accountId: string): Promise<Array<ITransaction>> {
         const matches = this.matches();
-        if (matches.length === 0) return;
+        if (matches.length === 0) return [];
 
         const now = new Date().toISOString() as ISODateString;
         const txsToImport: Array<ITransaction> = [];
@@ -555,7 +589,7 @@ export class ImportOrchestrationService {
                 payee: parsed.payee,
                 memo: parsed.memo,
                 totalAmount: parsed.amount,
-                status: TransactionStatus.Cleared,
+                status: resolveImportTransactionStatus(parsed),
                 checkNumber: parsed.checkNumber,
                 importHash: parsed.importHash,
                 splits:
@@ -592,6 +626,7 @@ export class ImportOrchestrationService {
                 );
             });
         }
+        return txsToImport;
     }
 
     private applyMappingsAndComplete(
@@ -599,6 +634,10 @@ export class ImportOrchestrationService {
         tier: ImportTier,
         stats: IImportStats
     ): void {
+        if (this.timeoutReleaseFn) {
+            this.timeoutReleaseFn();
+            this.timeoutReleaseFn = null;
+        }
         this.matches.set(matches);
         this.stats.set(stats);
         this.progress.set({

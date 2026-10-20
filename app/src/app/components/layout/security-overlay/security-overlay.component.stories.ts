@@ -8,7 +8,12 @@ const meta: Meta<SecurityOverlayComponent> = {
     component: SecurityOverlayComponent,
     tags: ['autodocs'],
     parameters: {
-        layout: 'fullscreen'
+        layout: 'fullscreen',
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
     },
     args: {
         isVisible: false

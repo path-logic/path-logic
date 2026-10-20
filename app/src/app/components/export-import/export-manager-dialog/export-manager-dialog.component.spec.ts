@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AccountType } from '../../../core/domain/types';
 import type { IConsolidatedOutputPackage, IExportFolderSummary } from '../../../core/export-import';
@@ -88,7 +87,6 @@ describe('ExportManagerDialogComponent', () => {
         await TestBed.configureTestingModule({
             imports: [ExportManagerDialogComponent],
             providers: [
-                provideNoopAnimations(),
                 {
                     provide: ImportExportService,
                     useValue: {

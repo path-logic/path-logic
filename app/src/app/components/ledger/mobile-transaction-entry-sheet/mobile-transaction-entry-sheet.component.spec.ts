@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     AccountType,
@@ -72,7 +71,7 @@ describe('MobileTransactionEntrySheetComponent', () => {
         vi.clearAllMocks();
 
         await TestBed.configureTestingModule({
-            imports: [MobileTransactionEntrySheetComponent, NoopAnimationsModule],
+            imports: [MobileTransactionEntrySheetComponent],
             providers: [{ provide: LedgerStore, useValue: mockLedgerStore }]
         }).compileComponents();
 

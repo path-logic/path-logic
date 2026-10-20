@@ -1,5 +1,5 @@
-import type { WritableSignal } from '@angular/core';
-import { effect, inject, Injectable, signal } from '@angular/core';
+import type { Signal, WritableSignal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 
 import {
     getAllUserSettings,
@@ -18,6 +18,12 @@ import { LedgerStore } from '../ledger-store/ledger.store';
 export class UserSettingsStore {
     readonly settings: WritableSignal<Record<string, string>> = signal<Record<string, string>>({});
     readonly isLoading: WritableSignal<boolean> = signal<boolean>(false);
+
+    /** Primary/Hero account ID selected by the user. */
+    readonly primaryAccountId: Signal<string | null> = computed(() => {
+        const id = this.settings()['primary_account_id'];
+        return id && id.trim().length > 0 ? id : null;
+    });
 
     private readonly ledgerStore = inject(LedgerStore);
 
@@ -65,5 +71,13 @@ export class UserSettingsStore {
         } catch (err: unknown) {
             console.error('Failed to update setting in DB:', err);
         }
+    }
+
+    /**
+     * Sets or unsets the primary/hero account ID.
+     * @param accountId The ID of the account to set as primary, or null to clear.
+     */
+    async setPrimaryAccountId(accountId: string | null): Promise<void> {
+        await this.updateSetting('primary_account_id', accountId ?? '');
     }
 }

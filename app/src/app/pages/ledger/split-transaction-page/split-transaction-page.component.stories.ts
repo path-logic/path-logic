@@ -147,8 +147,8 @@ type Story = StoryObj<SplitTransactionPageComponent>;
 export const DefaultPaycheck: Story = {
     play: async ({ canvasElement }) => {
         const canvas = within(canvasElement);
-        await expect(canvas.getByText(/Split/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/PerfectlysBalanced/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Split/i)[0]).toBeInTheDocument();
+        await expect(canvas.getByText(/Perfectly Balanced/i)).toBeInTheDocument();
     }
 };
 

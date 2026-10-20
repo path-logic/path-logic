@@ -1,0 +1,316 @@
+<shell>
+    <div class="space-y-6 pb-16">
+        <!-- Page Header -->
+        <header class="border-b border-surface-200/50 pb-4">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-surface-900">
+                QIF Import <span class="text-primary">Diagnostics & Stats</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-surface-500 font-medium mt-1">
+                Parse, validate, and analyze QIF files to simulate Account Creation vs. Ongoing
+                Reconciliation imports.
+            </p>
+        </header>
+
+        <!-- Upload File Section -->
+        <div
+            class="flex items-center gap-4 bg-surface-0 border border-surface-200/80 rounded-2xl p-4 sm:p-5 shadow-xs"
+        >
+            <label class="cursor-pointer">
+                <input type="file" accept=".qif" class="hidden" (change)="onFileSelected($event)" />
+                <span
+                    class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider bg-primary text-white hover:bg-primary/90 rounded-xl transition-all shadow-premium inline-flex items-center gap-2 cursor-pointer"
+                >
+                    <i class="pi pi-upload"></i>
+                    Upload QIF File
+                </span>
+            </label>
+            <span class="text-xs text-surface-600 font-mono font-medium truncate">
+                {{ filename() || 'No file selected yet' }}
+            </span>
+        </div>
+
+        @if (isProcessing()) {
+            <div
+                class="flex items-center gap-3 p-6 bg-surface-0 rounded-2xl border border-surface-200/80 shadow-xs"
+            >
+                <i class="pi pi-spin pi-spinner text-primary text-lg"></i>
+                <span class="text-sm font-semibold text-surface-600"
+                    >Analyzing transactions and calculating import metrics...</span
+                >
+            </div>
+        }
+
+        @if (diagnostics(); as diag) {
+            <!-- Post-Dated Notice Banner (if any) -->
+            @if (diag.postDated.count > 0) {
+                <div
+                    class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-amber-800 dark:text-amber-300"
+                >
+                    <i class="pi pi-info-circle text-amber-600 dark:text-amber-400 mt-0.5"></i>
+                    <div class="text-xs">
+                        <span class="font-bold">Post-Dated / Next Business Day Notice:</span>
+                        {{ diag.postDated.count }} transaction(s) are dated after today (Total:
+                        {{ formatCurrency(diag.postDated.amountCents) }}). Banks frequently
+                        post-date weekend activities to the following business day. Their explicit
+                        status in the file is respected to avoid balance discrepancies.
+                    </div>
+                </div>
+            }
+
+            <!-- ── Top Metric Cards Grid ──────────────────────────────────────── -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                    class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-1"
+                >
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                        >Total Volume</span
+                    >
+                    <div class="text-xl font-mono font-black text-surface-900">
+                        {{ diag.totalTransactions }}
+                    </div>
+                    <div class="text-[11px] text-surface-500 font-medium">
+                        Net: {{ formatCurrency(diag.netAmountCents) }}
+                    </div>
+                </div>
+
+                <div
+                    class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-1"
+                >
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                        >Date Range</span
+                    >
+                    <div class="text-xs font-mono font-bold text-surface-900 truncate">
+                        {{ diag.earliestDate || 'N/A' }}
+                    </div>
+                    <div class="text-xs font-mono font-bold text-surface-500 truncate">
+                        to {{ diag.latestDate || 'N/A' }}
+                    </div>
+                </div>
+
+                <div
+                    class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-1"
+                >
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                        >Inflows & Outflows</span
+                    >
+                    <div class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                        +{{ formatCurrency(diag.inflowsCents) }}
+                    </div>
+                    <div class="text-xs font-mono font-bold text-red-600 dark:text-red-400">
+                        {{ formatCurrency(diag.outflowsCents) }}
+                    </div>
+                </div>
+
+                <div
+                    class="p-4 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-1"
+                >
+                    <span
+                        class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                        >Splits & Transfers</span
+                    >
+                    <div class="text-xs font-semibold text-surface-800">
+                        {{ diag.splits.transactionCount }} split txs ({{
+                            diag.splits.totalSplitsCount
+                        }}
+                        splits)
+                    </div>
+                    <div class="text-[11px] text-surface-500">
+                        {{ diag.transfers.count }} transfers ({{
+                            formatCurrency(diag.transfers.amountCents)
+                        }})
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Status Breakdown Section ──────────────────────────────────── -->
+            <div
+                class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-4"
+            >
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-surface-800">
+                        Explicit Status Breakdown (File Tags)
+                    </h2>
+                    <span class="text-xs text-surface-500 font-medium">QIF 'C' field parsing</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Cleared -->
+                    <div
+                        class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1"
+                    >
+                        <div class="flex justify-between items-center text-xs">
+                            <span
+                                class="font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider text-[10px]"
+                            >
+                                Cleared (C* / Cc)
+                            </span>
+                            <span
+                                class="font-mono font-bold text-emerald-700 dark:text-emerald-400"
+                            >
+                                {{ diag.statusDistribution.clearedCount }}
+                            </span>
+                        </div>
+                        <div
+                            class="text-sm font-mono font-bold text-emerald-800 dark:text-emerald-300"
+                        >
+                            {{ formatCurrency(diag.statusDistribution.clearedAmountCents) }}
+                        </div>
+                    </div>
+
+                    <!-- Reconciled -->
+                    <div
+                        class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-1"
+                    >
+                        <div class="flex justify-between items-center text-xs">
+                            <span
+                                class="font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider text-[10px]"
+                            >
+                                Reconciled (CX / CR)
+                            </span>
+                            <span class="font-mono font-bold text-blue-700 dark:text-blue-400">
+                                {{ diag.statusDistribution.reconciledCount }}
+                            </span>
+                        </div>
+                        <div class="text-sm font-mono font-bold text-blue-800 dark:text-blue-300">
+                            {{ formatCurrency(diag.statusDistribution.reconciledAmountCents) }}
+                        </div>
+                    </div>
+
+                    <!-- Unmarked / Pending -->
+                    <div
+                        class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1"
+                    >
+                        <div class="flex justify-between items-center text-xs">
+                            <span
+                                class="font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider text-[10px]"
+                            >
+                                Unmarked (Pending)
+                            </span>
+                            <span class="font-mono font-bold text-amber-700 dark:text-amber-400">
+                                {{ diag.statusDistribution.unclearedCount }}
+                            </span>
+                        </div>
+                        <div class="text-sm font-mono font-bold text-amber-800 dark:text-amber-300">
+                            {{ formatCurrency(diag.statusDistribution.unclearedAmountCents) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Workflow Modeling: Account Creation vs Reconciliation ─────── -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Account Creation Model -->
+                <div
+                    class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-3"
+                >
+                    <div class="flex items-center gap-2 text-primary font-bold text-sm">
+                        <i class="pi pi-plus-circle"></i>
+                        <h3>Account Creation Import (Initial Seed)</h3>
+                    </div>
+                    <p class="text-xs text-surface-500 leading-relaxed">
+                        When creating a new account, historical transactions establish your initial
+                        Cleared Balance.
+                    </p>
+                    <div
+                        class="p-3 rounded-xl bg-surface-50 border border-surface-200/60 space-y-2 text-xs"
+                    >
+                        <div class="flex justify-between">
+                            <span class="text-surface-600">Historical Past (&le; Today):</span>
+                            <span
+                                class="font-mono font-bold text-emerald-700 dark:text-emerald-400"
+                            >
+                                {{ diag.workflowComparison.accountCreationHistorical.clearedCount }}
+                                Cleared ({{
+                                    formatCurrency(
+                                        diag.workflowComparison.accountCreationHistorical
+                                            .clearedAmountCents
+                                    )
+                                }})
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-surface-600">Future-Dated / Floating:</span>
+                            <span class="font-mono font-bold text-amber-600 dark:text-amber-400">
+                                {{ diag.workflowComparison.accountCreationHistorical.pendingCount }}
+                                Pending ({{
+                                    formatCurrency(
+                                        diag.workflowComparison.accountCreationHistorical
+                                            .pendingAmountCents
+                                    )
+                                }})
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reconciliation Model -->
+                <div
+                    class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-xs space-y-3"
+                >
+                    <div
+                        class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm"
+                    >
+                        <i class="pi pi-sync"></i>
+                        <h3>Ongoing Reconciliation Import</h3>
+                    </div>
+                    <p class="text-xs text-surface-500 leading-relaxed">
+                        For ongoing bank sync, imported transactions reconcile against previously
+                        entered items.
+                    </p>
+                    <div
+                        class="p-3 rounded-xl bg-surface-50 border border-surface-200/60 space-y-1.5 text-xs text-surface-600"
+                    >
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-check text-emerald-600 text-[10px]"></i>
+                            <span
+                                >Matches pending entries &amp; upgrades them to
+                                <strong>Cleared</strong></span
+                            >
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-shield text-blue-600 text-[10px]"></i>
+                            <span>Deduplicates via deterministic SHA-256 hash</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-clock text-amber-600 text-[10px]"></i>
+                            <span
+                                >Unmatched new items without bank status remain
+                                <strong>Pending</strong></span
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Diagnostic Report Pre / Copy Section -->
+        @if (reportMarkdown()) {
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-surface-800">
+                        Markdown Diagnostic Report ({{ anomalies().length }} Anomalies)
+                    </h2>
+                    <p-button
+                        label="Copy Report"
+                        icon="pi pi-copy"
+                        size="small"
+                        [outlined]="true"
+                        (click)="copyReport()"
+                    ></p-button>
+                </div>
+
+                <div
+                    class="bg-surface-0 border border-surface-200/80 rounded-2xl p-4 overflow-auto max-h-[500px] shadow-xs"
+                >
+                    <pre
+                        class="text-xs font-mono text-surface-700 dark:text-surface-300 whitespace-pre-wrap leading-relaxed"
+                        >{{ reportMarkdown() }}</pre
+                    >
+                </div>
+            </div>
+        }
+    </div>
+</shell>

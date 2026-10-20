@@ -125,7 +125,25 @@
             </div>
         }
 
-        @if (table.getRowModel().rows.length === 0) {
+        @if (isLoading()) {
+            <div class="divide-y divide-brand-border" role="status" aria-busy="true">
+                @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+                    <div class="flex items-center justify-between p-3.5 gap-3">
+                        <div class="space-y-2 flex-1">
+                            <app-skeleton width="60%" height="16px" />
+                            <div class="flex gap-2">
+                                <app-skeleton width="70px" height="18px" styleClass="rounded-md" />
+                                <app-skeleton width="50px" height="14px" />
+                            </div>
+                        </div>
+                        <div class="space-y-1.5 text-right flex flex-col items-end">
+                            <app-skeleton width="64px" height="12px" />
+                            <app-skeleton width="80px" height="18px" />
+                        </div>
+                    </div>
+                }
+            </div>
+        } @else if (table.getRowModel().rows.length === 0) {
             <div
                 class="flex flex-col items-center justify-center text-content-muted text-xs gap-3 py-16 text-center px-4"
             >
@@ -215,7 +233,7 @@
                                     ></div>
                                     <span
                                         class="absolute right-4 bg-slate-800 dark:bg-slate-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest opacity-80"
-                                        >End of Today</span
+                                        >TODAY</span
                                     >
                                 </div>
                             }
@@ -355,7 +373,34 @@
                 }
             </div>
 
-            @if (table.getRowModel().rows.length === 0) {
+            @if (isLoading()) {
+                <div class="divide-y divide-brand-border w-full" role="status" aria-busy="true">
+                    @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                        <div
+                            class="flex items-center h-11 px-3 w-full border-b border-brand-border"
+                        >
+                            <div class="w-[100px] px-3">
+                                <app-skeleton width="70px" height="14px" />
+                            </div>
+                            <div class="flex-1 min-w-[300px] px-3">
+                                <app-skeleton width="200px" height="15px" />
+                            </div>
+                            <div class="w-[140px] px-3">
+                                <app-skeleton width="80px" height="20px" styleClass="rounded-md" />
+                            </div>
+                            <div class="w-[120px] px-3">
+                                <app-skeleton width="60px" height="18px" styleClass="rounded-md" />
+                            </div>
+                            <div class="w-[120px] px-3 text-right">
+                                <app-skeleton width="75px" height="15px" />
+                            </div>
+                            <div class="w-[120px] px-3 text-right">
+                                <app-skeleton width="75px" height="15px" />
+                            </div>
+                        </div>
+                    }
+                </div>
+            } @else if (table.getRowModel().rows.length === 0) {
                 <div
                     class="flex flex-col items-center justify-center text-content-muted text-[10px] uppercase tracking-widest gap-4 min-h-[300px] text-center px-8 relative z-10"
                 >

@@ -7,6 +7,7 @@ import type { IPayee } from '@core';
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { PayeeEditDialogComponent } from '../../components/payees/payee-edit-dialog/payee-edit-dialog.component';
 import { PayeeMergeDialogComponent } from '../../components/payees/payee-merge-dialog/payee-merge-dialog.component';
+import { SkeletonComponent } from '../../components/ui/skeleton';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 
 /**
@@ -21,7 +22,8 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
         FormsModule,
         AppShellComponent,
         PayeeEditDialogComponent,
-        PayeeMergeDialogComponent
+        PayeeMergeDialogComponent,
+        SkeletonComponent
     ],
     templateUrl: './payees-page.component.html',
     styleUrls: ['./payees-page.component.css'],
@@ -30,6 +32,10 @@ import { LedgerStore } from '../../services/ledger-store/ledger.store';
 export class PayeesPageComponent {
     private readonly ledgerStore = inject(LedgerStore);
     private readonly router = inject(Router);
+
+    readonly isLoading = computed(
+        () => !this.ledgerStore.isInitialized() || this.ledgerStore.isLoading()
+    );
 
     // State
     readonly expandedId = signal<string | null>(null);

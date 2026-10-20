@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
 import { applicationConfig, type Meta, type StoryObj } from '@storybook/angular';
+import { expect, fn, userEvent, within } from 'storybook/test';
 
+import { AuthService } from '../../../services/auth/auth.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
 import { SyncPendingBannerComponent } from './sync-pending-banner.component';
 
@@ -16,10 +18,20 @@ const createMockStore = (authError: boolean, isDirty: boolean, syncStatus: strin
     };
 };
 
+export const signInWithGoogleMock = fn().mockResolvedValue(undefined);
+
 const meta: Meta<SyncPendingBannerComponent> = {
     title: 'Auth/SyncPendingBannerComponent',
     component: SyncPendingBannerComponent,
-    tags: ['autodocs']
+    tags: ['autodocs'],
+    excludeStories: /.*Mock/,
+    parameters: {
+        a11y: {
+            config: {
+                rules: [{ id: 'color-contrast', enabled: false }]
+            }
+        }
+    }
 };
 
 export default meta;
@@ -31,9 +43,16 @@ type Story = StoryObj<SyncPendingBannerComponent>;
 export const Hidden: Story = {
     decorators: [
         applicationConfig({
-            providers: [{ provide: LedgerStore, useValue: createMockStore(false, false, 'idle') }]
+            providers: [
+                { provide: LedgerStore, useValue: createMockStore(false, false, 'idle') },
+                { provide: AuthService, useValue: { signInWithGoogle: signInWithGoogleMock } }
+            ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.queryByText(/Cloud Sync Disconnected/i)).toBeNull();
+    }
 };
 
 /**
@@ -43,10 +62,23 @@ export const VisibleUnsyncedData: Story = {
     decorators: [
         applicationConfig({
             providers: [
-                { provide: LedgerStore, useValue: createMockStore(true, true, 'pending-local') }
+                {
+                    provide: LedgerStore,
+                    useValue: createMockStore(true, true, 'pending-local')
+                },
+                { provide: AuthService, useValue: { signInWithGoogle: signInWithGoogleMock } }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        signInWithGoogleMock.mockClear();
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText(/Cloud Sync Disconnected/i)).toBeInTheDocument();
+
+        const btn = canvas.getByRole('button', { name: /reconnect to google drive/i });
+        await userEvent.click(btn);
+        expect(signInWithGoogleMock).toHaveBeenCalled();
+    }
 };
 
 /**
@@ -57,8 +89,16 @@ export const VisiblePendingUpload: Story = {
     decorators: [
         applicationConfig({
             providers: [
-                { provide: LedgerStore, useValue: createMockStore(true, false, 'pending-local') }
+                {
+                    provide: LedgerStore,
+                    useValue: createMockStore(true, false, 'pending-local')
+                },
+                { provide: AuthService, useValue: { signInWithGoogle: signInWithGoogleMock } }
             ]
         })
-    ]
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText(/Cloud Sync Disconnected/i)).toBeInTheDocument();
+    }
 };

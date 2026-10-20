@@ -18,7 +18,7 @@ describe('FaviconService', () => {
 
         const service = TestBed.inject(FaviconService);
         expect(service).toBeTruthy();
-        TestBed.flushEffects();
+        TestBed.tick();
 
         const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
         expect(link).toBeTruthy();
@@ -39,7 +39,7 @@ describe('FaviconService', () => {
         TestBed.inject(FaviconService);
 
         resolvedThemeSignal.set('light');
-        TestBed.flushEffects();
+        TestBed.tick();
 
         const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
         expect(link).toBeTruthy();

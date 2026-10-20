@@ -39,7 +39,10 @@ import { TooltipModule } from 'primeng/tooltip';
             multi: true
         }
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        class: 'block w-full'
+    }
 })
 export class CalculatorInputComponent implements ControlValueAccessor {
     @Input() placeholder = '$0.00';
@@ -49,6 +52,24 @@ export class CalculatorInputComponent implements ControlValueAccessor {
     @Input() inputClass = '';
     @Input() styleClass = '';
     @Input() inputId = '';
+    @Input() borderless = false;
+    @Input() set value(cents: number) {
+        this.writeValue(cents);
+    }
+    get value(): number {
+        return this._valueInCents;
+    }
+
+    get wrapperClass(): string {
+        const borderStyles = this.borderless
+            ? 'border-none bg-transparent hover:bg-surface-100/40 dark:hover:bg-surface-800/40'
+            : 'border border-surface-300 dark:border-surface-600 rounded-md bg-surface-0 dark:bg-surface-900 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary';
+        const base = `w-full flex items-center ${borderStyles} overflow-hidden transition-all`;
+        if (!this.styleClass) {
+            return `${base} h-10`;
+        }
+        return `${base} ${this.styleClass}`;
+    }
 
     @Output() valueChange = new EventEmitter<number>();
 
@@ -111,12 +132,17 @@ export class CalculatorInputComponent implements ControlValueAccessor {
             return;
         }
 
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.setDisplayValueFromCents();
+            return;
+        }
+
         // Allow control keys
         const isControlKey = [
             'Backspace',
             'Delete',
             'Tab',
-            'Escape',
             'ArrowLeft',
             'ArrowRight',
             'ArrowUp',
@@ -129,27 +155,32 @@ export class CalculatorInputComponent implements ControlValueAccessor {
             return;
         }
 
-        // Allow only numbers, dot, and comma
-        if (!/^[0-9.,]$/.test(event.key)) {
+        // Allow only numbers, dot, comma, and mathematical operators
+        if (!/^[0-9.,+\-*/() ]$/.test(event.key)) {
             event.preventDefault();
             return;
         }
 
-        const input = event.target as HTMLInputElement;
-        const currentVal = input.value;
-        const selStart = input.selectionStart || 0;
-        const selEnd = input.selectionEnd || 0;
+        const input = event.target as HTMLInputElement | null;
+        const currentVal = input?.value ?? this.displayValue();
+        const selStart = input?.selectionStart ?? 0;
+        const selEnd = input?.selectionEnd ?? 0;
 
         // If replacing text, allow it
         if (selEnd > selStart) return;
 
-        // Prevent multiple dots
+        // If typing or in an arithmetic expression, allow freely
+        if (/[+\-*/()]/.test(currentVal) || /[+\-*/()]/.test(event.key)) {
+            return;
+        }
+
+        // Prevent multiple dots for plain number entry
         if (event.key === '.' && currentVal.includes('.')) {
             event.preventDefault();
             return;
         }
 
-        // Limit to 2 digits after the dot
+        // Limit to 2 digits after the dot for plain number entry
         const dotIndex = currentVal.indexOf('.');
         if (dotIndex !== -1 && /^[0-9]$/.test(event.key)) {
             if (selStart > dotIndex) {

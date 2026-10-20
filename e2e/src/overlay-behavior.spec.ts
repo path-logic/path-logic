@@ -14,28 +14,27 @@ test.describe('Overlay Behavior', () => {
         expect(isSignInVisible).toBeFalsy();
     });
 
-    test('header renders with navigation items', async ({ page }) => {
+    test('header/sidebar renders with navigation items', async ({ page }) => {
         await page.goto('/');
 
-        // Header should be rendered
-        const header = page.locator('.app-header');
-        await expect(header).toBeVisible();
+        const isDesktop = (page.viewportSize()?.width ?? 1280) >= 1024;
+        if (isDesktop) {
+            await expect(page.locator('sidebar-nav')).toBeVisible();
+        } else {
+            await expect(page.locator('.app-header')).toBeVisible();
+        }
 
         // Navigation links should be present — use role-based selectors for specificity
-        await expect(page.getByRole('link', { name: 'Overview' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Accounts' })).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Payees' })).toBeVisible();
+        await expect(page.getByRole('link', { name: /Overview/ }).first()).toBeVisible();
+        await expect(page.getByRole('link', { name: /Accounts/ }).first()).toBeVisible();
+        await expect(page.getByRole('link', { name: /Payees/ }).first()).toBeVisible();
     });
 
-    test('footer renders with sync indicator', async ({ page }) => {
+    test('footer/sidebar renders with sync indicator', async ({ page }) => {
         await page.goto('/');
 
-        // Footer should be rendered
-        const footer = page.locator('footer');
-        await expect(footer).toBeVisible();
-
-        // Sync indicator component should be present
-        const syncIndicator = page.locator('sync-indicator');
+        // Sync indicator component should be present (in footer on mobile, sidebar on desktop)
+        const syncIndicator = page.locator('sync-indicator').first();
         await expect(syncIndicator).toBeVisible();
     });
 
@@ -43,15 +42,24 @@ test.describe('Overlay Behavior', () => {
         await page.goto('/');
 
         // Click "Accounts" link
-        await page.getByRole('link', { name: 'Accounts' }).first().click();
+        await page
+            .getByRole('link', { name: /Accounts/ })
+            .first()
+            .click();
         await expect(page).toHaveURL(/\/accounts/);
 
         // Click "Payees" link
-        await page.getByRole('link', { name: 'Payees' }).first().click();
+        await page
+            .getByRole('link', { name: /Payees/ })
+            .first()
+            .click();
         await expect(page).toHaveURL(/\/payees/);
 
         // Click "Overview" to go home
-        await page.getByRole('link', { name: 'Overview' }).first().click();
+        await page
+            .getByRole('link', { name: /Overview/ })
+            .first()
+            .click();
         await expect(page).toHaveURL('/');
     });
 
@@ -73,6 +81,6 @@ test.describe('Overlay Behavior', () => {
         }
 
         // Either way, the page is now interactive
-        await expect(page.getByRole('link', { name: 'Overview' })).toBeVisible();
+        await expect(page.getByRole('link', { name: /Overview/ }).first()).toBeVisible();
     });
 });

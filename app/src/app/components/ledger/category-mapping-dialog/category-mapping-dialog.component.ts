@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PrimeTemplate } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { ProgressBar } from 'primeng/progressbar';
 import { Select } from 'primeng/select';
 import { matchUnknowns } from '../../../core/utils/CategoryHeuristicMatcher';
+import { AiAutoCategorizeService } from '../../../services/ai-auto-categorize/ai-auto-categorize.service';
 import { GeminiService } from '../../../services/gemini/gemini.service';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -28,6 +30,8 @@ export class CategoryMappingDialogComponent {
     readonly importService = inject(ImportOrchestrationService);
     readonly ledgerStore = inject(LedgerStore);
     readonly geminiService = inject(GeminiService);
+    readonly aiCategorizeService = inject(AiAutoCategorizeService);
+    private readonly router = inject(Router);
 
     // Mappings: Unknown QIF Category String -> Internal Category ID
     readonly mappings = signal<Record<string, string>>({});
@@ -427,7 +431,27 @@ Respond ONLY with JSON:
     handleCancel(): void {
         console.log('[CategoryMapping] handleCancel clicked.');
         this.cancelAiAutoMap();
-        this.importService.cancel();
+        this.mappings.set({});
+        this.importService.reset();
+    }
+
+    goToSettings(): void {
+        console.log('[CategoryMapping] goToSettings clicked.');
+        this.handleCancel();
+        void this.router.navigate(['/settings']);
+    }
+
+    async handleAutoCategorizeInBackground(): Promise<void> {
+        console.log('[CategoryMapping] handleAutoCategorizeInBackground clicked.');
+        this.cancelAiAutoMap();
+        const unknowns = [...this.importService.unknownCategories()];
+        const partialMappings = { ...this.mappings() };
+
+        await this.importService.resolveWithBackgroundCategorization(partialMappings);
+        void this.aiCategorizeService.startBackgroundCategorization(
+            this.ledgerStore.transactions(),
+            unknowns
+        );
     }
 
     get isFullyMapped(): boolean {

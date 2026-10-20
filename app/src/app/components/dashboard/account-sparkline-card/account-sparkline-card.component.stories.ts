@@ -93,3 +93,28 @@ export const Credit: Story = {
         trendPercent: '-2.4%'
     }
 };
+
+export const HeroFullWidth: Story = {
+    args: {
+        account: mockChecking,
+        trendPercent: '+1.1%',
+        isFullWidth: true,
+        isPrimary: true
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(canvas.getByText('Primary Checking')).toBeInTheDocument();
+        await expect(canvas.getByText(/Primary Hero/i)).toBeInTheDocument();
+        await expect(
+            canvas.getByRole('button', { name: /Primary Hero Account/i })
+        ).toBeInTheDocument();
+    }
+};
+
+export const PrimaryStarred: Story = {
+    args: {
+        account: mockSavings,
+        trendPercent: '+3.5%',
+        isPrimary: true
+    }
+};

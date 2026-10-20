@@ -85,7 +85,8 @@ export class TransactionEntryFormComponent {
     });
 
     readonly currentEntryAmountCents = computed(() => {
-        return this.entryAmount() || 0;
+        const amt = this.entryAmount() || 0;
+        return this.mode() === 'expense' ? -Math.abs(amt) : Math.abs(amt);
     });
 
     // Payee
@@ -104,7 +105,7 @@ export class TransactionEntryFormComponent {
     handleSplitsSaved(event: { splits: Array<ISplit>; newTotal?: number }): void {
         this.manualSplits.set(event.splits);
         if (event.newTotal !== undefined) {
-            this.entryAmount.set(event.newTotal);
+            this.entryAmount.set(Math.abs(event.newTotal));
         }
     }
 
@@ -307,7 +308,7 @@ export class TransactionEntryFormComponent {
             this.selectedPayee.set(tx.payee);
         }
 
-        if (tx.splits && tx.splits.length > 0) {
+        if (tx.splits && tx.splits.length > 1) {
             this.manualSplits.set([...tx.splits]);
             const catId = tx.splits[0]?.categoryId;
             if (catId) {
@@ -318,7 +319,13 @@ export class TransactionEntryFormComponent {
             }
         } else {
             this.manualSplits.set([]);
-            this.selectedCategory.set(null);
+            const catId = tx.splits && tx.splits.length === 1 ? tx.splits[0]?.categoryId : null;
+            if (catId) {
+                const catObj = this.categories().find(c => c.id === catId);
+                this.selectedCategory.set(catObj ? catObj : null);
+            } else {
+                this.selectedCategory.set(null);
+            }
         }
     }
 
@@ -443,14 +450,19 @@ export class TransactionEntryFormComponent {
                 updatedAt: now
             } as ITransaction;
 
-            if (existingTx) {
-                await this.ledgerStore.updateTransaction(newTx);
-            } else {
-                await this.ledgerStore.applyReconciliationBatch([], [newTx], []);
-            }
+            try {
+                if (existingTx) {
+                    await this.ledgerStore.updateTransaction(newTx);
+                } else {
+                    await this.ledgerStore.applyReconciliationBatch([], [newTx], []);
+                }
 
-            // Reset form
-            this.resetForm();
+                // Reset form
+                this.resetForm();
+            } catch (error) {
+                console.error('Failed to save transaction:', error);
+                throw error;
+            }
         }
     }
 

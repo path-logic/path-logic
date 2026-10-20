@@ -1,8 +1,8 @@
-<div
-    class="max-w-4xl mx-auto bg-surface-0 border border-surface-200 shadow-sm rounded-lg overflow-hidden"
->
+<div class="w-full bg-surface-0 rounded-lg">
     <!-- Header: Type Toggle -->
-    <div class="bg-surface-50 border-b border-surface-200 p-4 flex justify-center">
+    <div
+        class="bg-surface-50 dark:bg-surface-850 border-b border-surface-200 dark:border-surface-700 p-4 flex justify-center"
+    >
         <p-selectbutton
             [options]="scheduleTypeOptions"
             [ngModel]="schedule.type"
@@ -17,107 +17,103 @@
     </div>
 
     <div class="p-6">
-        <!-- Main Form Grid: 2 Columns for pixel-perfect alignment -->
-        <div class="grid grid-cols-2 gap-x-8 gap-y-6 mb-8">
-            <!-- Left Column: Amount & Payee/Memo -->
-            <div class="flex flex-col gap-6">
-                <!-- Amount -->
-                <div class="flex flex-col gap-2">
-                    <label for="recurring-amount" class="text-sm font-semibold text-surface-700"
-                        >Amount</label
-                    >
-                    <calculator-input
-                        inputId="recurring-amount"
-                        [ngModel]="schedule.amount"
-                        (ngModelChange)="schedule.amount = $event"
-                        class="w-full"
-                    >
-                    </calculator-input>
-                </div>
-
-                <!-- Payee -->
-                <div class="flex flex-col gap-2">
-                    <label for="recurring-payee" class="text-sm font-semibold text-surface-700"
-                        >Payee / Description</label
-                    >
-                    <input
-                        id="recurring-payee"
-                        pInputText
-                        type="text"
-                        aria-label="Payee / Description"
-                        [attr.aria-label]="'Payee / Description'"
-                        [(ngModel)]="schedule.payee"
-                        placeholder="e.g. Acme Corp"
-                        class="w-full"
-                    />
-                </div>
+        <!-- Row 1: Account & Payee (2 Columns) -->
+        <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
+            <!-- 1. Post to Account -->
+            <div class="flex flex-col gap-1.5">
+                <label for="recurring-account" class="text-sm font-semibold text-surface-700"
+                    >Post to Account</label
+                >
+                <p-select
+                    inputId="recurring-account"
+                    ariaLabel="Post to Account"
+                    [attr.aria-label]="'Post to Account'"
+                    [options]="accounts"
+                    [(ngModel)]="schedule.accountId"
+                    optionLabel="name"
+                    optionValue="id"
+                    placeholder="Select an Account"
+                    styleClass="w-full !h-10 !border !border-surface-300 dark:!border-surface-600 !rounded-md !bg-surface-0 dark:!bg-surface-900 flex items-center"
+                >
+                </p-select>
             </div>
 
-            <!-- Right Column: Account & Frequency -->
-            <div class="flex flex-col gap-6">
-                <!-- Account -->
-                <div class="flex flex-col gap-2">
-                    <label for="recurring-account" class="text-sm font-semibold text-surface-700"
-                        >Post to Account</label
-                    >
-                    <p-select
-                        inputId="recurring-account"
-                        ariaLabel="Post to Account"
-                        [attr.aria-label]="'Post to Account'"
-                        [options]="accounts"
-                        [(ngModel)]="schedule.accountId"
-                        optionLabel="name"
-                        optionValue="id"
-                        placeholder="Select an Account"
-                        styleClass="w-full"
-                    >
-                    </p-select>
-                </div>
-
-                <!-- Schedule Block: Grid within Grid -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label
-                            for="recurring-frequency"
-                            class="text-sm font-semibold text-surface-700"
-                            >Frequency</label
-                        >
-                        <p-select
-                            inputId="recurring-frequency"
-                            [options]="frequencyOptions"
-                            [(ngModel)]="schedule.frequency"
-                            optionLabel="label"
-                            optionValue="value"
-                            styleClass="w-full"
-                            appendTo="body"
-                        >
-                        </p-select>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label
-                            for="recurring-next-date"
-                            class="text-sm font-semibold text-surface-700"
-                            >Next Occurrence</label
-                        >
-                        <p-datepicker
-                            inputId="recurring-next-date"
-                            [(ngModel)]="schedule.nextDueDate"
-                            [showIcon]="true"
-                            dateFormat="MM dd, yy"
-                            styleClass="w-full"
-                            appendTo="body"
-                        >
-                        </p-datepicker>
-                    </div>
-                </div>
+            <!-- 2. Payee / Description -->
+            <div class="flex flex-col gap-1.5">
+                <label for="recurring-payee" class="text-sm font-semibold text-surface-700"
+                    >Payee / Description</label
+                >
+                <input
+                    id="recurring-payee"
+                    pInputText
+                    type="text"
+                    aria-label="Payee / Description"
+                    [attr.aria-label]="'Payee / Description'"
+                    [(ngModel)]="schedule.payee"
+                    placeholder="e.g. Acme Corp"
+                    class="w-full !h-10 !border !border-surface-300 dark:!border-surface-600 !rounded-md !px-3.5"
+                />
             </div>
         </div>
 
-        <p-divider></p-divider>
+        <!-- Row 2: Amount, Frequency, Next Occurrence (3 Columns with balanced proportions) -->
+        <div class="grid grid-cols-[1fr_1.25fr_1.15fr] gap-4 mb-4">
+            <!-- 3. Amount -->
+            <div class="flex flex-col gap-1.5 min-w-0">
+                <label for="recurring-amount" class="text-sm font-semibold text-surface-700"
+                    >Amount</label
+                >
+                <calculator-input
+                    inputId="recurring-amount"
+                    [ngModel]="schedule.amount"
+                    (ngModelChange)="schedule.amount = $event"
+                    class="w-full"
+                >
+                </calculator-input>
+            </div>
+
+            <!-- 4. Frequency -->
+            <div class="flex flex-col gap-1.5 min-w-0">
+                <label for="recurring-frequency" class="text-sm font-semibold text-surface-700"
+                    >Frequency</label
+                >
+                <p-select
+                    inputId="recurring-frequency"
+                    [options]="frequencyOptions"
+                    [(ngModel)]="schedule.frequency"
+                    optionLabel="label"
+                    optionValue="value"
+                    styleClass="w-full !h-10 !border !border-surface-300 dark:!border-surface-600 !rounded-md !bg-surface-0 dark:!bg-surface-900 flex items-center"
+                    appendTo="body"
+                >
+                </p-select>
+            </div>
+
+            <!-- 5. Next Occurrence -->
+            <div class="flex flex-col gap-1.5 min-w-0">
+                <label for="recurring-next-date" class="text-sm font-semibold text-surface-700"
+                    >Next Occurrence</label
+                >
+                <p-datepicker
+                    inputId="recurring-next-date"
+                    [(ngModel)]="schedule.nextDueDate"
+                    [showIcon]="true"
+                    dateFormat="M d, yy"
+                    styleClass="w-full"
+                    inputStyleClass="w-full !h-10 !border !border-surface-300 dark:!border-surface-600 !rounded-md !px-3"
+                    appendTo="body"
+                >
+                </p-datepicker>
+            </div>
+        </div>
 
         <!-- Split Editor -->
-        <div class="my-6">
-            <h3 class="text-lg font-medium text-surface-800 mb-4">Transaction Details</h3>
+        <div class="border-t border-surface-200 dark:border-surface-700 pt-3.5 mt-3.5">
+            <h3
+                class="text-xs font-bold uppercase tracking-wider text-surface-600 dark:text-surface-400 mb-2"
+            >
+                Transaction Details
+            </h3>
             <recurring-split-editor
                 [scheduleType]="schedule.type!"
                 [amount]="schedule.amount!"
@@ -127,10 +123,10 @@
             </recurring-split-editor>
         </div>
 
-        <p-divider></p-divider>
-
         <!-- Footer / Automation Options -->
-        <div class="flex items-center justify-between mt-6">
+        <div
+            class="border-t border-surface-200 dark:border-surface-700 pt-4 mt-4 flex items-center justify-between"
+        >
             <div class="flex items-center gap-3">
                 <p-toggleswitch
                     [(ngModel)]="schedule.autoPost"
@@ -145,7 +141,16 @@
                 </div>
             </div>
 
-            <div class="flex gap-3">
+            <div class="flex items-center gap-2">
+                @if (schedule.id) {
+                    <p-button
+                        label="Delete"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [outlined]="true"
+                        (onClick)="handleDelete()"
+                    ></p-button>
+                }
                 <p-button
                     label="Cancel"
                     [outlined]="true"

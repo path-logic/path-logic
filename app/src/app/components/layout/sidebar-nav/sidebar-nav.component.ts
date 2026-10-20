@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -15,8 +16,8 @@ import { filter } from 'rxjs';
 
 import { AiAssistantService } from '../../../services/ai-assistant/ai-assistant.service';
 import { AuthService } from '../../../services/auth/auth.service';
-import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
+import { SidebarContextService } from '../../../services/sidebar-context/sidebar-context.service';
 import { ThemeService } from '../../../services/theme/theme.service';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
 import { BrandLogoComponent } from '../../ui/brand-logo/brand-logo.component';
@@ -34,7 +35,13 @@ export interface ISidebarNavItem {
 @Component({
     selector: 'sidebar-nav',
     standalone: true,
-    imports: [RouterLink, RouterLinkActive, BrandLogoComponent, SyncIndicatorComponent],
+    imports: [
+        RouterLink,
+        RouterLinkActive,
+        BrandLogoComponent,
+        SyncIndicatorComponent,
+        NgTemplateOutlet
+    ],
     templateUrl: './sidebar-nav.component.html',
     styleUrl: './sidebar-nav.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -47,14 +54,10 @@ export class SidebarNavComponent {
     private readonly router: Router = inject(Router);
     readonly themeService: ThemeService = inject(ThemeService);
     readonly aiAssistantService: AiAssistantService = inject(AiAssistantService);
-    readonly commandPaletteService: CommandPaletteService = inject(CommandPaletteService);
+    readonly sidebarContext: SidebarContextService = inject(SidebarContextService);
 
     readonly isCollapsed = signal<boolean>(false);
     readonly showUserMenu = signal<boolean>(false);
-
-    openCommandPalette(): void {
-        this.commandPaletteService.open();
-    }
 
     readonly navItems = new Array<ISidebarNavItem>(
         { name: 'Overview', href: '/', icon: 'pi-objects-column' } satisfies ISidebarNavItem,

@@ -1,7 +1,6 @@
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -70,7 +69,6 @@ describe('PayeeFormComponent', () => {
         await TestBed.configureTestingModule({
             imports: [PayeeFormComponent],
             providers: [
-                provideNoopAnimations(),
                 provideRouter([]),
                 { provide: LedgerStore, useValue: mockLedgerStore },
                 { provide: AuthService, useValue: mockAuthService },
