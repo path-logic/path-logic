@@ -1,7 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    DestroyRef,
+    inject,
+    signal
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import type { IAccount } from '@core';
 import { type MenuItem } from 'primeng/api';
+import { filter } from 'rxjs/operators';
 
 import { CommandPaletteService } from '../../../services/command-palette/command-palette.service';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -44,11 +53,30 @@ const routeLabels: Record<string, string> = {
 })
 export class BreadcrumbNavComponent {
     private readonly router: Router = inject(Router);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly commandPaletteService: CommandPaletteService = inject(CommandPaletteService);
 
-    readonly currentUrl = computed((): string => this.router.url.split('?')[0] ?? '');
+    private readonly navVersion = signal<number>(0);
+
+    readonly currentUrl = computed((): string => {
+        this.navVersion();
+        return (this.router.url ?? '').split('?')[0] ?? '';
+    });
     readonly segments = computed((): Array<string> => this.currentUrl().split('/').filter(Boolean));
+
+    constructor() {
+        if (this.router.events) {
+            this.router.events
+                .pipe(
+                    filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+                    takeUntilDestroyed(this.destroyRef)
+                )
+                .subscribe(() => {
+                    this.navVersion.update(v => v + 1);
+                });
+        }
+    }
 
     /**
      * Identifies the current account ID when within an account route (/accounts/:accountId).

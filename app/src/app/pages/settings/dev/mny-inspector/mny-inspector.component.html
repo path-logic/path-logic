@@ -1,0 +1,1548 @@
+<shell>
+    <div
+        class="w-full max-w-[1800px] mx-auto px-4 py-5 sm:px-6 space-y-4 animate-in fade-in duration-300"
+    >
+        <!-- Header & Navigation -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span
+                        class="px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                    >
+                        Forensic Engine
+                    </span>
+                    <span class="text-xs font-mono text-slate-500 dark:text-slate-400">
+                        MSISAM / Jet 4.0 Inspector
+                    </span>
+                </div>
+                <h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                    MS Money Investigation Tool
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Inspect raw MSISAM tables, TDEF schemas, payee parent/hidden flags, category
+                    trees, and recurring bill schedules.
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                @if (copySuccessMessage(); as msg) {
+                    <span
+                        class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold"
+                    >
+                        ✓ {{ msg }}
+                    </span>
+                }
+                <a
+                    routerLink="/settings/dev"
+                    class="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 w-fit"
+                >
+                    ← Back to Dev Tools
+                </a>
+            </div>
+        </div>
+
+        <!-- File Upload & Unlock Bar -->
+        <div
+            class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4"
+        >
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white">
+                        Load Microsoft Money Database
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Select a Microsoft Money database file to inspect its internal catalog,
+                        tables, and AI reconciliation diagnostics locally in browser memory.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <label
+                        [class]="
+                            isParsing()
+                                ? 'cursor-wait opacity-75 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm transition-all'
+                                : 'cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-sm transition-all'
+                        "
+                    >
+                        @if (isParsing()) {
+                            <span
+                                class="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                            ></span>
+                            <span>Loading MS Money File...</span>
+                        } @else {
+                            <span>Choose MS Money File</span>
+                        }
+                        <input
+                            type="file"
+                            accept=".mny"
+                            class="hidden"
+                            [disabled]="isParsing()"
+                            data-testid="mny-inspector-file-input"
+                            (change)="onFileSelected($event)"
+                        />
+                    </label>
+
+                    @if (parseResult()) {
+                        <button
+                            type="button"
+                            data-testid="copy-diagnostic-report-btn"
+                            (click)="copyDiagnosticReport()"
+                            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 transition-all"
+                        >
+                            Copy Diagnostic Report
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- File Loading & Parsing Progress Indicator -->
+            @if (isParsing()) {
+                <div
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    [attr.aria-valuenow]="loadProgressPercent()"
+                    aria-label="Microsoft Money file loading and parsing progress"
+                    data-testid="mny-inspector-progress-bar"
+                    class="p-4 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 space-y-2.5"
+                >
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span
+                                class="inline-block w-3.5 h-3.5 border-2 border-blue-500/30 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin shrink-0"
+                            ></span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 truncate">
+                                {{ loadStageLabel() || 'Parsing Microsoft Money database...' }}
+                            </span>
+                            @if (loadCurrentTable(); as activeTbl) {
+                                <span
+                                    class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 font-mono text-[11px] font-bold shrink-0"
+                                >
+                                    {{ activeTbl }}
+                                </span>
+                            }
+                        </div>
+                        <span class="font-mono font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                            {{ loadProgressPercent() }}%
+                        </span>
+                    </div>
+                    <div
+                        class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"
+                    >
+                        <div
+                            class="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-150"
+                            [style.width.%]="loadProgressPercent()"
+                        ></div>
+                    </div>
+                </div>
+            }
+
+            @if (fileName()) {
+                <div
+                    class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs"
+                >
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-800 dark:text-slate-200">
+                            {{ fileName() }}
+                        </span>
+                        <span class="font-mono text-slate-500">
+                            {{ (fileSize() / 1024 / 1024).toFixed(2) }} MB
+                        </span>
+                        @if (parseDurationMs() > 0) {
+                            <span
+                                class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold"
+                            >
+                                Parsed in {{ formatDuration(parseDurationMs()) }}
+                            </span>
+                        }
+                    </div>
+                    @if (header(); as hdr) {
+                        <div
+                            class="flex flex-wrap items-center gap-3 font-mono text-[11px] text-slate-500"
+                        >
+                            <span>Sig: {{ hdr.signature }}</span>
+                            <span>Build: {{ hdr.buildVersion }}</span>
+                            <span>EncMode: {{ hdr.encryptionMode }}</span>
+                            <span>
+                                PageEncryption:
+                                {{ hdr.encryptAllPages ? 'Encrypted' : 'Plaintext (Pages >= 15)' }}
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Password / Live ID Unlock Prompt (when encrypted) -->
+            @if (requiresUnlock()) {
+                <div
+                    class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3"
+                    data-testid="mny-inspector-unlock-panel"
+                >
+                    <div class="text-xs font-bold text-amber-800 dark:text-amber-300">
+                        This Microsoft Money database has encrypted data pages. Enter credentials to
+                        decrypt and inspect:
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input
+                            type="text"
+                            [ngModel]="username()"
+                            (ngModelChange)="username.set($event)"
+                            placeholder="Windows Live ID / Email (optional)"
+                            class="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                        />
+                        <div class="relative flex items-center">
+                            <input
+                                [type]="showPassword() ? 'text' : 'password'"
+                                [ngModel]="password()"
+                                (ngModelChange)="password.set($event)"
+                                placeholder="MS Money Password"
+                                class="w-full px-3 py-2 pr-14 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                            />
+                            <button
+                                type="button"
+                                (click)="showPassword.set(!showPassword())"
+                                class="absolute right-2 text-[11px] font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                            >
+                                {{ showPassword() ? 'Hide' : 'Show' }}
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            (click)="unlockAndParse()"
+                            class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-colors"
+                        >
+                            Unlock & Inspect
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @if (unlockError(); as err) {
+                <div
+                    class="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-bold text-red-600 dark:text-red-400"
+                >
+                    {{ err }}
+                </div>
+            }
+        </div>
+
+        @if (parseResult(); as res) {
+            <!-- Primary Inspector Navigation Tabs -->
+            <div
+                class="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3"
+                role="tablist"
+            >
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-overview"
+                    (click)="activeTab.set(MnyInspectorTab.Overview)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Overview
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Overview & Diagnostics
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-tables"
+                    (click)="activeTab.set(MnyInspectorTab.Tables)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Tables
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Raw Table Explorer ({{ res.tables.length }})
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-payees"
+                    (click)="activeTab.set(MnyInspectorTab.Payees)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Payees
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Payees Inspector ({{ res.payees.length }})
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-categories"
+                    (click)="activeTab.set(MnyInspectorTab.Categories)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Categories
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Categories Inspector ({{ res.categories.length }})
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-bills"
+                    (click)="activeTab.set(MnyInspectorTab.Bills)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Bills
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Recurring Bills ({{ res.recurringSchedules?.length ?? 0 }})
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    data-testid="tab-accounts"
+                    (click)="activeTab.set(MnyInspectorTab.Accounts)"
+                    [class]="
+                        activeTab() === MnyInspectorTab.Accounts
+                            ? 'px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm'
+                            : 'px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold'
+                    "
+                >
+                    Accounts & Loans ({{ res.accounts.length }})
+                </button>
+            </div>
+
+            <!-- TAB 1: OVERVIEW & DIAGNOSTICS -->
+            @if (activeTab() === MnyInspectorTab.Overview && overviewStats(); as stats) {
+                <div class="space-y-6" data-testid="panel-overview">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Payee Breakdown Card -->
+                        <div
+                            class="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span
+                                    class="text-[11px] font-black uppercase tracking-wider text-slate-400"
+                                >
+                                    Payee Forensics (PAY)
+                                </span>
+                                <button
+                                    type="button"
+                                    (click)="activeTab.set(MnyInspectorTab.Payees)"
+                                    class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    Inspect Payees →
+                                </button>
+                            </div>
+                            <div class="text-2xl font-black text-slate-900 dark:text-white">
+                                {{ stats.primaryPayees }} Primary / {{ stats.totalPayees }} Raw
+                            </div>
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1 pt-1">
+                                <li>
+                                    • <strong>{{ stats.primaryPayees }}</strong> Active MS Money
+                                    Payees (<code class="font-mono">fHidden=false</code>)
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.hiddenAliasPayees }}</strong> Hidden Child
+                                    Aliases (<code class="font-mono">hpayParent</code> set)
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.statementUploadPayees }}</strong> Hidden
+                                    Statement-Upload Payees
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.orphanHiddenPayees }}</strong> Orphan Hidden
+                                    Payees (0 transactions)
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.reconciledPayeeGroups }}</strong> AI
+                                    Reconciled Groups ({{ stats.ignoredNumericPayees }} numeric
+                                    ignored)
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Categories Breakdown Card -->
+                        <div
+                            class="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span
+                                    class="text-[11px] font-black uppercase tracking-wider text-slate-400"
+                                >
+                                    Category Hierarchy (CAT)
+                                </span>
+                                <button
+                                    type="button"
+                                    (click)="activeTab.set(MnyInspectorTab.Categories)"
+                                    class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    Inspect Categories →
+                                </button>
+                            </div>
+                            <div class="text-2xl font-black text-slate-900 dark:text-white">
+                                {{ stats.visibleCategories }} Visible /
+                                {{ stats.totalCategories }} Total
+                            </div>
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1 pt-1">
+                                <li>
+                                    • <strong>{{ stats.visibleCategories }}</strong> Active Visible
+                                    Categories (<code class="font-mono">fHidden=false</code>)
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.hiddenCategories }}</strong> Hidden / System
+                                    Tax Categories (<code class="font-mono">fHidden=true</code>)
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Recurring Bills & Accounts Card -->
+                        <div
+                            class="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span
+                                    class="text-[11px] font-black uppercase tracking-wider text-slate-400"
+                                >
+                                    Accounts & Recurring Bills
+                                </span>
+                                <button
+                                    type="button"
+                                    (click)="activeTab.set(MnyInspectorTab.Bills)"
+                                    class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    Inspect Bills →
+                                </button>
+                            </div>
+                            <div class="text-2xl font-black text-slate-900 dark:text-white">
+                                {{ stats.totalRecurringBills }} Active Bills
+                            </div>
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1 pt-1">
+                                <li>
+                                    • <strong>{{ stats.openAccounts }}</strong> Open Accounts /
+                                    <strong>{{ stats.closedAccounts }}</strong> Closed Accounts
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.totalTransactions }}</strong> Total Ledger
+                                    Transactions
+                                </li>
+                                <li>
+                                    • <strong>{{ stats.totalTables }}</strong> MSISAM System & Data
+                                    Tables
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- MSysObjects Catalog & Selected Table Explorer -->
+                    <ng-container *ngTemplateOutlet="msysCatalogExplorer" />
+                </div>
+            }
+
+            <!-- TAB 2: RAW MSISAM TABLE EXPLORER -->
+            @if (activeTab() === MnyInspectorTab.Tables) {
+                <div class="space-y-6" data-testid="panel-tables">
+                    <ng-container *ngTemplateOutlet="msysCatalogExplorer" />
+                </div>
+            }
+
+            <!-- Shared Template: MSysObjects Catalog Pills + Active Table Rows / TDEF Schema -->
+            <ng-template #msysCatalogExplorer>
+                <div
+                    class="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3"
+                >
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-400">
+                                MSysObjects Catalog ({{ visibleCatalogTables().length }}/{{
+                                    filteredCatalogTables().length
+                                }})
+                            </h3>
+                            <span class="text-xs text-slate-500">
+                                Select any table to inspect its rows & TDEF schema
+                            </span>
+                        </div>
+                        <input
+                            type="text"
+                            [ngModel]="tableSearchQuery()"
+                            (ngModelChange)="tableSearchQuery.set($event)"
+                            placeholder="Filter table name..."
+                            data-testid="table-search-input"
+                            class="w-full sm:w-64 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                        />
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 max-h-48 overflow-y-auto pr-1">
+                        @for (t of visibleCatalogTables(); track t.id) {
+                            <button
+                                type="button"
+                                (click)="selectTable(t.name)"
+                                [class]="
+                                    selectedTableName() === t.name
+                                        ? 'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-mono font-bold shadow-sm transition-colors'
+                                        : isProcessingTable(t.name)
+                                          ? 'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-600 hover:text-white dark:bg-slate-800/50 dark:hover:bg-blue-600 border border-dashed border-slate-300 dark:border-slate-700 text-xs font-mono font-bold text-slate-500 dark:text-slate-400 transition-colors'
+                                          : 'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white dark:bg-slate-800 dark:hover:bg-blue-600 text-xs font-mono font-bold text-slate-700 dark:text-slate-300 transition-colors'
+                                "
+                            >
+                                <span>{{ t.name }}</span>
+                                <span class="text-[10px] opacity-75 font-normal">
+                                    pg {{ t.id }}
+                                </span>
+                            </button>
+                        }
+                        @if (hiddenProcessingTablesCount() > 0 && !tableSearchQuery().trim()) {
+                            <button
+                                type="button"
+                                data-testid="toggle-processing-tables-btn"
+                                (click)="toggleProcessingTables()"
+                                [attr.aria-expanded]="showProcessingTables()"
+                                [title]="
+                                    showProcessingTables()
+                                        ? 'Hide auxiliary & processing tables'
+                                        : 'Show ' +
+                                          hiddenProcessingTablesCount() +
+                                          ' auxiliary & processing tables (e.g. CLI_DAT, TRN_SPLIT, TRN_XFER)'
+                                "
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-xs font-mono font-bold text-slate-600 dark:text-slate-300 transition-colors"
+                            >
+                                <span>...</span>
+                                <span class="text-[10px] font-sans font-normal opacity-80">
+                                    {{
+                                        showProcessingTables()
+                                            ? 'Hide processing (' +
+                                              hiddenProcessingTablesCount() +
+                                              ')'
+                                            : '+' + hiddenProcessingTablesCount() + ' processing'
+                                    }}
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Full-Width Content: Selected Table TDEF Schema (Default) or Data Rows -->
+                @if (selectedTableInspection(); as insp) {
+                    @if (insp.table) {
+                        <div
+                            data-testid="selected-table-inspector"
+                            class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 overflow-hidden"
+                        >
+                            <div
+                                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4"
+                            >
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <h3
+                                            class="text-lg font-black font-mono text-slate-900 dark:text-white"
+                                        >
+                                            {{ insp.table.name }}
+                                        </h3>
+                                        @if (insp.tdef; as tdef) {
+                                            <span
+                                                class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs text-slate-600 dark:text-slate-300"
+                                            >
+                                                TDEF Page {{ tdef.startPage }} ·
+                                                {{ insp.rows.length }} active rows ·
+                                                {{ populatedColumnsCount() }}/{{ tdef.numCols }}
+                                                populated cols
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button
+                                        type="button"
+                                        data-testid="submode-rows-btn"
+                                        (click)="tableViewSubMode.set('rows')"
+                                        [class]="
+                                            tableViewSubMode() === 'rows'
+                                                ? 'px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold'
+                                                : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                        "
+                                    >
+                                        Data Rows ({{ filteredRawTableRows().length }})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-testid="submode-schema-btn"
+                                        (click)="tableViewSubMode.set('schema')"
+                                        [class]="
+                                            tableViewSubMode() === 'schema'
+                                                ? 'px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold'
+                                                : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                        "
+                                    >
+                                        TDEF Schema ({{ insp.columns.length }})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        (click)="copySelectedTableJson()"
+                                        class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold"
+                                    >
+                                        Copy JSON
+                                    </button>
+                                </div>
+                            </div>
+
+                            @if (insp.error) {
+                                <div
+                                    class="p-4 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-mono"
+                                >
+                                    {{ insp.error }}
+                                </div>
+                            } @else if (tableViewSubMode() === 'schema') {
+                                <!-- TDEF Schema Toolbar -->
+                                <div
+                                    class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                >
+                                    <input
+                                        type="text"
+                                        [ngModel]="schemaColumnSearchQuery()"
+                                        (ngModelChange)="schemaColumnSearchQuery.set($event)"
+                                        placeholder="Filter column name, Jet type, or ID..."
+                                        data-testid="schema-column-search-input"
+                                        class="w-full sm:w-80 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                                    />
+                                    <div class="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            data-testid="toggle-schema-empty-cols-btn"
+                                            (click)="
+                                                hideEmptySchemaColumns.set(
+                                                    !hideEmptySchemaColumns()
+                                                )
+                                            "
+                                            [class]="
+                                                hideEmptySchemaColumns()
+                                                    ? 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold transition-colors'
+                                                    : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors'
+                                            "
+                                        >
+                                            {{
+                                                hideEmptySchemaColumns()
+                                                    ? 'Showing Populated Columns (' +
+                                                      populatedColumnsCount() +
+                                                      '/' +
+                                                      insp.columns.length +
+                                                      ')'
+                                                    : 'Filter to Populated (' +
+                                                      populatedColumnsCount() +
+                                                      '/' +
+                                                      insp.columns.length +
+                                                      ')'
+                                            }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 2-Column Multi-Grid TDEF Schema Layout -->
+                                <div
+                                    class="grid grid-cols-1 xl:grid-cols-2 gap-2 max-h-[600px] overflow-y-auto pr-1"
+                                >
+                                    @for (col of filteredSchemaColumns(); track col.colId) {
+                                        <div
+                                            class="flex items-center justify-between gap-3 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 font-mono text-xs"
+                                        >
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span
+                                                    class="w-7 text-right text-[11px] text-slate-400 shrink-0"
+                                                >
+                                                    #{{ col.colId }}
+                                                </span>
+                                                <span
+                                                    class="font-bold text-slate-900 dark:text-white truncate"
+                                                >
+                                                    {{ col.name }}
+                                                </span>
+                                                <span
+                                                    class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold shrink-0"
+                                                >
+                                                    {{ formatColumnType(col.colType) }} ({{
+                                                        col.colType
+                                                    }})
+                                                </span>
+                                                <span
+                                                    class="text-[10px] text-slate-400 shrink-0 hidden sm:inline"
+                                                >
+                                                    {{
+                                                        col.isFixed
+                                                            ? 'Fix +' + col.fixedOffset
+                                                            : 'Var[' + col.varColNum + ']'
+                                                    }}
+                                                    · {{ col.maxLength }}B
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-2 min-w-0 shrink-0">
+                                                @if (col.sampleValue !== null) {
+                                                    <span
+                                                        class="max-w-[160px] truncate text-[11px] text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700"
+                                                        [title]="formatCellValue(col.sampleValue)"
+                                                    >
+                                                        {{ formatCellValue(col.sampleValue) }}
+                                                    </span>
+                                                }
+                                                <span
+                                                    [class]="
+                                                        col.nonNullCount > 0
+                                                            ? 'px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold'
+                                                            : 'px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-400 text-[10px]'
+                                                    "
+                                                    title="Active rows with non-null values"
+                                                >
+                                                    {{ col.nonNullCount }}/{{ insp.rows.length }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <!-- Raw Table Rows Sub-view -->
+                                <div
+                                    class="flex flex-col lg:flex-row lg:items-center justify-between gap-3"
+                                >
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <input
+                                            type="text"
+                                            [ngModel]="rawRowSearchQuery()"
+                                            (ngModelChange)="
+                                                rawRowSearchQuery.set($event); rawRowPage.set(0)
+                                            "
+                                            placeholder="Search across all columns in {{
+                                                insp.table.name
+                                            }}..."
+                                            data-testid="raw-row-search-input"
+                                            class="w-full sm:w-72 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            data-testid="toggle-empty-cols-btn"
+                                            (click)="hideEmptyColumns.set(!hideEmptyColumns())"
+                                            [class]="
+                                                hideEmptyColumns()
+                                                    ? 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold transition-colors'
+                                                    : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors'
+                                            "
+                                        >
+                                            {{
+                                                hideEmptyColumns()
+                                                    ? 'Populated Cols (' +
+                                                      visibleDataColumns().length +
+                                                      '/' +
+                                                      insp.columns.length +
+                                                      ')'
+                                                    : 'All Cols (' + insp.columns.length + ')'
+                                            }}
+                                        </button>
+                                        <span class="text-[11px] text-slate-400">
+                                            Click any row to inspect all fields as a card grid
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                                        <span>
+                                            Showing {{ pagedRawTableRows().length }} of
+                                            {{ filteredRawTableRows().length }} rows (Page
+                                            {{ rawRowPage() + 1 }})
+                                        </span>
+                                        <button
+                                            type="button"
+                                            [disabled]="rawRowPage() === 0"
+                                            (click)="rawRowPage.set(rawRowPage() - 1)"
+                                            class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 disabled:opacity-40 font-bold"
+                                        >
+                                            Prev
+                                        </button>
+                                        <button
+                                            type="button"
+                                            [disabled]="
+                                                (rawRowPage() + 1) * rawRowPageSize >=
+                                                filteredRawTableRows().length
+                                            "
+                                            (click)="rawRowPage.set(rawRowPage() + 1)"
+                                            class="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 disabled:opacity-40 font-bold"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Expandable Row Record Key-Value Card Grid (when a row is clicked) -->
+                                @if (
+                                    selectedRowIndex() !== null && selectedRowEntries().length > 0
+                                ) {
+                                    <div
+                                        data-testid="selected-row-detail-card"
+                                        class="p-4 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20 space-y-2.5"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <span
+                                                class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400"
+                                            >
+                                                Row #{{ (selectedRowIndex() ?? 0) + 1 }} Non-Null
+                                                Fields ({{ selectedRowEntries().length }})
+                                            </span>
+                                            <button
+                                                type="button"
+                                                (click)="selectedRowIndex.set(null)"
+                                                class="text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                            >
+                                                Close ✕
+                                            </button>
+                                        </div>
+                                        <div
+                                            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 font-mono text-xs"
+                                        >
+                                            @for (
+                                                entry of selectedRowEntries();
+                                                track entry.col.colId
+                                            ) {
+                                                <div
+                                                    class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 min-w-0"
+                                                >
+                                                    <div
+                                                        class="text-[10px] font-bold text-slate-400 truncate"
+                                                    >
+                                                        {{ entry.col.name }}
+                                                    </div>
+                                                    <div
+                                                        class="text-slate-900 dark:text-white font-bold truncate"
+                                                        [title]="formatCellValue(entry.value)"
+                                                    >
+                                                        {{ formatCellValue(entry.value) }}
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <div
+                                    class="overflow-x-auto max-h-[560px] rounded-xl border border-slate-200 dark:border-slate-800"
+                                >
+                                    <table class="w-full text-left border-collapse text-xs">
+                                        <thead
+                                            class="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900"
+                                        >
+                                            <tr
+                                                class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-mono font-bold text-slate-500"
+                                            >
+                                                @for (
+                                                    col of visibleDataColumns();
+                                                    track col.colId;
+                                                    let firstCol = $first
+                                                ) {
+                                                    <th
+                                                        [class]="
+                                                            firstCol
+                                                                ? 'sticky left-0 z-30 bg-slate-50 dark:bg-slate-900 py-2 px-2.5 whitespace-nowrap border-r border-slate-200 dark:border-slate-800'
+                                                                : 'py-2 px-2.5 whitespace-nowrap'
+                                                        "
+                                                    >
+                                                        {{ col.name }}
+                                                    </th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody
+                                            class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-[11px]"
+                                        >
+                                            @for (row of pagedRawTableRows(); track $index) {
+                                                <tr
+                                                    (click)="
+                                                        selectedRowIndex.set(
+                                                            selectedRowIndex() === $index
+                                                                ? null
+                                                                : $index
+                                                        )
+                                                    "
+                                                    [class]="
+                                                        selectedRowIndex() === $index
+                                                            ? 'cursor-pointer bg-blue-500/10 dark:bg-blue-500/20'
+                                                            : 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                                    "
+                                                >
+                                                    @for (
+                                                        col of visibleDataColumns();
+                                                        track col.colId;
+                                                        let firstCol = $first
+                                                    ) {
+                                                        <td
+                                                            [class]="
+                                                                firstCol
+                                                                    ? 'sticky left-0 z-10 bg-white dark:bg-slate-900 py-1.5 px-2.5 whitespace-nowrap font-bold text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-800'
+                                                                    : 'py-1.5 px-2.5 whitespace-nowrap max-w-[220px] truncate text-slate-700 dark:text-slate-300'
+                                                            "
+                                                            [title]="
+                                                                formatCellValue(
+                                                                    row[col.name] ?? null
+                                                                )
+                                                            "
+                                                        >
+                                                            {{
+                                                                formatCellValue(
+                                                                    row[col.name] ?? null
+                                                                )
+                                                            }}
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </ng-template>
+
+            <!-- TAB 3: PAYEES INSPECTOR -->
+            @if (activeTab() === MnyInspectorTab.Payees) {
+                <div
+                    class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5"
+                    data-testid="panel-payees"
+                >
+                    <div
+                        class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4"
+                    >
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                data-testid="payee-mode-reconciled"
+                                (click)="payeeViewMode.set(MnyPayeeViewMode.Reconciled)"
+                                [class]="
+                                    payeeViewMode() === MnyPayeeViewMode.Reconciled
+                                        ? 'px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold'
+                                        : 'px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                AI Reconciled Groups ({{ filteredReconciledPayees().length }})
+                            </button>
+                            <button
+                                type="button"
+                                data-testid="payee-mode-raw"
+                                (click)="payeeViewMode.set(MnyPayeeViewMode.Raw)"
+                                [class]="
+                                    payeeViewMode() === MnyPayeeViewMode.Raw
+                                        ? 'px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold'
+                                        : 'px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Raw PAY Table Rows ({{ filteredRawPayeeRows().length }})
+                            </button>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <select
+                                [ngModel]="payeeAccountFilter()"
+                                (ngModelChange)="payeeAccountFilter.set($event); payeePage.set(0)"
+                                data-testid="payee-account-filter"
+                                class="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                            >
+                                <option value="ALL">All Originating Accounts</option>
+                                <option value="PRIMARY_VISIBLE">
+                                    MS Money Primary Payees (fHidden=false)
+                                </option>
+                                @for (acctName of availableAccountNames(); track acctName) {
+                                    <option [value]="acctName">{{ acctName }}</option>
+                                }
+                            </select>
+
+                            <input
+                                type="text"
+                                [ngModel]="payeeSearchQuery()"
+                                (ngModelChange)="payeeSearchQuery.set($event); payeePage.set(0)"
+                                placeholder="Search payee or raw alias..."
+                                data-testid="payee-search-input"
+                                class="w-64 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                            />
+                        </div>
+                    </div>
+
+                    @if (payeeViewMode() === MnyPayeeViewMode.Reconciled) {
+                        <div class="space-y-4">
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                <span>
+                                    <strong>{{ primaryReconciledPayees().length }}</strong> Primary
+                                    MS Money Payee Groups (<code class="font-mono"
+                                        >fHidden=false</code
+                                    >)
+                                </span>
+                                <span>·</span>
+                                <span>
+                                    <strong>{{ statementOnlyReconciledPayees().length }}</strong>
+                                    Statement-Upload Payee Groups (<code class="font-mono"
+                                        >fHidden=true</code
+                                    >)
+                                </span>
+                            </div>
+
+                            <div class="overflow-x-auto max-h-[540px]">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                        <tr
+                                            class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-400"
+                                        >
+                                            <th class="py-2 px-3">Canonical Name</th>
+                                            <th class="py-2 px-3">MS Money List</th>
+                                            <th class="py-2 px-3">Merged Count</th>
+                                            <th class="py-2 px-3">Txns</th>
+                                            <th class="py-2 px-3">Originating Accounts</th>
+                                            <th class="py-2 px-3">Sample Merged Raw Names</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody
+                                        class="divide-y divide-slate-100 dark:divide-slate-800/60"
+                                    >
+                                        @for (
+                                            g of filteredReconciledPayees().slice(0, 250);
+                                            track g.mnyPayeeId
+                                        ) {
+                                            <tr
+                                                class="hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                                            >
+                                                <td
+                                                    class="py-2 px-3 font-bold text-slate-900 dark:text-white"
+                                                >
+                                                    {{ g.canonicalName }}
+                                                </td>
+                                                <td class="py-2 px-3">
+                                                    @if (g.hasPrimaryPayee) {
+                                                        <span
+                                                            class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold"
+                                                        >
+                                                            Primary List
+                                                        </span>
+                                                    } @else {
+                                                        <span
+                                                            class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold"
+                                                        >
+                                                            Statement Only
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td class="py-2 px-3 font-mono">
+                                                    {{ g.mergedCount }}
+                                                </td>
+                                                <td class="py-2 px-3 font-mono">
+                                                    {{ g.transactionCount ?? 0 }}
+                                                </td>
+                                                <td
+                                                    class="py-2 px-3 text-slate-600 dark:text-slate-400 max-w-[220px] truncate"
+                                                    [title]="(g.accountNames ?? []).join(', ')"
+                                                >
+                                                    {{
+                                                        (g.accountNames ?? []).join(', ') || 'None'
+                                                    }}
+                                                </td>
+                                                <td
+                                                    class="py-2 px-3 font-mono text-[11px] text-slate-500 max-w-[340px] truncate"
+                                                    [title]="g.mergedOriginalNames.join(' | ')"
+                                                >
+                                                    {{
+                                                        g.mergedOriginalNames
+                                                            .slice(0, 4)
+                                                            .join(' · ')
+                                                    }}
+                                                    @if (g.mergedOriginalNames.length > 4) {
+                                                        <span>
+                                                            (+{{ g.mergedOriginalNames.length - 4 }}
+                                                            more)
+                                                        </span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    } @else {
+                        <!-- Raw PAY Table Filter Pills -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                (click)="payeeFilter.set(MnyPayeeFilter.All); payeePage.set(0)"
+                                [class]="
+                                    payeeFilter() === MnyPayeeFilter.All
+                                        ? 'px-3 py-1 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold'
+                                        : 'px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                All Raw
+                            </button>
+                            <button
+                                type="button"
+                                data-testid="filter-primary-visible"
+                                (click)="
+                                    payeeFilter.set(MnyPayeeFilter.PrimaryVisible); payeePage.set(0)
+                                "
+                                [class]="
+                                    payeeFilter() === MnyPayeeFilter.PrimaryVisible
+                                        ? 'px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Primary Visible (fHidden=false)
+                            </button>
+                            <button
+                                type="button"
+                                (click)="
+                                    payeeFilter.set(MnyPayeeFilter.HiddenAliases); payeePage.set(0)
+                                "
+                                [class]="
+                                    payeeFilter() === MnyPayeeFilter.HiddenAliases
+                                        ? 'px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Hidden Child Aliases (hpayParent)
+                            </button>
+                            <button
+                                type="button"
+                                (click)="
+                                    payeeFilter.set(MnyPayeeFilter.StatementUpload);
+                                    payeePage.set(0)
+                                "
+                                [class]="
+                                    payeeFilter() === MnyPayeeFilter.StatementUpload
+                                        ? 'px-3 py-1 rounded-lg bg-amber-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Hidden Statement-Upload
+                            </button>
+                            <button
+                                type="button"
+                                data-testid="filter-numeric-ignored"
+                                (click)="
+                                    payeeFilter.set(MnyPayeeFilter.NumericIgnored); payeePage.set(0)
+                                "
+                                [class]="
+                                    payeeFilter() === MnyPayeeFilter.NumericIgnored
+                                        ? 'px-3 py-1 rounded-lg bg-red-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Numeric / Noise Ignored
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-[520px]">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                    <tr
+                                        class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-400"
+                                    >
+                                        <th class="py-2 px-3">hpay</th>
+                                        <th class="py-2 px-3">Raw Name (szFull)</th>
+                                        <th class="py-2 px-3">fHidden</th>
+                                        <th class="py-2 px-3">hpayParent</th>
+                                        <th class="py-2 px-3">AI Canonical Target</th>
+                                        <th class="py-2 px-3">Txns</th>
+                                        <th class="py-2 px-3">Originating Accounts</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    @for (r of pagedRawPayeeRows(); track r.mnyPayeeId) {
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                            <td class="py-2 px-3 font-mono text-slate-400">
+                                                {{ r.mnyPayeeId }}
+                                            </td>
+                                            <td
+                                                class="py-2 px-3 font-mono font-bold text-slate-900 dark:text-white"
+                                            >
+                                                {{ r.name }}
+                                            </td>
+                                            <td class="py-2 px-3 font-mono">
+                                                {{ r.isHidden ? 'true' : 'false' }}
+                                            </td>
+                                            <td class="py-2 px-3 font-mono text-slate-500">
+                                                @if (r.parentPayeeId !== null) {
+                                                    <span
+                                                        >{{ r.parentPayeeName }} (#{{
+                                                            r.parentPayeeId
+                                                        }})</span
+                                                    >
+                                                } @else {
+                                                    <span>—</span>
+                                                }
+                                            </td>
+                                            <td
+                                                class="py-2 px-3 font-bold text-blue-600 dark:text-blue-400"
+                                            >
+                                                @if (r.isNumericNoise) {
+                                                    <span class="text-red-500"
+                                                        >[Ignored Noise]</span
+                                                    >
+                                                } @else {
+                                                    {{ r.canonicalName }}
+                                                }
+                                            </td>
+                                            <td class="py-2 px-3 font-mono">
+                                                {{ r.transactionCount }}
+                                            </td>
+                                            <td
+                                                class="py-2 px-3 text-slate-500 max-w-[220px] truncate"
+                                            >
+                                                {{ r.accountNames.join(', ') || '—' }}
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- TAB 4: CATEGORIES INSPECTOR -->
+            @if (activeTab() === MnyInspectorTab.Categories) {
+                <div
+                    class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4"
+                    data-testid="panel-categories"
+                >
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4"
+                    >
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                (click)="categoryFilter.set(MnyCategoryFilter.All)"
+                                [class]="
+                                    categoryFilter() === MnyCategoryFilter.All
+                                        ? 'px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                All ({{ res.categories.length }})
+                            </button>
+                            <button
+                                type="button"
+                                (click)="categoryFilter.set(MnyCategoryFilter.VisibleOnly)"
+                                [class]="
+                                    categoryFilter() === MnyCategoryFilter.VisibleOnly
+                                        ? 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Visible Only
+                            </button>
+                            <button
+                                type="button"
+                                (click)="categoryFilter.set(MnyCategoryFilter.HiddenOnly)"
+                                [class]="
+                                    categoryFilter() === MnyCategoryFilter.HiddenOnly
+                                        ? 'px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Hidden Only (fHidden=true)
+                            </button>
+                            <button
+                                type="button"
+                                data-testid="filter-duplicate-categories"
+                                (click)="categoryFilter.set(MnyCategoryFilter.DuplicateNames)"
+                                [class]="
+                                    categoryFilter() === MnyCategoryFilter.DuplicateNames
+                                        ? 'px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Duplicate Subcategory Names
+                            </button>
+                        </div>
+
+                        <input
+                            type="text"
+                            [ngModel]="categorySearchQuery()"
+                            (ngModelChange)="categorySearchQuery.set($event)"
+                            placeholder="Search category path..."
+                            data-testid="category-search-input"
+                            class="w-64 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                        />
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[540px]">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                <tr
+                                    class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-400"
+                                >
+                                    <th class="py-2 px-3">hcat</th>
+                                    <th class="py-2 px-3">Full Hierarchy Path</th>
+                                    <th class="py-2 px-3">Leaf Name (szFull)</th>
+                                    <th class="py-2 px-3">Parent (hcatParent)</th>
+                                    <th class="py-2 px-3">Level</th>
+                                    <th class="py-2 px-3">Type</th>
+                                    <th class="py-2 px-3">fHidden</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                @for (c of filteredCategories(); track c.mnyCategoryId) {
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                        <td class="py-2 px-3 font-mono text-slate-400">
+                                            {{ c.mnyCategoryId }}
+                                        </td>
+                                        <td
+                                            class="py-2 px-3 font-bold text-slate-900 dark:text-white"
+                                        >
+                                            {{ c.fullName ?? c.name }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">{{ c.name }}</td>
+                                        <td class="py-2 px-3 font-mono text-slate-500">
+                                            {{
+                                                c.parentName
+                                                    ? c.parentName +
+                                                      ' (#' +
+                                                      c.parentCategoryId +
+                                                      ')'
+                                                    : '—'
+                                            }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">{{ c.level }}</td>
+                                        <td class="py-2 px-3">
+                                            {{
+                                                c.categoryType === 1
+                                                    ? 'Income'
+                                                    : c.categoryType === 2
+                                                      ? 'Expense'
+                                                      : 'Root'
+                                            }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">
+                                            {{ c.isHidden ? 'true' : 'false' }}
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- TAB 5: RECURRING BILLS INSPECTOR -->
+            @if (activeTab() === MnyInspectorTab.Bills) {
+                <div
+                    class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4"
+                    data-testid="panel-bills"
+                >
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4"
+                    >
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                                Active Scheduled Bills & Deposits ({{
+                                    filteredRecurringBills().length
+                                }})
+                            </h3>
+                            <p class="text-xs text-slate-500">
+                                Extracted from MS Money <code class="font-mono">BILL</code> series
+                                heads (<code class="font-mono">iinstNextUnpaid</code>) joined with
+                                template <code class="font-mono">TRN</code> &
+                                <code class="font-mono">TRN_SPLIT</code> rows.
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <input
+                                type="text"
+                                [ngModel]="billSearchQuery()"
+                                (ngModelChange)="billSearchQuery.set($event)"
+                                placeholder="Search payee, account, frequency..."
+                                data-testid="bill-search-input"
+                                class="w-64 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                            />
+                            <button
+                                type="button"
+                                (click)="jumpToRawTable('BILL')"
+                                class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-mono font-bold text-slate-700 dark:text-slate-300"
+                            >
+                                Raw BILL Table →
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[540px]">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                <tr
+                                    class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-400"
+                                >
+                                    <th class="py-2 px-3">hbillHead</th>
+                                    <th class="py-2 px-3">Payee</th>
+                                    <th class="py-2 px-3">Amount</th>
+                                    <th class="py-2 px-3">Frequency</th>
+                                    <th class="py-2 px-3">Next Due</th>
+                                    <th class="py-2 px-3">Method</th>
+                                    <th class="py-2 px-3">Account</th>
+                                    <th class="py-2 px-3">Category / Splits</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                @for (b of filteredRecurringBills(); track b.mnyBillHeadId) {
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                        <td class="py-2 px-3 font-mono text-slate-400">
+                                            {{ b.mnyBillHeadId }}
+                                        </td>
+                                        <td
+                                            class="py-2 px-3 font-bold text-slate-900 dark:text-white"
+                                        >
+                                            {{ b.payee }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono font-bold">
+                                            {{ b.isEstimatedAmount ? '~' : ''
+                                            }}{{ formatCents(b.amount) }}
+                                        </td>
+                                        <td class="py-2 px-3">{{ b.frequencyLabel }}</td>
+                                        <td class="py-2 px-3 font-mono">{{ b.nextDueDate }}</td>
+                                        <td class="py-2 px-3">{{ b.paymentMethodLabel }}</td>
+                                        <td class="py-2 px-3">{{ b.accountName ?? '—' }}</td>
+                                        <td class="py-2 px-3 text-slate-500">
+                                            @if (b.splits.length > 0) {
+                                                <span
+                                                    >{{ b.category }} ({{
+                                                        b.splits.length
+                                                    }}
+                                                    splits)</span
+                                                >
+                                            } @else {
+                                                <span>{{ b.category ?? '—' }}</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- TAB 6: ACCOUNTS & LOANS INSPECTOR -->
+            @if (activeTab() === MnyInspectorTab.Accounts) {
+                <div
+                    class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4"
+                    data-testid="panel-accounts"
+                >
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4"
+                    >
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                (click)="accountStatusFilter.set('all')"
+                                [class]="
+                                    accountStatusFilter() === 'all'
+                                        ? 'px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                All Accounts
+                            </button>
+                            <button
+                                type="button"
+                                (click)="accountStatusFilter.set('open')"
+                                [class]="
+                                    accountStatusFilter() === 'open'
+                                        ? 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Open Only
+                            </button>
+                            <button
+                                type="button"
+                                (click)="accountStatusFilter.set('closed')"
+                                [class]="
+                                    accountStatusFilter() === 'closed'
+                                        ? 'px-3 py-1.5 rounded-lg bg-slate-600 text-white text-xs font-bold'
+                                        : 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold'
+                                "
+                            >
+                                Closed Only
+                            </button>
+                        </div>
+
+                        <input
+                            type="text"
+                            [ngModel]="accountSearchQuery()"
+                            (ngModelChange)="accountSearchQuery.set($event)"
+                            placeholder="Search account name or type..."
+                            class="w-64 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
+                        />
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[540px]">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 bg-white dark:bg-slate-900">
+                                <tr
+                                    class="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-400"
+                                >
+                                    <th class="py-2 px-3">hacct</th>
+                                    <th class="py-2 px-3">Account Name</th>
+                                    <th class="py-2 px-3">Mapped Type (Raw at)</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Opening Balance</th>
+                                    <th class="py-2 px-3">Txns</th>
+                                    <th class="py-2 px-3">Loan / Credit Metadata</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                @for (a of filteredAccounts(); track a.mnyAccountId) {
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                        <td class="py-2 px-3 font-mono text-slate-400">
+                                            {{ a.mnyAccountId }}
+                                        </td>
+                                        <td
+                                            class="py-2 px-3 font-bold text-slate-900 dark:text-white"
+                                        >
+                                            {{ a.name }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">
+                                            {{ a.mappedType }} (at={{ a.mnyType }})
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            @if (a.isClosed) {
+                                                <span
+                                                    class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold"
+                                                >
+                                                    Closed
+                                                </span>
+                                            } @else {
+                                                <span
+                                                    class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold"
+                                                >
+                                                    Open
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">
+                                            {{ formatCents(a.openingBalance) }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono">
+                                            {{ a.transactionCount }}
+                                        </td>
+                                        <td class="py-2 px-3 font-mono text-[11px] text-slate-500">
+                                            @if (a.loanDetails; as ld) {
+                                                <span>
+                                                    APR: {{ ld.interestRate }}% · Term:
+                                                    {{ ld.termMonths }}m
+                                                </span>
+                                            } @else if (a.creditCardDetails; as cc) {
+                                                <span>
+                                                    APR: {{ cc.interestRate }}% · Limit:
+                                                    {{ formatCents(cc.creditLimit ?? 0) }}
+                                                </span>
+                                            } @else {
+                                                <span>—</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</shell>

@@ -251,3 +251,56 @@ export const EmptyState: Story = {
         ).toBeInTheDocument();
     }
 };
+
+export const GroupedAndStarredTwoColumn: Story = {
+    decorators: [
+        applicationConfig({
+            providers: [
+                {
+                    provide: LedgerStore,
+                    useValue: {
+                        ...mockStore,
+                        accounts: signal<Array<IAccount>>([
+                            ...mockDefaultAccounts,
+                            {
+                                id: 'acc-4',
+                                name: 'Home Mortgage',
+                                institutionName: 'Wells Fargo',
+                                type: AccountType.Mortgage,
+                                clearedBalance: -24500000 as Cents,
+                                pendingBalance: 0 as Cents,
+                                isActive: true,
+                                isFavorite: true,
+                                createdAt: '2026-01-01T00:00:00Z' as ISODateString,
+                                updatedAt: '2026-01-01T00:00:00Z' as ISODateString,
+                                deletedAt: null
+                            },
+                            {
+                                id: 'acc-5',
+                                name: 'Family Auto Loan',
+                                institutionName: 'Toyota Financial',
+                                type: AccountType.AutoLoan,
+                                clearedBalance: -1650000 as Cents,
+                                pendingBalance: 0 as Cents,
+                                isActive: true,
+                                createdAt: '2026-01-01T00:00:00Z' as ISODateString,
+                                updatedAt: '2026-01-01T00:00:00Z' as ISODateString,
+                                deletedAt: null
+                            }
+                        ])
+                    }
+                }
+            ]
+        })
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByTestId('starred-accounts-section')).toBeInTheDocument();
+        await expect(canvas.getByTestId('starred-accounts-grid')).toHaveAttribute(
+            'data-layout',
+            '2-col'
+        );
+        await expect(canvas.getByTestId('accounts-grouped-by-type')).toBeInTheDocument();
+    }
+};

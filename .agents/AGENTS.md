@@ -43,4 +43,8 @@
 - If it is running, determine if it needs to be restarted (e.g. after config or dependency changes).
 - If it needs to be restarted, restart it cleanly; otherwise, leave the current running instance alone and use it.
 
+## 9. WSL Environment & Browser Tooling
+
+- In WSL environments, direct browser subagent access (`browser_subagent`) has connectivity and display limitations. Always use `chrome-devtools-mcp` tools or headless Playwright test runner (`AGENT=1 npx playwright test ...`) for browser interactions, inspection, and verification rather than `browser_subagent`.
+
 Reminder: Always run lint, typecheck, test, and format before proposing commits or pushes.

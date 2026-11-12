@@ -25,7 +25,7 @@ import { SyncService } from '../../services/sync/sync.service';
 import { ThemeService } from '../../services/theme/theme.service';
 import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 import { AccountsPageComponent } from './accounts-page.component';
-import { Default, EmptyState } from './accounts-page.component.stories';
+import { Default, EmptyState, GroupedAndStarredTwoColumn } from './accounts-page.component.stories';
 
 describe('AccountsPageComponent (Storybook Interaction Spec Wrapper)', () => {
     let fixture: ComponentFixture<AccountsPageComponent>;
@@ -257,5 +257,40 @@ describe('AccountsPageComponent (Storybook Interaction Spec Wrapper)', () => {
 
         await EmptyState.play?.({ canvasElement: fixture.nativeElement } as any);
         expect(fixture.nativeElement.textContent).toContain('Welcome to Path Logic');
+    });
+
+    it('executes GroupedAndStarredTwoColumn story interaction test', async () => {
+        mockAccounts.update(list => [
+            ...list,
+            {
+                id: 'acc-4',
+                name: 'Home Mortgage',
+                institutionName: 'Wells Fargo',
+                type: AccountType.Mortgage,
+                clearedBalance: -24500000 as Cents,
+                pendingBalance: 0 as Cents,
+                isActive: true,
+                isFavorite: true,
+                createdAt: '2026-01-01T00:00:00Z' as ISODateString,
+                updatedAt: '2026-01-01T00:00:00Z' as ISODateString,
+                deletedAt: null
+            },
+            {
+                id: 'acc-5',
+                name: 'Family Auto Loan',
+                institutionName: 'Toyota Financial',
+                type: AccountType.AutoLoan,
+                clearedBalance: -1650000 as Cents,
+                pendingBalance: 0 as Cents,
+                isActive: true,
+                createdAt: '2026-01-01T00:00:00Z' as ISODateString,
+                updatedAt: '2026-01-01T00:00:00Z' as ISODateString,
+                deletedAt: null
+            }
+        ]);
+        fixture.detectChanges();
+
+        await GroupedAndStarredTwoColumn.play?.({ canvasElement: fixture.nativeElement } as any);
+        expect(fixture.nativeElement.textContent).toContain('Starred Accounts');
     });
 });

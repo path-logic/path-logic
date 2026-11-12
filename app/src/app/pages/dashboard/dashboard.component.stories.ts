@@ -91,6 +91,7 @@ const mockLedgerStore = {
         { id: 'p-2', name: 'Apartment Lease' }
     ]),
     isInitialized: signal(true),
+    isLoading: signal(false),
     syncStatus: signal('synced'),
     authError: signal(false),
     hasLocalFallback: signal(true),
@@ -174,7 +175,7 @@ export const HeroAccountLayout: Story = {
         const canvas = within(canvasElement);
         await expect(canvas.getAllByText(/90-Day Cashflow Forecast/i)[0]).toBeInTheDocument();
         await expect(canvas.getByText(/Account Portfolio/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/Checking Account/i)).toBeInTheDocument();
+        await expect(canvas.getAllByText(/Checking Account/i)[0]).toBeInTheDocument();
         await expect(canvas.getByText(/Recent Activity/i)).toBeInTheDocument();
         await expect(canvas.getByText(/Upcoming/i)).toBeInTheDocument();
     }

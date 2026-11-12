@@ -11,6 +11,11 @@ import { QuickEntryWidgetComponent } from '../../components/dashboard/quick-entr
 import { AppShellComponent } from '../../components/layout/app-shell/app-shell.component';
 import { SkeletonComponent } from '../../components/ui/skeleton';
 import { LocalDatePipe } from '../../pipes/local-date.pipe';
+import {
+    AccountTelemetryService,
+    type IAccountTelemetrySeries,
+    TelemetryWindowDays
+} from '../../services/account-telemetry/account-telemetry.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { LedgerStore } from '../../services/ledger-store/ledger.store';
 import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
@@ -21,7 +26,12 @@ export interface IUpcomingItem {
     dueDate: string;
     amount: number;
     frequency: string;
+    accountId?: string;
+    accountName: string;
 }
+
+const STARRED_ACCOUNTS_SETTING_KEY = 'starred_account_ids';
+const MAX_STARRED_ACCOUNTS = 4;
 
 /**
  * Main dashboard view showing financial overview, projections, quick capture, and recent activity.
@@ -48,6 +58,7 @@ export class DashboardComponent {
     private readonly ledgerStore: LedgerStore = inject(LedgerStore);
     private readonly authService: AuthService = inject(AuthService);
     private readonly userSettingsStore: UserSettingsStore = inject(UserSettingsStore);
+    private readonly telemetryService: AccountTelemetryService = inject(AccountTelemetryService);
     private readonly router = inject(Router);
 
     readonly transactions = this.ledgerStore.transactions;
@@ -55,10 +66,80 @@ export class DashboardComponent {
     readonly schedules = this.ledgerStore.schedules;
     readonly isInitialized = this.ledgerStore.isInitialized;
     readonly isLoading = computed(
-        () => !this.ledgerStore.isInitialized() || this.ledgerStore.isLoading()
+        () =>
+            !this.ledgerStore.isInitialized() ||
+            (typeof this.ledgerStore.isLoading === 'function'
+                ? this.ledgerStore.isLoading()
+                : false)
     );
 
     readonly primaryAccountId = this.userSettingsStore.primaryAccountId;
+    private readonly starredIdsOverride = signal<Array<string> | null>(null);
+
+    /**
+     * Only open and active accounts are shown on the Overview page.
+     */
+    readonly activeAccounts = computed((): Array<IAccount> => {
+        return this.accounts().filter(
+            (a: IAccount): boolean => a.isActive !== false && !a.deletedAt
+        );
+    });
+
+    /**
+     * Fast lookup map from accountId to account name for Recent Activity & Upcoming feeds.
+     */
+    readonly accountNameById = computed((): Map<string, string> => {
+        return new Map(this.accounts().map((a: IAccount): [string, string] => [a.id, a.name]));
+    });
+
+    /**
+     * Starred account IDs (up to 4) resolved from UserSettingsStore or account `isFavorite` flags.
+     */
+    readonly starredAccountIds = computed((): Array<string> => {
+        const active = this.activeAccounts();
+        const validIds = new Set(active.map(a => a.id));
+
+        const override = this.starredIdsOverride();
+        if (override !== null) {
+            return override.filter(id => validIds.has(id)).slice(0, MAX_STARRED_ACCOUNTS);
+        }
+
+        const settingsMap =
+            typeof this.userSettingsStore.settings === 'function'
+                ? this.userSettingsStore.settings()
+                : {};
+        const rawSetting =
+            settingsMap[STARRED_ACCOUNTS_SETTING_KEY] ??
+            this.userSettingsStore.getSetting?.(STARRED_ACCOUNTS_SETTING_KEY);
+
+        if (rawSetting !== undefined && rawSetting !== '') {
+            try {
+                const parsed: unknown = JSON.parse(rawSetting);
+                if (Array.isArray(parsed)) {
+                    const savedIds = parsed.filter(
+                        (item): item is string => typeof item === 'string' && validIds.has(item)
+                    );
+                    if (savedIds.length > 0) {
+                        return Array.from(new Set(savedIds)).slice(0, MAX_STARRED_ACCOUNTS);
+                    }
+                }
+            } catch {
+                // Fall back to primaryAccountId and isFavorite flags
+            }
+        }
+
+        const derived: Array<string> = [];
+        const primaryId = this.primaryAccountId ? this.primaryAccountId() : null;
+        if (primaryId && validIds.has(primaryId)) {
+            derived.push(primaryId);
+        }
+        for (const acc of active) {
+            if (acc.isFavorite && !derived.includes(acc.id)) {
+                derived.push(acc.id);
+            }
+        }
+        return derived.slice(0, MAX_STARRED_ACCOUNTS);
+    });
 
     readonly searchQuery = signal<string>('');
     readonly isQuickEntryOpen = signal<boolean>(false);
@@ -142,7 +223,7 @@ export class DashboardComponent {
     });
 
     /**
-     * 5 Upcoming recurring payments/incomes.
+     * 5 Upcoming recurring payments/incomes with originating account names.
      */
     readonly upcomingPayments = computed((): Array<IUpcomingItem> => {
         return this.schedules()
@@ -153,28 +234,42 @@ export class DashboardComponent {
                     name: s.payee,
                     dueDate: s.nextDueDate || s.startDate,
                     amount: s.amount,
-                    frequency: s.frequency
+                    frequency: s.frequency,
+                    accountId: s.accountId,
+                    accountName: this.getAccountName(s.accountId)
                 })
             );
     });
 
     /**
-     * Primary accounts sorted with the user's selected primary/hero account first.
+     * Open and active accounts sorted with starred accounts prioritized first,
+     * followed by funded active accounts.
      */
     readonly primaryAccounts = computed((): Array<IAccount> => {
-        const all = this.accounts();
-        const primaryId = this.primaryAccountId();
-        if (!primaryId) return all.slice(0, 4);
+        const active = this.activeAccounts();
+        if (active.length === 0) return [];
 
-        const primary = all.find(a => a.id === primaryId);
-        if (!primary) return all.slice(0, 4);
+        const starredIds = this.starredAccountIds();
+        const starredSet = new Set(starredIds);
+        const byId = new Map(active.map(a => [a.id, a]));
 
-        const others = all.filter(a => a.id !== primaryId);
-        return [primary, ...others].slice(0, 4);
+        const starredList = starredIds
+            .map(id => byId.get(id))
+            .filter((a): a is IAccount => a !== undefined);
+
+        const unstarred = active.filter(a => !starredSet.has(a.id));
+        const fundedUnstarred = unstarred.filter(
+            a => !(a.clearedBalance === 0 && a.pendingBalance === 0)
+        );
+        const zeroUnstarred = unstarred.filter(
+            a => a.clearedBalance === 0 && a.pendingBalance === 0
+        );
+
+        return [...starredList, ...fundedUnstarred, ...zeroUnstarred].slice(0, 4);
     });
 
     /**
-     * Selected primary hero account (or first available account).
+     * Selected primary hero account (or first available active account).
      */
     readonly heroAccount = computed((): IAccount | null => {
         return this.primaryAccounts()[0] ?? null;
@@ -187,9 +282,67 @@ export class DashboardComponent {
         return this.primaryAccounts().slice(1);
     });
 
-    getTrendPercent(index: number): string {
-        const mockTrends = ['+1.1%', '+0.5%', '+3.4%', '-1.2%'];
-        return mockTrends[index % mockTrends.length] ?? '+1.0%';
+    /**
+     * Memoized 30d (or 180d loan) + 14d forecast telemetry for the Hero card.
+     */
+    readonly heroTelemetry = computed((): IAccountTelemetrySeries | null => {
+        const hero = this.heroAccount();
+        if (!hero) return null;
+        return this.telemetryService.buildAccountTelemetry(
+            hero,
+            this.transactions(),
+            this.schedules(),
+            {
+                windowDays: TelemetryWindowDays.ThirtyDays,
+                forecastDays: 14
+            }
+        );
+    });
+
+    /**
+     * Memoized 90d + 14d forecast telemetry for the Hero card's 30d/90d toggle.
+     */
+    readonly heroTelemetry90d = computed((): IAccountTelemetrySeries | null => {
+        const hero = this.heroAccount();
+        if (!hero) return null;
+        return this.telemetryService.buildAccountTelemetry(
+            hero,
+            this.transactions(),
+            this.schedules(),
+            {
+                windowDays: TelemetryWindowDays.NinetyDays,
+                forecastDays: 14
+            }
+        );
+    });
+
+    /**
+     * Memoized account-type-aware telemetry series for sub-grid cards.
+     */
+    readonly remainingTelemetryById = computed((): Map<string, IAccountTelemetrySeries> => {
+        const txs = this.transactions();
+        const scheds = this.schedules();
+        const map = new Map<string, IAccountTelemetrySeries>();
+        for (const acc of this.remainingAccounts()) {
+            map.set(acc.id, this.telemetryService.buildAccountTelemetry(acc, txs, scheds));
+        }
+        return map;
+    });
+
+    getAccountName(accountId: string | undefined | null): string {
+        if (accountId) {
+            const found = this.accountNameById().get(accountId);
+            if (found) return found;
+        }
+        return this.activeAccounts()[0]?.name ?? this.accounts()[0]?.name ?? 'Primary Account';
+    }
+
+    isAccountStarred(accountId: string): boolean {
+        return this.starredAccountIds().includes(accountId);
+    }
+
+    getSubCardTelemetry(accountId: string): IAccountTelemetrySeries | null {
+        return this.remainingTelemetryById().get(accountId) ?? null;
     }
 
     formatCurrency(amount: number): string {
@@ -197,10 +350,38 @@ export class DashboardComponent {
     }
 
     async togglePrimaryAccount(accountId: string): Promise<void> {
-        if (this.primaryAccountId() === accountId) {
-            await this.userSettingsStore.setPrimaryAccountId(null);
+        const current = [...this.starredAccountIds()];
+        const isCurrentlyPrimary = this.primaryAccountId() === accountId;
+
+        if (isCurrentlyPrimary || current.includes(accountId)) {
+            const next = current.filter(id => id !== accountId);
+            this.starredIdsOverride.set(next);
+            await this.userSettingsStore.setPrimaryAccountId(next[0] ?? null);
+            const store = this.userSettingsStore as {
+                updateSetting?: (k: string, v: string) => Promise<void>;
+                setSetting?: (k: string, v: string) => Promise<void>;
+            };
+            if (typeof store.updateSetting === 'function') {
+                await store.updateSetting(STARRED_ACCOUNTS_SETTING_KEY, JSON.stringify(next));
+            } else if (typeof store.setSetting === 'function') {
+                await store.setSetting(STARRED_ACCOUNTS_SETTING_KEY, JSON.stringify(next));
+            }
         } else {
+            const next = [accountId, ...current.filter(id => id !== accountId)].slice(
+                0,
+                MAX_STARRED_ACCOUNTS
+            );
+            this.starredIdsOverride.set(next);
             await this.userSettingsStore.setPrimaryAccountId(accountId);
+            const store = this.userSettingsStore as {
+                updateSetting?: (k: string, v: string) => Promise<void>;
+                setSetting?: (k: string, v: string) => Promise<void>;
+            };
+            if (typeof store.updateSetting === 'function') {
+                await store.updateSetting(STARRED_ACCOUNTS_SETTING_KEY, JSON.stringify(next));
+            } else if (typeof store.setSetting === 'function') {
+                await store.setSetting(STARRED_ACCOUNTS_SETTING_KEY, JSON.stringify(next));
+            }
         }
     }
 

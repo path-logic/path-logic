@@ -1,11 +1,17 @@
 <article
-    class="account-sparkline-card group p-6 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200/80 dark:border-surface-800 hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-all duration-300 shadow-sm hover:shadow-lg relative overflow-hidden flex flex-col justify-between cursor-pointer"
+    [attr.data-zero-balance]="isZeroBalance() ? 'true' : 'false'"
+    class="account-sparkline-card group p-6 rounded-2xl border hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-all duration-300 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_6px_18px_-3px_rgba(15,23,42,0.12),0_0_0_1px_rgba(16,185,129,0.28)] relative overflow-hidden flex flex-col justify-between cursor-pointer"
+    [class]="
+        isZeroBalance()
+            ? 'bg-surface-50/75 dark:bg-surface-900/60 border-dashed border-surface-300/95 dark:border-surface-700'
+            : 'bg-surface-0 dark:bg-surface-900 border-surface-300/90 dark:border-surface-800'
+    "
     [class.sm:p-7]="isFullWidth()"
 >
     <!-- Full-Card Click Target Overlay Anchor -->
     <a
         [routerLink]="['/accounts', account().id, 'info']"
-        class="absolute inset-0 z-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-2xl"
+        class="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-2xl"
         [attr.aria-label]="'Configure settings for ' + account().name"
     ></a>
 
@@ -14,33 +20,41 @@
              ROBUST HERO ACCOUNT VIEW (Full-Width Tier)
         ═══════════════════════════════════════════════════════════════════════ -->
         <div class="space-y-4 relative z-10">
-            <!-- 1. Hero Header Row: Account Identity & Badges + Star -->
+            <!-- 1. Hero Header Row: Account Identity & Badges + Window Toggle + Star -->
             <div class="flex items-start justify-between gap-3 pointer-events-none">
                 <div class="flex items-center gap-3.5 min-w-0 pointer-events-none">
                     <div
                         class="w-11 h-11 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs"
                     >
-                        <i [class]="'pi ' + accountIcon() + ' text-lg'"></i>
+                        <i [class]="'pi ' + accountIcon() + ' text-lg'" aria-hidden="true"></i>
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span
-                                class="font-bold text-lg sm:text-xl text-surface-900 dark:text-surface-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate"
+                                class="font-bold text-lg sm:text-xl group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate"
+                                [class]="
+                                    isZeroBalance()
+                                        ? 'text-surface-600 dark:text-surface-300'
+                                        : 'text-surface-900 dark:text-surface-100'
+                                "
                             >
                                 {{ account().name }}
                             </span>
-                            @if (isPrimary()) {
-                                <span
-                                    class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs"
-                                >
-                                    Primary Hero
-                                </span>
-                            }
                             <span
                                 class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-300 border border-surface-200/60 dark:border-surface-700/60"
                             >
                                 {{ typeDisplayName() }}
                             </span>
+                            @if (isZeroBalance()) {
+                                <span
+                                    [attr.data-testid]="
+                                        'sparkline-zero-balance-badge-' + account().id
+                                    "
+                                    class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-surface-200/70 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-300/60 dark:border-surface-700"
+                                >
+                                    Zero Balance
+                                </span>
+                            }
                         </div>
                         <p
                             class="text-xs font-medium text-surface-500 dark:text-surface-400 mt-0.5 truncate"
@@ -53,14 +67,62 @@
                 </div>
 
                 <div class="flex items-center gap-2 pointer-events-auto shrink-0 relative z-10">
-                    @if (trendPercent()) {
+                    @if (canToggleHeroWindow() && !isZeroFlatChart()) {
+                        <div
+                            role="group"
+                            aria-label="Chart time window"
+                            class="inline-flex items-center rounded-lg bg-surface-100 dark:bg-surface-800 p-0.5 border border-surface-200/80 dark:border-surface-700"
+                        >
+                            <button
+                                type="button"
+                                data-testid="hero-window-btn-30"
+                                [attr.aria-pressed]="
+                                    activeHeroWindow() === TelemetryWindowDays.ThirtyDays
+                                "
+                                (click)="
+                                    $event.stopPropagation();
+                                    setHeroWindow(TelemetryWindowDays.ThirtyDays)
+                                "
+                                class="px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer"
+                                [class]="
+                                    activeHeroWindow() === TelemetryWindowDays.ThirtyDays
+                                        ? 'bg-surface-0 dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-2xs'
+                                        : 'text-surface-500 hover:text-surface-800 dark:hover:text-surface-200'
+                                "
+                            >
+                                30d
+                            </button>
+                            <button
+                                type="button"
+                                data-testid="hero-window-btn-90"
+                                [attr.aria-pressed]="
+                                    activeHeroWindow() === TelemetryWindowDays.NinetyDays
+                                "
+                                (click)="
+                                    $event.stopPropagation();
+                                    setHeroWindow(TelemetryWindowDays.NinetyDays)
+                                "
+                                class="px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer"
+                                [class]="
+                                    activeHeroWindow() === TelemetryWindowDays.NinetyDays
+                                        ? 'bg-surface-0 dark:bg-surface-900 text-surface-900 dark:text-surface-100 shadow-2xs'
+                                        : 'text-surface-500 hover:text-surface-800 dark:hover:text-surface-200'
+                                "
+                            >
+                                90d
+                            </button>
+                        </div>
+                    }
+
+                    @if (effectiveTrendBadge(); as badge) {
                         <span
+                            data-testid="hero-trend-badge"
                             [class]="
-                                'px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ' +
+                                'px-2.5 py-1 rounded-full text-xs font-bold font-mono tabular-nums border shrink-0 ' +
                                 trendBadgeClass()
                             "
                         >
-                            {{ trendPercent() }} 30d
+                            {{ badge }}
                         </span>
                     }
 
@@ -76,16 +138,12 @@
                         [class.dark:border-surface-700]="!isPrimary()"
                         [class.text-surface-400]="!isPrimary()"
                         [class.hover:text-amber-500]="!isPrimary()"
-                        [title]="
-                            isPrimary()
-                                ? 'Primary Hero Account (Click to remove)'
-                                : 'Set as Primary Hero Account'
-                        "
                         [attr.aria-label]="
                             isPrimary() ? 'Primary Hero Account' : 'Set as Primary Hero Account'
                         "
                     >
                         <i
+                            aria-hidden="true"
                             [class]="
                                 isPrimary()
                                     ? 'pi pi-star-fill text-amber-500 text-sm'
@@ -96,35 +154,41 @@
                 </div>
             </div>
 
-            <!-- 2. Hero Content Grid: Balance Telemetry + Sparkline + Quick Actions -->
+            <!-- 2. Hero Content Grid: Balance Telemetry + Interactive Chart + Quick Actions -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center pt-1 pb-1">
-                <!-- Zone A: Balance & Cleared Telemetry (Col 5) -->
-                <div class="md:col-span-5 space-y-1.5 pointer-events-none">
+                <!-- Zone A: Balance & Cleared Telemetry (Col 4) -->
+                <div class="md:col-span-4 space-y-1.5 pointer-events-none">
                     <span
                         class="text-[10px] font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400 block"
                     >
                         {{ isCredit() ? 'Total Balance Due' : 'Current Working Balance' }}
                     </span>
                     <div
-                        class="font-black tracking-tight font-mono text-3xl sm:text-4xl text-surface-900 dark:text-surface-100"
-                        [class.text-red-600]="isNegative()"
-                        [class.dark:text-red-400]="isNegative()"
+                        class="font-black tracking-tight font-mono text-3xl sm:text-4xl tabular-nums"
+                        [class.text-surface-400]="isZeroBalance()"
+                        [class.dark:text-surface-500]="isZeroBalance()"
+                        [class.text-red-600]="!isZeroBalance() && isNegative()"
+                        [class.dark:text-red-400]="!isZeroBalance() && isNegative()"
+                        [class.text-surface-900]="!isZeroBalance() && !isNegative()"
+                        [class.dark:text-surface-100]="!isZeroBalance() && !isNegative()"
                     >
                         {{ formattedBalance() }}
                     </div>
                     <div
-                        class="flex items-center gap-3 text-xs font-medium text-surface-500 dark:text-surface-400 pt-0.5"
+                        class="flex items-center gap-3 text-xs font-medium text-surface-500 dark:text-surface-400 pt-0.5 flex-wrap"
                     >
                         <span
                             class="inline-flex items-center gap-1 text-surface-600 dark:text-surface-300"
                         >
-                            <i class="pi pi-check text-[10px] text-primary"></i>
+                            <i class="pi pi-check text-[10px] text-primary" aria-hidden="true"></i>
                             Cleared:
-                            <strong class="font-mono">{{ formattedClearedBalance() }}</strong>
+                            <strong class="font-mono tabular-nums">{{
+                                formattedClearedBalance()
+                            }}</strong>
                         </span>
                         @if (hasPendingTransactions()) {
                             <span
-                                class="text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold"
+                                class="text-amber-600 dark:text-amber-400 font-mono text-[11px] font-bold tabular-nums"
                             >
                                 ({{ formattedPendingDifference() }} pending)
                             </span>
@@ -138,52 +202,126 @@
                     </div>
                 </div>
 
-                <!-- Zone B: Wider Sparkline Visual (Col 4) -->
-                <div
-                    class="md:col-span-4 flex flex-col justify-center space-y-1 pointer-events-none"
-                >
-                    <div
-                        class="h-14 sm:h-16 w-full opacity-90 group-hover:opacity-100 transition-opacity"
-                    >
-                        <svg
-                            viewBox="0 0 100 45"
-                            fill="none"
-                            class="w-full h-full overflow-visible"
+                <!-- Zone B: Interactive Chart.js Stepped Area (or Zero/Fallback SVG) + High/Low Telemetry (Col 5) -->
+                <div class="md:col-span-5 flex flex-col justify-center space-y-1.5">
+                    @if (shouldUseInteractiveHeroChart()) {
+                        <div
+                            data-testid="hero-interactive-chart"
+                            class="h-16 sm:h-20 w-full pointer-events-auto relative z-10"
+                            (click)="$event.stopPropagation()"
                         >
-                            <defs>
-                                <linearGradient
-                                    [id]="'hero-sparkline-grad-' + account().id"
-                                    x1="0"
-                                    y1="0"
-                                    x2="0"
-                                    y2="1"
-                                >
-                                    <stop
-                                        offset="0%"
-                                        [attr.stop-color]="sparklineStrokeColor()"
-                                        stop-opacity="0.35"
+                            <p-chart
+                                type="line"
+                                [data]="heroChartData()"
+                                [options]="heroChartOptions()"
+                                height="100%"
+                                [ariaLabel]="chartAriaLabel()"
+                            ></p-chart>
+                        </div>
+                    } @else {
+                        <div
+                            data-testid="hero-svg-chart"
+                            class="h-14 sm:h-16 w-full opacity-90 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        >
+                            <svg
+                                role="img"
+                                [attr.aria-label]="chartAriaLabel()"
+                                viewBox="0 0 100 45"
+                                fill="none"
+                                class="w-full h-full overflow-visible"
+                            >
+                                <defs>
+                                    <linearGradient
+                                        [id]="'hero-sparkline-grad-' + account().id"
+                                        x1="0"
+                                        y1="0"
+                                        x2="0"
+                                        y2="1"
+                                    >
+                                        <stop
+                                            offset="0%"
+                                            [attr.stop-color]="sparklineStrokeColor()"
+                                            stop-opacity="0.3"
+                                        />
+                                        <stop
+                                            offset="100%"
+                                            [attr.stop-color]="sparklineStrokeColor()"
+                                            stop-opacity="0.0"
+                                        />
+                                    </linearGradient>
+                                </defs>
+                                @if (svgGeometry().areaPath) {
+                                    <path
+                                        [attr.d]="svgGeometry().areaPath"
+                                        [attr.fill]="
+                                            'url(#hero-sparkline-grad-' + account().id + ')'
+                                        "
                                     />
-                                    <stop
-                                        offset="100%"
-                                        [attr.stop-color]="sparklineStrokeColor()"
-                                        stop-opacity="0.0"
-                                    />
-                                </linearGradient>
-                            </defs>
-                            <path
-                                [attr.d]="sparklinePath()"
-                                [attr.stroke]="sparklineStrokeColor()"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            />
-                        </svg>
-                    </div>
-                    <span
-                        class="text-[10px] font-medium text-surface-400 dark:text-surface-500 text-center block"
-                    >
-                        30-day velocity trajectory
-                    </span>
+                                }
+                                <path
+                                    [attr.d]="svgGeometry().strokePath"
+                                    [attr.stroke]="sparklineStrokeColor()"
+                                    [attr.stroke-dasharray]="isZeroFlatChart() ? '3 3' : null"
+                                    stroke-width="2.2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </svg>
+                        </div>
+                    }
+
+                    @if (activeTelemetry(); as series) {
+                        @if (!series.isZeroFlat) {
+                            <div
+                                data-testid="hero-telemetry-summary"
+                                class="flex items-center justify-between gap-2 text-[10px] font-mono text-surface-500 dark:text-surface-400 px-1 pointer-events-none flex-wrap tabular-nums"
+                            >
+                                <span>
+                                    Low:
+                                    <strong class="text-surface-700 dark:text-surface-200">{{
+                                        series.formattedLowDisplay
+                                    }}</strong>
+                                </span>
+                                <span>
+                                    High:
+                                    <strong class="text-surface-700 dark:text-surface-200">{{
+                                        series.formattedHighDisplay
+                                    }}</strong>
+                                </span>
+                                <span>
+                                    Net:
+                                    <strong
+                                        [class.text-emerald-600]="series.isFavorableDelta"
+                                        [class.dark:text-emerald-400]="series.isFavorableDelta"
+                                        [class.text-red-600]="!series.isFavorableDelta"
+                                        [class.dark:text-red-400]="!series.isFavorableDelta"
+                                    >
+                                        {{ series.formattedNetDelta }}
+                                    </strong>
+                                </span>
+                                @if (creditUtilizationPercent() !== null) {
+                                    <span>
+                                        Util:
+                                        <strong class="text-surface-700 dark:text-surface-200"
+                                            >{{ creditUtilizationPercent() }}%</strong
+                                        >
+                                    </span>
+                                }
+                            </div>
+                        } @else {
+                            <span
+                                class="text-[10px] font-medium text-surface-400 dark:text-surface-500 text-center block pointer-events-none"
+                            >
+                                {{ heroTrajectorySubtitle() }}
+                            </span>
+                        }
+                    } @else {
+                        <span
+                            class="text-[10px] font-medium text-surface-400 dark:text-surface-500 text-center block pointer-events-none"
+                        >
+                            {{ heroTrajectorySubtitle() }}
+                        </span>
+                    }
                 </div>
 
                 <!-- Zone C: Action Buttons Tray (Col 3) -->
@@ -197,6 +335,7 @@
                         class="flex-1 md:flex-none min-h-[40px] px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs group/btn"
                     >
                         <i
+                            aria-hidden="true"
                             class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"
                         ></i>
                         <span>+ Quick Entry</span>
@@ -210,6 +349,7 @@
                     >
                         <span>View Ledger</span>
                         <i
+                            aria-hidden="true"
                             class="pi pi-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"
                         ></i>
                     </a>
@@ -218,7 +358,7 @@
         </div>
     } @else {
         <!-- ════════════════════════════════════════════════════════════════════
-             STANDARD SUB-GRID CARD VIEW
+             STANDARD SUB-GRID CARD VIEW (Stepped SVG Area Micro-Chart)
         ═══════════════════════════════════════════════════════════════════════ -->
         <!-- Top Row: Icon + Title & Type + Trend Badge & Star Button -->
         <div class="flex items-start justify-between gap-3 mb-3 relative z-10 pointer-events-none">
@@ -226,20 +366,26 @@
                 <div
                     class="w-10 h-10 rounded-2xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-xs"
                 >
-                    <i [class]="'pi ' + accountIcon() + ' text-base'"></i>
+                    <i [class]="'pi ' + accountIcon() + ' text-base'" aria-hidden="true"></i>
                 </div>
                 <div class="min-w-0">
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
                         <span
-                            class="font-bold text-base text-surface-900 dark:text-surface-100 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate block"
+                            class="font-bold text-base group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors truncate block"
+                            [class]="
+                                isZeroBalance()
+                                    ? 'text-surface-600 dark:text-surface-300'
+                                    : 'text-surface-900 dark:text-surface-100'
+                            "
                         >
                             {{ account().name }}
                         </span>
-                        @if (isPrimary()) {
+                        @if (isZeroBalance()) {
                             <span
-                                class="px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                [attr.data-testid]="'sparkline-zero-balance-badge-' + account().id"
+                                class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-surface-200/70 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-300/60 dark:border-surface-700"
                             >
-                                Primary
+                                Zero Balance
                             </span>
                         }
                     </div>
@@ -250,14 +396,15 @@
             </div>
 
             <div class="flex items-center gap-2 pointer-events-auto shrink-0 relative z-10">
-                @if (trendPercent()) {
+                @if (effectiveTrendBadge(); as badge) {
                     <span
+                        data-testid="subcard-trend-badge"
                         [class]="
-                            'px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ' +
+                            'px-2.5 py-1 rounded-full text-xs font-bold font-mono tabular-nums border shrink-0 ' +
                             trendBadgeClass()
                         "
                     >
-                        {{ trendPercent() }}
+                        {{ badge }}
                     </span>
                 }
 
@@ -272,16 +419,12 @@
                     [class.border-surface-200]="!isPrimary()"
                     [class.text-surface-300]="!isPrimary()"
                     [class.hover:text-amber-500]="!isPrimary()"
-                    [title]="
-                        isPrimary()
-                            ? 'Primary Hero Account (Click to remove)'
-                            : 'Set as Primary Hero Account'
-                    "
                     [attr.aria-label]="
                         isPrimary() ? 'Primary Hero Account' : 'Set as Primary Hero Account'
                     "
                 >
                     <i
+                        aria-hidden="true"
                         [class]="
                             isPrimary()
                                 ? 'pi pi-star-fill text-amber-500 text-xs'
@@ -292,7 +435,7 @@
             </div>
         </div>
 
-        <!-- Balance & Sparkline Row -->
+        <!-- Balance & Stepped SVG Area Micro-Chart Row -->
         <div class="flex items-end justify-between gap-4 my-2 relative z-10 pointer-events-none">
             <div>
                 <span
@@ -301,17 +444,35 @@
                     {{ isCredit() ? 'Balance Due' : 'Current Balance' }}
                 </span>
                 <span
-                    class="font-black tracking-tight font-mono text-3xl text-surface-900 dark:text-surface-100"
-                    [class.text-red-600]="isNegative()"
-                    [class.dark:text-red-400]="isNegative()"
+                    class="font-black tracking-tight font-mono text-3xl tabular-nums block"
+                    [class.text-surface-400]="isZeroBalance()"
+                    [class.dark:text-surface-500]="isZeroBalance()"
+                    [class.text-red-600]="!isZeroBalance() && isNegative()"
+                    [class.dark:text-red-400]="!isZeroBalance() && isNegative()"
+                    [class.text-surface-900]="!isZeroBalance() && !isNegative()"
+                    [class.dark:text-surface-100]="!isZeroBalance() && !isNegative()"
                 >
                     {{ formattedBalance() }}
                 </span>
+                @if (subCardCaption(); as caption) {
+                    <span
+                        data-testid="subcard-telemetry-caption"
+                        class="text-[10px] font-medium text-surface-400 dark:text-surface-500 block mt-0.5"
+                    >
+                        {{ caption }}
+                    </span>
+                }
             </div>
 
-            <!-- SVG Mini Sparkline Curve -->
-            <div class="w-28 h-12 shrink-0 opacity-85 group-hover:opacity-100 transition-opacity">
-                <svg viewBox="0 0 100 45" fill="none" class="w-full h-full overflow-visible">
+            <!-- SVG Stepped Area Micro-Chart -->
+            <div class="w-28 h-12 shrink-0 opacity-90 group-hover:opacity-100 transition-opacity">
+                <svg
+                    role="img"
+                    [attr.aria-label]="chartAriaLabel()"
+                    viewBox="0 0 100 45"
+                    fill="none"
+                    class="w-full h-full overflow-visible"
+                >
                     <defs>
                         <linearGradient
                             [id]="'sparkline-grad-' + account().id"
@@ -323,7 +484,7 @@
                             <stop
                                 offset="0%"
                                 [attr.stop-color]="sparklineStrokeColor()"
-                                stop-opacity="0.25"
+                                stop-opacity="0.28"
                             />
                             <stop
                                 offset="100%"
@@ -332,13 +493,44 @@
                             />
                         </linearGradient>
                     </defs>
+
+                    @if (svgGeometry().ceilingY !== null) {
+                        <line
+                            data-testid="sparkline-credit-ceiling"
+                            x1="0"
+                            [attr.y1]="svgGeometry().ceilingY"
+                            x2="100"
+                            [attr.y2]="svgGeometry().ceilingY"
+                            stroke="#94a3b8"
+                            stroke-width="1"
+                            stroke-dasharray="2.5 2.5"
+                        />
+                    }
+
+                    @if (svgGeometry().areaPath) {
+                        <path
+                            [attr.d]="svgGeometry().areaPath"
+                            [attr.fill]="'url(#sparkline-grad-' + account().id + ')'"
+                        />
+                    }
+
                     <path
-                        [attr.d]="sparklinePath()"
+                        [attr.d]="svgGeometry().strokePath"
                         [attr.stroke]="sparklineStrokeColor()"
-                        stroke-width="2.5"
+                        [attr.stroke-dasharray]="isZeroFlatChart() ? '3 3' : null"
+                        stroke-width="2.2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
                     />
+
+                    @if (!isZeroFlatChart()) {
+                        <circle
+                            [attr.cx]="svgGeometry().endDotX"
+                            [attr.cy]="svgGeometry().endDotY"
+                            r="2.2"
+                            [attr.fill]="sparklineStrokeColor()"
+                        />
+                    }
                 </svg>
             </div>
         </div>
@@ -353,7 +545,10 @@
                 [attr.aria-label]="'Quick Entry for ' + account().name"
                 class="min-h-[44px] sm:min-h-[36px] px-4 py-2 sm:py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer group/btn"
             >
-                <i class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"></i>
+                <i
+                    aria-hidden="true"
+                    class="pi pi-bolt text-xs group-hover/btn:scale-110 transition-transform"
+                ></i>
                 <span>+ Quick Entry</span>
             </button>
 
@@ -365,6 +560,7 @@
             >
                 <span>Ledger</span>
                 <i
+                    aria-hidden="true"
                     class="pi pi-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"
                 ></i>
             </a>

@@ -67,4 +67,51 @@ describe('GeminiService & LlmService', () => {
             'API key is not configured for the active AI provider.'
         );
     });
+
+    it('should prioritize Gemini 4 Argon as the default model over Gemini 3.8 Flash', async () => {
+        const mockUserSettingsStore = {
+            getSetting: vi.fn().mockReturnValue(''),
+            updateSetting: vi.fn()
+        };
+
+        TestBed.configureTestingModule({
+            providers: [LlmService, { provide: UserSettingsStore, useValue: mockUserSettingsStore }]
+        });
+
+        const llmService = TestBed.inject(LlmService);
+
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                models: [
+                    {
+                        name: 'models/gemini-3.8-flash',
+                        displayName: 'Gemini 3.8 Flash',
+                        supportedGenerationMethods: ['generateContent']
+                    },
+                    {
+                        name: 'models/gemini-4-argon',
+                        displayName: 'Gemini 4 Argon',
+                        supportedGenerationMethods: ['generateContent']
+                    }
+                ]
+            })
+        } as Response);
+
+        const models = await llmService.listModels(LlmProvider.Gemini, 'AIzaSyTestKey');
+        expect(models[0]?.value).toBe('gemini-4-argon');
+        expect(models[0]?.isDefault).toBe(true);
+        expect(models[1]?.value).toBe('gemini-3.8-flash');
+        expect(models[1]?.isDefault).toBeFalsy();
+        expect(
+            llmService.isModelNewer(
+                'gemini-4-argon',
+                'gemini-3.8-flash',
+                'Gemini 4 Argon',
+                'Gemini 3.8 Flash'
+            )
+        ).toBe(true);
+
+        fetchSpy.mockRestore();
+    });
 });

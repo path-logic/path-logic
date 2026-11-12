@@ -69,6 +69,10 @@ export interface IMortgageMetadata {
     propertyValue?: Cents;
     escrowIncluded: boolean;
     escrowAmount?: Cents;
+    propertyTaxAnnual?: Cents;
+    homeInsuranceAnnual?: Cents;
+    pmiMonthly?: Cents;
+    hoaMonthly?: Cents;
 }
 
 export interface IAutoLoanMetadata {
@@ -76,27 +80,122 @@ export interface IAutoLoanMetadata {
     vehicleModel?: string;
     vehicleYear?: number;
     vin?: string;
+    mileage?: number;
+    purchasePrice?: Cents;
+}
+
+/**
+ * Subtype classification for personal and non-collateralized loans.
+ */
+export enum PersonalLoanSubtype {
+    Personal = 'personal',
+    Student = 'student',
+    HomeImprovement = 'home_improvement',
+    Medical = 'medical',
+    DebtConsolidation = 'debt_consolidation',
+    LineOfCredit = 'line_of_credit',
+    Other = 'other'
 }
 
 export interface IPersonalLoanMetadata {
     purpose?: string;
     secured: boolean;
+    collateralDescription?: string;
+    subtype?: PersonalLoanSubtype;
+}
+
+/**
+ * Classification of a credit card promotional rate window.
+ */
+export enum PromotionalRateType {
+    Purchase = 'purchase',
+    BalanceTransfer = 'balance_transfer',
+    CashAdvance = 'cash_advance',
+    General = 'general'
+}
+
+/**
+ * An individual promotional interest rate window on a credit card account.
+ * Inspired by MS Money's rate-change tracking (`dIntRate`, `dtIntRateChg`, `dIntRateChg`)
+ * and expanded to support multiple concurrent or sequential promotional offers.
+ */
+export interface IPromotionalRateWindow {
+    /** Unique identifier for this promotional window. */
+    id: EntityId;
+    /** Human-readable name (e.g., "Intro 0% Balance Transfer", "12-Month Purchase Promo"). */
+    name: string;
+    /** Category of promotional rate offer. */
+    promoType: PromotionalRateType;
+    /** Promotional Annual Percentage Rate as decimal (e.g., 0 for 0%, 0.0199 for 1.99%). */
+    apr: number;
+    /** Optional start date of the promotional window (ISO 8601 YYYY-MM-DD). */
+    startDate?: ISODateString | null;
+    /** Expiration date of the promotional window (ISO 8601 YYYY-MM-DD, maps to MS Money dtIntRateChg). */
+    endDate: ISODateString;
+    /** Standard APR that applies after the promo expires as decimal (maps to MS Money dIntRateChg). */
+    postPromoApr?: number;
+    /** Optional balance in cents currently subject to this promotional window. */
+    promoBalance?: Cents;
+    /** Optional notes or offer terms. */
+    notes?: string;
+}
+
+/**
+ * Credit card terms, limits, and promotional rate schedules.
+ * Captures MS Money credit card fields (`amtLimit`, `dIntRate`, `dtIntRateChg`, `dIntRateChg`,
+ * `amtPayMin`, `dPayRateMin`, `dtNextDebtPay`) plus multi-window promotional tracking.
+ */
+export interface ICreditCardDetails {
+    /** Credit limit in cents (always positive, maps to abs(MS Money amtLimit)). */
+    creditLimit?: Cents;
+    /** Standard Purchase Annual Percentage Rate as decimal (e.g., 0.2924 = 29.24%). */
+    interestRate: number;
+    /** Day of month payment is due (1-31). */
+    paymentDueDay?: number;
+    /** Minimum monthly dollar payment floor in cents (maps to MS Money amtPayMin). */
+    minimumPayment?: Cents;
+    /** Minimum monthly payment percentage as decimal (e.g., 0.02 = 2%, maps to MS Money dPayRateMin). */
+    minimumPaymentPercentage?: number;
+    /** Cash advance APR as decimal. */
+    cashAdvanceApr?: number;
+    /** Annual fee in cents. */
+    annualFee?: Cents;
+    /** Individual promotional rate windows tracked for this card. */
+    promotionalRates: Array<IPromotionalRateWindow>;
 }
 
 export interface ILoanDetails {
-    /** Original principal amount in cents */
+    /** Original principal amount in cents (always positive, maps to abs(MS Money amtOpen)). */
     originalAmount: Cents;
-    /** Annual Percentage Rate as decimal (e.g., 0.0375 = 3.75%) */
+    /** Annual Percentage Rate as decimal (e.g., 0.0375 = 3.75%, maps to MS Money dIntRate / rateUser). */
     interestRate: number;
-    /** Total loan term in months */
+    /** Total loan term in months (maps to MS Money iPmtMax). */
     termMonths: number;
-    /** Monthly payment amount in cents */
+    /** Scheduled total monthly payment amount in cents (P&I + Escrow, maps to abs(MS Money amtPayment)). */
     monthlyPayment: Cents;
-    /** Day of month payment is due (1-31) */
+    /** Principal & Interest portion of the scheduled payment in cents (maps to abs(MS Money amtPI)). */
+    principalAndInterestPayment?: Cents;
+    /** Final balloon payment amount in cents if applicable (maps to abs(MS Money amtBalloon)). */
+    balloonAmount?: Cents;
+    /** Day of month payment is due (1-31). */
     paymentDueDay: number;
-    /** Loan origination date */
+    /** Loan origination date (ISO 8601 YYYY-MM-DD, maps to MS Money dtOpen). */
     startDate: ISODateString;
-    /** Type-specific metadata */
+    /** Payment schedule frequency (defaults to Monthly, maps to MS Money frq). */
+    paymentFrequency?: Frequency;
+    /** Compounding frequency (defaults to Monthly, maps to MS Money frqCpd). */
+    compoundingFrequency?: Frequency;
+    /** True if Adjustable Rate Loan / ARM (maps to MS Money fARM). */
+    isAdjustableRate?: boolean;
+    /** Next rate adjustment date for ARM loans (ISO 8601 YYYY-MM-DD, maps to MS Money dtNextAdj). */
+    nextRateAdjustmentDate?: ISODateString | null;
+    /** Post-adjustment interest rate as decimal if known (maps to MS Money dIntRateChg). */
+    nextAdjustmentRate?: number;
+    /** Linked asset or escrow account ID (maps to MS Money hacctRel). */
+    linkedAssetAccountId?: EntityId | null;
+    /** Default interest expense category ID (maps to MS Money hcatInterest). */
+    interestCategoryId?: EntityId | null;
+    /** Type-specific metadata. */
     metadata?: IMortgageMetadata | IAutoLoanMetadata | IPersonalLoanMetadata;
 }
 
@@ -260,6 +359,24 @@ export interface IAccount {
     updatedAt: ISODateString;
     /** ISO timestamp when the record was soft-deleted (null if active). */
     deletedAt: ISODateString | null;
+    /** Optional account number or last-4 digits (MS Money mNum). */
+    accountNumber?: string | null;
+    /** Optional short abbreviation/code (MS Money szAls). */
+    abbreviation?: string | null;
+    /** Optional initial opening balance in cents (MS Money amtOpen). */
+    openingBalance?: Cents;
+    /** Optional account opening date (MS Money dtOpen). */
+    openingDate?: ISODateString | null;
+    /** Optional user notes/comments (MS Money mComment). */
+    notes?: string | null;
+    /** True if marked as a favorite/pinned account (MS Money fFavorite). */
+    isFavorite?: boolean;
+    /** True if account is tax-related (MS Money fTaxRel). */
+    isTaxRelated?: boolean;
+    /** Linked account ID (e.g., Asset/Home account or Cash account in MS Money hacctRel). */
+    linkedAccountId?: EntityId | null;
+    /** Optional detailed information for credit card accounts (APR, limit, promotional rate windows). */
+    creditCardDetails?: ICreditCardDetails;
     /** Optional detailed information for loan accounts. */
     loanDetails?: ILoanDetails;
 }
@@ -331,6 +448,7 @@ export interface IRecurringSchedule {
  */
 export interface IParsedSplit {
     category: string | null;
+    mnyCategoryId?: number | null;
     amount: Cents;
     memo: string | null;
 }
@@ -345,6 +463,7 @@ export interface IParsedTransaction {
     memo: string;
     checkNumber: string | null;
     category: string | null;
+    mnyCategoryId?: number | null;
     splits: Array<IParsedSplit>;
     importHash: string;
     clearedStatus?: QifClearedStatus;

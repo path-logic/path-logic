@@ -147,7 +147,18 @@
     textarea,
     .p-inputtext,
     .p-autocomplete-input {
-        @apply shadow transition-shadow duration-200;
+        @apply shadow-sm transition-shadow duration-200;
+    }
+
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 0.875rem center;
+        background-repeat: no-repeat;
+        background-size: 1.125rem 1.125rem;
+        padding-left: 0.875rem;
+        padding-right: 2.5rem;
     }
 
     .p-inputtext {
@@ -203,11 +214,15 @@
         outline: none !important;
     }
 
-    /* Global subtle shadow for actionable items */
+    /* Global subtle shadow for actionable items (excluding transparent, menu, and shadow-none buttons) */
     button:not(.bg-transparent):not(.p-dialog-header-close):not(.border-transparent):not(
             .rounded-full
-        ) {
-        @apply shadow hover:shadow-md transition-shadow duration-200;
+        ):not(.shadow-none):not([role='option']):not([role='menuitem']) {
+        @apply shadow-sm hover:shadow transition-shadow duration-200;
+    }
+
+    button:focus {
+        outline: none;
     }
 
     /* Small Button Variant */

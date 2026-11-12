@@ -102,6 +102,13 @@ export const appRoutes: Routes = [
                             )
                     },
                     {
+                        path: 'mny-migration',
+                        loadComponent: () =>
+                            import(
+                                './components/export-import/mny-migration-dialog/mny-migration-dialog.component'
+                            ).then(m => m.MnyMigrationDialogComponent)
+                    },
+                    {
                         path: 'dev',
                         children: [
                             {
@@ -138,6 +145,13 @@ export const appRoutes: Routes = [
                                     import('./pages/settings/dev/qif-test/qif-test.component').then(
                                         m => m.QifTestComponent
                                     )
+                            },
+                            {
+                                path: 'mny-inspector',
+                                loadComponent: () =>
+                                    import(
+                                        './pages/settings/dev/mny-inspector/mny-inspector.component'
+                                    ).then(m => m.DevMnyInspectorComponent)
                             }
                         ]
                     },

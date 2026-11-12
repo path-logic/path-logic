@@ -36,9 +36,9 @@ describe('AccountEditFormComponent (Storybook Stories)', () => {
 
         expect(component.isLoan()).toBe(true);
         const nameInput = fixture.nativeElement.querySelector('#acc-name') as HTMLInputElement;
-        expect(nameInput.value).toBe('Car Loan');
+        expect(nameInput.value).toBe('2001 Cobra');
         const makeInput = fixture.nativeElement.querySelector('#loan-make') as HTMLInputElement;
-        expect(makeInput.value).toBe('Honda');
+        expect(makeInput.value).toBe('Ford');
     });
 
     it('executes InteractiveValidation story interaction test', async () => {

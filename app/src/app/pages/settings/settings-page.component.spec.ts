@@ -17,6 +17,9 @@ describe('SettingsPageComponent', () => {
     let llmService: LlmService;
 
     beforeEach(async () => {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.clear();
+        }
         const mockAuthService = {
             accessToken: signal<string | null>(null),
             currentUser: signal(null),
@@ -71,10 +74,24 @@ describe('SettingsPageComponent', () => {
         expect(component.apiKeyPlaceholder()).toContain('sk-proj');
     });
 
-    it('should toggle setup guide visibility', () => {
+    it('should toggle setup guide popover without shifting layout and dismiss on escape', () => {
         expect(component.showGuide()).toBe(false);
+        expect(fixture.nativeElement.querySelector('#provider-setup-guide-popover')).toBeNull();
+
         component.showGuide.set(true);
-        expect(component.showGuide()).toBe(true);
+        fixture.detectChanges();
+
+        const popover = fixture.nativeElement.querySelector(
+            '#provider-setup-guide-popover'
+        ) as HTMLElement | null;
+        expect(popover).toBeTruthy();
+        expect(popover?.className).toContain('absolute');
+        expect(popover?.getAttribute('role')).toBe('dialog');
+
+        component.onEscapeKey();
+        fixture.detectChanges();
+        expect(component.showGuide()).toBe(false);
+        expect(fixture.nativeElement.querySelector('#provider-setup-guide-popover')).toBeNull();
     });
 
     it('should open export and import dialogs', () => {
@@ -109,5 +126,69 @@ describe('SettingsPageComponent', () => {
         component.isMediumOrLarge.set(false);
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('app-import-dialog')).toBeNull();
+    });
+
+    it('should default and upgrade Gemini model to Gemini 4 Argon when available', async () => {
+        userSettingsStore.updateSetting('aiProvider', LlmProvider.Gemini);
+        userSettingsStore.updateSetting('aiModel', 'gemini-3.8-flash');
+        userSettingsStore.updateSetting('aiModelUserSelected', 'false');
+
+        const listSpy = vi.spyOn(llmService, 'listModels').mockResolvedValue([
+            { value: 'gemini-4-argon', label: 'Gemini 4 Argon', isDefault: true },
+            { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash', isDefault: false }
+        ]);
+
+        await component.loadDynamicModels(LlmProvider.Gemini, 'AIzaSyMockKey');
+
+        expect(component.selectedModel()).toBe('gemini-4-argon');
+        expect(userSettingsStore.getSetting('aiModel')).toBe('gemini-4-argon');
+        expect(userSettingsStore.getSetting('geminiModel')).toBe('gemini-4-argon');
+
+        listSpy.mockRestore();
+    });
+
+    it('should toggle API key input visibility between password and text when a key is entered or saved', () => {
+        const inputEl = fixture.nativeElement.querySelector(
+            'input[autocomplete="off"]'
+        ) as HTMLInputElement;
+        const toggleBtn = fixture.nativeElement.querySelector(
+            'button[aria-label="Show API key"]'
+        ) as HTMLButtonElement;
+
+        expect(inputEl).toBeTruthy();
+        expect(toggleBtn).toBeTruthy();
+        // Disabled when input is empty
+        expect(toggleBtn.disabled).toBe(true);
+        expect(inputEl.type).toBe('password');
+
+        // Enter a key into the input
+        inputEl.value = 'AIzaSyTestSecretKey12345';
+        inputEl.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+
+        expect(toggleBtn.disabled).toBe(false);
+
+        // Click to reveal API key
+        toggleBtn.click();
+        fixture.detectChanges();
+
+        expect(component.showApiKey()).toBe(true);
+        expect(inputEl.type).toBe('text');
+        expect(inputEl.value).toBe('AIzaSyTestSecretKey12345');
+
+        // Click again to hide API key
+        toggleBtn.click();
+        fixture.detectChanges();
+
+        expect(component.showApiKey()).toBe(false);
+        expect(inputEl.type).toBe('password');
+        expect(inputEl.value).toBe('AIzaSyTestSecretKey12345');
+    });
+
+    it('should open MS Money migration service and navigate to /settings/mny-migration page', () => {
+        const openSpy = vi.spyOn(component.mnyMigrationService, 'open');
+        component.openMnyMigration();
+        expect(openSpy).toHaveBeenCalled();
+        expect(component.showMnyMigrationDialog()).toBe(true);
     });
 });

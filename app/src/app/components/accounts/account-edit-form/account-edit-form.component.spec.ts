@@ -253,4 +253,87 @@ describe('AccountEditFormComponent', () => {
         expect(component.error()).toBe('Simulated failure');
         expect(component.isSubmitting()).toBe(false);
     });
+
+    it('should initialize and submit credit card details with multiple promotional rate windows', async () => {
+        const mockCreditCard: IAccount = {
+            id: 'acc-cc-1',
+            name: 'Citi Double Cash Card',
+            type: AccountType.Credit,
+            institutionName: 'Citi',
+            clearedBalance: -300603,
+            pendingBalance: -300603,
+            isActive: true,
+            deletedAt: null,
+            createdAt: '2024-01-01T00:00:00Z' as ISODateString,
+            updatedAt: '2024-01-01T00:00:00Z' as ISODateString,
+            creditCardDetails: {
+                creditLimit: 1010000,
+                interestRate: 0.2698,
+                minimumPayment: 3500,
+                paymentDueDay: 19,
+                promotionalRates: [
+                    {
+                        id: 'promo-1',
+                        name: '0% Intro Balance Transfer',
+                        promoType: 'balance_transfer' as never,
+                        apr: 0,
+                        startDate: '2025-09-19',
+                        endDate: '2027-03-19',
+                        postPromoApr: 0.2698
+                    }
+                ]
+            }
+        };
+
+        fixture.componentRef.setInput('accountData', mockCreditCard);
+        fixture.detectChanges();
+
+        expect(component.isCreditCard()).toBe(true);
+        expect(component.accountForm.get('creditLimit')?.value).toBe(10100);
+        expect(component.accountForm.get('ccInterestRate')?.value).toBe(26.98);
+        expect(component.promoWindows()).toHaveLength(1);
+
+        // Add a second promotional window
+        component.addPromotionalWindow();
+        expect(component.promoWindows()).toHaveLength(2);
+
+        const submitSpy = vi.spyOn(component.submitted, 'emit');
+        await component.handleSubmit();
+
+        expect(submitSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'acc-cc-1',
+                type: AccountType.Credit,
+                creditCardDetails: expect.objectContaining({
+                    creditLimit: 1010000,
+                    interestRate: 0.2698,
+                    minimumPayment: 3500,
+                    paymentDueDay: 19,
+                    promotionalRates: expect.arrayContaining([
+                        expect.objectContaining({
+                            id: 'promo-1',
+                            name: '0% Intro Balance Transfer',
+                            apr: 0,
+                            endDate: '2027-03-19'
+                        })
+                    ])
+                })
+            })
+        );
+        const emitted = submitSpy.mock.calls[0]?.[0];
+        expect(emitted?.creditCardDetails?.promotionalRates).toHaveLength(2);
+    });
+
+    it('should reactively repopulate form when accountData input changes (e.g. via breadcrumb switcher)', () => {
+        fixture.componentRef.setInput('accountData', mockCheckingAccount);
+        fixture.detectChanges();
+        expect(component.accountForm.get('name')?.value).toBe('Main Checking');
+        expect(component.isLoan()).toBe(false);
+
+        fixture.componentRef.setInput('accountData', mockMortgageAccount);
+        fixture.detectChanges();
+        expect(component.accountForm.get('name')?.value).toBe('Home Mortgage');
+        expect(component.isLoan()).toBe(true);
+        expect(component.accountForm.get('propertyAddress')?.value).toBe('123 Elm Street');
+    });
 });

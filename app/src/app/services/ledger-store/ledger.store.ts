@@ -94,6 +94,7 @@ export class LedgerStore {
     >([]);
     readonly isLoading: WritableSignal<boolean> = signal<boolean>(false);
     readonly isInitialized: WritableSignal<boolean> = signal<boolean>(false);
+    readonly dbRevision: WritableSignal<number> = signal<number>(0);
     readonly authError: WritableSignal<boolean> = signal<boolean>(false);
     readonly isDirty: WritableSignal<boolean> = signal<boolean>(false);
     readonly syncStatus: WritableSignal<SyncStatus> = signal<SyncStatus>('synced');
@@ -590,5 +591,6 @@ export class LedgerStore {
         this.payees.set(getAllPayees());
         this.categories.set(getAllCategories());
         this.schedules.set(getAllRecurringSchedules());
+        this.dbRevision.update((r: number): number => r + 1);
     }
 }

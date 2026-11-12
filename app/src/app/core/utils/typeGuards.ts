@@ -9,6 +9,20 @@ export function isLoanAccount(type: AccountType): boolean {
 }
 
 /**
+ * Check if an account type is a credit card type
+ */
+export function isCreditCardAccount(type: AccountType): boolean {
+    return type === AccountType.Credit;
+}
+
+/**
+ * Check if an account type is a liability (Credit Card or Loan)
+ */
+export function isLiabilityAccount(type: AccountType): boolean {
+    return isCreditCardAccount(type) || isLoanAccount(type);
+}
+
+/**
  * Type guard for Mortgage Metadata
  */
 export function isMortgageMetadata(metadata: unknown): metadata is IMortgageMetadata {

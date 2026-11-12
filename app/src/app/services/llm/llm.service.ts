@@ -67,14 +67,22 @@ export class LlmService {
     apiKey(): string {
         const provider = this.selectedProvider();
         if (provider === LlmProvider.Anthropic) {
-            return this.userSettingsStore.getSetting('anthropicApiKey') ?? '';
+            return (
+                this.userSettingsStore.getSetting('anthropicApiKey') ||
+                this.userSettingsStore.getSetting('aiApiKey') ||
+                ''
+            );
         }
         if (provider === LlmProvider.OpenAI) {
-            return this.userSettingsStore.getSetting('openaiApiKey') ?? '';
+            return (
+                this.userSettingsStore.getSetting('openaiApiKey') ||
+                this.userSettingsStore.getSetting('aiApiKey') ||
+                ''
+            );
         }
         return (
-            this.userSettingsStore.getSetting('geminiApiKey') ??
-            this.userSettingsStore.getSetting('aiApiKey') ??
+            this.userSettingsStore.getSetting('geminiApiKey') ||
+            this.userSettingsStore.getSetting('aiApiKey') ||
             ''
         );
     }
@@ -103,7 +111,7 @@ export class LlmService {
                 return 'gpt-4o-mini';
             case LlmProvider.Gemini:
             default:
-                return 'gemini-3.5-flash';
+                return 'gemini-4-argon';
         }
     }
 
@@ -126,6 +134,7 @@ export class LlmService {
 
         const newestModel = defaultOption.value;
         const currentSaved = this.selectedModel();
+        const currentOption = models.find(m => m.value === currentSaved);
 
         const dismissed = this.userSettingsStore.getSetting('dismissedModelUpgrade');
         if (dismissed === newestModel) {
@@ -134,7 +143,10 @@ export class LlmService {
         }
 
         // Parse version comparison if currentSaved != newestModel
-        if (currentSaved !== newestModel && this.isModelNewer(newestModel, currentSaved)) {
+        if (
+            currentSaved !== newestModel &&
+            this.isModelNewer(newestModel, currentSaved, defaultOption.label, currentOption?.label)
+        ) {
             this.newerModelAlert.set({
                 currentModel: currentSaved,
                 newestModel,
@@ -147,15 +159,22 @@ export class LlmService {
     }
 
     /**
-     * Helper to compare model version numbers.
+     * Helper to compare model version numbers across model IDs and display labels.
      */
-    private isModelNewer(newestModel: string, currentModel: string): boolean {
-        const getVer = (name: string): number => {
-            const match = name.match(/(\d+(?:\.\d+)?)/);
-            return match && match[1] ? parseFloat(match[1]) : 0;
+    isModelNewer(
+        newestModel: string,
+        currentModel: string,
+        newestLabel?: string,
+        currentLabel?: string
+    ): boolean {
+        const getVer = (text: string): number => {
+            const match = text.match(/(\d+(?:\.\d+)?)/);
+            if (match && match[1]) return parseFloat(match[1]);
+            if (text.toLowerCase().includes('argon')) return 4.0;
+            return 0;
         };
-        const newVer = getVer(newestModel);
-        const curVer = getVer(currentModel);
+        const newVer = Math.max(getVer(newestModel), newestLabel ? getVer(newestLabel) : 0);
+        const curVer = Math.max(getVer(currentModel), currentLabel ? getVer(currentLabel) : 0);
         if (newVer > 0 && curVer > 0) return newVer > curVer;
         return newestModel !== currentModel;
     }
@@ -237,17 +256,33 @@ export class LlmService {
 
             if (valid.length === 0) return this.fallbackGeminiModels();
 
-            // 2. Parse versions & filter to latest generation (major >= 3 if available)
-            const parseVersion = (name: string): number => {
-                const match = name.match(/gemini-(\d+(?:\.\d+)?)/i);
-                return match && match[1] ? parseFloat(match[1]) : 0;
+            // 2. Parse versions from both model ID and displayName & filter to latest generation
+            const parseModelVersion = (m: IGeminiModelRaw): number => {
+                const nameMatch = m.name.match(/gemini[-_ ]?(\d+(?:\.\d+)?)/i);
+                const displayMatch = (m.displayName ?? '').match(/gemini[-_ ]?(\d+(?:\.\d+)?)/i);
+                const nameVer = nameMatch?.[1] ? parseFloat(nameMatch[1]) : 0;
+                const displayVer = displayMatch?.[1] ? parseFloat(displayMatch[1]) : 0;
+                const maxVer = Math.max(nameVer, displayVer);
+                if (maxVer > 0) return maxVer;
+                const combined = `${m.name} ${m.displayName ?? ''}`.toLowerCase();
+                if (combined.includes('argon')) return 4.0;
+                return 0;
             };
 
-            const versions = valid.map(m => parseVersion(m.name));
+            const getVariantPriority = (m: IGeminiModelRaw): number => {
+                const combined = `${m.name} ${m.displayName ?? ''}`.toLowerCase();
+                if (combined.includes('argon')) return 4;
+                if (combined.includes('flash') && !combined.includes('lite')) return 3;
+                if (combined.includes('pro') && !combined.includes('preview')) return 2;
+                if (!combined.includes('preview') && !combined.includes('exp')) return 1;
+                return 0;
+            };
+
+            const versions = valid.map(m => parseModelVersion(m));
             const maxVersion = Math.max(...versions, 0);
 
             const latestGenModels = valid.filter(m => {
-                const ver = parseVersion(m.name);
+                const ver = parseModelVersion(m);
                 if (maxVersion >= 3) {
                     return ver >= 3.0;
                 }
@@ -267,13 +302,16 @@ export class LlmService {
                 }
             }
 
-            // 4. Find newest Flash model for default selection
-            const flashModels = deduplicated.filter(m => m.name.toLowerCase().includes('flash'));
-            flashModels.sort((a, b) => parseVersion(b.name) - parseVersion(a.name));
+            // 4. Sort newest generation first (e.g., Gemini 4 Argon above Gemini 3.8 Flash)
+            deduplicated.sort((a, b) => {
+                const verDiff = parseModelVersion(b) - parseModelVersion(a);
+                if (verDiff !== 0) return verDiff;
+                return getVariantPriority(b) - getVariantPriority(a);
+            });
 
-            const newestFlashVal = flashModels[0]
-                ? flashModels[0].name.replace(/^models\//, '')
-                : 'gemini-3.6-flash';
+            const newestDefaultVal = deduplicated[0]
+                ? deduplicated[0].name.replace(/^models\//, '')
+                : 'gemini-4-argon';
 
             return deduplicated.map(m => {
                 const val = m.name.replace(/^models\//, '');
@@ -281,7 +319,7 @@ export class LlmService {
                     value: val,
                     label: m.displayName || val
                 };
-                if (val === newestFlashVal) {
+                if (val === newestDefaultVal) {
                     opt.isDefault = true;
                 }
                 return opt;
@@ -293,10 +331,10 @@ export class LlmService {
 
     private fallbackGeminiModels(): Array<ILlmModelOption> {
         return [
-            { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash (Recommended)', isDefault: true },
-            { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-            { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro Preview' },
-            { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash Preview' }
+            { value: 'gemini-4-argon', label: 'Gemini 4 Argon (Recommended)', isDefault: true },
+            { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+            { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash' },
+            { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' }
         ];
     }
 

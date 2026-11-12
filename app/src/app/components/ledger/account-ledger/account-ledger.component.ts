@@ -26,6 +26,7 @@ import { MessageService } from 'primeng/api';
 
 import type { IAccount } from '@core';
 import { AiAutoCategorizeService } from '../../../services/ai-auto-categorize/ai-auto-categorize.service';
+import { AccountAugmentationService } from '../../../services/import-export/account-augmentation.service';
 import { ImportOrchestrationService } from '../../../services/import/import-orchestration.service';
 import type { ReconciliationDecision } from '../../../services/import/import.types';
 import { LedgerStore } from '../../../services/ledger-store/ledger.store';
@@ -34,6 +35,7 @@ import { SidebarContextService } from '../../../services/sidebar-context/sidebar
 import { UserSettingsStore } from '../../../services/user-settings-store/user-settings.store';
 import { NewAccountDialogComponent } from '../../onboarding/new-account-dialog/new-account-dialog.component';
 import { SyncIndicatorComponent } from '../../sync/sync-indicator/sync-indicator.component';
+import { AccountAugmentationBannerComponent } from '../account-augmentation-banner/account-augmentation-banner.component';
 import { AccountDropdownComponent } from '../account-dropdown/account-dropdown.component';
 import { AiMatchingBannerComponent } from '../ai-matching-banner/ai-matching-banner.component';
 import { CategoryMappingDialogComponent } from '../category-mapping-dialog/category-mapping-dialog.component';
@@ -61,6 +63,7 @@ import { TransactionTableComponent } from '../transaction-table/transaction-tabl
         ImportProgressOverlayComponent,
         CategoryMappingDialogComponent,
         AiMatchingBannerComponent,
+        AccountAugmentationBannerComponent,
         NewAccountDialogComponent
     ],
     providers: [MessageService],
@@ -73,6 +76,7 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
     private readonly posthogService = inject(PostHogService);
     readonly importService = inject(ImportOrchestrationService);
     readonly aiCategorizeService = inject(AiAutoCategorizeService);
+    private readonly augmentationService = inject(AccountAugmentationService, { optional: true });
     private readonly messageService = inject(MessageService);
     private readonly sidebarContext = inject(SidebarContextService);
     private readonly userSettingsStore = inject(UserSettingsStore);
@@ -148,7 +152,11 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     readonly clearedBalance = computed(() =>
         this.filteredTransactions()
-            .filter(tx => tx.status === TransactionStatus.Cleared)
+            .filter(
+                tx =>
+                    tx.status === TransactionStatus.Cleared ||
+                    tx.status === TransactionStatus.Reconciled
+            )
             .reduce((sum, tx) => sum + tx.totalAmount, 0)
     );
 
@@ -182,11 +190,21 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
 
     readonly canReconcile = computed(() => this.importMatches().length > 0);
 
+    readonly pendingCrossAccountCount = computed<number>(() => {
+        return this.augmentationService
+            ? this.augmentationService.getAllPendingOpportunities().length
+            : 0;
+    });
+
     openReconciliation(): void {
         if (!this.canReconcile()) {
             return;
         }
         this.reconciliationOpen.set(true);
+    }
+
+    openCrossAccountReconciliation(): void {
+        this.augmentationService?.openWorkspaceReconciliationWizard(this.activeAccountId());
     }
 
     openNewTransactionMobile(): void {
@@ -259,6 +277,21 @@ export class AccountLedgerComponent implements OnInit, OnDestroy {
             const id = this.initialAccountId();
             if (id) {
                 this.activeAccountId.set(id);
+            }
+        });
+
+        // Ensure AI cross-account augmentation opportunities are evaluated when ledger loads
+        effect(() => {
+            const accs = this.accounts();
+            const txs = this.transactions();
+            if (
+                this.augmentationService &&
+                accs.length > 0 &&
+                !this.augmentationService.intelligenceReport()
+            ) {
+                untracked(() => {
+                    this.augmentationService?.analyzeLedgerAccounts(accs, txs, false);
+                });
             }
         });
     }

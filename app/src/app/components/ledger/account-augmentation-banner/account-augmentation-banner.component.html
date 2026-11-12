@@ -1,0 +1,929 @@
+@if (!dialogsOnly()) {
+    <div class="space-y-2.5 mb-3">
+        <!-- 1. DESTINATION ACCOUNT BANNER (destination <- source) -->
+        @if (destinationOpportunities().length > 0) {
+            <div
+                data-testid="destination-augmentation-banner"
+                class="px-4 py-3 rounded-xl bg-primary-50/90 dark:bg-primary-950/40 border border-primary-200 dark:border-primary-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+            >
+                <div class="flex items-start gap-3 min-w-0">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/70 text-primary-600 dark:text-primary-400 flex items-center justify-center flex-none mt-0.5"
+                    >
+                        <i class="pi pi-sparkles text-sm" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0 space-y-0.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span
+                                class="text-xs font-bold text-surface-900 dark:text-surface-50 tracking-tight"
+                            >
+                                AI Data Augmentation Available
+                            </span>
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-100 dark:bg-primary-900/80 text-primary-800 dark:text-primary-200"
+                            >
+                                Reconciled Counter-Entries
+                            </span>
+                        </div>
+                        <p
+                            class="text-xs text-surface-700 dark:text-surface-300 m-0 leading-relaxed"
+                        >
+                            {{ destinationBannerMessage() }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-none self-end sm:self-center">
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="destination-banner-review-btn"
+                        label="Review & Augment"
+                        icon="pi pi-arrow-down-left"
+                        class="p-button-primary p-button-sm text-xs font-semibold"
+                        (click)="openDestinationWizard()"
+                    ></button>
+                    <button
+                        type="button"
+                        data-testid="destination-banner-dismiss-btn"
+                        class="p-1.5 rounded-lg text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200/50 dark:hover:bg-surface-800/60 transition-colors"
+                        title="Dismiss augmentation banner for this account"
+                        aria-label="Dismiss destination augmentation banner"
+                        (click)="dismissDestinationBanner()"
+                    >
+                        <i class="pi pi-times text-xs" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- 2. SOURCE ACCOUNT BANNER (source -> destination 1...n) -->
+        @if (sourceOpportunities().length > 0) {
+            <div
+                data-testid="source-augmentation-banner"
+                class="px-4 py-3 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+            >
+                <div class="flex items-start gap-3 min-w-0">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/70 text-indigo-700 dark:text-indigo-300 flex items-center justify-center flex-none mt-0.5"
+                    >
+                        <i class="pi pi-share-alt text-sm" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0 space-y-0.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span
+                                class="text-xs font-bold text-surface-900 dark:text-surface-50 tracking-tight"
+                            >
+                                Cross-Account Reconciled Data Source
+                            </span>
+                            <span
+                                class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/80 text-indigo-800 dark:text-indigo-200"
+                            >
+                                {{ sourceOpportunities().length }}
+                                {{
+                                    sourceOpportunities().length === 1
+                                        ? 'Target Account'
+                                        : 'Target Accounts'
+                                }}
+                            </span>
+                        </div>
+                        <p
+                            data-testid="source-banner-message"
+                            class="text-xs text-surface-700 dark:text-surface-300 m-0 leading-relaxed"
+                        >
+                            {{ sourceBannerMessage() }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-none self-end sm:self-center">
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="source-banner-wizard-btn"
+                        label="Launch Augmentation Wizard"
+                        icon="pi pi-bolt"
+                        class="p-button-outlined p-button-sm text-xs font-semibold"
+                        (click)="openSourceWizard()"
+                    ></button>
+                    <button
+                        type="button"
+                        data-testid="source-banner-dismiss-btn"
+                        class="p-1.5 rounded-lg text-surface-500 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-200/50 dark:hover:bg-surface-800/60 transition-colors"
+                        title="Dismiss source extraction banner"
+                        aria-label="Dismiss source augmentation banner"
+                        (click)="dismissSourceBanner()"
+                    >
+                        <i class="pi pi-times text-xs" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- 3. NEEDS UPDATED DATA UPLOADED BANNER -->
+        @if (showNeedsUploadBanner() && activeAccountAssessment(); as assessment) {
+            <div
+                data-testid="needs-upload-banner"
+                class="px-4 py-2.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            >
+                <div class="flex items-start gap-2.5 min-w-0">
+                    <i
+                        class="pi pi-cloud-upload text-amber-700 dark:text-amber-300 text-sm flex-none mt-0.5"
+                        aria-hidden="true"
+                    ></i>
+                    <div class="min-w-0 space-y-0.5">
+                        <p class="text-xs font-bold text-surface-900 dark:text-surface-100 m-0">
+                            AI Account Check
+                        </p>
+                        <p class="text-xs text-surface-700 dark:text-surface-300 m-0">
+                            {{ assessment.recommendation }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-none">
+                    <button
+                        pButton
+                        type="button"
+                        label="Upload Statement"
+                        icon="pi pi-upload"
+                        class="p-button-outlined p-button-warning p-button-sm text-xs"
+                        (click)="requestUpload.emit()"
+                    ></button>
+                    <button
+                        type="button"
+                        class="p-1 rounded-lg text-surface-500 hover:text-surface-800 dark:hover:text-surface-200"
+                        aria-label="Dismiss upload notice"
+                        (click)="dismissNeedsUploadBanner()"
+                    >
+                        <i class="pi pi-times text-xs" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- =========================================================================
+     SHARED DATA AUGMENTATION WIZARD & INDIVIDUAL ACCOUNT REVIEW DIALOG
+     Single scroll container (contentStyle overflow: visible, internal scroll only on body)
+     ========================================================================= -->
+<p-dialog
+    [visible]="augmentationService.isWizardOpen()"
+    (visibleChange)="!$event && closeWizard()"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="true"
+    [contentStyle]="{ overflow: 'visible', padding: '0' }"
+    styleClass="w-full max-w-3xl p-0 overflow-hidden path-logic-dialog shadow-2xl rounded-2xl border border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-950"
+    appendTo="body"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-start justify-between w-full pr-2 py-1 gap-3">
+            <div class="flex items-start gap-3 min-w-0">
+                <div
+                    class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800/60 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold shadow-xs flex-none"
+                >
+                    <i class="pi pi-sparkles text-lg" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0 space-y-0.5">
+                    <h2
+                        class="text-base font-bold text-surface-900 dark:text-surface-50 m-0 tracking-tight"
+                    >
+                        Reconciled Ledger Data Augmentation
+                    </h2>
+                    <p class="text-xs text-surface-600 dark:text-surface-400 m-0">
+                        Synthesize missing ledger counter-entries from verified reconciled
+                        transactions
+                    </p>
+                </div>
+            </div>
+
+            <span
+                class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary-100 dark:bg-primary-900/70 text-primary-800 dark:text-primary-200 flex-none"
+            >
+                @if (augmentationService.returnToNotificationOnClose()) {
+                    Individual Account Review
+                } @else if (wizardOpportunities().length > 1) {
+                    Step {{ augmentationService.currentStepIndex() + 1 }} of
+                    {{ wizardOpportunities().length }}
+                } @else if (wizardOpportunities().length === 1) {
+                    Single Account Flow
+                } @else {
+                    Up to Date
+                }
+            </span>
+        </div>
+    </ng-template>
+
+    @if (currentWizardOpportunity(); as opp) {
+        <div class="flex flex-col max-h-[75vh] text-surface-800 dark:text-surface-200">
+            <!-- Single Scrollable Body -->
+            <div class="p-6 space-y-5 overflow-y-auto flex-1">
+                <!-- Step Pills when multiple opportunities exist -->
+                @if (wizardOpportunities().length > 1) {
+                    <div
+                        data-testid="wizard-step-pills"
+                        class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-surface-200 dark:border-surface-800"
+                    >
+                        @for (
+                            stepOpp of wizardOpportunities();
+                            track stepOpp.id;
+                            let idx = $index
+                        ) {
+                            <button
+                                type="button"
+                                class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all flex-none cursor-pointer"
+                                [ngClass]="
+                                    idx === augmentationService.currentStepIndex()
+                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/60 text-primary-800 dark:text-primary-200'
+                                        : 'border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900 text-surface-700 dark:text-surface-300'
+                                "
+                                (click)="goToStep(idx)"
+                            >
+                                <span
+                                    class="w-4 h-4 rounded-full text-[10px] flex items-center justify-center"
+                                    [ngClass]="
+                                        stepOpp.status === AugmentationOpportunityStatus.Completed
+                                            ? 'bg-emerald-700 text-white'
+                                            : 'bg-surface-200 dark:bg-surface-700 text-surface-800 dark:text-surface-200'
+                                    "
+                                >
+                                    {{ idx + 1 }}
+                                </span>
+                                @if (
+                                    augmentationService.wizardFlow() ===
+                                    AugmentationWizardFlow.WorkspaceReconciliation
+                                ) {
+                                    <span class="truncate max-w-48">
+                                        {{ stepOpp.sourceAccountName }} →
+                                        {{ stepOpp.destinationAccountName }}
+                                    </span>
+                                } @else {
+                                    <span class="truncate max-w-36">{{
+                                        stepOpp.destinationAccountName
+                                    }}</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+
+                <!-- Explanation of What Is Being Imported (Sub-heading stacked below heading) -->
+                <div
+                    class="p-4 rounded-2xl bg-surface-50 dark:bg-surface-900/90 border border-surface-200 dark:border-surface-800 space-y-2.5"
+                >
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <span
+                                class="px-2.5 py-1 rounded-lg bg-surface-200/80 dark:bg-surface-800 text-xs font-bold text-surface-900 dark:text-surface-100"
+                            >
+                                Source: {{ opp.sourceAccountName }}
+                            </span>
+                            <i
+                                class="pi pi-arrow-right text-xs text-primary"
+                                aria-hidden="true"
+                            ></i>
+                            <span
+                                class="px-2.5 py-1 rounded-lg bg-primary-100/80 dark:bg-primary-900/60 text-xs font-bold text-primary-800 dark:text-primary-200"
+                            >
+                                Destination: {{ opp.destinationAccountName }}
+                            </span>
+                        </div>
+                        <p class="text-[11px] font-mono text-surface-600 dark:text-surface-400 m-0">
+                            Date range: {{ opp.dateRange.from }} to {{ opp.dateRange.to }}
+                        </p>
+                    </div>
+
+                    <p class="text-xs text-surface-700 dark:text-surface-300 m-0 leading-relaxed">
+                        Path Logic's AI detected
+                        <strong>{{ opp.candidateTransactions.length }}</strong> reconciled or
+                        cleared
+                        {{
+                            opp.candidateTransactions.length === 1 ? 'transaction' : 'transactions'
+                        }}
+                        in <strong>{{ opp.sourceAccountName }}</strong> that reference
+                        <strong>{{ opp.destinationAccountName }}</strong> without corresponding
+                        ledger entries in <strong>{{ opp.destinationAccountName }}</strong
+                        >. Accepting this imports the inverted counter-entries into
+                        <strong>{{ opp.destinationAccountName }}</strong> and adjusts its balance by
+                        <strong
+                            [class.text-emerald-700]="selectedNetImpactCents() >= 0"
+                            [class.dark:text-emerald-400]="selectedNetImpactCents() >= 0"
+                            [class.text-red-700]="selectedNetImpactCents() < 0"
+                            [class.dark:text-red-400]="selectedNetImpactCents() < 0"
+                        >
+                            {{ formatCurrency(selectedNetImpactCents()) }} </strong
+                        >.
+                    </p>
+                </div>
+
+                <!-- Candidate Transactions Table (no nested max-h scroll container) -->
+                <div
+                    class="border border-surface-200 dark:border-surface-800 rounded-xl overflow-hidden"
+                >
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-surface-100 dark:bg-surface-900">
+                            <tr>
+                                <th
+                                    scope="col"
+                                    class="p-3 w-10 border-b border-surface-200 dark:border-surface-800"
+                                >
+                                    <span class="sr-only">Select</span>
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-3 font-bold text-surface-800 dark:text-surface-200 border-b border-surface-200 dark:border-surface-800"
+                                >
+                                    Date
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-3 font-bold text-surface-800 dark:text-surface-200 border-b border-surface-200 dark:border-surface-800"
+                                >
+                                    Source Payee / Memo
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-3 font-bold text-right text-surface-800 dark:text-surface-200 border-b border-surface-200 dark:border-surface-800"
+                                >
+                                    Source Amount
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-3 font-bold text-right text-surface-800 dark:text-surface-200 border-b border-surface-200 dark:border-surface-800"
+                                >
+                                    Imported Impact ({{ opp.destinationAccountName }})
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-200 dark:divide-surface-800">
+                            @for (
+                                candidate of opp.candidateTransactions;
+                                track candidate.sourceTransactionId
+                            ) {
+                                <tr
+                                    class="hover:bg-surface-50 dark:hover:bg-surface-900/50 cursor-pointer transition-colors"
+                                    (click)="
+                                        toggleCandidateSelection(candidate.sourceTransactionId)
+                                    "
+                                >
+                                    <td class="p-3 text-center" (click)="$event.stopPropagation()">
+                                        <input
+                                            type="checkbox"
+                                            [attr.aria-label]="
+                                                'Select transaction on ' +
+                                                candidate.date +
+                                                ' for ' +
+                                                candidate.sourcePayee
+                                            "
+                                            [checked]="
+                                                isCandidateSelected(candidate.sourceTransactionId)
+                                            "
+                                            (change)="
+                                                toggleCandidateSelection(
+                                                    candidate.sourceTransactionId
+                                                )
+                                            "
+                                            class="rounded text-primary"
+                                        />
+                                    </td>
+                                    <td
+                                        class="p-3 font-mono text-surface-700 dark:text-surface-300"
+                                    >
+                                        {{ candidate.date }}
+                                    </td>
+                                    <td class="p-3">
+                                        <div
+                                            class="font-semibold text-surface-900 dark:text-surface-100"
+                                        >
+                                            {{ candidate.sourcePayee }}
+                                        </div>
+                                        @if (candidate.sourceMemo) {
+                                            <div
+                                                class="text-[11px] text-surface-600 dark:text-surface-400 truncate max-w-xs mt-0.5"
+                                            >
+                                                {{ candidate.sourceMemo }}
+                                            </div>
+                                        }
+                                    </td>
+                                    <td
+                                        class="p-3 text-right font-mono"
+                                        [class.text-emerald-700]="candidate.sourceAmount >= 0"
+                                        [class.dark:text-emerald-400]="candidate.sourceAmount >= 0"
+                                        [class.text-red-700]="candidate.sourceAmount < 0"
+                                        [class.dark:text-red-400]="candidate.sourceAmount < 0"
+                                    >
+                                        {{ formatCurrency(candidate.sourceAmount) }}
+                                    </td>
+                                    <td
+                                        class="p-3 text-right font-mono font-bold"
+                                        [class.text-emerald-700]="candidate.augmentedAmount >= 0"
+                                        [class.dark:text-emerald-400]="
+                                            candidate.augmentedAmount >= 0
+                                        "
+                                        [class.text-red-700]="candidate.augmentedAmount < 0"
+                                        [class.dark:text-red-400]="candidate.augmentedAmount < 0"
+                                    >
+                                        {{ formatCurrency(candidate.augmentedAmount) }}
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sticky Footer Actions: Dismiss, Skip, Accept -->
+            <div
+                class="px-6 py-4 bg-surface-50/90 dark:bg-surface-900/90 border-t border-surface-200 dark:border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-none"
+            >
+                <div class="text-xs text-surface-600 dark:text-surface-400 font-medium">
+                    {{ selectedCandidateTxIds().length }} of
+                    {{ opp.candidateTransactions.length }} reconciled entries selected
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5">
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="wizard-dismiss-btn"
+                        [label]="
+                            augmentationService.returnToNotificationOnClose()
+                                ? 'Record Dismiss'
+                                : 'Dismiss'
+                        "
+                        icon="pi pi-ban"
+                        class="p-button-text p-button-danger p-button-sm text-xs font-semibold"
+                        (click)="dismissStep()"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="wizard-skip-btn"
+                        [label]="
+                            augmentationService.returnToNotificationOnClose()
+                                ? 'Record Skip'
+                                : 'Skip'
+                        "
+                        icon="pi pi-forward"
+                        class="p-button-outlined p-button-secondary p-button-sm text-xs font-semibold"
+                        (click)="skipStep()"
+                    ></button>
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="wizard-accept-btn"
+                        [label]="
+                            augmentationService.returnToNotificationOnClose()
+                                ? 'Record Accept (' + selectedCandidateTxIds().length + ')'
+                                : 'Accept & Augment (' + selectedCandidateTxIds().length + ')'
+                        "
+                        icon="pi pi-check"
+                        class="p-button-primary p-button-sm text-xs font-bold"
+                        [disabled]="selectedCandidateTxIds().length === 0"
+                        (click)="acceptStep()"
+                    ></button>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <!-- Empty State when all cross-account transfers are already reconciled -->
+        <div
+            data-testid="wizard-all-reconciled-state"
+            class="p-8 text-center space-y-4 text-surface-800 dark:text-surface-200"
+        >
+            <div
+                class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 mx-auto flex items-center justify-center shadow-xs"
+            >
+                <i class="pi pi-check-circle text-2xl" aria-hidden="true"></i>
+            </div>
+            <div class="space-y-1 max-w-md mx-auto">
+                <h3 class="text-base font-bold text-surface-900 dark:text-surface-100 m-0">
+                    All Cross-Account Transfers Reconciled
+                </h3>
+                <p class="text-xs text-surface-600 dark:text-surface-400 m-0 leading-relaxed">
+                    Every reconciled transfer and loan payment across your accounts already has a
+                    matching counter-entry in its target ledger.
+                </p>
+            </div>
+            <div class="flex items-center justify-center gap-2.5 pt-2">
+                <button
+                    pButton
+                    type="button"
+                    label="View Account Health Summary"
+                    icon="pi pi-sparkles"
+                    class="p-button-outlined p-button-sm text-xs font-semibold"
+                    (click)="openNotificationSummaryFromWizard()"
+                ></button>
+                <button
+                    pButton
+                    type="button"
+                    label="Done"
+                    icon="pi pi-check"
+                    class="p-button-primary p-button-sm text-xs font-bold"
+                    (click)="closeWizard()"
+                ></button>
+            </div>
+        </div>
+    }
+</p-dialog>
+
+<!-- =========================================================================
+     POST-IMPORT AI ACCOUNT & AUGMENTATION SUMMARY DIALOG
+     - Single scroll container (no nested scrollbars)
+     - Sub-headings always stacked below headings
+     - Displays per-account Review Decision (defaulting to Skip)
+     - Supports bulk Dismiss All, Skip All, or Accept & Update All without 1-by-1 review
+     ========================================================================= -->
+<p-dialog
+    [visible]="augmentationService.isNotificationDialogOpen()"
+    (visibleChange)="!$event && closeNotification()"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="true"
+    [contentStyle]="{ overflow: 'visible', padding: '0' }"
+    styleClass="w-full max-w-3xl p-0 overflow-hidden path-logic-dialog shadow-2xl rounded-2xl border border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-950"
+    appendTo="body"
+>
+    <ng-template pTemplate="header">
+        <div class="flex items-start gap-3 w-full pr-2 py-1">
+            <div
+                class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800/60 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold shadow-xs flex-none"
+            >
+                <i class="pi pi-sparkles text-lg" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0 space-y-0.5">
+                <h2
+                    class="text-base font-bold text-surface-900 dark:text-surface-50 m-0 tracking-tight"
+                >
+                    AI Account Health & Augmentation Summary
+                </h2>
+                <p class="text-xs text-surface-600 dark:text-surface-400 m-0">
+                    Post-import diagnostic across your imported Microsoft Money accounts
+                </p>
+            </div>
+        </div>
+    </ng-template>
+
+    @if (augmentationService.intelligenceReport(); as report) {
+        <div class="flex flex-col max-h-[75vh] text-surface-800 dark:text-surface-200">
+            <!-- Single Scrollable Content Container (Zero Nested Scrollbars) -->
+            <div class="p-6 space-y-6 overflow-y-auto flex-1">
+                <!-- Summary Counters -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div
+                        class="p-3.5 rounded-xl bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span
+                                class="text-[11px] font-bold uppercase tracking-wider text-surface-700 dark:text-surface-300"
+                                >Closed Accounts</span
+                            >
+                            <i class="pi pi-lock text-surface-500 text-xs" aria-hidden="true"></i>
+                        </div>
+                        <p
+                            data-testid="notification-closed-count"
+                            class="text-xl font-bold font-mono text-surface-900 dark:text-surface-100 m-0 mt-1"
+                        >
+                            {{ report.closedAccounts.length }}
+                        </p>
+                        <p class="text-[11px] text-surface-600 dark:text-surface-400 m-0 mt-0.5">
+                            Explicitly closed or dormant $0 balance
+                        </p>
+                    </div>
+
+                    <div
+                        class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span
+                                class="text-[11px] font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200"
+                                >Needs Data Upload</span
+                            >
+                            <i
+                                class="pi pi-cloud-upload text-amber-800 dark:text-amber-300 text-xs"
+                                aria-hidden="true"
+                            ></i>
+                        </div>
+                        <p
+                            data-testid="notification-stale-count"
+                            class="text-xl font-bold font-mono text-amber-900 dark:text-amber-200 m-0 mt-1"
+                        >
+                            {{ report.needsUploadAccounts.length }}
+                        </p>
+                        <p class="text-[11px] text-amber-900/90 dark:text-amber-200/90 m-0 mt-0.5">
+                            Open accounts needing fresh statements
+                        </p>
+                    </div>
+
+                    <div
+                        class="p-3.5 rounded-xl bg-primary-50/70 dark:bg-primary-950/30 border border-primary-200 dark:border-primary-800/60"
+                    >
+                        <div class="flex items-center justify-between">
+                            <span
+                                class="text-[11px] font-bold uppercase tracking-wider text-primary-900 dark:text-primary-200"
+                                >Augmentable Links</span
+                            >
+                            <i
+                                class="pi pi-share-alt text-primary-800 dark:text-primary-300 text-xs"
+                                aria-hidden="true"
+                            ></i>
+                        </div>
+                        <p
+                            data-testid="notification-augmentation-count"
+                            class="text-xl font-bold font-mono text-primary-900 dark:text-primary-200 m-0 mt-1"
+                        >
+                            {{ report.opportunities.length }}
+                        </p>
+                        <p
+                            class="text-[11px] text-primary-900/90 dark:text-primary-200/90 m-0 mt-0.5"
+                        >
+                            From reconciled transactions in other accounts
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Section 1: Cross-Account Augmentation Opportunities -->
+                @if (report.opportunities.length > 0) {
+                    <div class="space-y-3">
+                        <!-- Heading with Sub-heading ALWAYS below -->
+                        <div
+                            class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-1"
+                        >
+                            <div class="space-y-1">
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-wider text-surface-900 dark:text-surface-100 m-0"
+                                >
+                                    Reconciled Cross-Account Augmentation Opportunities
+                                </h3>
+                                <p
+                                    class="text-xs text-surface-600 dark:text-surface-400 m-0 leading-relaxed"
+                                >
+                                    Added as dismissable banners in affected &amp; source ledgers
+                                    when skipped. Default decision is
+                                    <strong>Skip</strong>.
+                                </p>
+                            </div>
+
+                            <!-- Bulk Decision Quick-Setters -->
+                            <div
+                                class="flex items-center gap-1.5 flex-none"
+                                role="group"
+                                aria-label="Set decision for all opportunities"
+                            >
+                                <button
+                                    type="button"
+                                    data-testid="bulk-select-accept-btn"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                                    (click)="setAllDecisions(AugmentationReviewDecision.Accept)"
+                                >
+                                    Mark All Accept
+                                </button>
+                                <button
+                                    type="button"
+                                    data-testid="bulk-select-skip-btn"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-surface-300 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 hover:bg-surface-200 transition-colors cursor-pointer"
+                                    (click)="setAllDecisions(AugmentationReviewDecision.Skip)"
+                                >
+                                    Mark All Skip
+                                </button>
+                                <button
+                                    type="button"
+                                    data-testid="bulk-select-dismiss-btn"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 hover:bg-red-100 transition-colors cursor-pointer"
+                                    (click)="setAllDecisions(AugmentationReviewDecision.Dismiss)"
+                                >
+                                    Mark All Dismiss
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Opportunities List (No nested max-h scroll container) -->
+                        <div
+                            class="border border-surface-200 dark:border-surface-800 rounded-xl divide-y divide-surface-200 dark:divide-surface-800"
+                        >
+                            @for (opp of report.opportunities; track opp.id) {
+                                <div
+                                    class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-50 dark:hover:bg-surface-900/40"
+                                >
+                                    <div class="min-w-0 space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span
+                                                class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                                >{{ opp.sourceAccountName }}</span
+                                            >
+                                            <i
+                                                class="pi pi-arrow-right text-[10px] text-primary"
+                                                aria-hidden="true"
+                                            ></i>
+                                            <span
+                                                class="text-xs font-bold text-primary-700 dark:text-primary-300"
+                                                >{{ opp.destinationAccountName }}</span
+                                            >
+                                        </div>
+                                        <p
+                                            class="text-[11px] text-surface-600 dark:text-surface-400 m-0"
+                                        >
+                                            {{ opp.candidateTransactions.length }} reconciled
+                                            {{
+                                                opp.candidateTransactions.length === 1
+                                                    ? 'transaction'
+                                                    : 'transactions'
+                                            }}
+                                            ({{ opp.dateRange.from }} to {{ opp.dateRange.to }})
+                                        </p>
+                                    </div>
+
+                                    <!-- Per-Row Decision Segmented Control + Review Button -->
+                                    <div
+                                        class="flex items-center gap-2 flex-none self-end sm:self-center"
+                                    >
+                                        <div
+                                            class="inline-flex rounded-lg border border-surface-200 dark:border-surface-700 p-0.5 bg-surface-100 dark:bg-surface-900 text-[11px]"
+                                            role="group"
+                                            [attr.aria-label]="
+                                                'Decision for ' +
+                                                opp.sourceAccountName +
+                                                ' to ' +
+                                                opp.destinationAccountName
+                                            "
+                                        >
+                                            <button
+                                                type="button"
+                                                (click)="
+                                                    setOpportunityDecision(
+                                                        opp,
+                                                        AugmentationReviewDecision.Accept
+                                                    )
+                                                "
+                                                [class]="
+                                                    getOpportunityDecision(opp) ===
+                                                    AugmentationReviewDecision.Accept
+                                                        ? 'px-2 py-1 rounded-md font-bold bg-emerald-700 text-white shadow-2xs cursor-pointer'
+                                                        : 'px-2 py-1 rounded-md font-medium text-surface-700 dark:text-surface-300 hover:text-surface-900 cursor-pointer'
+                                                "
+                                            >
+                                                Accept
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="
+                                                    setOpportunityDecision(
+                                                        opp,
+                                                        AugmentationReviewDecision.Skip
+                                                    )
+                                                "
+                                                [class]="
+                                                    getOpportunityDecision(opp) ===
+                                                    AugmentationReviewDecision.Skip
+                                                        ? 'px-2 py-1 rounded-md font-bold bg-surface-700 dark:bg-surface-600 text-white shadow-2xs cursor-pointer'
+                                                        : 'px-2 py-1 rounded-md font-medium text-surface-700 dark:text-surface-300 hover:text-surface-900 cursor-pointer'
+                                                "
+                                            >
+                                                Skip
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="
+                                                    setOpportunityDecision(
+                                                        opp,
+                                                        AugmentationReviewDecision.Dismiss
+                                                    )
+                                                "
+                                                [class]="
+                                                    getOpportunityDecision(opp) ===
+                                                    AugmentationReviewDecision.Dismiss
+                                                        ? 'px-2 py-1 rounded-md font-bold bg-red-700 text-white shadow-2xs cursor-pointer'
+                                                        : 'px-2 py-1 rounded-md font-medium text-surface-700 dark:text-surface-300 hover:text-surface-900 cursor-pointer'
+                                                "
+                                            >
+                                                Dismiss
+                                            </button>
+                                        </div>
+
+                                        <button
+                                            pButton
+                                            type="button"
+                                            data-testid="notification-review-opp-btn"
+                                            label="Review"
+                                            class="p-button-outlined p-button-sm text-xs font-semibold"
+                                            (click)="openWizardFromNotification(opp)"
+                                        ></button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Section 2: Accounts Needing Updated Data Uploaded -->
+                @if (report.needsUploadAccounts.length > 0) {
+                    <div class="space-y-3">
+                        <!-- Heading with Sub-heading ALWAYS below -->
+                        <div class="space-y-1">
+                            <h3
+                                class="text-xs font-bold uppercase tracking-wider text-surface-900 dark:text-surface-100 m-0"
+                            >
+                                Accounts Needing Updated Statement Data Uploaded
+                            </h3>
+                            <p
+                                class="text-xs text-surface-600 dark:text-surface-400 m-0 leading-relaxed"
+                            >
+                                Active accounts whose latest activity lags behind your workspace or
+                                have no statement transactions yet.
+                            </p>
+                        </div>
+
+                        <!-- Stale Accounts List (No nested max-h scroll container; sub-heading stacked below account name) -->
+                        <div
+                            class="border border-surface-200 dark:border-surface-800 rounded-xl divide-y divide-surface-200 dark:divide-surface-800"
+                        >
+                            @for (item of report.needsUploadAccounts; track item.accountId) {
+                                <div class="p-3.5 flex items-center justify-between gap-3 text-xs">
+                                    <div class="min-w-0 space-y-0.5">
+                                        <p
+                                            class="font-bold text-surface-900 dark:text-surface-100 m-0"
+                                        >
+                                            {{ item.accountName }}
+                                        </p>
+                                        <p
+                                            class="text-[11px] text-surface-600 dark:text-surface-400 m-0 leading-relaxed"
+                                        >
+                                            {{ item.recommendation }}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="text-xs text-primary-700 dark:text-primary-300 font-bold hover:underline flex-none cursor-pointer"
+                                        (click)="navigateToAccountFromNotification(item.accountId)"
+                                    >
+                                        Open Ledger
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Sticky Footer with One-Click Bulk Actions & Apply Decisions -->
+            <div
+                class="px-6 py-4 bg-surface-50/90 dark:bg-surface-900/90 border-t border-surface-200 dark:border-surface-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-none"
+            >
+                <div class="text-xs text-surface-600 dark:text-surface-400 font-medium">
+                    @if (report.opportunities.length > 0) {
+                        <span>
+                            Decisions:
+                            <strong class="text-emerald-700 dark:text-emerald-400"
+                                >{{ summaryDecisionCounts().accept }} Accept</strong
+                            >
+                            ·
+                            <strong class="text-surface-800 dark:text-surface-200"
+                                >{{ summaryDecisionCounts().skip }} Skip</strong
+                            >
+                            ·
+                            <strong class="text-red-700 dark:text-red-400"
+                                >{{ summaryDecisionCounts().dismiss }} Dismiss</strong
+                            >
+                        </span>
+                    } @else {
+                        <span>Diagnostic complete</span>
+                    }
+                </div>
+
+                <div class="flex items-center justify-end gap-2 flex-wrap">
+                    @if (report.opportunities.length > 0) {
+                        <button
+                            pButton
+                            type="button"
+                            data-testid="notification-dismiss-all-btn"
+                            label="Dismiss All"
+                            class="p-button-text p-button-danger p-button-sm text-xs font-semibold"
+                            (click)="dismissAllAndCloseNotification()"
+                        ></button>
+                        <button
+                            pButton
+                            type="button"
+                            data-testid="notification-accept-all-btn"
+                            label="Accept & Update All"
+                            icon="pi pi-bolt"
+                            class="p-button-outlined p-button-sm text-xs font-semibold"
+                            (click)="acceptAndApplyAllFromNotification()"
+                        ></button>
+                    }
+                    <button
+                        pButton
+                        type="button"
+                        data-testid="notification-got-it-btn"
+                        [label]="report.opportunities.length > 0 ? 'Apply Decisions' : 'Got It'"
+                        icon="pi pi-check"
+                        class="p-button-primary p-button-sm text-xs font-bold"
+                        (click)="applyNotificationDecisions()"
+                    ></button>
+                </div>
+            </div>
+        </div>
+    }
+</p-dialog>

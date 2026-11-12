@@ -18,25 +18,25 @@
             <div class="lg:col-span-7 space-y-6">
                 <!-- ── AI Integration Card ───────────────────────────── -->
                 <section
-                    class="bg-surface-0 border border-surface-200/80 rounded-xl p-5 sm:p-6 shadow-sm space-y-5"
+                    class="bg-surface-0 border border-surface-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6"
                 >
                     <!-- Card Header -->
                     <div
                         class="flex items-center justify-between gap-3 pb-4 border-b border-surface-100"
                     >
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3.5">
                             <div
-                                class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+                                class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"
                             >
                                 <i class="pi pi-sparkles text-lg"></i>
                             </div>
-                            <div>
+                            <div class="space-y-0.5">
                                 <h2
                                     class="text-sm font-black uppercase tracking-wider text-surface-900"
                                 >
                                     AI Integration
                                 </h2>
-                                <p class="text-[11px] text-surface-500 font-medium">
+                                <p class="text-xs text-surface-500 font-medium">
                                     Multi-Provider BYOK (Bring Your Own Key)
                                 </p>
                             </div>
@@ -45,7 +45,7 @@
                         <!-- Status Badge -->
                         <div
                             [class]="
-                                'px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ' +
+                                'px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 ' +
                                 keyStatus().badgeClass
                             "
                         >
@@ -62,9 +62,9 @@
                     </div>
 
                     <!-- Provider & Model Selection -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <!-- Provider Dropdown -->
-                        <div class="space-y-1.5">
+                        <div class="space-y-2">
                             <label
                                 for="ai-provider-select"
                                 class="text-[10px] font-black uppercase tracking-wider text-surface-500 block"
@@ -77,7 +77,7 @@
                                     aria-label="AI Provider"
                                     [value]="selectedProvider()"
                                     (change)="updateProvider($any($event.target).value)"
-                                    class="h-11 text-xs px-3 bg-surface-50 border border-surface-200 text-surface-900 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary w-full outline-none transition-all cursor-pointer"
+                                    class="h-11 text-xs pl-3.5 pr-10 bg-surface-50 border border-surface-200 text-surface-900 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary w-full outline-none transition-all cursor-pointer"
                                 >
                                     @for (p of providerOptions; track p.value) {
                                         <option
@@ -92,7 +92,7 @@
                         </div>
 
                         <!-- Model Dropdown -->
-                        <div class="space-y-1.5">
+                        <div class="space-y-2">
                             <label
                                 for="ai-model-select"
                                 class="text-[10px] font-black uppercase tracking-wider text-surface-500 block"
@@ -120,8 +120,8 @@
                                     [disabled]="!hasKey()"
                                     [class]="
                                         hasKey()
-                                            ? 'h-11 text-xs px-3 bg-surface-50 border border-surface-200 text-surface-900 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary w-full outline-none transition-all cursor-pointer'
-                                            : 'h-11 text-xs px-3 bg-surface-100 border border-surface-200 text-surface-400 rounded-lg w-full outline-none cursor-not-allowed opacity-75'
+                                            ? 'h-11 text-xs pl-3.5 pr-10 bg-surface-50 border border-surface-200 text-surface-900 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary w-full outline-none transition-all cursor-pointer'
+                                            : 'h-11 text-xs pl-3.5 pr-10 bg-surface-100 border border-surface-200 text-surface-400 rounded-xl w-full outline-none cursor-not-allowed opacity-75'
                                     "
                                 >
                                     @for (opt of modelOptions(); track opt.value) {
@@ -142,18 +142,18 @@
 
                     <!-- Custom Model Input (if selected) -->
                     @if (isCustomModel() && hasKey()) {
-                        <div class="flex flex-col sm:flex-row gap-2 animate-fade-in">
+                        <div class="flex flex-col sm:flex-row gap-3 animate-fade-in">
                             <input
                                 type="text"
                                 [value]="selectedModel()"
                                 #customModelInput
                                 placeholder="Enter custom model identifier (e.g. claude-3-7-sonnet-20250219)"
-                                class="flex-1 h-11 text-xs px-3 bg-surface-50 border border-surface-200 text-surface-900 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                class="flex-1 h-11 text-xs px-3.5 bg-surface-50 border border-surface-200 text-surface-900 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             />
                             <button
                                 type="button"
                                 (click)="updateModel(customModelInput.value)"
-                                class="h-11 px-5 rounded-lg bg-primary hover:bg-primary/90 text-white active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center"
+                                class="h-11 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                             >
                                 Apply Model
                             </button>
@@ -161,49 +161,60 @@
                     }
 
                     <!-- Provider API Key Input -->
-                    <div class="space-y-2 pt-3 border-t border-surface-100">
+                    <div class="space-y-2.5 pt-4 border-t border-surface-100">
                         <div
-                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-1"
+                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
                         >
                             <label
                                 class="text-[10px] font-black uppercase tracking-wider text-surface-500"
                             >
                                 {{ apiKeyLabel() }}
                             </label>
-                            <span class="text-[10px] text-surface-400 font-mono">
+                            <span class="text-[11px] text-surface-400 font-mono">
                                 Keys stay in local browser storage only
                             </span>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="flex flex-col sm:flex-row gap-3">
                             <div class="relative flex-1">
                                 <input
                                     [type]="showApiKey() ? 'text' : 'password'"
-                                    [value]="apiKey()"
+                                    [value]="currentApiKeyInput()"
+                                    (input)="onApiKeyInput(keyInput.value)"
                                     #keyInput
                                     [placeholder]="apiKeyPlaceholder()"
                                     autocomplete="off"
                                     autocorrect="off"
                                     autocapitalize="off"
                                     spellcheck="false"
-                                    class="w-full h-11 text-xs pl-3 pr-10 bg-surface-50 border border-surface-200 text-surface-900 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono transition-all"
+                                    class="w-full h-11 text-xs pl-3.5 pr-11 bg-surface-50 border border-surface-200 text-surface-900 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-mono transition-all"
                                 />
                                 <button
                                     type="button"
-                                    (click)="showApiKey.set(!showApiKey())"
-                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 p-1 transition-colors"
+                                    [disabled]="!hasApiKeyInputValue()"
+                                    (click)="toggleShowApiKey(keyInput)"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-surface-500 hover:text-surface-800 hover:bg-surface-200/60 bg-transparent shadow-none transition-colors cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                                     [attr.aria-label]="
                                         showApiKey() ? 'Hide API key' : 'Show API key'
+                                    "
+                                    [attr.aria-pressed]="showApiKey()"
+                                    [attr.title]="
+                                        !hasApiKeyInputValue()
+                                            ? 'Enter an API key to show or hide'
+                                            : showApiKey()
+                                              ? 'Hide API key'
+                                              : 'Show API key'
                                     "
                                 >
                                     <i
                                         [class]="'pi ' + (showApiKey() ? 'pi-eye-slash' : 'pi-eye')"
+                                        aria-hidden="true"
                                     ></i>
                                 </button>
                             </div>
                             <button
                                 type="button"
                                 (click)="updateApiKey(keyInput.value)"
-                                class="h-11 px-5 rounded-lg bg-primary hover:bg-primary/90 active:scale-[0.98] text-white transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-2"
+                                class="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 active:scale-[0.98] text-white transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer"
                             >
                                 @if (keySaved()) {
                                     <i class="pi pi-check text-xs"></i>
@@ -216,12 +227,15 @@
                         </div>
                     </div>
 
-                    <!-- Setup Guide Toggle -->
-                    <div class="pt-1">
+                    <!-- Setup Guide Popover Trigger & Floating Card -->
+                    <div class="relative">
                         <button
                             type="button"
                             (click)="showGuide.set(!showGuide())"
-                            class="text-[11px] font-bold text-primary hover:text-primary/80 focus:outline-none flex items-center gap-1.5 transition-colors"
+                            [attr.aria-expanded]="showGuide()"
+                            aria-haspopup="dialog"
+                            aria-controls="provider-setup-guide-popover"
+                            class="relative z-50 px-3 py-2 -ml-3 rounded-lg text-xs font-bold text-primary hover:text-primary/80 hover:bg-primary/5 bg-transparent shadow-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 flex items-center gap-2 transition-colors cursor-pointer"
                         >
                             <i
                                 [class]="
@@ -235,112 +249,135 @@
                                     : 'How do I obtain an API Key?'
                             }}</span>
                         </button>
-                    </div>
 
-                    <!-- Setup Guide Content Cards -->
-                    @if (showGuide()) {
-                        <div
-                            class="p-4 border border-surface-200 bg-surface-50/80 rounded-xl space-y-3 animate-fade-in text-left"
-                        >
-                            <p class="text-[11px] font-medium text-surface-600">
-                                Select any supported provider and generate a private API key from
-                                their developer console:
-                            </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                <!-- Google AI Studio -->
-                                <a
-                                    href="https://aistudio.google.com/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="p-3 bg-surface-0 border border-surface-200 rounded-lg hover:border-primary/50 transition-all flex flex-col justify-between gap-2 group"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="w-6 h-6 rounded-md bg-blue-500/10 text-blue-500 text-xs font-black flex items-center justify-center"
-                                            >G</span
-                                        >
-                                        <span class="text-xs font-bold text-surface-900"
-                                            >Google Gemini</span
-                                        >
-                                    </div>
-                                    <span
-                                        class="text-[10px] font-semibold text-primary group-hover:underline flex items-center gap-1"
+                        <!-- Setup Guide Popover Content Cards -->
+                        @if (showGuide()) {
+                            <div
+                                class="fixed inset-0 z-40"
+                                (click)="showGuide.set(false)"
+                                aria-hidden="true"
+                            ></div>
+                            <div
+                                id="provider-setup-guide-popover"
+                                role="dialog"
+                                aria-label="Provider Setup Guide"
+                                class="absolute left-0 right-0 top-full mt-2 z-50 p-5 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-2xl shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150 text-left"
+                            >
+                                <div class="flex items-start justify-between gap-3">
+                                    <p
+                                        class="text-xs font-medium text-surface-600 dark:text-surface-300"
                                     >
-                                        Get Gemini Key
-                                        <i class="pi pi-external-link text-[9px]"></i>
-                                    </span>
-                                </a>
+                                        Select any supported provider and generate a private API key
+                                        from their developer console:
+                                    </p>
+                                    <button
+                                        type="button"
+                                        (click)="showGuide.set(false)"
+                                        aria-label="Close Provider Setup Guide"
+                                        class="w-7 h-7 -mt-1 -mr-1 rounded-lg flex items-center justify-center text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 bg-transparent shadow-none transition-colors cursor-pointer shrink-0 focus:outline-none"
+                                    >
+                                        <i class="pi pi-times text-xs"></i>
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <!-- Google AI Studio -->
+                                    <a
+                                        href="https://aistudio.google.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="p-4 bg-surface-50/70 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 rounded-xl hover:border-primary/50 hover:bg-surface-0 dark:hover:bg-surface-800 hover:shadow-xs transition-all flex flex-col justify-between gap-3.5 group"
+                                    >
+                                        <div class="flex items-center gap-2.5">
+                                            <span
+                                                class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 text-xs font-black flex items-center justify-center shrink-0"
+                                                >G</span
+                                            >
+                                            <span
+                                                class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                                >Google Gemini</span
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1.5"
+                                        >
+                                            Get Gemini Key
+                                            <i class="pi pi-external-link text-[10px]"></i>
+                                        </span>
+                                    </a>
 
-                                <!-- Anthropic Console -->
-                                <a
-                                    href="https://console.anthropic.com/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="p-3 bg-surface-0 border border-surface-200 rounded-lg hover:border-primary/50 transition-all flex flex-col justify-between gap-2 group"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="w-6 h-6 rounded-md bg-amber-500/10 text-amber-500 text-xs font-black flex items-center justify-center"
-                                            >C</span
-                                        >
-                                        <span class="text-xs font-bold text-surface-900"
-                                            >Anthropic Claude</span
-                                        >
-                                    </div>
-                                    <span
-                                        class="text-[10px] font-semibold text-primary group-hover:underline flex items-center gap-1"
+                                    <!-- Anthropic Console -->
+                                    <a
+                                        href="https://console.anthropic.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="p-4 bg-surface-50/70 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 rounded-xl hover:border-primary/50 hover:bg-surface-0 dark:hover:bg-surface-800 hover:shadow-xs transition-all flex flex-col justify-between gap-3.5 group"
                                     >
-                                        Get Claude Key
-                                        <i class="pi pi-external-link text-[9px]"></i>
-                                    </span>
-                                </a>
+                                        <div class="flex items-center gap-2.5">
+                                            <span
+                                                class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 text-xs font-black flex items-center justify-center shrink-0"
+                                                >C</span
+                                            >
+                                            <span
+                                                class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                                >Anthropic Claude</span
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1.5"
+                                        >
+                                            Get Claude Key
+                                            <i class="pi pi-external-link text-[10px]"></i>
+                                        </span>
+                                    </a>
 
-                                <!-- OpenAI Platform -->
-                                <a
-                                    href="https://platform.openai.com/api-keys"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="p-3 bg-surface-0 border border-surface-200 rounded-lg hover:border-primary/50 transition-all flex flex-col justify-between gap-2 group"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-500 text-xs font-black flex items-center justify-center"
-                                            >O</span
-                                        >
-                                        <span class="text-xs font-bold text-surface-900"
-                                            >OpenAI</span
-                                        >
-                                    </div>
-                                    <span
-                                        class="text-[10px] font-semibold text-primary group-hover:underline flex items-center gap-1"
+                                    <!-- OpenAI Platform -->
+                                    <a
+                                        href="https://platform.openai.com/api-keys"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="p-4 bg-surface-50/70 dark:bg-surface-800/60 border border-surface-200 dark:border-surface-700 rounded-xl hover:border-primary/50 hover:bg-surface-0 dark:hover:bg-surface-800 hover:shadow-xs transition-all flex flex-col justify-between gap-3.5 group"
                                     >
-                                        Get OpenAI Key
-                                        <i class="pi pi-external-link text-[9px]"></i>
-                                    </span>
-                                </a>
+                                        <div class="flex items-center gap-2.5">
+                                            <span
+                                                class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 text-xs font-black flex items-center justify-center shrink-0"
+                                                >O</span
+                                            >
+                                            <span
+                                                class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                                >OpenAI</span
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1.5"
+                                        >
+                                            Get OpenAI Key
+                                            <i class="pi pi-external-link text-[10px]"></i>
+                                        </span>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </section>
 
                 <!-- ── Data Backup & Storage Card ────────────────────── -->
                 <section
-                    class="bg-surface-0 border border-surface-200/80 rounded-xl p-5 sm:p-6 shadow-sm space-y-4"
+                    class="bg-surface-0 border border-surface-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5"
                 >
                     <!-- Card Header -->
-                    <div class="flex items-center gap-3 pb-3 border-b border-surface-100">
+                    <div class="flex items-center gap-3.5 pb-4 border-b border-surface-100">
                         <div
-                            class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+                            class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"
                         >
                             <i class="pi pi-cloud text-lg"></i>
                         </div>
-                        <div>
+                        <div class="space-y-0.5">
                             <h2
                                 class="text-sm font-black uppercase tracking-wider text-surface-900"
                             >
                                 Data Backup &amp; Storage
                             </h2>
-                            <p class="text-[11px] text-surface-500 font-medium">
+                            <p class="text-xs text-surface-500 font-medium">
                                 Local-First SQLite archives &amp; snapshot management
                             </p>
                         </div>
@@ -350,21 +387,21 @@
                     <div class="divide-y divide-surface-100">
                         <!-- Action 1: Export -->
                         <div
-                            class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            class="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
-                            <div class="flex items-start gap-3">
+                            <div class="flex items-start gap-3.5">
                                 <div
-                                    class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-none mt-0.5"
+                                    class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-none mt-0.5"
                                 >
                                     <i class="pi pi-download text-xs font-bold"></i>
                                 </div>
-                                <div>
+                                <div class="space-y-1">
                                     <h3
                                         class="text-xs font-bold uppercase tracking-wider text-surface-900"
                                     >
                                         Export Data Backup
                                     </h3>
-                                    <p class="text-[11px] text-surface-500 font-normal mt-0.5">
+                                    <p class="text-xs text-surface-500 font-normal leading-relaxed">
                                         Download an encrypted snapshot of accounts, ledgers, and
                                         rules
                                     </p>
@@ -373,7 +410,7 @@
                             <button
                                 type="button"
                                 (click)="showExportDialog.set(true)"
-                                class="h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 flex-none"
+                                class="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-white active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 flex-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                             >
                                 <i class="pi pi-download text-xs"></i>
                                 <span>Export Backup</span>
@@ -383,21 +420,23 @@
                         <!-- Action 2: Restore -->
                         @if (isMediumOrLarge()) {
                             <div
-                                class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                class="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                             >
-                                <div class="flex items-start gap-3">
+                                <div class="flex items-start gap-3.5">
                                     <div
-                                        class="w-8 h-8 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
+                                        class="w-9 h-9 rounded-xl bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
                                     >
                                         <i class="pi pi-upload text-xs font-bold"></i>
                                     </div>
-                                    <div>
+                                    <div class="space-y-1">
                                         <h3
                                             class="text-xs font-bold uppercase tracking-wider text-surface-900"
                                         >
                                             Restore Data Backup
                                         </h3>
-                                        <p class="text-[11px] text-surface-500 font-normal mt-0.5">
+                                        <p
+                                            class="text-xs text-surface-500 font-normal leading-relaxed"
+                                        >
                                             Import an existing backup archive into your local SQLite
                                             store
                                         </p>
@@ -406,7 +445,7 @@
                                 <button
                                     type="button"
                                     (click)="showImportDialog.set(true)"
-                                    class="h-10 px-4 rounded-lg bg-surface-100 hover:bg-surface-200 text-surface-900 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 flex-none"
+                                    class="h-10 px-5 rounded-xl bg-surface-100 hover:bg-surface-200 text-surface-900 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 flex-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                                 >
                                     <i class="pi pi-upload text-xs"></i>
                                     <span>Restore Backup</span>
@@ -416,21 +455,21 @@
 
                         <!-- Action 3: Manage Backups -->
                         <div
-                            class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            class="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
-                            <div class="flex items-start gap-3">
+                            <div class="flex items-start gap-3.5">
                                 <div
-                                    class="w-8 h-8 rounded-lg bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
+                                    class="w-9 h-9 rounded-xl bg-surface-100 text-surface-700 flex items-center justify-center flex-none mt-0.5"
                                 >
                                     <i class="pi pi-database text-xs font-bold"></i>
                                 </div>
-                                <div>
+                                <div class="space-y-1">
                                     <h3
                                         class="text-xs font-bold uppercase tracking-wider text-surface-900"
                                     >
                                         Manage Data Backups
                                     </h3>
-                                    <p class="text-[11px] text-surface-500 font-normal mt-0.5">
+                                    <p class="text-xs text-surface-500 font-normal leading-relaxed">
                                         Inspect snapshots, consolidate duplicates, and purge stale
                                         backups
                                     </p>
@@ -439,10 +478,44 @@
                             <button
                                 type="button"
                                 (click)="showExportManagerDialog.set(true)"
-                                class="h-10 px-4 rounded-lg bg-surface-0 hover:bg-surface-50 text-surface-800 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 flex-none"
+                                class="h-10 px-5 rounded-xl bg-surface-0 hover:bg-surface-50 text-surface-800 border border-surface-200 active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 flex-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                             >
                                 <i class="pi pi-sliders-h text-xs"></i>
                                 <span>Manage Backups</span>
+                            </button>
+                        </div>
+
+                        <!-- Action 4: Migrate from MS Money -->
+                        <div
+                            class="py-4 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-surface-100 dark:border-surface-800"
+                        >
+                            <div class="flex items-start gap-3.5">
+                                <div
+                                    class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-none mt-0.5 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs"
+                                >
+                                    <i class="pi pi-database text-xs font-bold"></i>
+                                </div>
+                                <div class="space-y-1">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-wider text-surface-900 dark:text-surface-100 m-0"
+                                    >
+                                        Migrate from MS Money
+                                    </h3>
+                                    <p
+                                        class="text-xs text-surface-500 font-normal leading-relaxed m-0"
+                                    >
+                                        Import accounts, categories, and ledger transactions from MS
+                                        Money
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                (click)="openMnyMigration()"
+                                class="h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.98] transition-all text-[11px] font-black uppercase tracking-wider shadow-xs flex items-center justify-center gap-2 flex-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                            >
+                                <i class="pi pi-file-import text-xs"></i>
+                                <span>Migrate MS Money</span>
                             </button>
                         </div>
                     </div>
@@ -453,28 +526,28 @@
             <div class="lg:col-span-5 space-y-6">
                 <!-- ── Appearance Card ───────────────────────────────── -->
                 <section
-                    class="bg-surface-0 border border-surface-200/80 rounded-xl p-5 sm:p-6 shadow-sm space-y-4"
+                    class="bg-surface-0 border border-surface-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5"
                 >
                     <!-- Card Header -->
-                    <div class="flex items-center gap-3 pb-3 border-b border-surface-100">
+                    <div class="flex items-center gap-3.5 pb-4 border-b border-surface-100">
                         <div
-                            class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+                            class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"
                         >
                             <i class="pi pi-palette text-lg"></i>
                         </div>
-                        <div>
+                        <div class="space-y-0.5">
                             <h2
                                 class="text-sm font-black uppercase tracking-wider text-surface-900"
                             >
                                 Appearance
                             </h2>
-                            <p class="text-[11px] text-surface-500 font-medium">
+                            <p class="text-xs text-surface-500 font-medium">
                                 Interface theme &amp; display styling
                             </p>
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2.5">
                         <div
                             class="flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-surface-500"
                         >
@@ -486,7 +559,7 @@
 
                         <!-- Segmented Pill Control (Full-width grid on all viewports) -->
                         <div
-                            class="grid grid-cols-3 p-1.5 bg-surface-100 rounded-xl border border-surface-200/80"
+                            class="grid grid-cols-3 gap-1.5 p-1.5 bg-surface-100 rounded-xl border border-surface-200/80"
                             role="group"
                             aria-label="Theme preference"
                         >
@@ -497,8 +570,8 @@
                                     (click)="setTheme(opt.value)"
                                     [class]="
                                         currentTheme() === opt.value
-                                            ? 'h-11 flex items-center justify-center gap-2 rounded-lg font-black text-[11px] uppercase tracking-wider bg-surface-0 text-primary shadow-sm border border-surface-200 transition-all'
-                                            : 'h-11 flex items-center justify-center gap-2 rounded-lg font-bold text-[11px] uppercase tracking-wider bg-transparent text-surface-500 hover:text-surface-900 hover:bg-surface-200/40 transition-colors'
+                                            ? 'h-11 flex items-center justify-center gap-2 rounded-lg font-black text-[11px] uppercase tracking-wider bg-surface-0 text-primary shadow-xs border border-surface-200 transition-all cursor-pointer'
+                                            : 'h-11 flex items-center justify-center gap-2 rounded-lg font-bold text-[11px] uppercase tracking-wider bg-transparent shadow-none text-surface-500 hover:text-surface-900 hover:bg-surface-200/40 transition-colors cursor-pointer'
                                     "
                                     [attr.aria-pressed]="currentTheme() === opt.value"
                                 >
@@ -512,36 +585,36 @@
 
                 <!-- ── System Architecture Info Card ─────────────────── -->
                 <section
-                    class="bg-surface-0 border border-surface-200/80 rounded-xl p-5 sm:p-6 shadow-sm space-y-4"
+                    class="bg-surface-0 border border-surface-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-5"
                 >
                     <!-- Card Header -->
-                    <div class="flex items-center gap-3 pb-3 border-b border-surface-100">
+                    <div class="flex items-center gap-3.5 pb-4 border-b border-surface-100">
                         <div
-                            class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+                            class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"
                         >
                             <i class="pi pi-shield text-lg"></i>
                         </div>
-                        <div>
+                        <div class="space-y-0.5">
                             <h2
                                 class="text-sm font-black uppercase tracking-wider text-surface-900"
                             >
                                 System Architecture
                             </h2>
-                            <p class="text-[11px] text-surface-500 font-medium">
+                            <p class="text-xs text-surface-500 font-medium">
                                 Platform specifications &amp; engine integrity
                             </p>
                         </div>
                     </div>
 
                     <!-- Compact Architecture Tiles -->
-                    <div class="space-y-2.5">
+                    <div class="space-y-3">
                         <!-- Version Item (Easter egg) -->
                         <div
-                            class="p-3 bg-surface-50 border border-surface-200/60 rounded-lg flex items-center justify-between cursor-pointer select-none hover:border-primary/30 transition-colors"
+                            class="px-4 py-3.5 bg-surface-50 border border-surface-200/60 rounded-xl flex items-center justify-between cursor-pointer select-none hover:border-primary/30 transition-colors"
                             (click)="onVersionClick()"
                             title="Click 5 times to toggle developer flags"
                         >
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-3">
                                 <i class="pi pi-tag text-surface-400 text-xs"></i>
                                 <span
                                     class="text-[10px] font-black uppercase tracking-wider text-surface-600"
@@ -550,7 +623,7 @@
                                 </span>
                             </div>
                             <span
-                                class="text-[11px] font-black uppercase tracking-wider text-surface-900 bg-surface-200/60 px-2 py-0.5 rounded border border-surface-300/40"
+                                class="text-[11px] font-black uppercase tracking-wider text-surface-900 bg-surface-200/60 px-2.5 py-1 rounded-md border border-surface-300/40"
                             >
                                 4.2-Alpha (Angular)
                             </span>
@@ -558,9 +631,9 @@
 
                         <!-- Engine Item -->
                         <div
-                            class="p-3 bg-surface-50 border border-surface-200/60 rounded-lg flex items-center justify-between"
+                            class="px-4 py-3.5 bg-surface-50 border border-surface-200/60 rounded-xl flex items-center justify-between"
                         >
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-3">
                                 <i class="pi pi-server text-emerald-500 text-xs"></i>
                                 <span
                                     class="text-[10px] font-black uppercase tracking-wider text-surface-600"
@@ -569,7 +642,7 @@
                                 </span>
                             </div>
                             <span
-                                class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"
+                                class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20"
                             >
                                 WASM SQLite (Local-First)
                             </span>
@@ -577,9 +650,9 @@
 
                         <!-- Encryption Item -->
                         <div
-                            class="p-3 bg-surface-50 border border-surface-200/60 rounded-lg flex items-center justify-between"
+                            class="px-4 py-3.5 bg-surface-50 border border-surface-200/60 rounded-xl flex items-center justify-between"
                         >
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-3">
                                 <i class="pi pi-lock text-emerald-500 text-xs"></i>
                                 <span
                                     class="text-[10px] font-black uppercase tracking-wider text-surface-600"
@@ -588,7 +661,7 @@
                                 </span>
                             </div>
                             <span
-                                class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"
+                                class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20"
                             >
                                 AES-GCM 256-bit (Hardware)
                             </span>

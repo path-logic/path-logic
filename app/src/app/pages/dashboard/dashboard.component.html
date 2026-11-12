@@ -67,7 +67,7 @@
 
         <!-- ── 1. Full-Width 90-Day Cashflow Forecast Banner ─────────────── -->
         <section
-            class="p-6 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-4"
+            class="p-6 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-300/90 dark:border-surface-700 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)] space-y-4"
         >
             <div class="flex items-center justify-between border-b border-surface-100 pb-3">
                 <div>
@@ -124,11 +124,11 @@
                     >
                         Account Portfolio
                     </h2>
-                    @if (accounts().length > 5) {
+                    @if (activeAccounts().length > 4) {
                         <span
                             class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-emerald-700 dark:text-emerald-400 border border-primary/20"
                         >
-                            {{ accounts().length }} Total
+                            {{ activeAccounts().length }} Active
                         </span>
                     }
                     <i
@@ -155,7 +155,7 @@
                         }
                     </div>
                 </div>
-            } @else if (accounts().length === 0) {
+            } @else if (activeAccounts().length === 0) {
                 <ng-container *ngTemplateOutlet="emptyAccountsState" />
             } @else {
                 <div class="space-y-4">
@@ -163,8 +163,9 @@
                     @if (heroAccount(); as hero) {
                         <account-sparkline-card
                             [account]="hero"
-                            [trendPercent]="getTrendPercent(0)"
-                            [isPrimary]="hero.id === primaryAccountId()"
+                            [telemetry]="heroTelemetry()"
+                            [heroTelemetry90d]="heroTelemetry90d()"
+                            [isPrimary]="isAccountStarred(hero.id)"
                             [isFullWidth]="true"
                             (quickEntryRequested)="openQuickEntry($event)"
                             (starToggled)="togglePrimaryAccount($event)"
@@ -174,15 +175,11 @@
                     <!-- Remaining Accounts in Clean Grid -->
                     @if (remainingAccounts().length > 0) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @for (
-                                account of remainingAccounts();
-                                track account.id;
-                                let i = $index
-                            ) {
+                            @for (account of remainingAccounts(); track account.id) {
                                 <account-sparkline-card
                                     [account]="account"
-                                    [trendPercent]="getTrendPercent(i + 1)"
-                                    [isPrimary]="account.id === primaryAccountId()"
+                                    [telemetry]="getSubCardTelemetry(account.id)"
+                                    [isPrimary]="isAccountStarred(account.id)"
                                     [isFullWidth]="false"
                                     (quickEntryRequested)="openQuickEntry($event)"
                                     (starToggled)="togglePrimaryAccount($event)"
@@ -198,7 +195,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Recent Activity Feed -->
             <section
-                class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
+                class="p-5 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-300/90 dark:border-surface-700 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)] space-y-3 flex flex-col justify-between"
             >
                 <a
                     routerLink="/accounts"
@@ -256,8 +253,17 @@
                                     >
                                         {{ tx.payee }}
                                     </p>
-                                    <p class="text-[10px] text-surface-600 dark:text-surface-400">
-                                        {{ tx.date | localDate: 'short' }}
+                                    <p
+                                        class="text-[10px] text-surface-600 dark:text-surface-400 flex items-center gap-1.5 truncate"
+                                    >
+                                        <span>{{ tx.date | localDate: 'short' }}</span>
+                                        <span aria-hidden="true">•</span>
+                                        <span
+                                            data-testid="recent-tx-account-name"
+                                            class="font-semibold text-surface-700 dark:text-surface-300 truncate"
+                                        >
+                                            {{ getAccountName(tx.accountId) }}
+                                        </span>
                                     </p>
                                 </div>
                                 <span
@@ -285,7 +291,7 @@
 
             <!-- Upcoming Payments Feed -->
             <section
-                class="p-5 rounded-2xl bg-surface-0 border border-surface-200/80 shadow-sm space-y-3 flex flex-col justify-between"
+                class="p-5 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-300/90 dark:border-surface-700 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)] space-y-3 flex flex-col justify-between"
             >
                 <a
                     routerLink="/recurring"
@@ -343,8 +349,17 @@
                                     >
                                         {{ item.name }}
                                     </p>
-                                    <p class="text-[10px] text-surface-600 dark:text-surface-400">
-                                        Due {{ item.dueDate | localDate: 'short' }}
+                                    <p
+                                        class="text-[10px] text-surface-600 dark:text-surface-400 flex items-center gap-1.5 truncate"
+                                    >
+                                        <span>Due {{ item.dueDate | localDate: 'short' }}</span>
+                                        <span aria-hidden="true">•</span>
+                                        <span
+                                            data-testid="upcoming-item-account-name"
+                                            class="font-semibold text-surface-700 dark:text-surface-300 truncate"
+                                        >
+                                            {{ item.accountName }}
+                                        </span>
                                     </p>
                                 </div>
                                 <span

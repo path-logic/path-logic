@@ -1,3 +1,50 @@
+<ng-template #sidebarTools>
+    <div class="space-y-4">
+        <div class="space-y-1">
+            <span
+                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block px-1 mb-1"
+            >
+                Account Actions
+            </span>
+            <button
+                type="button"
+                data-testid="sidebar-cross-account-reconcile-btn"
+                (click)="openCrossAccountReconciliationWizard()"
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer bg-transparent border-0 border-transparent shadow-none"
+            >
+                <span class="flex items-center gap-2.5 truncate">
+                    <i class="pi pi-share-alt text-primary text-xs"></i>
+                    <span class="truncate">Cross-Account Reconcile</span>
+                </span>
+                @if (pendingCrossAccountCount() > 0) {
+                    <span
+                        class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary"
+                    >
+                        {{ pendingCrossAccountCount() }}
+                    </span>
+                }
+            </button>
+            <button
+                type="button"
+                data-testid="sidebar-ai-account-health-btn"
+                (click)="openAiAccountSummary()"
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer bg-transparent border-0 border-transparent shadow-none"
+            >
+                <i class="pi pi-sparkles text-primary text-xs"></i>
+                <span>AI Account Health</span>
+            </button>
+            <button
+                type="button"
+                (click)="openAddAccount()"
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer bg-transparent border-0 border-transparent shadow-none"
+            >
+                <i class="pi pi-plus text-primary text-xs"></i>
+                <span>Add Account</span>
+            </button>
+        </div>
+    </div>
+</ng-template>
+
 <shell [noPadding]="accounts().length === 0">
     @if (isLoading()) {
         <!-- Skeleton Loading Layout for Accounts -->
@@ -39,17 +86,165 @@
     } @else {
         <div class="w-full space-y-6 pb-12">
             <!-- Header Section -->
-            <header class="flex justify-between items-center gap-4">
+            <header class="flex justify-between items-center gap-3 flex-wrap">
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-surface-900">
                     Accounts
                 </h1>
-                <button
-                    (click)="openAddAccount()"
-                    class="min-h-[44px] px-4 sm:px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all cursor-pointer"
-                >
-                    <i class="pi pi-plus text-base"></i>
-                    Add Account
-                </button>
+                <div class="flex items-center gap-2.5 relative flex-wrap">
+                    @if (accounts().length > 0 && !isTrashOpen()) {
+                        <button
+                            type="button"
+                            data-testid="accounts-show-closed-toggle"
+                            (click)="toggleShowClosedAccounts()"
+                            [attr.aria-pressed]="showClosedAccounts()"
+                            class="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-2 rounded-xl text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer border"
+                            [class]="
+                                showClosedAccounts()
+                                    ? 'bg-primary/10 border-primary/30 text-primary'
+                                    : 'bg-surface-0 dark:bg-surface-900 border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-200 hover:border-primary/50 hover:text-primary'
+                            "
+                        >
+                            <i
+                                [class]="
+                                    showClosedAccounts()
+                                        ? 'pi pi-eye text-sm'
+                                        : 'pi pi-eye-slash text-sm'
+                                "
+                            ></i>
+                            <span>Show Closed</span>
+                            @if (closedAccountsCount() > 0) {
+                                <span
+                                    data-testid="accounts-closed-count-badge"
+                                    class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-surface-200/80 dark:bg-surface-700 text-surface-700 dark:text-surface-200"
+                                >
+                                    {{ closedAccountsCount() }}
+                                </span>
+                            }
+                        </button>
+
+                        <button
+                            type="button"
+                            data-testid="accounts-group-by-type-toggle"
+                            (click)="toggleGroupByType()"
+                            [attr.aria-pressed]="groupByType()"
+                            class="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-2 rounded-xl text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer border"
+                            [class]="
+                                groupByType()
+                                    ? 'bg-primary/10 border-primary/30 text-primary'
+                                    : 'bg-surface-0 dark:bg-surface-900 border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-200 hover:border-primary/50 hover:text-primary'
+                            "
+                        >
+                            <i class="pi pi-objects-column text-sm"></i>
+                            <span>Group by Type</span>
+                        </button>
+                    }
+
+                    <!-- Account Reconciliations & AI Diagnostics Menu -->
+                    <div class="relative">
+                        <button
+                            type="button"
+                            data-testid="accounts-reconcile-menu-trigger"
+                            (click)="toggleActionsMenu()"
+                            [attr.aria-expanded]="isActionsMenuOpen()"
+                            class="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-2 bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-200 hover:border-primary/50 hover:text-primary rounded-xl text-xs sm:text-sm font-semibold shadow-2xs transition-all cursor-pointer"
+                        >
+                            <i class="pi pi-share-alt text-primary text-sm"></i>
+                            <span>Reconcile & Augment</span>
+                            @if (pendingCrossAccountCount() > 0) {
+                                <span
+                                    data-testid="accounts-reconcile-badge"
+                                    class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary"
+                                >
+                                    {{ pendingCrossAccountCount() }}
+                                </span>
+                            }
+                            <i
+                                class="pi pi-chevron-down text-[10px] text-surface-400 transition-transform"
+                                [class.rotate-180]="isActionsMenuOpen()"
+                            ></i>
+                        </button>
+
+                        @if (isActionsMenuOpen()) {
+                            <div
+                                class="fixed inset-0 z-40"
+                                (click)="closeActionsMenu()"
+                                aria-hidden="true"
+                            ></div>
+                            <div
+                                data-testid="accounts-reconcile-menu-popover"
+                                class="absolute right-0 mt-2 w-72 rounded-2xl bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 shadow-2xl p-2 z-50 space-y-1 animate-fade-in"
+                                role="menu"
+                            >
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    data-testid="launch-cross-account-wizard-menu-item"
+                                    (click)="openCrossAccountReconciliationWizard()"
+                                    class="w-full px-3.5 py-2.5 rounded-xl flex items-start gap-3 text-left hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer bg-transparent border-0 shadow-none"
+                                >
+                                    <i
+                                        class="pi pi-share-alt text-primary text-sm mt-0.5 shrink-0"
+                                    ></i>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span
+                                                class="text-xs font-bold text-surface-900 dark:text-surface-100"
+                                            >
+                                                Cross-Account Reconciliation Wizard
+                                            </span>
+                                            @if (pendingCrossAccountCount() > 0) {
+                                                <span
+                                                    class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-primary/15 text-primary"
+                                                >
+                                                    {{ pendingCrossAccountCount() }}
+                                                </span>
+                                            }
+                                        </div>
+                                        <p
+                                            class="text-[11px] text-surface-500 dark:text-surface-400 m-0 mt-0.5 leading-snug"
+                                        >
+                                            Step through reconciled transfers and loan payments to
+                                            augment target ledgers
+                                        </p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    data-testid="launch-ai-health-summary-menu-item"
+                                    (click)="openAiAccountSummary()"
+                                    class="w-full px-3.5 py-2.5 rounded-xl flex items-start gap-3 text-left hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer bg-transparent border-0 shadow-none"
+                                >
+                                    <i
+                                        class="pi pi-sparkles text-primary text-sm mt-0.5 shrink-0"
+                                    ></i>
+                                    <div class="min-w-0 flex-1">
+                                        <span
+                                            class="text-xs font-bold text-surface-900 dark:text-surface-100 block"
+                                        >
+                                            AI Account Health Summary
+                                        </span>
+                                        <p
+                                            class="text-[11px] text-surface-500 dark:text-surface-400 m-0 mt-0.5 leading-snug"
+                                        >
+                                            Inspect closed accounts, stale statements, and
+                                            augmentable links
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <button
+                        (click)="openAddAccount()"
+                        class="min-h-[44px] px-4 sm:px-5 flex items-center gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl text-sm font-semibold shadow-premium transition-all cursor-pointer"
+                    >
+                        <i class="pi pi-plus text-base"></i>
+                        Add Account
+                    </button>
+                </div>
             </header>
 
             @if (isTrashOpen()) {
@@ -136,235 +331,738 @@
                 </div>
             } @else {
                 <!-- Direct Clean Accounts Feed -->
-                @if (accounts().length > 0) {
-                    <div class="space-y-3">
-                        @for (account of accounts(); track account.id) {
-                            <div
-                                class="bg-surface-0 border border-surface-200/80 dark:border-surface-700/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-primary/50 transition-all group relative cursor-pointer"
-                                tabindex="0"
-                                role="button"
-                                [attr.aria-expanded]="expandedId() === account.id"
-                                (click)="toggleExpand(account.id)"
-                                (keydown.enter)="toggleExpand(account.id)"
-                                (keydown.space)="$event.preventDefault(); toggleExpand(account.id)"
-                            >
-                                <div class="flex items-center justify-between gap-3 relative z-10">
-                                    <div class="flex items-center gap-3 min-w-0">
-                                        <div
-                                            class="w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 text-base"
-                                            [class]="getAccountBadgeClass(account.type)"
-                                        >
-                                            <i [class]="'pi ' + getAccountIcon(account.type)"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="flex items-center gap-1.5">
-                                                <h3
-                                                    class="text-sm sm:text-base font-bold text-surface-900 group-hover:text-primary transition-colors truncate"
-                                                >
-                                                    {{ account.name }}
-                                                </h3>
-                                                @if (account.id === primaryAccountId()) {
-                                                    <span
-                                                        class="px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                                                    >
-                                                        Primary
-                                                    </span>
-                                                }
-                                            </div>
-                                            <p
-                                                class="text-xs text-surface-500 font-medium truncate"
-                                            >
-                                                {{ account.institutionName || 'Account' }}
-                                            </p>
-                                        </div>
+                @if (visiblePortfolioAccounts().length > 0) {
+                    <ng-template #accountCardTemplate let-account>
+                        <div
+                            [attr.data-testid]="'account-card-' + account.id"
+                            [attr.data-zero-balance]="isZeroBalance(account) ? 'true' : 'false'"
+                            class="rounded-2xl p-4 sm:p-5 transition-all group relative cursor-pointer border shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_6px_18px_-3px_rgba(15,23,42,0.12),0_0_0_1px_rgba(37,99,235,0.28)] hover:border-primary/50"
+                            [class]="
+                                isZeroBalance(account)
+                                    ? 'bg-surface-50/75 dark:bg-surface-900/60 border-dashed border-surface-300/95 dark:border-surface-700'
+                                    : 'bg-surface-0 dark:bg-surface-900 border-surface-300/90 dark:border-surface-700'
+                            "
+                            tabindex="0"
+                            role="button"
+                            [attr.aria-expanded]="expandedId() === account.id"
+                            (click)="toggleExpand(account.id)"
+                            (keydown.enter)="toggleExpand(account.id)"
+                            (keydown.space)="$event.preventDefault(); toggleExpand(account.id)"
+                        >
+                            <div class="flex items-center justify-between gap-3 relative z-10">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div
+                                        class="w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 text-base"
+                                        [class]="
+                                            isZeroBalance(account)
+                                                ? 'bg-surface-200/60 dark:bg-surface-800 text-surface-400 dark:text-surface-500 border-surface-300/70 dark:border-surface-700'
+                                                : getAccountBadgeClass(account.type)
+                                        "
+                                    >
+                                        <i [class]="'pi ' + getAccountIcon(account.type)"></i>
                                     </div>
-
-                                    <div class="flex items-center gap-3 shrink-0">
-                                        <div class="text-right">
-                                            @if (isLiability(account.type)) {
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <h3
+                                                class="text-sm sm:text-base font-bold group-hover:text-primary transition-colors truncate"
+                                                [class]="
+                                                    isZeroBalance(account)
+                                                        ? 'text-surface-600 dark:text-surface-300'
+                                                        : 'text-surface-900 dark:text-surface-100'
+                                                "
+                                            >
+                                                {{ account.name }}
+                                            </h3>
+                                            @if (account.isActive === false) {
                                                 <span
-                                                    class="text-[10px] sm:text-xs text-surface-500 font-medium block leading-tight"
+                                                    [attr.data-testid]="
+                                                        'closed-account-badge-' + account.id
+                                                    "
+                                                    class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-surface-200/80 dark:bg-surface-800 text-surface-600 dark:text-surface-400 border border-surface-300/70 dark:border-surface-700"
                                                 >
-                                                    Balance Due:
+                                                    Closed
                                                 </span>
                                             }
-                                            <span
-                                                class="text-base sm:text-lg font-mono font-bold"
-                                                [class.text-red-500]="
-                                                    isLiability(account.type) ||
-                                                    account.clearedBalance +
-                                                        account.pendingBalance <
-                                                        0
-                                                "
-                                                [class.text-surface-900]="
-                                                    !isLiability(account.type) &&
-                                                    account.clearedBalance +
-                                                        account.pendingBalance >=
-                                                        0
-                                                "
-                                            >
-                                                {{ formattedAccountBalance(account) }}
-                                            </span>
+                                            @if (isZeroBalance(account)) {
+                                                <span
+                                                    [attr.data-testid]="
+                                                        'zero-balance-badge-' + account.id
+                                                    "
+                                                    class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-surface-200/70 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-300/60 dark:border-surface-700"
+                                                >
+                                                    Zero Balance
+                                                </span>
+                                            }
                                         </div>
-
-                                        <!-- Primary / Hero Account Star Toggle Button -->
-                                        <button
-                                            type="button"
-                                            (click)="
-                                                $event.stopPropagation();
-                                                togglePrimaryAccount(account.id)
-                                            "
-                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer border pointer-events-auto shrink-0"
-                                            [class.bg-amber-500-10]="
-                                                account.id === primaryAccountId()
-                                            "
-                                            [class.border-amber-500-30]="
-                                                account.id === primaryAccountId()
-                                            "
-                                            [class.text-amber-500]="
-                                                account.id === primaryAccountId()
-                                            "
-                                            [class.border-surface-200-80]="
-                                                account.id !== primaryAccountId()
-                                            "
-                                            [class.text-surface-300]="
-                                                account.id !== primaryAccountId()
-                                            "
-                                            [class.hover:text-amber-500]="
-                                                account.id !== primaryAccountId()
-                                            "
-                                            [class.hover:border-amber-400-50]="
-                                                account.id !== primaryAccountId()
-                                            "
-                                            [class.hover:bg-amber-50-50]="
-                                                account.id !== primaryAccountId()
-                                            "
-                                            [title]="
-                                                account.id === primaryAccountId()
-                                                    ? 'Primary Hero Account (Click to remove)'
-                                                    : 'Set as Primary Hero Account'
-                                            "
-                                            [attr.aria-label]="
-                                                account.id === primaryAccountId()
-                                                    ? 'Primary Hero Account'
-                                                    : 'Set as Primary Hero Account'
-                                            "
-                                        >
-                                            <i
-                                                [class]="
-                                                    account.id === primaryAccountId()
-                                                        ? 'pi pi-star-fill text-amber-500 text-xs'
-                                                        : 'pi pi-star text-xs'
-                                                "
-                                            ></i>
-                                        </button>
-
-                                        @if (expandedId() === account.id) {
-                                            <!-- Delete Account Icon Button in top right when expanded -->
-                                            <button
-                                                type="button"
-                                                (click)="requestDeleteAccount(account.id, $event)"
-                                                class="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 pointer-events-auto shrink-0 animate-fade-in"
-                                                title="Delete Account"
-                                                aria-label="Delete Account"
-                                            >
-                                                <i class="pi pi-trash text-xs"></i>
-                                            </button>
-                                        } @else {
-                                            <!-- Dedicated View Ledger Button when collapsed -->
-                                            <a
-                                                [routerLink]="['/accounts', account.id]"
-                                                (click)="$event.stopPropagation()"
-                                                [attr.aria-label]="
-                                                    'View ledger for ' + account.name
-                                                "
-                                                class="min-h-[36px] px-3 py-1.5 rounded-lg bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer pointer-events-auto shrink-0 shadow-2xs"
-                                            >
-                                                <span>View Ledger</span>
-                                                <i class="pi pi-arrow-right text-[10px]"></i>
-                                            </a>
-                                        }
-
-                                        <!-- Expand/Collapse Chevron Indicator -->
-                                        <i
-                                            class="pi pi-chevron-down text-xs text-surface-400 group-hover:text-primary transition-transform duration-200"
-                                            [class.rotate-180]="expandedId() === account.id"
-                                        ></i>
+                                        <p class="text-xs text-surface-500 font-medium truncate">
+                                            {{ account.institutionName || 'Account' }}
+                                        </p>
                                     </div>
                                 </div>
 
-                                <!-- Expanded Account Drawer -->
-                                @if (expandedId() === account.id) {
-                                    <div
-                                        class="pt-4 mt-4 border-t border-surface-100 dark:border-surface-800 space-y-4 animate-fade-in"
-                                        (click)="$event.stopPropagation()"
-                                    >
-                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                            <div>
-                                                <span
-                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
-                                                    >Account Type</span
-                                                >
-                                                <span
-                                                    class="font-medium text-surface-800 dark:text-surface-200"
-                                                    >{{ account.type }}</span
-                                                >
-                                            </div>
-                                            <div>
-                                                <span
-                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
-                                                    >Institution</span
-                                                >
-                                                <span
-                                                    class="font-medium text-surface-800 dark:text-surface-200"
-                                                    >{{ account.institutionName || 'None' }}</span
-                                                >
-                                            </div>
-                                            <div>
-                                                <span
-                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
-                                                    >Cleared Balance</span
-                                                >
-                                                <span
-                                                    class="font-mono font-medium text-emerald-600 dark:text-emerald-400"
-                                                    >{{
-                                                        formatCurrency(account.clearedBalance)
-                                                    }}</span
-                                                >
-                                            </div>
-                                            <div>
-                                                <span
-                                                    class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
-                                                    >Pending Balance</span
-                                                >
-                                                <span
-                                                    class="font-mono font-medium text-amber-600 dark:text-amber-400"
-                                                    >{{
-                                                        formatCurrency(account.pendingBalance)
-                                                    }}</span
-                                                >
-                                            </div>
-                                        </div>
-
-                                        <!-- Bottom Action Row: Slid-down View Ledger Button -->
-                                        <div
-                                            class="flex items-center justify-end pt-2 border-t border-surface-100/60 dark:border-surface-800/60"
-                                        >
-                                            <a
-                                                [routerLink]="['/accounts', account.id]"
-                                                (click)="$event.stopPropagation()"
-                                                [attr.aria-label]="
-                                                    'View ledger for ' + account.name
-                                                "
-                                                class="min-h-[36px] px-4 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <div class="text-right">
+                                        @if (isLiability(account.type) && !isZeroBalance(account)) {
+                                            <span
+                                                class="text-[10px] sm:text-xs text-surface-500 font-medium block leading-tight"
                                             >
-                                                <span>View Ledger</span>
-                                                <i class="pi pi-arrow-right text-[10px]"></i>
-                                            </a>
+                                                Balance Due:
+                                            </span>
+                                        }
+                                        <span
+                                            class="text-base sm:text-lg font-mono font-bold tabular-nums"
+                                            [class.text-surface-400]="isZeroBalance(account)"
+                                            [class.dark:text-surface-500]="isZeroBalance(account)"
+                                            [class.text-red-500]="
+                                                !isZeroBalance(account) &&
+                                                (isLiability(account.type) ||
+                                                    getEffectiveBalance(account) < 0)
+                                            "
+                                            [class.text-surface-900]="
+                                                !isZeroBalance(account) &&
+                                                !isLiability(account.type) &&
+                                                getEffectiveBalance(account) >= 0
+                                            "
+                                        >
+                                            {{ formattedAccountBalance(account) }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Starred Account Toggle Button (Up to 4) -->
+                                    <button
+                                        type="button"
+                                        [attr.data-testid]="'star-account-btn-' + account.id"
+                                        [disabled]="
+                                            !isAccountStarred(account.id) && !canStarMoreAccounts()
+                                        "
+                                        (click)="
+                                            $event.stopPropagation(); toggleStarAccount(account.id)
+                                        "
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all border pointer-events-auto shrink-0"
+                                        [class]="
+                                            isAccountStarred(account.id)
+                                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 cursor-pointer'
+                                                : canStarMoreAccounts()
+                                                  ? 'border-surface-200/80 text-surface-300 hover:text-amber-500 hover:border-amber-400/50 hover:bg-amber-50/50 cursor-pointer'
+                                                  : 'border-surface-200/50 text-surface-200 dark:text-surface-700 opacity-50 cursor-not-allowed'
+                                        "
+                                        [title]="
+                                            isAccountStarred(account.id)
+                                                ? 'Starred Account (Click to unstar)'
+                                                : canStarMoreAccounts()
+                                                  ? 'Star Account (Pin to top of page)'
+                                                  : 'Maximum of 4 starred accounts reached'
+                                        "
+                                        [attr.aria-label]="
+                                            isAccountStarred(account.id)
+                                                ? 'Unstar ' + account.name
+                                                : 'Star ' + account.name
+                                        "
+                                    >
+                                        <i
+                                            [class]="
+                                                isAccountStarred(account.id)
+                                                    ? 'pi pi-star-fill text-amber-500 text-xs'
+                                                    : 'pi pi-star text-xs'
+                                            "
+                                        ></i>
+                                    </button>
+
+                                    @if (expandedId() === account.id) {
+                                        <!-- Delete Account Icon Button in top right when expanded -->
+                                        <button
+                                            type="button"
+                                            (click)="requestDeleteAccount(account.id, $event)"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-300 pointer-events-auto shrink-0 animate-fade-in"
+                                            title="Delete Account"
+                                            aria-label="Delete Account"
+                                        >
+                                            <i class="pi pi-trash text-xs"></i>
+                                        </button>
+                                    } @else {
+                                        <!-- Dedicated View Ledger Button when collapsed -->
+                                        <a
+                                            [routerLink]="['/accounts', account.id]"
+                                            (click)="$event.stopPropagation()"
+                                            [attr.aria-label]="'View ledger for ' + account.name"
+                                            class="min-h-[36px] px-3 py-1.5 rounded-lg bg-surface-100 hover:bg-surface-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer pointer-events-auto shrink-0 shadow-2xs"
+                                        >
+                                            <span>View Ledger</span>
+                                            <i class="pi pi-arrow-right text-[10px]"></i>
+                                        </a>
+                                    }
+
+                                    <!-- Expand/Collapse Chevron Indicator -->
+                                    <i
+                                        class="pi pi-chevron-down text-xs text-surface-400 group-hover:text-primary transition-transform duration-200"
+                                        [class.rotate-180]="expandedId() === account.id"
+                                    ></i>
+                                </div>
+                            </div>
+
+                            <!-- Expanded Account Drawer -->
+                            @if (expandedId() === account.id) {
+                                <div
+                                    class="pt-4 mt-4 border-t border-surface-100 dark:border-surface-800 space-y-4 animate-fade-in"
+                                    (click)="$event.stopPropagation()"
+                                >
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                        <div>
+                                            <span
+                                                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                >Account Type</span
+                                            >
+                                            <span
+                                                class="font-medium text-surface-800 dark:text-surface-200"
+                                                >{{ account.type }}</span
+                                            >
+                                        </div>
+                                        <div>
+                                            <span
+                                                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                >Institution</span
+                                            >
+                                            <span
+                                                class="font-medium text-surface-800 dark:text-surface-200"
+                                                >{{ account.institutionName || 'None' }}</span
+                                            >
+                                        </div>
+                                        <div>
+                                            <span
+                                                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                >Cleared Balance</span
+                                            >
+                                            <span
+                                                class="font-mono font-medium text-emerald-600 dark:text-emerald-400"
+                                                >{{ formatCurrency(account.clearedBalance) }}</span
+                                            >
+                                        </div>
+                                        <div>
+                                            <span
+                                                class="text-[10px] font-bold uppercase tracking-wider text-surface-400 block"
+                                                >Pending Balance</span
+                                            >
+                                            <span
+                                                class="font-mono font-medium text-amber-600 dark:text-amber-400"
+                                                >{{ formatCurrency(account.pendingBalance) }}</span
+                                            >
                                         </div>
                                     </div>
-                                }
-                            </div>
+
+                                    <!-- 90d History + 30d Forecast Mini Telemetry Strip -->
+                                    @if (expandedAccountTelemetry(); as drawerSeries) {
+                                        @if (expandedAccountSvgGeometry(); as drawerGeo) {
+                                            <div
+                                                [attr.data-testid]="
+                                                    'account-drawer-telemetry-' + account.id
+                                                "
+                                                class="rounded-xl p-3 bg-surface-50/90 dark:bg-surface-800/50 border border-surface-200/70 dark:border-surface-700/70 space-y-2"
+                                            >
+                                                <div
+                                                    class="flex items-center justify-between gap-2 text-[10px] flex-wrap"
+                                                >
+                                                    <span
+                                                        class="font-bold uppercase tracking-wider text-surface-500 dark:text-surface-400"
+                                                    >
+                                                        90d History + 30d Forecast
+                                                    </span>
+                                                    @if (!drawerSeries.isZeroFlat) {
+                                                        <div
+                                                            class="flex items-center gap-3 font-mono tabular-nums text-surface-600 dark:text-surface-300"
+                                                        >
+                                                            <span>
+                                                                Low:
+                                                                <strong>{{
+                                                                    drawerSeries.formattedLowDisplay
+                                                                }}</strong>
+                                                            </span>
+                                                            <span>
+                                                                High:
+                                                                <strong>{{
+                                                                    drawerSeries.formattedHighDisplay
+                                                                }}</strong>
+                                                            </span>
+                                                            <span
+                                                                [class.text-emerald-600]="
+                                                                    drawerSeries.isFavorableDelta
+                                                                "
+                                                                [class.dark:text-emerald-400]="
+                                                                    drawerSeries.isFavorableDelta
+                                                                "
+                                                                [class.text-red-500]="
+                                                                    !drawerSeries.isFavorableDelta
+                                                                "
+                                                            >
+                                                                Net:
+                                                                <strong>{{
+                                                                    drawerSeries.formattedNetDelta
+                                                                }}</strong>
+                                                            </span>
+                                                        </div>
+                                                    } @else {
+                                                        <span
+                                                            class="text-surface-400 dark:text-surface-500 font-medium"
+                                                        >
+                                                            Zero balance baseline
+                                                        </span>
+                                                    }
+                                                </div>
+
+                                                <div class="h-11 w-full">
+                                                    <svg
+                                                        role="img"
+                                                        [attr.aria-label]="
+                                                            '90-day balance history and 30-day forecast for ' +
+                                                            account.name
+                                                        "
+                                                        viewBox="0 0 240 44"
+                                                        fill="none"
+                                                        class="w-full h-full overflow-visible"
+                                                    >
+                                                        <defs>
+                                                            <linearGradient
+                                                                [id]="
+                                                                    'drawer-telemetry-grad-' +
+                                                                    account.id
+                                                                "
+                                                                x1="0"
+                                                                y1="0"
+                                                                x2="0"
+                                                                y2="1"
+                                                            >
+                                                                <stop
+                                                                    offset="0%"
+                                                                    [attr.stop-color]="
+                                                                        expandedAccountStrokeColor()
+                                                                    "
+                                                                    stop-opacity="0.25"
+                                                                />
+                                                                <stop
+                                                                    offset="100%"
+                                                                    [attr.stop-color]="
+                                                                        expandedAccountStrokeColor()
+                                                                    "
+                                                                    stop-opacity="0.0"
+                                                                />
+                                                            </linearGradient>
+                                                        </defs>
+
+                                                        @if (drawerGeo.ceilingY !== null) {
+                                                            <line
+                                                                x1="0"
+                                                                [attr.y1]="drawerGeo.ceilingY"
+                                                                x2="240"
+                                                                [attr.y2]="drawerGeo.ceilingY"
+                                                                stroke="#94a3b8"
+                                                                stroke-width="1"
+                                                                stroke-dasharray="3 3"
+                                                            />
+                                                        }
+
+                                                        @if (drawerGeo.areaPath) {
+                                                            <path
+                                                                [attr.d]="drawerGeo.areaPath"
+                                                                [attr.fill]="
+                                                                    'url(#drawer-telemetry-grad-' +
+                                                                    account.id +
+                                                                    ')'
+                                                                "
+                                                            />
+                                                        }
+
+                                                        <path
+                                                            [attr.d]="drawerGeo.strokePath"
+                                                            [attr.stroke]="
+                                                                expandedAccountStrokeColor()
+                                                            "
+                                                            [attr.stroke-dasharray]="
+                                                                drawerSeries.isZeroFlat
+                                                                    ? '3 3'
+                                                                    : null
+                                                            "
+                                                            stroke-width="2"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        />
+
+                                                        @if (
+                                                            drawerGeo.splitX !== null &&
+                                                            !drawerSeries.isZeroFlat
+                                                        ) {
+                                                            <line
+                                                                [attr.x1]="drawerGeo.splitX"
+                                                                y1="2"
+                                                                [attr.x2]="drawerGeo.splitX"
+                                                                y2="42"
+                                                                stroke="#94a3b8"
+                                                                stroke-opacity="0.45"
+                                                                stroke-width="1"
+                                                                stroke-dasharray="2 2"
+                                                            />
+                                                        }
+
+                                                        @if (
+                                                            drawerGeo.forecastPath &&
+                                                            !drawerSeries.isZeroFlat
+                                                        ) {
+                                                            <path
+                                                                [attr.d]="drawerGeo.forecastPath"
+                                                                stroke="#64748b"
+                                                                stroke-width="1.75"
+                                                                stroke-dasharray="3.5 2.5"
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                            />
+                                                        }
+                                                    </svg>
+                                                </div>
+
+                                                <div
+                                                    class="flex items-center justify-between text-[9px] font-medium text-surface-400 dark:text-surface-500"
+                                                >
+                                                    <span>-90d</span>
+                                                    <span>Today</span>
+                                                    <span>+30d Forecast</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+
+                                    <!-- Bottom Action Row: Slid-down View Ledger Button -->
+                                    <div
+                                        class="flex items-center justify-end pt-2 border-t border-surface-100/60 dark:border-surface-800/60"
+                                    >
+                                        <a
+                                            [routerLink]="['/accounts', account.id]"
+                                            (click)="$event.stopPropagation()"
+                                            [attr.aria-label]="'View ledger for ' + account.name"
+                                            class="min-h-[36px] px-4 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                        >
+                                            <span>View Ledger</span>
+                                            <i class="pi pi-arrow-right text-[10px]"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </ng-template>
+
+                    <div class="space-y-6">
+                        <!-- Starred Accounts Section (Up to 4 pinned at top, no count label) -->
+                        @if (starredAccounts().length > 0) {
+                            <section
+                                data-testid="starred-accounts-section"
+                                class="space-y-3"
+                                aria-label="Starred Accounts"
+                            >
+                                <div class="flex items-center justify-between gap-2 px-1">
+                                    <div class="flex items-center gap-2">
+                                        <i class="pi pi-star-fill text-amber-500 text-xs"></i>
+                                        <h2
+                                            class="text-xs font-black uppercase tracking-wider text-surface-700 dark:text-surface-300 m-0"
+                                        >
+                                            Starred Accounts
+                                        </h2>
+                                    </div>
+                                    @if (!canStarMoreAccounts()) {
+                                        <span
+                                            data-testid="starred-accounts-limit-notice"
+                                            class="text-[11px] font-medium text-surface-400"
+                                        >
+                                            Max 4 starred accounts
+                                        </span>
+                                    }
+                                </div>
+
+                                <div
+                                    data-testid="starred-accounts-grid"
+                                    [attr.data-layout]="
+                                        getSectionLayoutMode(starredAccounts().length)
+                                    "
+                                    [class]="getSectionGridClass(starredAccounts().length)"
+                                >
+                                    @for (
+                                        account of starredAccounts();
+                                        track account.id;
+                                        let idx = $index
+                                    ) {
+                                        <div
+                                            [attr.data-testid]="'starred-card-slot-' + idx"
+                                            [class]="
+                                                getCardSpanClass(idx, starredAccounts().length)
+                                            "
+                                        >
+                                            <ng-container
+                                                *ngTemplateOutlet="
+                                                    accountCardTemplate;
+                                                    context: { $implicit: account }
+                                                "
+                                            ></ng-container>
+                                        </div>
+                                    }
+                                </div>
+                            </section>
+                        }
+
+                        <!-- Remaining Portfolio Accounts (Grouped by Type or Flat) -->
+                        @if (unstarredAccounts().length > 0) {
+                            @if (groupByType()) {
+                                <div data-testid="accounts-grouped-by-type" class="space-y-5">
+                                    @for (group of accountTypeGroups(); track group.type) {
+                                        <section
+                                            [attr.data-testid]="'account-type-group-' + group.type"
+                                            class="space-y-2.5"
+                                        >
+                                            <button
+                                                type="button"
+                                                [attr.data-testid]="
+                                                    'account-type-header-' + group.type
+                                                "
+                                                (click)="toggleTypeGroupCollapse(group.type)"
+                                                [attr.aria-expanded]="
+                                                    !isTypeGroupCollapsed(group.type)
+                                                "
+                                                class="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-surface-100/80 dark:bg-surface-800/60 border border-surface-200/70 dark:border-surface-700/70 hover:border-primary/40 transition-colors cursor-pointer text-left"
+                                            >
+                                                <div class="flex items-center gap-2.5 min-w-0">
+                                                    <span
+                                                        class="w-7 h-7 rounded-lg flex items-center justify-center border text-xs shrink-0"
+                                                        [class]="group.badgeClass"
+                                                    >
+                                                        <i [class]="'pi ' + group.icon"></i>
+                                                    </span>
+                                                    <span
+                                                        class="text-xs sm:text-sm font-bold text-surface-900 dark:text-surface-100 truncate"
+                                                    >
+                                                        {{ group.label }}
+                                                    </span>
+                                                    <span
+                                                        [attr.data-testid]="
+                                                            'account-type-count-' + group.type
+                                                        "
+                                                        class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-surface-200/80 dark:bg-surface-700 text-surface-700 dark:text-surface-200"
+                                                    >
+                                                        {{ group.accounts.length }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="flex items-center gap-2.5 shrink-0">
+                                                    <span
+                                                        class="text-xs sm:text-sm font-mono font-bold tabular-nums"
+                                                        [class.text-surface-400]="
+                                                            group.totalBalance === 0
+                                                        "
+                                                        [class.text-red-500]="
+                                                            group.totalBalance !== 0 &&
+                                                            (group.isLiability ||
+                                                                group.totalBalance < 0)
+                                                        "
+                                                        [class.text-surface-800]="
+                                                            group.totalBalance > 0 &&
+                                                            !group.isLiability
+                                                        "
+                                                    >
+                                                        {{ formatGroupBalance(group) }}
+                                                    </span>
+                                                    <i
+                                                        class="pi pi-chevron-down text-[11px] text-surface-400 transition-transform duration-200"
+                                                        [class.-rotate-90]="
+                                                            isTypeGroupCollapsed(group.type)
+                                                        "
+                                                    ></i>
+                                                </div>
+                                            </button>
+
+                                            @if (!isTypeGroupCollapsed(group.type)) {
+                                                <div
+                                                    [attr.data-testid]="
+                                                        'account-type-grid-' + group.type
+                                                    "
+                                                    [attr.data-layout]="
+                                                        getSectionLayoutMode(
+                                                            getVisibleSectionAccounts(
+                                                                group.accounts,
+                                                                group.type
+                                                            ).length
+                                                        )
+                                                    "
+                                                    [class]="
+                                                        getSectionGridClass(
+                                                            getVisibleSectionAccounts(
+                                                                group.accounts,
+                                                                group.type
+                                                            ).length
+                                                        )
+                                                    "
+                                                >
+                                                    @for (
+                                                        account of getVisibleSectionAccounts(
+                                                            group.accounts,
+                                                            group.type
+                                                        );
+                                                        track account.id;
+                                                        let idx = $index
+                                                    ) {
+                                                        <div
+                                                            [attr.data-testid]="
+                                                                'group-card-slot-' +
+                                                                group.type +
+                                                                '-' +
+                                                                idx
+                                                            "
+                                                            [class]="
+                                                                getCardSpanClass(
+                                                                    idx,
+                                                                    getVisibleSectionAccounts(
+                                                                        group.accounts,
+                                                                        group.type
+                                                                    ).length
+                                                                )
+                                                            "
+                                                        >
+                                                            <ng-container
+                                                                *ngTemplateOutlet="
+                                                                    accountCardTemplate;
+                                                                    context: { $implicit: account }
+                                                                "
+                                                            ></ng-container>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                @if (group.accounts.length > 4) {
+                                                    <div class="pt-1 flex justify-center">
+                                                        <button
+                                                            type="button"
+                                                            [attr.data-testid]="
+                                                                'expand-cards-btn-' + group.type
+                                                            "
+                                                            (click)="
+                                                                toggleSectionCardsExpand(group.type)
+                                                            "
+                                                            class="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-surface-100/80 hover:bg-surface-200/80 dark:bg-surface-800/80 dark:hover:bg-surface-700 text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 transition-colors cursor-pointer border border-surface-200/80 dark:border-surface-700"
+                                                        >
+                                                            @if (
+                                                                isSectionCardsExpanded(group.type)
+                                                            ) {
+                                                                <span>Show fewer accounts</span>
+                                                                <i
+                                                                    class="pi pi-chevron-up text-[10px]"
+                                                                ></i>
+                                                            } @else {
+                                                                <span>
+                                                                    Show
+                                                                    {{
+                                                                        getHiddenSectionAccountCount(
+                                                                            group.accounts
+                                                                        )
+                                                                    }}
+                                                                    more
+                                                                    {{
+                                                                        getHiddenSectionAccountCount(
+                                                                            group.accounts
+                                                                        ) === 1
+                                                                            ? 'account'
+                                                                            : 'accounts'
+                                                                    }}
+                                                                </span>
+                                                                <i
+                                                                    class="pi pi-chevron-down text-[10px]"
+                                                                ></i>
+                                                            }
+                                                        </button>
+                                                    </div>
+                                                }
+                                            }
+                                        </section>
+                                    }
+                                </div>
+                            } @else {
+                                <div class="space-y-3">
+                                    <div
+                                        data-testid="accounts-flat-grid"
+                                        [attr.data-layout]="
+                                            getSectionLayoutMode(
+                                                getVisibleSectionAccounts(
+                                                    unstarredAccounts(),
+                                                    'flat'
+                                                ).length
+                                            )
+                                        "
+                                        [class]="
+                                            getSectionGridClass(
+                                                getVisibleSectionAccounts(
+                                                    unstarredAccounts(),
+                                                    'flat'
+                                                ).length
+                                            )
+                                        "
+                                    >
+                                        @for (
+                                            account of getVisibleSectionAccounts(
+                                                unstarredAccounts(),
+                                                'flat'
+                                            );
+                                            track account.id;
+                                            let idx = $index
+                                        ) {
+                                            <div
+                                                [attr.data-testid]="'flat-card-slot-' + idx"
+                                                [class]="
+                                                    getCardSpanClass(
+                                                        idx,
+                                                        getVisibleSectionAccounts(
+                                                            unstarredAccounts(),
+                                                            'flat'
+                                                        ).length
+                                                    )
+                                                "
+                                            >
+                                                <ng-container
+                                                    *ngTemplateOutlet="
+                                                        accountCardTemplate;
+                                                        context: { $implicit: account }
+                                                    "
+                                                ></ng-container>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (unstarredAccounts().length > 4) {
+                                        <div class="pt-1 flex justify-center">
+                                            <button
+                                                type="button"
+                                                data-testid="expand-cards-btn-flat"
+                                                (click)="toggleSectionCardsExpand('flat')"
+                                                class="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-surface-100/80 hover:bg-surface-200/80 dark:bg-surface-800/80 dark:hover:bg-surface-700 text-xs font-semibold text-surface-700 dark:text-surface-300 flex items-center gap-1.5 transition-colors cursor-pointer border border-surface-200/80 dark:border-surface-700"
+                                            >
+                                                @if (isSectionCardsExpanded('flat')) {
+                                                    <span>Show fewer accounts</span>
+                                                    <i class="pi pi-chevron-up text-[10px]"></i>
+                                                } @else {
+                                                    <span>
+                                                        Show
+                                                        {{
+                                                            getHiddenSectionAccountCount(
+                                                                unstarredAccounts()
+                                                            )
+                                                        }}
+                                                        more
+                                                        {{
+                                                            getHiddenSectionAccountCount(
+                                                                unstarredAccounts()
+                                                            ) === 1
+                                                                ? 'account'
+                                                                : 'accounts'
+                                                        }}
+                                                    </span>
+                                                    <i class="pi pi-chevron-down text-[10px]"></i>
+                                                }
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         }
                     </div>
 
@@ -420,6 +1118,9 @@
         (closed)="isAddDialogOpen.set(false)"
         (accountCreated)="handleAccountCreated($event)"
     />
+
+    <!-- Shared Cross-Account Augmentation Wizard & AI Health Notification Dialogs -->
+    <app-account-augmentation-banner [dialogsOnly]="true" />
 
     <!-- Delete Confirmation Modal -->
     @if (isDeleteConfirmOpen()) {

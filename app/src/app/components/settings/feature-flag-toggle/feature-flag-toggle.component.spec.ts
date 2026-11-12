@@ -114,6 +114,8 @@ describe('FeatureFlagToggleComponent', () => {
         const link = fixture.nativeElement.querySelector('a');
         expect(link).toBeTruthy();
         expect(link.textContent).toContain('Jump →');
+        expect(link.className).toContain('whitespace-nowrap');
+        expect(link.className).toContain('shrink-0');
         expect(link.getAttribute('href')).toBe('/settings/dev');
     });
 

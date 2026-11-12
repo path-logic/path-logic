@@ -1,14 +1,19 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AccountType, type IAccount } from '@core';
+import { AccountType, type IAccount, type ITransaction, TransactionStatus } from '@core';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import {
+    AccountTelemetryService,
+    TelemetryWindowDays
+} from '../../../services/account-telemetry/account-telemetry.service';
 import { AccountSparklineCardComponent } from './account-sparkline-card.component';
 
 describe('AccountSparklineCardComponent', () => {
     let component: AccountSparklineCardComponent;
     let fixture: ComponentFixture<AccountSparklineCardComponent>;
+    let telemetryService: AccountTelemetryService;
 
     const mockAccount: IAccount = {
         id: 'acc-1',
@@ -26,9 +31,10 @@ describe('AccountSparklineCardComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [AccountSparklineCardComponent],
-            providers: [provideRouter([])]
+            providers: [provideRouter([]), AccountTelemetryService]
         }).compileComponents();
 
+        telemetryService = TestBed.inject(AccountTelemetryService);
         fixture = TestBed.createComponent(AccountSparklineCardComponent);
         component = fixture.componentInstance;
         fixture.componentRef.setInput('account', mockAccount);
@@ -73,17 +79,15 @@ describe('AccountSparklineCardComponent', () => {
         expect(emittedId).toBe('acc-1');
     });
 
-    it('should display star icon and emit starToggled when clicked', () => {
+    it('should display star icon and emit starToggled when clicked without rendering a Starred text badge', () => {
         let emittedId: string | null = null;
         component.starToggled.subscribe((id: string) => {
             emittedId = id;
         });
 
-        // Initially not primary
         expect(fixture.nativeElement.querySelector('.pi-star')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('.pi-star-fill')).toBeNull();
 
-        // Click star button
         const starBtn = fixture.nativeElement.querySelector(
             'button[aria-label="Set as Primary Hero Account"]'
         ) as HTMLButtonElement;
@@ -92,11 +96,11 @@ describe('AccountSparklineCardComponent', () => {
 
         expect(emittedId).toBe('acc-1');
 
-        // Set isPrimary to true
         fixture.componentRef.setInput('isPrimary', true);
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('.pi-star-fill')).toBeTruthy();
+        expect(fixture.nativeElement.textContent).not.toContain('Starred');
     });
 
     it('should apply full width hero styling when isFullWidth is true', () => {
@@ -151,5 +155,140 @@ describe('AccountSparklineCardComponent', () => {
         expect(viewLedgerLink).toBeTruthy();
         expect(viewLedgerLink.tagName.toLowerCase()).toBe('a');
         expect(viewLedgerLink.getAttribute('href')).toBe('/accounts/acc-1');
+    });
+
+    it('renders interactive Chart.js hero telemetry, High/Low summary, and 30d/90d window toggle when telemetry is provided', () => {
+        const txs: Array<ITransaction> = [
+            {
+                id: 'tx-1',
+                accountId: 'acc-1',
+                payeeId: 'p-1',
+                date: '2026-11-05',
+                payee: 'Payroll',
+                memo: '',
+                totalAmount: 350000,
+                status: TransactionStatus.Cleared,
+                splits: [],
+                checkNumber: null,
+                importHash: 'h1',
+                createdAt: '2026-11-05',
+                updatedAt: '2026-11-05'
+            }
+        ];
+
+        const series30d = telemetryService.buildAccountTelemetry(mockAccount, txs, [], {
+            windowDays: TelemetryWindowDays.ThirtyDays,
+            forecastDays: 14,
+            referenceDate: '2026-11-10'
+        });
+        const series90d = telemetryService.buildAccountTelemetry(mockAccount, txs, [], {
+            windowDays: TelemetryWindowDays.NinetyDays,
+            forecastDays: 14,
+            referenceDate: '2026-11-10'
+        });
+
+        fixture.componentRef.setInput('trendPercent', null);
+        fixture.componentRef.setInput('isFullWidth', true);
+        fixture.componentRef.setInput('telemetry', series30d);
+        fixture.componentRef.setInput('heroTelemetry90d', series90d);
+        fixture.detectChanges();
+
+        const summary = fixture.nativeElement.querySelector(
+            '[data-testid="hero-telemetry-summary"]'
+        );
+        expect(summary).toBeTruthy();
+        expect(summary.textContent).toContain('High:');
+        expect(summary.textContent).toContain('$14,870.50');
+        expect(summary.textContent).toContain('Low:');
+        expect(summary.textContent).toContain('$11,370.50');
+
+        const toggle90d = fixture.nativeElement.querySelector(
+            '[data-testid="hero-window-btn-90"]'
+        ) as HTMLButtonElement;
+        expect(toggle90d).toBeTruthy();
+        toggle90d.click();
+        fixture.detectChanges();
+
+        expect(component.activeHeroWindow()).toBe(TelemetryWindowDays.NinetyDays);
+        expect(component.activeTelemetry()?.windowDays).toBe(TelemetryWindowDays.NinetyDays);
+    });
+
+    it('renders stepped SVG area fill and credit limit ceiling line for Credit Card sub-cards', () => {
+        const creditAcc: IAccount = {
+            id: 'acc-cc',
+            name: 'Amazon Prime Visa',
+            institutionName: 'Chase',
+            type: AccountType.Credit,
+            clearedBalance: -180000,
+            pendingBalance: -180000,
+            isActive: true,
+            creditCardDetails: {
+                creditLimit: 600000,
+                interestRate: 0.1999,
+                promotionalRates: []
+            },
+            createdAt: '2026-01-01',
+            updatedAt: '2026-11-10',
+            deletedAt: null
+        };
+        const txs: Array<ITransaction> = [
+            {
+                id: 'tx-c1',
+                accountId: 'acc-cc',
+                payeeId: 'p-amz',
+                date: '2026-11-08',
+                payee: 'Amazon',
+                memo: '',
+                totalAmount: -30000,
+                status: TransactionStatus.Cleared,
+                splits: [],
+                checkNumber: null,
+                importHash: 'hc1',
+                createdAt: '2026-11-08',
+                updatedAt: '2026-11-08'
+            }
+        ];
+        const series = telemetryService.buildAccountTelemetry(creditAcc, txs, [], {
+            referenceDate: '2026-11-10'
+        });
+
+        fixture.componentRef.setInput('account', creditAcc);
+        fixture.componentRef.setInput('trendPercent', null);
+        fixture.componentRef.setInput('telemetry', series);
+        fixture.detectChanges();
+
+        const ceilingLine = fixture.nativeElement.querySelector(
+            '[data-testid="sparkline-credit-ceiling"]'
+        );
+        expect(ceilingLine).toBeTruthy();
+        expect(fixture.nativeElement.textContent).toContain('30% of limit');
+    });
+
+    it('renders muted dashed zero-balance state with no artificial trend badge for $0.00 accounts', () => {
+        const zeroAcc: IAccount = {
+            ...mockAccount,
+            id: 'acc-zero',
+            name: '2001 Cobra',
+            type: AccountType.AutoLoan,
+            clearedBalance: 0,
+            pendingBalance: 0
+        };
+        const zeroSeries = telemetryService.buildAccountTelemetry(zeroAcc, [], [], {
+            referenceDate: '2026-11-10'
+        });
+
+        fixture.componentRef.setInput('account', zeroAcc);
+        fixture.componentRef.setInput('trendPercent', null);
+        fixture.componentRef.setInput('telemetry', zeroSeries);
+        fixture.detectChanges();
+
+        const article = fixture.nativeElement.querySelector('article');
+        expect(article.getAttribute('data-zero-balance')).toBe('true');
+        expect(
+            fixture.nativeElement.querySelector(
+                '[data-testid="sparkline-zero-balance-badge-acc-zero"]'
+            )
+        ).toBeTruthy();
+        expect(component.effectiveTrendBadge()).toBeNull();
     });
 });

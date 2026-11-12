@@ -1,7 +1,9 @@
 import type {
     Cents,
+    Frequency,
     IAccount,
     ICategory,
+    ICreditCardDetails,
     ILoanDetails,
     IPayee,
     IRecurringSchedule,
@@ -29,7 +31,16 @@ const SCHEMA_DDL = `
         isDeleted INTEGER NOT NULL DEFAULT 0,
         clientId TEXT,
         createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
+        updatedAt TEXT NOT NULL,
+        accountNumber TEXT,
+        abbreviation TEXT,
+        openingBalance INTEGER DEFAULT 0,
+        openingDate TEXT,
+        notes TEXT,
+        isFavorite INTEGER NOT NULL DEFAULT 0,
+        isTaxRelated INTEGER NOT NULL DEFAULT 0,
+        linkedAccountId TEXT,
+        creditCardDetails TEXT
     );
 
     CREATE TABLE IF NOT EXISTS loan_details (
@@ -45,6 +56,15 @@ const SCHEMA_DDL = `
         clientId TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
+        principal_and_interest_payment INTEGER,
+        balloon_amount INTEGER,
+        payment_frequency TEXT,
+        compounding_frequency TEXT,
+        is_adjustable_rate INTEGER NOT NULL DEFAULT 0,
+        next_rate_adjustment_date TEXT,
+        next_adjustment_rate REAL,
+        linked_asset_account_id TEXT,
+        interest_category_id TEXT,
         FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     );
 
@@ -219,8 +239,11 @@ export const SQL_QUERIES = {
 
     // Account queries
     INSERT_ACCOUNT: `
-        INSERT INTO accounts (id, name, type, institutionName, isActive, deletedAt, isDeleted, clientId, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO accounts (
+            id, name, type, institutionName, isActive, deletedAt, isDeleted, clientId, createdAt, updatedAt,
+            accountNumber, abbreviation, openingBalance, openingDate, notes, isFavorite, isTaxRelated, linkedAccountId, creditCardDetails
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SOFT_DELETE_ACCOUNT: `
@@ -228,11 +251,17 @@ export const SQL_QUERIES = {
     `,
 
     UPDATE_ACCOUNT: `
-        UPDATE accounts SET name = ?, type = ?, institutionName = ?, isActive = ?, deletedAt = ?, isDeleted = ?, clientId = ?, updatedAt = ? WHERE id = ?
+        UPDATE accounts
+        SET name = ?, type = ?, institutionName = ?, isActive = ?, deletedAt = ?, isDeleted = ?, clientId = ?, updatedAt = ?,
+            accountNumber = ?, abbreviation = ?, openingBalance = ?, openingDate = ?, notes = ?,
+            isFavorite = ?, isTaxRelated = ?, linkedAccountId = ?, creditCardDetails = ?
+        WHERE id = ?
     `,
 
     SELECT_ALL_ACCOUNTS: `
-        SELECT * FROM accounts WHERE isDeleted = 0 ORDER BY name ASC
+        SELECT id, name, type, institutionName, isActive, deletedAt, isDeleted, clientId, createdAt, updatedAt,
+               accountNumber, abbreviation, openingBalance, openingDate, notes, isFavorite, isTaxRelated, linkedAccountId, creditCardDetails
+        FROM accounts WHERE isDeleted = 0 ORDER BY name ASC
     `,
 
     // Payee queries
@@ -320,15 +349,23 @@ SELECT * FROM splits WHERE transactionId = ? AND isDeleted = 0 ORDER BY id
     // Loan Details queries
     INSERT_LOAN_DETAILS: `
         INSERT INTO loan_details(
-        account_id, original_amount, interest_rate, term_months,
-        monthly_payment, payment_due_day, start_date, metadata,
-        isDeleted, clientId, created_at, updated_at
-    )
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            account_id, original_amount, interest_rate, term_months,
+            monthly_payment, payment_due_day, start_date, metadata,
+            isDeleted, clientId, created_at, updated_at,
+            principal_and_interest_payment, balloon_amount, payment_frequency,
+            compounding_frequency, is_adjustable_rate, next_rate_adjustment_date,
+            next_adjustment_rate, linked_asset_account_id, interest_category_id
+        )
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
 
     SELECT_LOAN_DETAILS: `
-SELECT * FROM loan_details WHERE account_id = ? AND isDeleted = 0
+        SELECT account_id, original_amount, interest_rate, term_months,
+               monthly_payment, payment_due_day, start_date, metadata,
+               principal_and_interest_payment, balloon_amount, payment_frequency,
+               compounding_frequency, is_adjustable_rate, next_rate_adjustment_date,
+               next_adjustment_rate, linked_asset_account_id, interest_category_id
+        FROM loan_details WHERE account_id = ? AND isDeleted = 0
     `,
 
     // User Settings queries
@@ -573,15 +610,54 @@ async function runMaintenance(dbInstance: Database): Promise<void> {
         }
     }
 
-    // Migration: Add deletedAt to accounts if missing
+    // Migration: Add deletedAt and extended MS Money metadata columns to accounts if missing
     const accountColumns: Array<QueryExecResult> = dbInstance.exec('PRAGMA table_info(accounts)');
     const accountsResult: QueryExecResult | undefined = accountColumns.at(0);
     if (accountsResult && accountsResult.values) {
-        const hasDeletedAt: boolean = accountsResult.values.some(
-            (v: Array<SqlValue>): boolean => v[1] === 'deletedAt'
+        const existingAccountCols = new Set<string>(
+            accountsResult.values.map((v: Array<SqlValue>): string => String(v[1]))
         );
-        if (!hasDeletedAt) {
-            dbInstance.run('ALTER TABLE accounts ADD COLUMN deletedAt TEXT');
+        const accountMigrations: Array<[string, string]> = [
+            ['deletedAt', 'TEXT'],
+            ['accountNumber', 'TEXT'],
+            ['abbreviation', 'TEXT'],
+            ['openingBalance', 'INTEGER DEFAULT 0'],
+            ['openingDate', 'TEXT'],
+            ['notes', 'TEXT'],
+            ['isFavorite', 'INTEGER NOT NULL DEFAULT 0'],
+            ['isTaxRelated', 'INTEGER NOT NULL DEFAULT 0'],
+            ['linkedAccountId', 'TEXT'],
+            ['creditCardDetails', 'TEXT']
+        ];
+        for (const [colName, colDef] of accountMigrations) {
+            if (!existingAccountCols.has(colName)) {
+                dbInstance.run(`ALTER TABLE accounts ADD COLUMN ${colName} ${colDef}`);
+            }
+        }
+    }
+
+    // Migration: Add extended loan columns to loan_details if missing
+    const loanColumns: Array<QueryExecResult> = dbInstance.exec('PRAGMA table_info(loan_details)');
+    const loanResult: QueryExecResult | undefined = loanColumns.at(0);
+    if (loanResult && loanResult.values) {
+        const existingLoanCols = new Set<string>(
+            loanResult.values.map((v: Array<SqlValue>): string => String(v[1]))
+        );
+        const loanMigrations: Array<[string, string]> = [
+            ['principal_and_interest_payment', 'INTEGER'],
+            ['balloon_amount', 'INTEGER'],
+            ['payment_frequency', 'TEXT'],
+            ['compounding_frequency', 'TEXT'],
+            ['is_adjustable_rate', 'INTEGER NOT NULL DEFAULT 0'],
+            ['next_rate_adjustment_date', 'TEXT'],
+            ['next_adjustment_rate', 'REAL'],
+            ['linked_asset_account_id', 'TEXT'],
+            ['interest_category_id', 'TEXT']
+        ];
+        for (const [colName, colDef] of loanMigrations) {
+            if (!existingLoanCols.has(colName)) {
+                dbInstance.run(`ALTER TABLE loan_details ADD COLUMN ${colName} ${colDef}`);
+            }
         }
     }
 
@@ -1061,6 +1137,16 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
 
     return result[0].values
         .map((row: Array<SqlValue>): IAccount => {
+            const creditCardJson = row[18] as string | null;
+            let creditCardDetails: ICreditCardDetails | undefined;
+            if (creditCardJson) {
+                try {
+                    creditCardDetails = JSON.parse(creditCardJson) as ICreditCardDetails;
+                } catch {
+                    creditCardDetails = undefined;
+                }
+            }
+
             const account: IAccount = {
                 id: row[0] as string,
                 name: row[1] as string,
@@ -1071,7 +1157,26 @@ export function getAllAccounts(includeDeleted = false): Array<IAccount> {
                 createdAt: row[8] as ISODateString,
                 updatedAt: row[9] as ISODateString,
                 clearedBalance: 0, // Calculated dynamically in store
-                pendingBalance: 0 // Calculated dynamically in store
+                pendingBalance: 0, // Calculated dynamically in store
+                ...(row[10] !== null && row[10] !== undefined
+                    ? { accountNumber: row[10] as string }
+                    : {}),
+                ...(row[11] !== null && row[11] !== undefined
+                    ? { abbreviation: row[11] as string }
+                    : {}),
+                ...(typeof row[12] === 'number' && row[12] !== 0
+                    ? { openingBalance: row[12] as Cents }
+                    : {}),
+                ...(row[13] !== null && row[13] !== undefined
+                    ? { openingDate: row[13] as ISODateString }
+                    : {}),
+                ...(row[14] !== null && row[14] !== undefined ? { notes: row[14] as string } : {}),
+                ...(row[15] ? { isFavorite: true } : {}),
+                ...(row[16] ? { isTaxRelated: true } : {}),
+                ...(row[17] !== null && row[17] !== undefined
+                    ? { linkedAccountId: row[17] as string }
+                    : {}),
+                ...(creditCardDetails ? { creditCardDetails } : {})
             };
 
             // Load loan details if applicable
@@ -1105,7 +1210,16 @@ export function insertAccount(account: IAccount): void {
         0, // isDeleted
         clientId,
         account.createdAt || now,
-        account.updatedAt || now
+        account.updatedAt || now,
+        account.accountNumber ?? null,
+        account.abbreviation ?? null,
+        account.openingBalance ?? 0,
+        account.openingDate ?? null,
+        account.notes ?? null,
+        account.isFavorite ? 1 : 0,
+        account.isTaxRelated ? 1 : 0,
+        account.linkedAccountId ?? null,
+        account.creditCardDetails ? JSON.stringify(account.creditCardDetails) : null
     ]);
 
     // Insert loan details if present
@@ -1132,6 +1246,15 @@ export function updateAccount(account: IAccount): void {
         0, // isDeleted
         clientId,
         updatedAt,
+        account.accountNumber ?? null,
+        account.abbreviation ?? null,
+        account.openingBalance ?? 0,
+        account.openingDate ?? null,
+        account.notes ?? null,
+        account.isFavorite ? 1 : 0,
+        account.isTaxRelated ? 1 : 0,
+        account.linkedAccountId ?? null,
+        account.creditCardDetails ? JSON.stringify(account.creditCardDetails) : null,
         account.id
     ]);
 
@@ -1285,7 +1408,16 @@ export function insertLoanDetails(accountId: string, details: ILoanDetails): voi
         0, // isDeleted
         clientId,
         now,
-        now
+        now,
+        details.principalAndInterestPayment ?? null,
+        details.balloonAmount ?? null,
+        details.paymentFrequency ?? null,
+        details.compoundingFrequency ?? null,
+        details.isAdjustableRate ? 1 : 0,
+        details.nextRateAdjustmentDate ?? null,
+        details.nextAdjustmentRate ?? null,
+        details.linkedAssetAccountId ?? null,
+        details.interestCategoryId ?? null
     ]);
 }
 
@@ -1310,6 +1442,15 @@ export function getLoanDetails(accountId: string): ILoanDetails | undefined {
     // 5: payment_due_day
     // 6: start_date
     // 7: metadata
+    // 8: principal_and_interest_payment
+    // 9: balloon_amount
+    // 10: payment_frequency
+    // 11: compounding_frequency
+    // 12: is_adjustable_rate
+    // 13: next_rate_adjustment_date
+    // 14: next_adjustment_rate
+    // 15: linked_asset_account_id
+    // 16: interest_category_id
 
     const metadataJson = row[7] as string | null;
 
@@ -1320,7 +1461,26 @@ export function getLoanDetails(accountId: string): ILoanDetails | undefined {
         monthlyPayment: row[4] as Cents,
         paymentDueDay: row[5] as number,
         startDate: row[6] as ISODateString,
-        metadata: metadataJson ? JSON.parse(metadataJson) : undefined
+        metadata: metadataJson ? JSON.parse(metadataJson) : undefined,
+        ...(typeof row[8] === 'number' ? { principalAndInterestPayment: row[8] as Cents } : {}),
+        ...(typeof row[9] === 'number' ? { balloonAmount: row[9] as Cents } : {}),
+        ...(row[10] !== null && row[10] !== undefined
+            ? { paymentFrequency: row[10] as Frequency }
+            : {}),
+        ...(row[11] !== null && row[11] !== undefined
+            ? { compoundingFrequency: row[11] as Frequency }
+            : {}),
+        ...(row[12] ? { isAdjustableRate: true } : {}),
+        ...(row[13] !== null && row[13] !== undefined
+            ? { nextRateAdjustmentDate: row[13] as ISODateString }
+            : {}),
+        ...(typeof row[14] === 'number' ? { nextAdjustmentRate: row[14] as number } : {}),
+        ...(row[15] !== null && row[15] !== undefined
+            ? { linkedAssetAccountId: row[15] as string }
+            : {}),
+        ...(row[16] !== null && row[16] !== undefined
+            ? { interestCategoryId: row[16] as string }
+            : {})
     };
 }
 

@@ -30,6 +30,24 @@
             </button>
             <button
                 type="button"
+                data-testid="ledger-cross-account-reconcile-btn"
+                (click)="openCrossAccountReconciliation()"
+                class="w-full min-h-[40px] px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 text-xs font-semibold text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-primary transition-colors text-left cursor-pointer bg-transparent border-0 border-transparent shadow-none"
+            >
+                <span class="flex items-center gap-2.5 truncate">
+                    <i class="pi pi-share-alt text-primary text-xs"></i>
+                    <span class="truncate">Cross-Account Reconcile</span>
+                </span>
+                @if (pendingCrossAccountCount() > 0) {
+                    <span
+                        class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary"
+                    >
+                        {{ pendingCrossAccountCount() }}
+                    </span>
+                }
+            </button>
+            <button
+                type="button"
                 (click)="triggerImport()"
                 [disabled]="
                     importProgress().stage !== 'idle' &&
@@ -267,6 +285,12 @@
 
     <!-- Main Ledger Area -->
     <div class="flex-1 flex flex-col gap-4 overflow-hidden min-h-0 relative">
+        <!-- AI Cross-Account Reconciled Data Augmentation Banners (Destination & Source) -->
+        <app-account-augmentation-banner
+            [accountId]="activeAccountId()"
+            (requestUpload)="triggerImport()"
+        />
+
         <!-- AI Auto-Matching Banner -->
         <ai-matching-banner />
 

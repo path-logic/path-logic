@@ -56,30 +56,310 @@
                 }
             </select>
         </div>
+
+        <div class="space-y-1.5">
+            <label
+                for="acc-number"
+                class="text-xs font-semibold text-surface-700 dark:text-surface-300 block"
+            >
+                Account Number / Last 4
+            </label>
+            <input
+                id="acc-number"
+                formControlName="accountNumber"
+                placeholder="Optional account #"
+                class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs sm:text-sm font-mono text-surface-900 dark:text-surface-100 transition-all"
+            />
+        </div>
+
+        <div class="space-y-1.5 md:col-span-2">
+            <label
+                for="acc-notes"
+                class="text-xs font-semibold text-surface-700 dark:text-surface-300 block"
+            >
+                Notes
+            </label>
+            <input
+                id="acc-notes"
+                formControlName="notes"
+                placeholder="Optional notes or account comments"
+                class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs sm:text-sm text-surface-900 dark:text-surface-100 transition-all"
+            />
+        </div>
     </div>
+
+    <!-- Credit Card Terms & Promotional Rate Windows -->
+    @if (isCreditCard()) {
+        <div
+            class="space-y-5 border-t border-surface-200/60 dark:border-surface-800 pt-5 animate-in fade-in slide-in-from-top-2"
+        >
+            <div class="flex items-center justify-between">
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                    Credit Card Terms &amp; Interest Rates
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+                <div class="space-y-2">
+                    <label
+                        for="cc-limit"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Credit Limit ($)
+                    </label>
+                    <input
+                        id="cc-limit"
+                        formControlName="creditLimit"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 10000"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="cc-apr"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Standard APR (%)
+                    </label>
+                    <input
+                        id="cc-apr"
+                        formControlName="ccInterestRate"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 24.99"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="cc-min-payment"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Min Payment Floor ($)
+                    </label>
+                    <input
+                        id="cc-min-payment"
+                        formControlName="minimumPayment"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 25.00"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="cc-due-day"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Payment Due Day (1–31)
+                    </label>
+                    <input
+                        id="cc-due-day"
+                        formControlName="ccPaymentDueDay"
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="e.g. 15"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+            </div>
+
+            <!-- Promotional Rate Windows -->
+            <div
+                class="space-y-4 p-5 rounded-2xl bg-surface-50/60 dark:bg-surface-900/40 border border-surface-200/80 dark:border-surface-800"
+            >
+                <div class="flex items-center justify-between gap-3">
+                    <div class="space-y-1">
+                        <h4
+                            class="text-xs font-bold text-surface-800 dark:text-surface-200 flex items-center gap-2"
+                        >
+                            <i class="pi pi-percentage text-primary text-xs"></i>
+                            <span>Promotional Rate Windows</span>
+                            <span
+                                class="px-2 py-0.5 text-[10px] font-mono rounded-full bg-primary/10 text-primary"
+                            >
+                                {{ promoWindows().length }}
+                            </span>
+                        </h4>
+                        <p class="text-xs text-surface-500 dark:text-surface-400">
+                            Track individual 0% or low-APR promotional windows (balance transfers,
+                            intro purchases) and their expiration dates.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        data-testid="add-promo-window-btn"
+                        (click)="addPromotionalWindow()"
+                        class="h-9 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs flex items-center gap-2 cursor-pointer transition-colors shrink-0 shadow-none"
+                    >
+                        <i class="pi pi-plus text-[10px]"></i>
+                        <span>Add Promo Window</span>
+                    </button>
+                </div>
+
+                @if (promoWindows().length === 0) {
+                    <div
+                        class="text-xs text-surface-500 dark:text-surface-400 py-4 text-center border border-dashed border-surface-200 dark:border-surface-700 rounded-xl"
+                    >
+                        No promotional rate windows configured for this card.
+                    </div>
+                } @else {
+                    <div class="space-y-3.5">
+                        @for (promo of promoWindows(); track promo.id; let idx = $index) {
+                            <div
+                                class="p-4 rounded-xl bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-800 space-y-3.5"
+                                [attr.data-testid]="'promo-window-' + idx"
+                            >
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5">
+                                        <span
+                                            class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                                            [class]="
+                                                isPromoWindowActive(promo.endDate)
+                                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                    : 'bg-surface-200/70 dark:bg-surface-800 text-surface-500'
+                                            "
+                                        >
+                                            {{
+                                                isPromoWindowActive(promo.endDate)
+                                                    ? 'Active Promo'
+                                                    : 'Expired'
+                                            }}
+                                        </span>
+                                        <span
+                                            class="text-xs font-semibold text-surface-700 dark:text-surface-300"
+                                        >
+                                            {{ promo.name || 'Promotional Window' }}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        (click)="removePromotionalWindow(promo.id)"
+                                        [attr.aria-label]="
+                                            'Remove promotional window ' + promo.name
+                                        "
+                                        class="w-7 h-7 rounded-lg flex items-center justify-center text-surface-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 text-xs bg-transparent shadow-none cursor-pointer transition-colors"
+                                    >
+                                        <i class="pi pi-trash text-xs"></i>
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
+                                    <div class="sm:col-span-2 space-y-1.5">
+                                        <label
+                                            class="text-[10px] font-bold uppercase text-surface-500 block"
+                                        >
+                                            Promo Label
+                                        </label>
+                                        <input
+                                            type="text"
+                                            [(ngModel)]="promo.name"
+                                            [ngModelOptions]="{ standalone: true }"
+                                            placeholder="e.g. 0% Balance Transfer"
+                                            class="w-full h-9 px-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-xs"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label
+                                            class="text-[10px] font-bold uppercase text-surface-500 block"
+                                        >
+                                            Offer Type
+                                        </label>
+                                        <select
+                                            [(ngModel)]="promo.promoType"
+                                            [ngModelOptions]="{ standalone: true }"
+                                            class="w-full h-9 px-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-xs capitalize"
+                                        >
+                                            @for (pt of promoRateTypes(); track pt) {
+                                                <option [value]="pt">
+                                                    {{ pt.replace('_', ' ') }}
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label
+                                            class="text-[10px] font-bold uppercase text-surface-500 block"
+                                        >
+                                            Promo APR (%)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            [(ngModel)]="promo.aprPercent"
+                                            [ngModelOptions]="{ standalone: true }"
+                                            class="w-full h-9 px-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg font-mono text-xs"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label
+                                            class="text-[10px] font-bold uppercase text-surface-500 block"
+                                        >
+                                            Expires On
+                                        </label>
+                                        <input
+                                            type="date"
+                                            [(ngModel)]="promo.endDate"
+                                            [ngModelOptions]="{ standalone: true }"
+                                            class="w-full h-9 px-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg font-mono text-xs"
+                                        />
+                                    </div>
+
+                                    <div class="space-y-1.5">
+                                        <label
+                                            class="text-[10px] font-bold uppercase text-surface-500 block"
+                                        >
+                                            Post-Promo APR (%)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            [(ngModel)]="promo.postPromoAprPercent"
+                                            [ngModelOptions]="{ standalone: true }"
+                                            placeholder="e.g. 26.98"
+                                            class="w-full h-9 px-3 bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg font-mono text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     @if (isLoan()) {
         <div
-            class="space-y-4 border-t border-surface-200/50 pt-4 animate-in fade-in slide-in-from-top-2"
+            class="space-y-5 border-t border-surface-200/60 dark:border-surface-800 pt-5 animate-in fade-in slide-in-from-top-2"
         >
             <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                 Loan Details
             </h3>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                 <div class="space-y-2">
                     <label
                         for="loan-principal"
                         class="text-[10px] font-bold uppercase text-surface-500 block"
                     >
-                        Original Principal
+                        Original Principal ($)
                     </label>
                     <input
                         id="loan-principal"
                         formControlName="originalAmount"
                         type="number"
                         step="0.01"
-                        class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
                     />
                 </div>
 
@@ -95,7 +375,7 @@
                         formControlName="interestRate"
                         type="number"
                         step="0.001"
-                        class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
                     />
                 </div>
 
@@ -110,7 +390,7 @@
                         id="loan-term"
                         formControlName="termMonths"
                         type="number"
-                        class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
                     />
                 </div>
 
@@ -119,37 +399,84 @@
                         for="loan-payment"
                         class="text-[10px] font-bold uppercase text-surface-500 block"
                     >
-                        Monthly Payment
+                        Monthly Payment ($)
                     </label>
                     <input
                         id="loan-payment"
                         formControlName="monthlyPayment"
                         type="number"
                         step="0.01"
-                        class="w-full h-9 px-3 bg-surface-100/5 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs transition-all"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="loan-pi-payment"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Principal &amp; Interest ($)
+                    </label>
+                    <input
+                        id="loan-pi-payment"
+                        formControlName="principalAndInterestPayment"
+                        type="number"
+                        step="0.01"
+                        placeholder="Optional P&I portion"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        for="loan-start-date"
+                        class="text-[10px] font-bold uppercase text-surface-500 block"
+                    >
+                        Origination Date
+                    </label>
+                    <input
+                        id="loan-start-date"
+                        formControlName="startDate"
+                        type="date"
+                        class="w-full h-10 px-3.5 bg-surface-50/50 dark:bg-surface-950/50 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
                     />
                 </div>
             </div>
 
             <!-- Mortgage specific -->
-            @if (accountForm.get('type')?.value === 'mortgage') {
+            @if (selectedType() === 'mortgage') {
                 <div
-                    class="grid grid-cols-2 gap-4 p-3 bg-surface-100/20 border border-surface-200 rounded-sm"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 bg-surface-50/60 dark:bg-surface-900/40 border border-surface-200/80 dark:border-surface-800 rounded-xl"
                 >
-                    <div class="col-span-2 space-y-2">
+                    <div class="space-y-2">
                         <label
                             for="loan-address"
                             class="text-[10px] uppercase font-bold text-surface-500 block"
                         >
-                            Property Address
+                            Property Address / Name
                         </label>
                         <input
                             id="loan-address"
                             formControlName="propertyAddress"
-                            class="w-full h-9 px-3 bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs transition-all"
                         />
                     </div>
-                    <div class="flex items-center gap-2 pt-2 col-span-2">
+                    <div class="space-y-2">
+                        <label
+                            for="loan-prop-value"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            Property Value ($)
+                        </label>
+                        <input
+                            id="loan-prop-value"
+                            formControlName="propertyValue"
+                            type="number"
+                            step="0.01"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2.5 pt-2">
                         <input
                             type="checkbox"
                             id="escrow"
@@ -163,14 +490,43 @@
                             Include Escrow
                         </label>
                     </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-escrow-amount"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            Monthly Escrow Amount ($)
+                        </label>
+                        <input
+                            id="loan-escrow-amount"
+                            formControlName="escrowAmount"
+                            type="number"
+                            step="0.01"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                        />
+                    </div>
                 </div>
             }
 
             <!-- Auto specific -->
-            @if (accountForm.get('type')?.value === 'auto_loan') {
+            @if (selectedType() === 'auto_loan') {
                 <div
-                    class="grid grid-cols-2 gap-4 p-3 bg-surface-100/20 border border-surface-200 rounded-sm"
+                    class="grid grid-cols-1 sm:grid-cols-4 gap-5 p-4 bg-surface-50/60 dark:bg-surface-900/40 border border-surface-200/80 dark:border-surface-800 rounded-xl"
                 >
+                    <div class="space-y-2">
+                        <label
+                            for="loan-year"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            Vehicle Year
+                        </label>
+                        <input
+                            id="loan-year"
+                            formControlName="vehicleYear"
+                            type="number"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                        />
+                    </div>
                     <div class="space-y-2">
                         <label
                             for="loan-make"
@@ -181,7 +537,7 @@
                         <input
                             id="loan-make"
                             formControlName="vehicleMake"
-                            class="w-full h-9 px-3 bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs transition-all"
                         />
                     </div>
                     <div class="space-y-2">
@@ -194,8 +550,74 @@
                         <input
                             id="loan-model"
                             formControlName="vehicleModel"
-                            class="w-full h-9 px-3 bg-surface-50 border border-surface-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-primary text-xs transition-all"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs transition-all"
                         />
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-vin"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            VIN
+                        </label>
+                        <input
+                            id="loan-vin"
+                            formControlName="vin"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-xs transition-all"
+                        />
+                    </div>
+                </div>
+            }
+
+            <!-- Personal / Student Loan specific -->
+            @if (selectedType() === 'personal_loan') {
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-3 gap-5 p-4 bg-surface-50/60 dark:bg-surface-900/40 border border-surface-200/80 dark:border-surface-800 rounded-xl"
+                >
+                    <div class="space-y-2">
+                        <label
+                            for="loan-subtype"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            Loan Classification
+                        </label>
+                        <select
+                            id="loan-subtype"
+                            formControlName="loanSubtype"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs capitalize transition-all"
+                        >
+                            @for (st of personalLoanSubtypes(); track st) {
+                                <option [value]="st">{{ st.replace('_', ' ') }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            for="loan-purpose"
+                            class="text-[10px] uppercase font-bold text-surface-500 block"
+                        >
+                            Loan Purpose
+                        </label>
+                        <input
+                            id="loan-purpose"
+                            formControlName="purpose"
+                            placeholder="e.g. Student Loan, Home Improvement"
+                            class="w-full h-10 px-3.5 bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs transition-all"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2.5 pt-6">
+                        <input
+                            type="checkbox"
+                            id="loan-secured"
+                            formControlName="secured"
+                            class="w-4 h-4 border-surface-200 rounded-sm focus:ring-primary"
+                        />
+                        <label
+                            htmlFor="loan-secured"
+                            class="text-[10px] uppercase font-bold cursor-pointer"
+                        >
+                            Secured Loan
+                        </label>
                     </div>
                 </div>
             }

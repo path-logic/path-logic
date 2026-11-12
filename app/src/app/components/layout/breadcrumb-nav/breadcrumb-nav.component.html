@@ -1,13 +1,13 @@
 <div
-    class="flex-none w-full border-b border-surface-200/50 dark:border-surface-800/80 px-4 backdrop-blur-sm transition-all select-none"
+    class="relative z-40 flex-none w-full border-b border-surface-200/50 dark:border-surface-800/80 px-4 backdrop-blur-sm transition-all select-none"
     style="background-color: color-mix(in srgb, var(--p-surface-0) 60%, transparent)"
 >
-    <div class="max-w-7xl mx-auto py-2 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto py-2.5 flex items-center justify-between gap-4">
         <!-- Left: Breadcrumbs Trail -->
-        <nav class="flex items-center gap-2 min-w-0 flex-1" aria-label="Breadcrumb">
-            <ol class="flex items-center gap-2 text-xs font-semibold tracking-wide truncate">
+        <nav class="flex items-center gap-2.5 min-w-0 flex-1" aria-label="Breadcrumb">
+            <ol class="flex items-center gap-2.5 text-xs font-semibold tracking-wide">
                 <!-- Home / First Segment -->
-                <li class="flex items-center gap-2 shrink-0">
+                <li class="flex items-center gap-2.5 shrink-0">
                     @if (home().icon) {
                         <a
                             [routerLink]="home().routerLink"
@@ -31,11 +31,11 @@
                 <!-- Account Dropdown or Static Label if on an Account Route -->
                 @if (currentAccountId()) {
                     <li
-                        class="flex items-center gap-2 shrink-0 text-surface-300 dark:text-surface-600"
+                        class="flex items-center gap-2.5 shrink-0 text-surface-300 dark:text-surface-600"
                     >
                         <i class="pi pi-chevron-right text-[10px]" aria-hidden="true"></i>
                         @if (hasMultipleAccounts()) {
-                            <div class="w-56 sm:w-64">
+                            <div class="w-64 sm:w-72">
                                 <account-dropdown
                                     [accounts]="accounts()"
                                     [selectedAccountId]="currentAccountId()"
@@ -48,7 +48,7 @@
                             </div>
                         } @else {
                             <div
-                                class="flex items-center gap-1.5 px-2 py-1 text-surface-800 dark:text-surface-200 font-semibold text-xs"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-surface-800 dark:text-surface-200 font-semibold text-xs"
                             >
                                 <i class="pi pi-building text-[11px] text-surface-400"></i>
                                 <span>{{ currentAccountName() }}</span>

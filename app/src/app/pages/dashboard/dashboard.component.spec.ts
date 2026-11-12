@@ -114,6 +114,63 @@ describe('DashboardComponent', () => {
             ]
         }).compileComponents();
 
+        mockAccounts.set([
+            {
+                id: 'acc-1',
+                name: 'Checking',
+                institutionName: 'Chase',
+                type: AccountType.Checking,
+                clearedBalance: 300000,
+                pendingBalance: 300000,
+                isActive: true,
+                createdAt: '2026-01-01',
+                updatedAt: '2026-01-01',
+                deletedAt: null
+            },
+            {
+                id: 'acc-2',
+                name: 'Savings',
+                institutionName: 'Marcus',
+                type: AccountType.Savings,
+                clearedBalance: 1000000,
+                pendingBalance: 1000000,
+                isActive: true,
+                createdAt: '2026-01-01',
+                updatedAt: '2026-01-01',
+                deletedAt: null
+            }
+        ]);
+        mockTransactions.set([
+            {
+                id: 'tx-1',
+                accountId: 'acc-1',
+                date: '2026-08-01',
+                payee: 'Direct Deposit',
+                totalAmount: 500000,
+                status: TransactionStatus.Cleared,
+                splits: []
+            },
+            {
+                id: 'tx-2',
+                accountId: 'acc-1',
+                date: '2026-08-05',
+                payee: 'Rent',
+                totalAmount: -200000,
+                status: TransactionStatus.Cleared,
+                splits: []
+            }
+        ]);
+        mockSchedules.set([
+            {
+                id: 'sch-1',
+                payee: 'Electric Bill',
+                amount: -12000,
+                frequency: 'monthly',
+                startDate: '2026-08-15',
+                nextDueDate: '2026-09-15'
+            }
+        ]);
+
         fixture = TestBed.createComponent(DashboardComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
@@ -187,6 +244,80 @@ describe('DashboardComponent', () => {
         // Zero state should NOT be visible while loading
         const text = fixture.nativeElement.textContent;
         expect(text).not.toContain('No accounts connected');
+    });
+
+    it('should only show open and active accounts on the overview page, prioritize starred accounts, and display originating account names on Recent Activity and Upcoming', () => {
+        mockAccounts.set([
+            {
+                id: 'acc-closed',
+                name: '2001 Cobra Closed Loan',
+                institutionName: 'Ford',
+                type: AccountType.AutoLoan,
+                clearedBalance: 0,
+                pendingBalance: 0,
+                isActive: false,
+                createdAt: '2026-01-01',
+                updatedAt: '2026-01-01',
+                deletedAt: null
+            },
+            {
+                id: 'acc-1',
+                name: 'Chase Checking',
+                institutionName: 'Chase',
+                type: AccountType.Checking,
+                clearedBalance: 300000,
+                pendingBalance: 300000,
+                isActive: true,
+                createdAt: '2026-01-01',
+                updatedAt: '2026-01-01',
+                deletedAt: null
+            },
+            {
+                id: 'acc-2',
+                name: 'Starred Marcus Savings',
+                institutionName: 'Marcus',
+                type: AccountType.Savings,
+                clearedBalance: 1000000,
+                pendingBalance: 1000000,
+                isActive: true,
+                isFavorite: true,
+                createdAt: '2026-01-01',
+                updatedAt: '2026-01-01',
+                deletedAt: null
+            } as any
+        ]);
+        mockSchedules.set([
+            {
+                id: 'sch-1',
+                accountId: 'acc-1',
+                payee: 'Electric Bill',
+                amount: -12000,
+                frequency: 'monthly',
+                startDate: '2026-08-15',
+                nextDueDate: '2026-09-15'
+            } as any
+        ]);
+        fixture.detectChanges();
+
+        // Closed account is excluded from activeAccounts and primaryAccounts
+        expect(component.activeAccounts().map(a => a.id)).toEqual(['acc-1', 'acc-2']);
+        expect(fixture.nativeElement.textContent).not.toContain('2001 Cobra Closed Loan');
+
+        // Starred account (acc-2) is prioritized as the Hero account
+        expect(component.heroAccount()?.id).toBe('acc-2');
+
+        // Recent Activity and Upcoming display originating account name
+        const txAccountNames = fixture.nativeElement.querySelectorAll(
+            '[data-testid="recent-tx-account-name"]'
+        );
+        expect(txAccountNames.length).toBeGreaterThan(0);
+        expect(txAccountNames[0]?.textContent).toContain('Chase Checking');
+
+        const upcomingAccountNames = fixture.nativeElement.querySelectorAll(
+            '[data-testid="upcoming-item-account-name"]'
+        );
+        expect(upcomingAccountNames.length).toBeGreaterThan(0);
+        expect(upcomingAccountNames[0]?.textContent).toContain('Chase Checking');
     });
 
     it('should show zero states only after loading completes and data is confirmed empty', () => {

@@ -4,6 +4,7 @@ import {
     Component,
     computed,
     effect,
+    HostListener,
     inject,
     signal
 } from '@angular/core';
@@ -17,9 +18,12 @@ import { LlmProvider, LlmService } from '../../services/llm/llm.service';
 import { type ThemePreference, ThemeService } from '../../services/theme/theme.service';
 import { UserSettingsStore } from '../../services/user-settings-store/user-settings.store';
 
+import { Router } from '@angular/router';
+
 import { ExportDialogComponent } from '../../components/export-import/export-dialog/export-dialog.component';
 import { ExportManagerDialogComponent } from '../../components/export-import/export-manager-dialog/export-manager-dialog.component';
 import { ImportDialogComponent } from '../../components/export-import/import-dialog/import-dialog.component';
+import { MnyMigrationService } from '../../services/import-export/mny-migration.service';
 
 /**
  * Main Settings page for configuring the application.
@@ -45,6 +49,9 @@ export class SettingsPageComponent {
     readonly showExportDialog = signal<boolean>(false);
     readonly showImportDialog = signal<boolean>(false);
     readonly showExportManagerDialog = signal<boolean>(false);
+    readonly showMnyMigrationDialog = signal<boolean>(false);
+    readonly mnyMigrationService = inject(MnyMigrationService);
+    private readonly router = inject(Router);
     private readonly themeService = inject(ThemeService);
     private readonly userSettingsStore = inject(UserSettingsStore);
     private readonly llmService = inject(LlmService);
@@ -77,18 +84,21 @@ export class SettingsPageComponent {
     readonly apiKeyPlaceholder = computed(() => {
         switch (this.selectedProvider()) {
             case LlmProvider.Anthropic:
-                return 'sk-ant-api03...';
+                return 'Paste your Anthropic Claude API key (e.g. sk-ant-...)';
             case LlmProvider.OpenAI:
-                return 'sk-proj-...';
+                return 'Paste your OpenAI API key (e.g. sk-proj-...)';
             case LlmProvider.Gemini:
             default:
-                return 'AIzaSy...';
+                return 'Paste your Google Gemini API key (e.g. AIzaSy...)';
         }
     });
 
     readonly showGuide = signal(false);
     readonly showApiKey = signal(false);
     readonly keySaved = signal(false);
+    readonly draftApiKey = signal<string | null>(null);
+    readonly currentApiKeyInput = computed(() => this.draftApiKey() ?? this.apiKey());
+    readonly hasApiKeyInputValue = computed(() => this.currentApiKeyInput().trim().length > 0);
 
     readonly FLAG_CONFIGS = Object.values(FLAG_CONFIGS);
     readonly currentTheme = this.themeService.preference;
@@ -201,17 +211,41 @@ export class SettingsPageComponent {
         });
     }
 
-    async loadDynamicModels(provider: LlmProvider, key: string): Promise<void> {
+    async loadDynamicModels(
+        provider: LlmProvider,
+        key: string,
+        forceDefault = false
+    ): Promise<void> {
         try {
             const models = await this.llmService.listModels(provider, key);
             this.dynamicModels.set(models);
 
-            // Auto-select the default model (newest Flash for Gemini, newest Sonnet for Claude, mini for OpenAI)
-            const defaultModel = models.find(m => m.isDefault)?.value ?? models[0]?.value;
-            const currentSaved = this.userSettingsStore.getSetting('aiModel');
+            // Auto-select the default model (newest generation such as Gemini 4 Argon for Gemini, newest Sonnet for Claude, mini for OpenAI)
+            const defaultOption = models.find(m => m.isDefault) ?? models[0];
+            const defaultModel = defaultOption?.value;
+            const currentSaved =
+                this.userSettingsStore.getSetting('aiModel') ??
+                this.userSettingsStore.getSetting('geminiModel');
+            const currentOption = models.find(m => m.value === currentSaved);
+            const isUserSelected =
+                this.userSettingsStore.getSetting('aiModelUserSelected') === 'true';
 
-            if (!currentSaved && defaultModel) {
-                this.userSettingsStore.updateSetting('aiModel', defaultModel);
+            if (defaultModel) {
+                const shouldSelectDefault =
+                    forceDefault ||
+                    !currentSaved ||
+                    (!isUserSelected &&
+                        defaultModel !== currentSaved &&
+                        this.llmService.isModelNewer(
+                            defaultModel,
+                            currentSaved,
+                            defaultOption?.label,
+                            currentOption?.label
+                        ));
+
+                if (shouldSelectDefault) {
+                    this.updateModel(defaultModel, false);
+                }
             }
         } catch (err) {
             console.error('Failed to load dynamic models:', err);
@@ -223,13 +257,29 @@ export class SettingsPageComponent {
         this.themeService.setTheme(pref);
     }
 
+    onApiKeyInput(value: string): void {
+        this.draftApiKey.set(value);
+    }
+
+    toggleShowApiKey(inputEl?: HTMLInputElement): void {
+        if (inputEl && this.draftApiKey() === null && inputEl.value !== this.apiKey()) {
+            this.draftApiKey.set(inputEl.value);
+        }
+        const next = !this.showApiKey();
+        this.showApiKey.set(next);
+        if (inputEl) {
+            inputEl.type = next ? 'text' : 'password';
+        }
+    }
+
     updateProvider(providerStr: string): void {
         const provider = providerStr as LlmProvider;
+        this.draftApiKey.set(null);
         this.userSettingsStore.updateSetting('aiProvider', provider);
         // Reload models for new provider if key exists
         const key = this.apiKey();
         if (key) {
-            void this.loadDynamicModels(provider, key);
+            void this.loadDynamicModels(provider, key, true);
         } else {
             this.dynamicModels.set([]);
         }
@@ -237,6 +287,7 @@ export class SettingsPageComponent {
 
     updateApiKey(key: string): void {
         const trimmed = key.trim();
+        this.draftApiKey.set(trimmed);
         const detectedProvider = this.llmService.autoDetectProvider(trimmed);
 
         if (detectedProvider !== this.selectedProvider()) {
@@ -252,9 +303,10 @@ export class SettingsPageComponent {
         }
 
         this.userSettingsStore.updateSetting('aiApiKey', trimmed);
+        this.userSettingsStore.updateSetting('aiModelUserSelected', 'false');
 
         if (trimmed) {
-            void this.loadDynamicModels(detectedProvider, trimmed);
+            void this.loadDynamicModels(detectedProvider, trimmed, true);
             this.keySaved.set(true);
             setTimeout(() => this.keySaved.set(false), 2500);
         } else {
@@ -263,9 +315,13 @@ export class SettingsPageComponent {
         }
     }
 
-    updateModel(model: string): void {
+    updateModel(model: string, userSelected = true): void {
         const trimmed = model.trim();
         this.userSettingsStore.updateSetting('aiModel', trimmed);
+        this.userSettingsStore.updateSetting(
+            'aiModelUserSelected',
+            userSelected ? 'true' : 'false'
+        );
         if (this.selectedProvider() === LlmProvider.Gemini) {
             this.userSettingsStore.updateSetting('geminiModel', trimmed);
         }
@@ -274,10 +330,23 @@ export class SettingsPageComponent {
     onModelDropdownChange(value: string): void {
         if (value === 'custom') {
             if (!this.isCustomModel()) {
-                this.updateModel('custom-model-id');
+                this.updateModel('custom-model-id', true);
             }
         } else if (value) {
-            this.updateModel(value);
+            this.updateModel(value, true);
+        }
+    }
+
+    openMnyMigration(): void {
+        this.mnyMigrationService.open();
+        this.showMnyMigrationDialog.set(true);
+        void this.router.navigate(['/settings/mny-migration']);
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapeKey(): void {
+        if (this.showGuide()) {
+            this.showGuide.set(false);
         }
     }
 }
